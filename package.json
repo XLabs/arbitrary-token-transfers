@@ -1,0 +1,23 @@
+{
+  "name": "token-bridge-relayer-root",
+  "private": true,
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "build": "tsc --build tsconfig.json",
+    "prettier": "prettier --write ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "Apache 2",
+  "devDependencies": {
+    "@types/node": "20.14.14",
+    "prettier": "3.3.3",
+    "tsx": "4.16.5",
+    "typescript": "5.5.4"
+  },
+  "workspaces": [
+    "sdk"
+  ],
+  "packageManager": "yarn@4.4.0"
+}

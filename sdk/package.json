@@ -1,0 +1,23 @@
+{
+  "name": "token-bridge-relayer-sdk",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "build": "tsc --build tsconfig.json",
+    "prettier": "prettier --write ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "Apache 2",
+  "dependencies": {
+    "@wormhole-foundation/sdk-base": "0.9.1",
+    "@wormhole-foundation/sdk-definitions": "0.9.1",
+    "@wormhole-foundation/sdk-evm": "0.9.1"
+  },
+  "devDependencies": {
+    "@types/node": "20.14.14",
+    "prettier": "3.3.3",
+    "tsx": "4.16.5",
+    "typescript": "5.5.4"
+  }
+}
