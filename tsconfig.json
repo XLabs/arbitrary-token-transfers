@@ -12,6 +12,7 @@
     "sourceMap": true,
     "strict": true,
     "noImplicitAny": true,
+    "noErrorTruncation": true,
     "skipLibCheck": true
   },
   "references": [

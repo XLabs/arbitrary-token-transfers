@@ -622,7 +622,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ethers@npm:^6.5.1":
+"ethers@npm:^6.13.2, ethers@npm:^6.5.1":
   version: 6.13.2
   resolution: "ethers@npm:6.13.2"
   dependencies:
@@ -1278,6 +1278,7 @@ __metadata:
     "@wormhole-foundation/sdk-base": "npm:0.9.1"
     "@wormhole-foundation/sdk-definitions": "npm:0.9.1"
     "@wormhole-foundation/sdk-evm": "npm:0.9.1"
+    ethers: "npm:^6.13.2"
     prettier: "npm:3.3.3"
     tsx: "npm:4.16.5"
     typescript: "npm:5.5.4"

@@ -12,7 +12,8 @@
   "dependencies": {
     "@wormhole-foundation/sdk-base": "0.9.1",
     "@wormhole-foundation/sdk-definitions": "0.9.1",
-    "@wormhole-foundation/sdk-evm": "0.9.1"
+    "@wormhole-foundation/sdk-evm": "0.9.1",
+    "ethers": "^6.13.2"
   },
   "devDependencies": {
     "@types/node": "20.14.14",
