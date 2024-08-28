@@ -10,6 +10,7 @@ dist/
 build/
 ts-build/
 build-test/
+build-forge/
 
 # Ignore log files
 *.log
@@ -32,3 +33,6 @@ tmp/
 # Sublime text project files
 *.sublime-project
 *.sublime-workspace
+
+# Ignore cache files
+cache/
