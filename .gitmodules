@@ -1,0 +1,3 @@
+[submodule "evm/lib/relayer-infra-contracts"]
+	path = evm/lib/relayer-infra-contracts
+	url = https://github.com/XLabs/relayer-infra-contracts
