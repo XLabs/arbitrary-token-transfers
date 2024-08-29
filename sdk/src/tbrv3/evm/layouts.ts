@@ -50,7 +50,8 @@ export const acquireModeItem = {
 } as const satisfies NamedLayoutItem;
 
 /**
- * @dev Must match the constant defined in GasDropoff.sol!
+ * Currently Twei.
+ * @dev Must match the units documented in Tbrv3::<TODO put function name here>
  */
 export const gasDropoffUnit = BigInt(1e12);
 export const gasDropoffItem = {
@@ -62,16 +63,17 @@ export const gasDropoffItem = {
   } as const satisfies CustomConversion<number, bigint>,
 } as const satisfies UintLayoutItem;
 
-export const transferTokensWithRelayLayout = [
+export const transferTokenWithRelayLayout = [
   { name: "recipient", binary: "bytes", layout: recipientLayout },
   { name: "inputToken", ...evmAddressItem },
   { name: "inputAmount", ...layoutItems.amountItem },
   acquireModeItem,
   { name: "gasDropoff", ...gasDropoffItem },
   { name: "maxFee", ...layoutItems.amountItem },
+  { name: "unwrapIntent", ...layoutItems.boolItem },
 ] as const satisfies Layout;
 
-export const wrapAndTransferEthWithRelayLayout = [
+export const wrapAndTransferGasTokenWithRelayLayout = [
   { name: "recipient", binary: "bytes", layout: recipientLayout },
   // msg.value - inputAmount = maxFee(*)
   { name: "inputAmount", ...layoutItems.amountItem },
@@ -134,8 +136,8 @@ export const dispatcherLayout = {
   idTag: "method",
   layouts: [
     //active user methods
-    [[0, "TransferTokensWithRelay"], transferTokensWithRelayLayout],
-    [[1, "WrapAndTransferEthWithRelay" ], wrapAndTransferEthWithRelayLayout],
+    [[0, "TransferTokenWithRelay"], transferTokenWithRelayLayout],
+    [[1, "WrapAndTransferGasTokenWithRelay" ], wrapAndTransferGasTokenWithRelayLayout],
     [[2, "Complete"], [{ name: "vaa", binary: "bytes" }]],
     //TODO governance methods
 
@@ -162,4 +164,5 @@ export const versionEnvelopeLayout = {
 export const TBRv3Message = [
   { name: "recipient", ...layoutItems.universalAddressItem },
   { name: "gasDropoff", ...gasDropoffItem },
+  { name: "unwrapIntent", ...layoutItems.boolItem },
 ] as const satisfies Layout;
