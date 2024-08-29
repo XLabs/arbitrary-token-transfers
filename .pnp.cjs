@@ -1456,7 +1456,6 @@ const RAW_RUNTIME_STATE =
           ["@wormhole-foundation/sdk-definitions", "npm:0.9.1"],\
           ["@wormhole-foundation/sdk-evm", "npm:0.9.1"],\
           ["ethers", "npm:6.13.2"],\
-          ["prettier", "npm:3.3.3"],\
           ["tsx", "npm:4.16.5"],\
           ["typescript", "patch:typescript@npm%3A5.5.4#optional!builtin<compat/typescript>::version=5.5.4&hash=379a07"]\
         ],\
