@@ -7,6 +7,8 @@ import "wormhole-sdk/dispatcher/RawDispatcher.sol";
 import "./TbrGovernance.sol";
 
 error UnsupportedVersion(uint8 version);
+error UnknownCommand(uint8 command);
+error UnknownQuery(uint8 query);
 
 abstract contract TbrDispatcher is RawDispatcher, TbrGovernance {
   using BytesParsing for bytes;
@@ -45,7 +47,7 @@ abstract contract TbrDispatcher is RawDispatcher, TbrGovernance {
         else if (command == GOVERNANCE_ID)
           movedOffset = batchGovernanceCommands(data[offset:]);
         else 
-          _assertExhaustive();
+          revert UnknownCommand(command);
 
         offset += movedOffset;
       }
@@ -75,7 +77,7 @@ abstract contract TbrDispatcher is RawDispatcher, TbrGovernance {
         else if (query == GOVERNANCE_QUERIES_ID) 
           (result, movedOffset) = batchGovernanceQueries(data[offset:]);
         else 
-          _assertExhaustive();
+          revert UnknownQuery(query);
 
         ret = abi.encodePacked(ret, result);
         offset += movedOffset;
