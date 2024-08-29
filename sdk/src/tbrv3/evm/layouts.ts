@@ -90,6 +90,13 @@ export const relayingFeesReturnLayout = [
   { name: "fee", binary: "uint", size: 8 },
 ] as const satisfies Layout;
 
+/**
+ * This is the unit for fees returned by `RelayFee` command.
+ */
+export const relayFeeUnit = BigInt(1e6);
+/**
+ * This is the response schema for a single `RelayFee` command.
+ */
 export interface RelayingFeesReturnItem {
   /**
    * If outbound transfers towards the target chain are paused, this will be `true`.

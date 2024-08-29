@@ -1,7 +1,7 @@
 import { chainToPlatform, FixedLengthArray, Layout, layout, LayoutToType, Network, ProperLayout } from "@wormhole-foundation/sdk-base";
 import { serialize, toNative, toUniversal, VAA } from "@wormhole-foundation/sdk-definitions";
 import { ethers } from "ethers";
-import { baseRelayingConfigReturnLayout, BaseRelayingParamsReturn, dispatcherLayout, gasDropoffUnit, relayingFeesInputLayout, RelayingFeesReturn, relayingFeesReturnLayout, SupportedChains, TBRv3Message, transferTokenWithRelayLayout, versionEnvelopeLayout, wrapAndTransferGasTokenWithRelayLayout } from "./layouts";
+import { baseRelayingConfigReturnLayout, BaseRelayingParamsReturn, dispatcherLayout, gasDropoffUnit, relayFeeUnit, relayingFeesInputLayout, RelayingFeesReturn, RelayingFeesReturnItem, relayingFeesReturnLayout, SupportedChains, TBRv3Message, transferTokenWithRelayLayout, versionEnvelopeLayout, wrapAndTransferGasTokenWithRelayLayout } from "./layouts";
 
 /**
  * Gives you a type that keeps the properties of `T1` while making both properties common to `T1` and `T2` and properties exclusive to `T2` optional.
@@ -13,7 +13,8 @@ import { baseRelayingConfigReturnLayout, BaseRelayingParamsReturn, dispatcherLay
 type MakeOptional<T1, T2> = Omit<T1, keyof T2> & Partial<Omit<T1, keyof Omit<T1, keyof T2>>> & Partial<Omit<T2, keyof T1>>;
 
 type Method = LayoutToType<typeof dispatcherLayout>["method"];
-type MethodArgs<M extends Method> = Extract<LayoutToType<typeof dispatcherLayout>, { method: M }>;
+type MethodCall = LayoutToType<typeof dispatcherLayout>;
+type MethodArgs<M extends Method> = Extract<MethodCall, { method: M }>;
 
 type FixedArray<T extends Layout> = {
     binary: "array",
@@ -53,7 +54,7 @@ function getTbrv3Class() {
   return Tbrv3Contract;
 }
 
-interface TbrPartialTx {
+export interface TbrPartialTx {
   /**
    * Amount of native token that should be attached to the transaction.
    * Denominated in wei.
@@ -69,8 +70,15 @@ interface TbrPartialTx {
   to: string;
 }
 
-type RelayingFeesInput = LayoutToType<typeof relayingFeesInputLayout>;
-type NetworkMain = Exclude<Network, "Devnet">;
+type OmitMaxFee<T> = Omit<T, "maxFee">
+
+type TransferTokenWithRelayInputWithMaxFee = LayoutToType<typeof transferTokenWithRelayLayout>;
+type WrapAndTransferGasTokenWithRelayInputWithMaxFee = LayoutToType<typeof wrapAndTransferGasTokenWithRelayLayout>;
+
+export type RelayingFeesInput = LayoutToType<typeof relayingFeesInputLayout>;
+export type TransferTokenWithRelayInput = OmitMaxFee<TransferTokenWithRelayInputWithMaxFee>;
+export type WrapAndTransferGasTokenWithRelayInput = OmitMaxFee<WrapAndTransferGasTokenWithRelayInputWithMaxFee>;
+export type NetworkMain = Exclude<Network, "Devnet">;
 
 interface ConnectionPrimitives/*<T>*/ {
   /**
@@ -89,15 +97,26 @@ const executeFunction = "exec768";
 const queryFunction = "get1959";
 type DispatcherFunction = typeof executeFunction | typeof queryFunction;
 
-type Transfers = {
+export type Transfer =
+{
+  /**
+   * Fee estimation obtained by calling `relayingFee`.
+   * The transaction will encode a `maxFee` based on `feeEstimation.fee`.
+   * If you want to overestimate the fee, you should increase it with a multiplier of some kind.
+   * Increasing this estimation won't affect the actual cost.
+   * Excedent gas tokens will be returned to the caller of the contract.
+   */
+  feeEstimation: RelayingFeesReturnItem;
+} &
+({
   method: "TransferTokenWithRelay";
-  transfers: LayoutToType<typeof transferTokenWithRelayLayout>[];
+  args: TransferTokenWithRelayInput;
 } | {
   method: "WrapAndTransferGasTokenWithRelay";
-  transfers: LayoutToType<typeof wrapAndTransferGasTokenWithRelayLayout>[];
-}
+  args: WrapAndTransferGasTokenWithRelayInput;
+});
 
-class Tbrv3 {
+export class Tbrv3 {
 
   readonly address: string;
 
@@ -106,9 +125,15 @@ class Tbrv3 {
   }
 
   static createEnvelopeWithSingleMethodKind<const M extends Method>(method: M, args: MakeOptional<MethodArgs<M>, { method: M }>[]): Uint8Array {
+    return Tbrv3.createEnvelope(
+      args.map((arg) => ({ ...arg, method } as MethodArgs<M>)),
+    );
+  }
+
+  static createEnvelope(calls: MethodCall[]): Uint8Array {
     return layout.serializeLayout(versionEnvelopeLayout, {
       version: "Version0",
-      methods: args.map((arg) => ({ ...arg, method } as MethodArgs<M>)),
+      methods: calls,
     });
   }
 
@@ -117,42 +142,41 @@ class Tbrv3 {
     Testnet: "TBD",
   }
 
-  async transferTokensWithRelay(...args: LayoutToType<typeof transferTokenWithRelayLayout>[]): Promise<TbrPartialTx> {
-    return this.transferWithRelay({
-      method: "TransferTokenWithRelay",
-      transfers: args,
-    });
-  }
-  async wrapAndTransferGasTokenWithRelay(...args: LayoutToType<typeof wrapAndTransferGasTokenWithRelayLayout>[]): Promise<TbrPartialTx> {
-    return this.transferWithRelay({
-      method: "WrapAndTransferGasTokenWithRelay",
-      transfers: args,
-    });
-  }
-
-  private async transferWithRelay({ method, transfers }: Transfers): Promise<TbrPartialTx> {
+  transferWithRelay(...transfers: Transfer[]): TbrPartialTx {
     if (transfers.length === 0) {
       throw new Error("At least one transfer should be specified.");
     }
 
-    // TODO: check that requested gas dropoff doesn't exceed max gas dropoff per transfer
-    // TODO: check that max fee affords each transfer relay
+    // TODO: decide if we want to check that requested gas dropoff doesn't exceed max gas dropoff per transfer
     // Here we need to batch `this.baseRelayingParams` per target chain together with the relaying fee per transfer
 
     let value = 0n;
-    const feeQuery = transfers.map((transfer) => ({
-      targetChain: transfer.recipient.chain,
-      gasDropoff: transfer.gasDropoff,
-    }));
-
-    const fees = await this.relayingFee(...feeQuery);
-    for (const [i, fee] of fees.entries()) {
-      if (fee.isPaused) {
-        throw new Error(`Relays to chain ${feeQuery[i].targetChain} are paused. Found in transfer ${i + 1}.`);
+    const methodCalls = [];
+    for (const [i, transfer] of transfers.entries()) {
+      if (transfer.feeEstimation.isPaused) {
+        throw new Error(`Relays to chain ${transfer.args.recipient.chain} are paused. Found in transfer ${i + 1}.`);
       }
-      value += fee.fee;
+      const convertedFee = transfer.feeEstimation.fee * relayFeeUnit;
+      value += convertedFee;
+
+      let args;
+      if (transfer.method === "WrapAndTransferGasTokenWithRelay") {
+        value += transfer.args.inputAmount;
+        args = {
+          ...transfer.args,
+          method: transfer.method,
+        };
+      } else {
+        args = {
+          ...transfer.args,
+          maxFee: convertedFee,
+          method: transfer.method,
+        };
+      }
+
+      methodCalls.push(args);
     }
-    const methods = Tbrv3.createEnvelopeWithSingleMethodKind(method, transfers);
+    const methods = Tbrv3.createEnvelope(methodCalls);
     const calldata = Tbrv3.encodeExecute(methods);
 
     return {
@@ -256,15 +280,22 @@ function fixedLengthArrayLayout<const T extends ProperLayout>(length: number, la
   } as const satisfies FixedLengthArray;
 }
 
-let x: MakeOptional<MethodArgs<"RelayFee">, { method: "RelayFee"}>;
-let y: MethodArgs<"Complete">;
-
-(new Tbrv3(undefined as any, "Mainnet")).transferTokensWithRelay({
+const exampleTransferArgs = {
   acquireMode: {mode: "Preapproved"},
   inputAmount: 1000n,
   gasDropoff: 10n,
-  maxFee: 2000n,
   recipient: { chain: "Ethereum", address: toUniversal("Ethereum" ,"0xabababababa")},
   inputToken: "0xabababababa",
   unwrapIntent: false,
+} as const;
+
+const test = await (new Tbrv3(undefined as any, "Mainnet")).relayingFee({
+  gasDropoff: exampleTransferArgs.gasDropoff,
+  targetChain: exampleTransferArgs.recipient.chain,
+});
+
+(new Tbrv3(undefined as any, "Mainnet")).transferWithRelay({
+  method: "TransferTokenWithRelay",
+  feeEstimation: test[0],
+  args: exampleTransferArgs,
 });
