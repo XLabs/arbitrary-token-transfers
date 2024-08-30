@@ -1,6 +1,6 @@
 [submodule "evm/lib/relayer-infra-contracts"]
 	path = evm/lib/relayer-infra-contracts
-	url = https://github.com/XLabs/relayer-infra-contracts
+	url = git@github.com:XLabs/relayer-infra-contracts.git
 [submodule "evm/lib/forge-std"]
 	path = evm/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
