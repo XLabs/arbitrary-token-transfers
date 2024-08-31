@@ -31,6 +31,8 @@ function governanceState() pure returns (GovernanceState storage state) {
 
 error NotAuthorized();
 error InvalidFeeRecipient();
+error UnknownGovernanceCommand(uint8 command);
+error UnknownGovernanceQuery(uint8 query);
 
 enum Role {
   Owner,
@@ -51,7 +53,7 @@ enum GovernanceCommand {
   UpdateCanonicalPeer,
   UpgradeContract,
   ProposeOwnershipTransfer,
-  RelinquishOwnership
+  RelinquishOwnership 
 }
 
 enum GovernanceQueryType {
@@ -112,6 +114,9 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
     while (amountOfCommands > 0) {
       uint8 command_;
       (command_, offset) = commands.asUint8Unchecked(offset);
+      if (command_ > uint8(type(GovernanceCommand).max))
+        revert UnknownGovernanceCommand(command_);
+
       GovernanceCommand command = GovernanceCommand(command_);
       if (command == GovernanceCommand.AddPeer) {
         uint16 peerChain;
@@ -122,12 +127,14 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
       }
       else if (command == GovernanceCommand.SweepTokens) {
         address token;
+        uint256 amount;
         (token, offset) = commands.asAddressUnchecked(offset);
+        (amount, offset) = commands.asUint256Unchecked(offset);
 
         if (token == address(0))
-          transferEth(msg.sender, address(this).balance);
+          transferEth(msg.sender, amount);
         else
-          IERC20(token).safeTransfer(msg.sender, IERC20(token).balanceOf(address(this)));
+          IERC20(token).safeTransfer(msg.sender, amount);
       }
       else if (command == GovernanceCommand.UpdateFeeRecipient) {
           address newFeeRecipient;
@@ -187,12 +194,10 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
           //ownership relinquishment must be the last command in the batch
           commands.checkLength(offset);
         }
-        else
-          _assertExhaustive();
       }
       amountOfCommands--;
     }
-    commands.checkLength(offset);
+    return offset;
   }
 
   function batchGovernanceQueries(bytes calldata queries) internal view returns (bytes memory, uint) {
@@ -200,13 +205,15 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
     bytes memory ret;
     uint8 amountOfQueries;
     (amountOfQueries, offset) = queries.asUint8Unchecked(offset);
-    
+
     GovernanceState storage state = governanceState();
     while (amountOfQueries > 0) {
       uint8 query_;
       (query_, offset) = queries.asUint8Unchecked(offset);
+      if (query_ > uint8(type(GovernanceQueryType).max))
+        revert UnknownGovernanceQuery(query_);
+
       GovernanceQueryType query = GovernanceQueryType(query_);
-      
       if (query == GovernanceQueryType.Owner)
         ret = abi.encodePacked(ret, state.owner); 
       else if (query == GovernanceQueryType.PendingOwner)
@@ -267,7 +274,7 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
       state.feeRecipient = newAddress;
     }
     else
-      _assertExhaustive();
+      return;
 
     emit RoleUpdated(role, oldAddress, newAddress, block.timestamp);
   }

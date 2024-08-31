@@ -15,16 +15,16 @@ abstract contract TbrDispatcher is RawDispatcher, TbrGovernance {
 
   // Execute commands
 
-  uint8 constant TRANSFER_TOKENS_WITH_RELAY_ID = 0;
-  uint8 constant WRAP_AND_TRANSFER_ETH_WITH_RELAY_ID = 1;
-  uint8 constant COMPLETE_ID = 2;
-  uint8 constant GOVERNANCE_ID = 3;
+  uint8 public constant TRANSFER_TOKENS_WITH_RELAY_ID = 0;
+  uint8 public constant WRAP_AND_TRANSFER_ETH_WITH_RELAY_ID = 1;
+  uint8 public constant COMPLETE_ID = 2;
+  uint8 public constant GOVERNANCE_ID = 3;
 
   // Query commands
 
-  uint8 constant RELAY_FEE_ID = 0x80;
-  uint8 constant BASE_RELAYING_CONFIG_ID = 0x81;
-  uint8 constant GOVERNANCE_QUERIES_ID = 0x82;
+  uint8 public constant RELAY_FEE_ID = 0x80;
+  uint8 public constant BASE_RELAYING_CONFIG_ID = 0x81;
+  uint8 public constant GOVERNANCE_QUERIES_ID = 0x82;
 
   function _exec(bytes calldata data) internal override returns (bytes memory) {
     uint offset = 0;

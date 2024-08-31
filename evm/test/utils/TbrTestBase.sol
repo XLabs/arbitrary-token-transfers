@@ -6,21 +6,22 @@ import "forge-std/Test.sol";
 import "wormhole-sdk/proxy/Proxy.sol";
 import "wormhole-sdk/libraries/BytesParsing.sol";
 import { forwardError } from "wormhole-sdk/Utils.sol";
-
 import { Tbr } from "tbr/Tbr.sol";
+import "./TbrExposer.sol";
 
 contract TbrTestBase is Test {
   using BytesParsing for bytes;
 
+  uint8   immutable oracleVersion;
   address immutable owner;
   address immutable admin;
   address immutable feeRecipient;
   address immutable permit2;
   address immutable oracle;
-  uint8 immutable oracleVersion;
 
   address tbrImplementation;
   Tbr tbr;
+  TbrExposer tbrExposer;
 
   constructor() {
     owner         = makeAddr("owner");
@@ -34,7 +35,6 @@ contract TbrTestBase is Test {
   function _setUp1() internal virtual { }
 
   function setUp() public {
-
     tbrImplementation = address(new Tbr(
       permit2,
       oracle,
@@ -49,6 +49,12 @@ contract TbrTestBase is Test {
         feeRecipient
       )
     )));
+
+    tbrExposer = new TbrExposer(
+      permit2,
+      oracle,
+      oracleVersion
+    );
 
     _setUp1();
   }

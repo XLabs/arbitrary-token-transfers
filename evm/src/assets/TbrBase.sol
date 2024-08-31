@@ -7,7 +7,6 @@ import "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 
 import "wormhole-sdk/interfaces/token/IPermit2.sol";
 
-import {IWETH} from "wormhole-sdk/interfaces/token/IWETH.sol";
 import "wormhole-sdk/libraries/BytesParsing.sol";
 import "oracle/IOracle.sol";
 import {OracleIntegration} from "oracle/OracleIntegration.sol";
@@ -57,6 +56,7 @@ function tbrConfigState() pure returns (TbrConfigState storage state) {
 
 error PeerIsZeroAddress();
 error PeerAlreadyRegistered(uint16 chainId, bytes32 peer);
+error CannotRemoveCanonicalPeer();
 error InvalidChainId();
 error EthTransferFailed();
 
@@ -73,13 +73,6 @@ abstract contract TbrBase is OracleIntegration {
   ) OracleIntegration(oracle, oracleVersion) {
     _permit2 = IPermit2(permit2);
     _chainId = oracleChainId();
-  }
-
-  //the semantic equivalent of a `default: assert(false)` case in a switch statement
-  //  used in if/else cascades that model switch statements that must be exhaustive
-  //  uses assert() because it can only be reached if there's a bug in the code
-  function _assertExhaustive() internal pure {
-    assert(false);
   }
 
   function getPeers(uint16 peersChainId) internal view returns (bytes32[] memory) {
@@ -104,19 +97,61 @@ abstract contract TbrBase is OracleIntegration {
     peersState.peers[peerChainId].push(peer);
   }
 
+  function removePeer(uint16 peerChainId, bytes32 peer) internal {
+    if (peerChainId == 0 || peerChainId == _chainId)
+      revert InvalidChainId();
+
+    if (peer == bytes32(0))
+      revert PeerIsZeroAddress();
+
+    TbrPeersState storage peersState = tbrPeersState();
+    bytes32[] memory currentPeers = peersState.peers[peerChainId];
+    for (uint i = 0; i < currentPeers.length; i++) {
+      if (currentPeers[i] == peer) {
+        if (i == 0 && currentPeers.length > 1) 
+          revert CannotRemoveCanonicalPeer();
+
+        if (i != currentPeers.length - 1)
+          currentPeers[i] = currentPeers[currentPeers.length - 1];
+
+        peersState.peers[peerChainId] = currentPeers;
+        peersState.peers[peerChainId].pop();
+        return;
+      }
+    }
+  }
+
   function getCanonicalPeer(uint16 peerChainId) internal view returns (bytes32) {
     return getPeers(peerChainId)[0];
   }
 
   function setCanonicalPeer(uint16 peerChainId, bytes32 peer) internal {
+    if (peerChainId == 0 || peerChainId == _chainId)
+      revert InvalidChainId();
+
+    if (peer == bytes32(0))
+      revert PeerIsZeroAddress();
+      
     TbrPeersState storage peersState = tbrPeersState();
     bytes32[] memory currentPeers = peersState.peers[peerChainId];
+
+    for (uint i = 0; i < currentPeers.length; i++) {
+      if (currentPeers[i] == peer && i != 0) {
+        bytes32 exCanonicalPeer = currentPeers[0];
+        currentPeers[0] = peer;
+        currentPeers[i] = exCanonicalPeer;
+        peersState.peers[peerChainId] = currentPeers;
+        return;
+      }
+    }
+
     if (currentPeers.length != 0) {
-      currentPeers[currentPeers.length] = currentPeers[0];
+      bytes32 exCanonicalPeer = currentPeers[0];
       currentPeers[0] = peer;
       peersState.peers[peerChainId] = currentPeers;
+      peersState.peers[peerChainId].push(exCanonicalPeer);
     } else {
-      peersState.peers[peerChainId][0] = peer;
+      peersState.peers[peerChainId].push(peer);
     }
   }
 
