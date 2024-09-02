@@ -203,7 +203,9 @@ export class Tbrv3 {
     let value = 0n;
     for (const vaa of vaas) {
       const tbrv3Message = layout.deserializeLayout(TBRv3Message, vaa.payload.payload);
-      value += tbrv3Message.gasDropoff * gasDropoffUnit;
+      // We use the unit of an EVM chain
+      // TODO: source chain from the VAA?
+      value += tbrv3Message.gasDropoff * gasDropoffUnit("Ethereum");
     }
 
     const args = vaas.map((vaa) => ({vaa: serialize(vaa)}));

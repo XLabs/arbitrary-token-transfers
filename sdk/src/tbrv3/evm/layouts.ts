@@ -2,7 +2,8 @@ import { Chain, CustomConversion, Layout, ManualSizePureBytes, NamedLayoutItem, 
 import { layoutItems } from "@wormhole-foundation/sdk-definitions";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
 
-export const supportedChains = ["Ethereum", "Solana" ] as const satisfies readonly Chain[];
+// TODO: update supported chains to the actual chains supported
+export const supportedChains = ["Ethereum", "Solana"] as const satisfies readonly Chain[];
 export const supportedChainItem = layoutItems.chainItem({allowedChains: supportedChains});
 
 export type SupportedChains = typeof supportedChains[number];
@@ -50,16 +51,21 @@ export const acquireModeItem = {
 } as const satisfies NamedLayoutItem;
 
 /**
- * Currently Twei.
+ * Currently Twei in EVM and Klamport in Solana.
  * @dev Must match the units documented in Tbrv3::<TODO put function name here>
  */
-export const gasDropoffUnit = BigInt(1e12);
+export function gasDropoffUnit(chain: SupportedChains): bigint {
+  if (chain === "Ethereum") return BigInt(1e12);
+  if (chain === "Solana") return BigInt(1e3);
+  throw new Error(`Unknown/unsupported chain ${chain}.`);
+}
+
 export const gasDropoffItem = {
   binary: "uint",
   size: 4,
   custom: {
-    to: (encoded: number): bigint => BigInt(encoded) * gasDropoffUnit,
-    from: (dropoff: bigint): number => Number(dropoff / gasDropoffUnit),
+    to: (encoded: number): bigint => BigInt(encoded),
+    from: (dropoff: bigint): number => Number(dropoff),
   } as const satisfies CustomConversion<number, bigint>,
 } as const satisfies UintLayoutItem;
 
