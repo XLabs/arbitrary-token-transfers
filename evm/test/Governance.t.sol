@@ -18,14 +18,14 @@ contract GovernanceTest is TbrTestBase {
 
   function testOwnerContractUpgrade() public {
     UpgradeTester upgradeTester = new UpgradeTester();
-    uint8 amountOfCommands = 1;
+    uint8 commandCount = 1;
 
     (address implementation, ) = invokeTbr(
       abi.encodePacked(
         tbr.get1959.selector, 
         dispatcherVersion, 
         GOVERNANCE_QUERIES_ID, 
-        amountOfCommands, 
+        commandCount, 
         IMPLEMENTATION
       )
     ).asAddressUnchecked(0);
@@ -36,7 +36,7 @@ contract GovernanceTest is TbrTestBase {
         tbr.exec768.selector, 
         dispatcherVersion, 
         GOVERNANCE_ID, 
-        amountOfCommands, 
+        commandCount, 
         UPGRADE_CONTRACT, 
         address(upgradeTester)
       )
@@ -49,7 +49,7 @@ contract GovernanceTest is TbrTestBase {
         tbr.exec768.selector, 
         dispatcherVersion, 
         GOVERNANCE_ID, 
-        amountOfCommands, 
+        commandCount, 
         UPGRADE_CONTRACT, 
         address(upgradeTester)
       )
@@ -61,7 +61,7 @@ contract GovernanceTest is TbrTestBase {
         tbr.exec768.selector, 
         dispatcherVersion, 
         GOVERNANCE_ID, 
-        amountOfCommands, 
+        commandCount, 
         UPGRADE_CONTRACT, 
         address(upgradeTester)
       )
@@ -77,7 +77,7 @@ contract GovernanceTest is TbrTestBase {
         tbr.get1959.selector, 
         dispatcherVersion, 
         GOVERNANCE_QUERIES_ID, 
-        amountOfCommands, 
+        commandCount, 
         IMPLEMENTATION
       )
     ).asAddressUnchecked(0);
@@ -86,7 +86,7 @@ contract GovernanceTest is TbrTestBase {
 
   function testOwnershipTransfer() public {
     address newOwner = makeAddr("newOwner");
-    uint8 amountOfCommands = 1;
+    uint8 commandCount = 1;
 
     vm.expectRevert(NotAuthorized.selector);
     invokeTbr(
@@ -94,7 +94,7 @@ contract GovernanceTest is TbrTestBase {
         tbr.exec768.selector, 
         dispatcherVersion,
         GOVERNANCE_ID,
-        amountOfCommands, 
+        commandCount, 
         PROPOSE_OWNERSHIP_TRANSFER, 
         newOwner
       )
@@ -106,19 +106,19 @@ contract GovernanceTest is TbrTestBase {
         tbr.exec768.selector, 
         dispatcherVersion, 
         GOVERNANCE_ID, 
-        amountOfCommands, 
+        commandCount, 
         PROPOSE_OWNERSHIP_TRANSFER, 
         newOwner
       )
     );
     
-    amountOfCommands = 2;
+    commandCount = 2;
     bytes memory getRes = invokeTbr(
       abi.encodePacked(
         tbr.get1959.selector, 
         dispatcherVersion, 
         GOVERNANCE_QUERIES_ID, 
-        amountOfCommands, 
+        commandCount, 
         OWNER, 
         PENDING_OWNER
       )
@@ -129,25 +129,25 @@ contract GovernanceTest is TbrTestBase {
     assertEq(owner_,        owner);
     assertEq(pendingOwner_, newOwner);
 
-    amountOfCommands = 0;
+    commandCount = 0;
     vm.startPrank(newOwner);
     invokeTbr(
       abi.encodePacked(
         tbr.exec768.selector, 
         dispatcherVersion, 
         GOVERNANCE_ID, 
-        amountOfCommands, 
+        commandCount, 
         new bytes(0)
       )
     );
 
-    amountOfCommands = 2;
+    commandCount = 2;
     getRes = invokeTbr(
       abi.encodePacked(
         tbr.get1959.selector, 
         dispatcherVersion, 
         GOVERNANCE_QUERIES_ID, 
-        amountOfCommands, 
+        commandCount, 
         OWNER, 
         PENDING_OWNER
       )
@@ -161,7 +161,7 @@ contract GovernanceTest is TbrTestBase {
 
   function testUpdateAdmin() public {
     address newAdmin = makeAddr("newAdmin");
-    uint8 amountOfCommands = 1;
+    uint8 commandCount = 1;
 
     vm.expectRevert(NotAuthorized.selector);
     invokeTbr(
@@ -169,7 +169,7 @@ contract GovernanceTest is TbrTestBase {
         tbr.exec768.selector, 
         dispatcherVersion, 
         GOVERNANCE_ID, 
-        amountOfCommands, 
+        commandCount, 
         UPDATE_ADMIN, 
         newAdmin
       )
@@ -181,7 +181,7 @@ contract GovernanceTest is TbrTestBase {
         tbr.exec768.selector, 
         dispatcherVersion, 
         GOVERNANCE_ID, 
-        amountOfCommands, 
+        commandCount, 
         UPDATE_ADMIN, 
         newAdmin
       )
@@ -192,7 +192,7 @@ contract GovernanceTest is TbrTestBase {
         tbr.get1959.selector, 
         dispatcherVersion, 
         GOVERNANCE_QUERIES_ID, 
-        amountOfCommands, 
+        commandCount, 
         ADMIN
       )
     ).asAddressUnchecked(0);
@@ -201,7 +201,7 @@ contract GovernanceTest is TbrTestBase {
   } 
 
   function testRelinquishOwnership() public {
-    uint8 amountOfCommands = 1;
+    uint8 commandCount = 1;
 
     vm.expectRevert(NotAuthorized.selector);
     invokeTbr(
@@ -209,12 +209,12 @@ contract GovernanceTest is TbrTestBase {
         tbr.exec768.selector, 
         dispatcherVersion, 
         GOVERNANCE_ID, 
-        amountOfCommands, 
+        commandCount, 
         RELINQUISH_OWNERSHIP
       )
     );
 
-    amountOfCommands = 2;
+    commandCount = 2;
     vm.startPrank(owner);
     vm.expectRevert(
       abi.encodeWithSelector(BytesParsing.LengthMismatch.selector, 3, 2)
@@ -224,19 +224,19 @@ contract GovernanceTest is TbrTestBase {
         tbr.exec768.selector, 
         dispatcherVersion, 
         GOVERNANCE_ID, 
-        amountOfCommands,
+        commandCount,
         RELINQUISH_OWNERSHIP, 
         UPDATE_ADMIN
       )
     );
 
-    amountOfCommands = 1;
+    commandCount = 1;
     invokeTbr(
       abi.encodePacked(
         tbr.exec768.selector, 
         dispatcherVersion, 
         GOVERNANCE_ID, 
-        amountOfCommands, 
+        commandCount, 
         RELINQUISH_OWNERSHIP
       )
     );
@@ -246,7 +246,7 @@ contract GovernanceTest is TbrTestBase {
         tbr.get1959.selector, 
         dispatcherVersion, 
         GOVERNANCE_QUERIES_ID, 
-        amountOfCommands,
+        commandCount,
         OWNER
       )
     ).asAddressUnchecked(0);
@@ -257,7 +257,7 @@ contract GovernanceTest is TbrTestBase {
   function testAddPeer() public {
     uint16 peerChain = 1;
     bytes32 newPeer = 0x1234567890123456789012345678901234567890123456789012345678901234;
-    uint8 amountOfCommands = 1;
+    uint8 commandCount = 1;
 
     vm.expectRevert(NotAuthorized.selector);
     invokeTbr(
@@ -265,7 +265,7 @@ contract GovernanceTest is TbrTestBase {
         tbr.exec768.selector, 
         dispatcherVersion, 
         GOVERNANCE_ID, 
-        amountOfCommands, 
+        commandCount, 
         ADD_PEER, 
         peerChain, 
         newPeer
@@ -278,7 +278,7 @@ contract GovernanceTest is TbrTestBase {
         tbr.exec768.selector, 
         dispatcherVersion, 
         GOVERNANCE_ID, 
-        amountOfCommands, 
+        commandCount, 
         ADD_PEER, 
         peerChain, 
         newPeer
@@ -290,7 +290,7 @@ contract GovernanceTest is TbrTestBase {
         tbr.get1959.selector, 
         dispatcherVersion, 
         GOVERNANCE_QUERIES_ID, 
-        amountOfCommands, 
+        commandCount, 
         PEERS,
         peerChain
       )
@@ -302,7 +302,7 @@ contract GovernanceTest is TbrTestBase {
   function testUpdateMaxGasDropoff() public {
     uint32 maxGasDropoff = 1e6;
     uint16 targetChain = 1;
-    uint8 amountOfCommands = 1;
+    uint8 commandCount = 1;
 
     vm.expectRevert(NotAuthorized.selector);
     invokeTbr(
@@ -310,7 +310,7 @@ contract GovernanceTest is TbrTestBase {
         tbr.exec768.selector, 
         dispatcherVersion, 
         GOVERNANCE_ID, 
-        amountOfCommands, 
+        commandCount, 
         UPDATE_MAX_GAS_DROPOFF, 
         targetChain,
         maxGasDropoff
@@ -323,7 +323,7 @@ contract GovernanceTest is TbrTestBase {
         tbr.exec768.selector, 
         dispatcherVersion, 
         GOVERNANCE_ID, 
-        amountOfCommands, 
+        commandCount, 
         UPDATE_MAX_GAS_DROPOFF, 
         targetChain,
         maxGasDropoff
@@ -335,7 +335,7 @@ contract GovernanceTest is TbrTestBase {
         tbr.get1959.selector, 
         dispatcherVersion, 
         GOVERNANCE_QUERIES_ID, 
-        amountOfCommands, 
+        commandCount, 
         MAX_GAS_DROPOFF,
         targetChain
       )
@@ -346,7 +346,7 @@ contract GovernanceTest is TbrTestBase {
 
   function testUpdateFeeRecipient() public {
     address newFeeRecipient = makeAddr("newFeeRecipient");
-    uint8 amountOfCommands = 1;
+    uint8 commandCount = 1;
 
     vm.expectRevert(NotAuthorized.selector);
     invokeTbr(
@@ -354,7 +354,7 @@ contract GovernanceTest is TbrTestBase {
         tbr.exec768.selector, 
         dispatcherVersion, 
         GOVERNANCE_ID, 
-        amountOfCommands, 
+        commandCount, 
         UPDATE_FEE_RECIPIENT, 
         newFeeRecipient
       )
@@ -366,7 +366,7 @@ contract GovernanceTest is TbrTestBase {
         tbr.exec768.selector, 
         dispatcherVersion, 
         GOVERNANCE_ID, 
-        amountOfCommands, 
+        commandCount, 
         UPDATE_FEE_RECIPIENT, 
         newFeeRecipient
       )
@@ -377,7 +377,7 @@ contract GovernanceTest is TbrTestBase {
         tbr.get1959.selector, 
         dispatcherVersion, 
         GOVERNANCE_QUERIES_ID, 
-        amountOfCommands, 
+        commandCount, 
         FEE_RECIPIENT
       )
     ).asAddressUnchecked(0);
@@ -387,7 +387,7 @@ contract GovernanceTest is TbrTestBase {
 
   function testUpdateRelayFee() public {
     uint32 newRelayFee = 1e6;
-    uint8 amountOfCommands = 1;
+    uint8 commandCount = 1;
 
     vm.expectRevert(NotAuthorized.selector);
     invokeTbr(
@@ -395,7 +395,7 @@ contract GovernanceTest is TbrTestBase {
         tbr.exec768.selector, 
         dispatcherVersion, 
         GOVERNANCE_ID, 
-        amountOfCommands, 
+        commandCount, 
         UPDATE_RELAY_FEE, 
         newRelayFee
       )
@@ -407,7 +407,7 @@ contract GovernanceTest is TbrTestBase {
         tbr.exec768.selector, 
         dispatcherVersion, 
         GOVERNANCE_ID, 
-        amountOfCommands, 
+        commandCount, 
         UPDATE_RELAY_FEE, 
         newRelayFee
       )
@@ -418,7 +418,7 @@ contract GovernanceTest is TbrTestBase {
         tbr.get1959.selector, 
         dispatcherVersion, 
         GOVERNANCE_QUERIES_ID, 
-        amountOfCommands, 
+        commandCount, 
         RELAY_FEE
       )
     ).asUint32Unchecked(0);
@@ -428,7 +428,7 @@ contract GovernanceTest is TbrTestBase {
 
   function testPauseOutboundTransfers() public {
     bool paused = true;
-    uint8 amountOfCommands = 1;
+    uint8 commandCount = 1;
 
     vm.expectRevert(NotAuthorized.selector);
     invokeTbr(
@@ -436,7 +436,7 @@ contract GovernanceTest is TbrTestBase {
         tbr.exec768.selector, 
         dispatcherVersion, 
         GOVERNANCE_ID, 
-        amountOfCommands, 
+        commandCount, 
         PAUSE_OUTBOUND_TRANSFERS, 
         paused
       )
@@ -448,7 +448,7 @@ contract GovernanceTest is TbrTestBase {
         tbr.exec768.selector, 
         dispatcherVersion, 
         GOVERNANCE_ID, 
-        amountOfCommands, 
+        commandCount, 
         PAUSE_OUTBOUND_TRANSFERS, 
         paused
       )
@@ -459,7 +459,7 @@ contract GovernanceTest is TbrTestBase {
         tbr.get1959.selector, 
         dispatcherVersion, 
         GOVERNANCE_QUERIES_ID, 
-        amountOfCommands, 
+        commandCount, 
         OUTBOUND_TRANSFER_PAUSED
       )
     ).asBoolUnchecked(0);
@@ -470,7 +470,7 @@ contract GovernanceTest is TbrTestBase {
   function testUpdateCanonicalPeer() public {
     bytes32 newCanonicalPeer = 0x1234567890123456789012345678901234567890123456789012345678901234;
     uint16 peerChain = 1;
-    uint8 amountOfCommands = 1;
+    uint8 commandCount = 1;
 
     vm.expectRevert(NotAuthorized.selector);
     invokeTbr(
@@ -478,7 +478,7 @@ contract GovernanceTest is TbrTestBase {
         tbr.exec768.selector, 
         dispatcherVersion, 
         GOVERNANCE_ID, 
-        amountOfCommands, 
+        commandCount, 
         UPDATE_CANONICAL_PEER, 
         peerChain,
         newCanonicalPeer
@@ -491,7 +491,7 @@ contract GovernanceTest is TbrTestBase {
         tbr.exec768.selector, 
         dispatcherVersion, 
         GOVERNANCE_ID, 
-        amountOfCommands, 
+        commandCount, 
         UPDATE_CANONICAL_PEER, 
         peerChain,
         newCanonicalPeer
@@ -503,7 +503,7 @@ contract GovernanceTest is TbrTestBase {
         tbr.get1959.selector, 
         dispatcherVersion, 
         GOVERNANCE_QUERIES_ID, 
-        amountOfCommands, 
+        commandCount, 
         CANONICAL_PEER,
         peerChain
       )
@@ -512,8 +512,35 @@ contract GovernanceTest is TbrTestBase {
     assertEq(newCanonicalPeer_, newCanonicalPeer);
   }
 
+  function testSweepTokens() public {
+    uint usdtAmount = 1e6;
+    uint ethAmount = 1 ether;
+    uint8 commandCount = 2;
+    deal(address(usdt), address(tbr), usdtAmount);
+    vm.deal(address(tbr), ethAmount);
+    assertEq(usdt.balanceOf(owner), 0);
+    uint ownerEthBalance = address(owner).balance;
+    assertEq(usdt.balanceOf(address(tbr)), usdtAmount);
+    assertEq(address(tbr).balance, ethAmount);
+    vm.prank(owner);
+    invokeTbr(
+      abi.encodePacked(
+      tbr.exec768.selector, 
+      dispatcherVersion, 
+      GOVERNANCE_ID, 
+      commandCount, 
+      SWEEP_TOKENS, address(usdt), usdtAmount,
+      SWEEP_TOKENS, address(0), ethAmount
+      )
+    );
+    assertEq(usdt.balanceOf(address(tbr)), 0);
+    assertEq(address(tbr).balance, 0);
+    assertEq(usdt.balanceOf(owner), usdtAmount);
+    assertEq(address(owner).balance, ownerEthBalance + ethAmount);
+  }
+
   function testInvalidCommand() public {
-    uint8 amountOfCommands = 1;
+    uint8 commandCount = 1;
 
     // The first query command, so should fail because the exec 
     // function will not be able to handle it.
@@ -527,14 +554,14 @@ contract GovernanceTest is TbrTestBase {
         tbr.exec768.selector, 
         dispatcherVersion, 
         GOVERNANCE_ID, 
-        amountOfCommands, 
+        commandCount, 
         fakeCommand
       )
     );
   }
 
   function testInvalidQuery() public {
-    uint8 amountOfCommands = 1;
+    uint8 commandCount = 1;
     
     // The last exec command, so should fail because the get
     // function will not be able to handle it.
@@ -548,7 +575,7 @@ contract GovernanceTest is TbrTestBase {
         tbr.get1959.selector, 
         dispatcherVersion, 
         GOVERNANCE_QUERIES_ID, 
-        amountOfCommands, 
+        commandCount, 
         fakeQuery
       )
     );

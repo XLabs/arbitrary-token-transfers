@@ -6,6 +6,7 @@ import "forge-std/Test.sol";
 import "wormhole-sdk/proxy/Proxy.sol";
 import "wormhole-sdk/libraries/BytesParsing.sol";
 import { forwardError } from "wormhole-sdk/Utils.sol";
+import "@openzeppelin/token/ERC20/IERC20.sol";
 import { Tbr } from "tbr/Tbr.sol";
 import "./TbrExposer.sol";
 
@@ -18,6 +19,7 @@ contract TbrTestBase is Test {
   address immutable feeRecipient;
   address immutable permit2;
   address immutable oracle;
+  IERC20  immutable usdt;
 
   address tbrImplementation;
   Tbr tbr;
@@ -30,6 +32,7 @@ contract TbrTestBase is Test {
     permit2       = makeAddr("permit2");
     oracle        = makeAddr("oracle");
     oracleVersion = 0;
+    usdt          = IERC20(vm.envAddress("TEST_USDT_ADDRESS"));
   }
 
   function _setUp1() internal virtual { }
