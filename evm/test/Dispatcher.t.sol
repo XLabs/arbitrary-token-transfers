@@ -25,7 +25,7 @@ contract DispatcherTest is TbrTestBase {
     // function will not be able to handle it.
     uint8 fakeCommand = 0x80;
     vm.expectRevert(
-      abi.encodeWithSelector(UnknownCommand.selector, fakeCommand)
+      abi.encodeWithSelector(InvalidCommand.selector, fakeCommand)
     );
     invokeTbr(
       abi.encodePacked(tbr.exec768.selector, version, fakeCommand)
@@ -47,7 +47,7 @@ contract DispatcherTest is TbrTestBase {
     // function will not be able to handle it.
     uint8 fakeQuery = 0x79;
     vm.expectRevert(
-      abi.encodeWithSelector(UnknownQuery.selector, fakeQuery)
+      abi.encodeWithSelector(InvalidQuery.selector, fakeQuery)
     );
     invokeTbr(
       abi.encodePacked(tbr.get1959.selector, version, fakeQuery)

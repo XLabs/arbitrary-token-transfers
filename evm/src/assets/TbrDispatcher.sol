@@ -5,26 +5,14 @@ pragma solidity ^0.8.25;
 import "wormhole-sdk/libraries/BytesParsing.sol";
 import "wormhole-sdk/dispatcher/RawDispatcher.sol";
 import "./TbrGovernance.sol";
+import "./TbrIds.sol";
 
 error UnsupportedVersion(uint8 version);
-error UnknownCommand(uint8 command);
-error UnknownQuery(uint8 query);
+error InvalidCommand(uint8 command);
+error InvalidQuery(uint8 query);
 
 abstract contract TbrDispatcher is RawDispatcher, TbrGovernance {
   using BytesParsing for bytes;
-
-  // Execute commands
-
-  uint8 public constant TRANSFER_TOKENS_WITH_RELAY_ID = 0;
-  uint8 public constant WRAP_AND_TRANSFER_ETH_WITH_RELAY_ID = 1;
-  uint8 public constant COMPLETE_ID = 2;
-  uint8 public constant GOVERNANCE_ID = 3;
-
-  // Query commands
-
-  uint8 public constant RELAY_FEE_ID = 0x80;
-  uint8 public constant BASE_RELAYING_CONFIG_ID = 0x81;
-  uint8 public constant GOVERNANCE_QUERIES_ID = 0x82;
 
   function _exec(bytes calldata data) internal override returns (bytes memory) {
     uint offset = 0;
@@ -47,7 +35,7 @@ abstract contract TbrDispatcher is RawDispatcher, TbrGovernance {
         else if (command == GOVERNANCE_ID)
           movedOffset = batchGovernanceCommands(data[offset:]);
         else 
-          revert UnknownCommand(command);
+          revert InvalidCommand(command);
 
         offset += movedOffset;
       }
@@ -70,14 +58,14 @@ abstract contract TbrDispatcher is RawDispatcher, TbrGovernance {
         bytes memory result;
         uint movedOffset;
         if (query == RELAY_FEE_ID) {
-          //(result, movedOffset) = _relayFee(data[offset:], amountOfCommands);
+          //(result, movedOffset) = _relayFee(data[offset:]);
         } else if (query == BASE_RELAYING_CONFIG_ID) {
-          //(result, movedOffset) = _baseRelayingConfig(data[offset:], amountOfCommands);
+          //(result, movedOffset) = _baseRelayingConfig(data[offset:]);
         } 
         else if (query == GOVERNANCE_QUERIES_ID) 
           (result, movedOffset) = batchGovernanceQueries(data[offset:]);
         else 
-          revert UnknownQuery(query);
+          revert InvalidQuery(query);
 
         ret = abi.encodePacked(ret, result);
         offset += movedOffset;

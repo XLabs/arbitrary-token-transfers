@@ -5,6 +5,7 @@ pragma solidity ^0.8.25;
 import { ProxyBase } from "wormhole-sdk/proxy/ProxyBase.sol";
 import "wormhole-sdk/libraries/BytesParsing.sol";
 import "./TbrBase.sol";
+import "./TbrIds.sol";
 
 //rationale for different roles (owner, admin):
 // * owner should be a mulit-sig / ultra cold wallet that is only activated in exceptional
@@ -31,42 +32,13 @@ function governanceState() pure returns (GovernanceState storage state) {
 
 error NotAuthorized();
 error InvalidFeeRecipient();
-error UnknownGovernanceCommand(uint8 command);
-error UnknownGovernanceQuery(uint8 query);
+error InvalidGovernanceCommand(uint8 command);
+error InvalidGovernanceQuery(uint8 query);
 
 enum Role {
   Owner,
   Admin,
   FeeRecipient
-}
-
-enum GovernanceCommand {
-  //admin can add new peers, but only owner can change existing registrations
-  AddPeer,
-  SweepTokens,
-  UpdateMaxGasDropoff,
-  UpdateFeeRecipient,
-  UpdateRelayFee,
-  PauseOutboundTransfers,
-  //only available to owner:
-  UpdateAdmin,
-  UpdateCanonicalPeer,
-  UpgradeContract,
-  ProposeOwnershipTransfer,
-  RelinquishOwnership 
-}
-
-enum GovernanceQueryType {
-  RelayFee,
-  MaxGasDropoff,
-  OutboundTransfersPaused,
-  Peers,
-  CanonicalPeer,
-  Owner,         
-  PendingOwner,
-  Admin,
-  FeeRecipient,
-  Implementation
 }
 
 event RoleUpdated(Role role, address oldAddress, address newAddress, uint256 timestamp);
@@ -108,24 +80,21 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
       revert NotAuthorized();
 
     uint offset = 0;
-    uint8 amountOfCommands;
-    (amountOfCommands, offset) = commands.asUint8Unchecked(offset);
+    uint8 commandCount;
+    (commandCount, offset) = commands.asUint8Unchecked(offset);
 
-    while (amountOfCommands > 0) {
-      uint8 command_;
-      (command_, offset) = commands.asUint8Unchecked(offset);
-      if (command_ > uint8(type(GovernanceCommand).max))
-        revert UnknownGovernanceCommand(command_);
+    for (uint8 i = 0; i < commandCount; i++) {
+      uint8 command;
+      (command, offset) = commands.asUint8Unchecked(offset);
 
-      GovernanceCommand command = GovernanceCommand(command_);
-      if (command == GovernanceCommand.AddPeer) {
+      if (command == ADD_PEER) {
         uint16 peerChain;
         bytes32 newPeer;
         (peerChain, offset) = commands.asUint16Unchecked(offset);
         (newPeer,   offset) = commands.asBytes32Unchecked(offset);
         addPeer(peerChain, newPeer);
       }
-      else if (command == GovernanceCommand.SweepTokens) {
+      else if (command == SWEEP_TOKENS) {
         address token;
         uint256 amount;
         (token, offset) = commands.asAddressUnchecked(offset);
@@ -136,66 +105,75 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
         else
           IERC20(token).safeTransfer(msg.sender, amount);
       }
-      else if (command == GovernanceCommand.UpdateFeeRecipient) {
+      else if (command == UPDATE_FEE_RECIPIENT) {
           address newFeeRecipient;
           (newFeeRecipient, offset) = commands.asAddressUnchecked(offset);
           _updateRole(Role.FeeRecipient, newFeeRecipient);
       }
-      else if (command == GovernanceCommand.UpdateRelayFee) {
+      else if (command == UPDATE_RELAY_FEE) {
         uint32 newRelayFee;
         (newRelayFee, offset) = commands.asUint32Unchecked(offset);
         setRelayFee(newRelayFee);
       }
-      else if (command == GovernanceCommand.UpdateMaxGasDropoff) {
+      else if (command == UPDATE_MAX_GAS_DROPOFF) {
         uint16 targetChain;
         uint32 newMaxGasDropoff;
         (targetChain, offset) = commands.asUint16Unchecked(offset);
         (newMaxGasDropoff, offset) = commands.asUint32Unchecked(offset);
         setMaxGasDropoff(targetChain, newMaxGasDropoff);
       }
-      else if (command == GovernanceCommand.PauseOutboundTransfers) {
+      else if (command == PAUSE_OUTBOUND_TRANSFERS) {
         bool paused;
         (paused, offset) = commands.asBoolUnchecked(offset);
         setPauseOutboundTransfers(paused);
       }
-      else { //owner only commands
+      else if (command == UPGRADE_CONTRACT) {
         if (!isOwner)
           revert NotAuthorized();
 
-        if (command == GovernanceCommand.UpgradeContract) {
-          address newImplementation;
-          (newImplementation, offset) = commands.asAddressUnchecked(offset);
-          //contract upgrades must be the last command in the batch
-          commands.checkLength(offset);
+        address newImplementation;
+        (newImplementation, offset) = commands.asAddressUnchecked(offset);
+        //contract upgrades must be the last command in the batch
+        commands.checkLength(offset);
 
-          _upgradeTo(newImplementation, new bytes(0));
-        }
-        else if (command == GovernanceCommand.UpdateAdmin) {
-          address newAdmin;
-          (newAdmin, offset) = commands.asAddressUnchecked(offset);
-          _updateRole(Role.Admin, newAdmin);
-        }
-        else if (command == GovernanceCommand.UpdateCanonicalPeer) {
-          uint16 peerChain;
-          bytes32 newCanonicalPeer;
-          (peerChain, offset) = commands.asUint16Unchecked(offset);
-          (newCanonicalPeer, offset) = commands.asBytes32Unchecked(offset);
-          setCanonicalPeer(peerChain, newCanonicalPeer);
-        }
-        else if (command == GovernanceCommand.ProposeOwnershipTransfer) {
-          address newOwner;
-          (newOwner, offset) = commands.asAddressUnchecked(offset);
-
-          state.pendingOwner = newOwner;
-        }
-        else if (command == GovernanceCommand.RelinquishOwnership) {
-          _updateRole(Role.Owner, address(0));
-
-          //ownership relinquishment must be the last command in the batch
-          commands.checkLength(offset);
-        }
+        _upgradeTo(newImplementation, new bytes(0));
       }
-      amountOfCommands--;
+      else if (command == UPDATE_ADMIN) {
+        if (!isOwner)
+          revert NotAuthorized();
+        
+        address newAdmin;
+        (newAdmin, offset) = commands.asAddressUnchecked(offset);
+        _updateRole(Role.Admin, newAdmin);
+      }
+      else if (command == UPDATE_CANONICAL_PEER) {
+        if (!isOwner)
+          revert NotAuthorized();
+
+        uint16 peerChain;
+        bytes32 newCanonicalPeer;
+        (peerChain, offset) = commands.asUint16Unchecked(offset);
+        (newCanonicalPeer, offset) = commands.asBytes32Unchecked(offset);
+        setCanonicalPeer(peerChain, newCanonicalPeer);
+      }
+      else if (command == PROPOSE_OWNERSHIP_TRANSFER) {
+        if (!isOwner)
+          revert NotAuthorized();
+
+        address newOwner;
+        (newOwner, offset) = commands.asAddressUnchecked(offset);
+        state.pendingOwner = newOwner;
+      }
+      else if (command == RELINQUISH_OWNERSHIP) {
+        if (!isOwner)
+          revert NotAuthorized();
+
+        _updateRole(Role.Owner, address(0));
+        //ownership relinquishment must be the last command in the batch
+        commands.checkLength(offset);
+      }
+      else
+        revert InvalidGovernanceCommand(command);
     }
     return offset;
   }
@@ -203,50 +181,45 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
   function batchGovernanceQueries(bytes calldata queries) internal view returns (bytes memory, uint) {
     uint offset = 0;
     bytes memory ret;
-    uint8 amountOfQueries;
-    (amountOfQueries, offset) = queries.asUint8Unchecked(offset);
+    uint8 queryCount;
+    (queryCount, offset) = queries.asUint8Unchecked(offset);
 
     GovernanceState storage state = governanceState();
-    while (amountOfQueries > 0) {
-      uint8 query_;
-      (query_, offset) = queries.asUint8Unchecked(offset);
-      if (query_ > uint8(type(GovernanceQueryType).max))
-        revert UnknownGovernanceQuery(query_);
+    for (uint8 i = 0; i < queryCount; i++) {
+      uint8 query;
+      (query, offset) = queries.asUint8Unchecked(offset);
 
-      GovernanceQueryType query = GovernanceQueryType(query_);
-      if (query == GovernanceQueryType.Owner)
-        ret = abi.encodePacked(ret, state.owner); 
-      else if (query == GovernanceQueryType.PendingOwner)
-        ret = abi.encodePacked(ret, state.pendingOwner);
-      else if (query == GovernanceQueryType.Admin)
-        ret = abi.encodePacked(ret, state.admin);
-      else if (query == GovernanceQueryType.FeeRecipient)
-        ret = abi.encodePacked(ret, state.feeRecipient);
-      else if (query == GovernanceQueryType.Implementation)
-        ret = abi.encodePacked(ret, _getImplementation());
-      else if (query == GovernanceQueryType.Peers) {
-        uint16 peersChainId;
-        (peersChainId, offset) = queries.asUint16Unchecked(offset);
-        ret = abi.encodePacked(ret, getPeers(peersChainId));
-      }
-      else if (query == GovernanceQueryType.CanonicalPeer) {
-        uint16 peerChainId;
-        (peerChainId, offset) = queries.asUint16Unchecked(offset);
-        ret = abi.encodePacked(ret, getCanonicalPeer(peerChainId));
-      }
-      else if (query == GovernanceQueryType.RelayFee)
+      if (query == RELAY_FEE)
         ret = abi.encodePacked(ret, getRelayFee());
-      else if (query == GovernanceQueryType.MaxGasDropoff) {
+      else if (query == MAX_GAS_DROPOFF) {
         uint16 targetChainId;
         (targetChainId, offset) = queries.asUint16Unchecked(offset);
         ret = abi.encodePacked(ret, getMaxGasDropoff(targetChainId));
       }
-      else if (query == GovernanceQueryType.OutboundTransfersPaused)
+      else if (query == CANONICAL_PEER) {
+        uint16 peerChainId;
+        (peerChainId, offset) = queries.asUint16Unchecked(offset);
+        ret = abi.encodePacked(ret, getCanonicalPeer(peerChainId));
+      }
+      else if (query == PEERS) {
+        uint16 peersChainId;
+        (peersChainId, offset) = queries.asUint16Unchecked(offset);
+        ret = abi.encodePacked(ret, getPeers(peersChainId));
+      }
+      else if (query == OWNER)
+        ret = abi.encodePacked(ret, state.owner); 
+      else if (query == PENDING_OWNER)
+        ret = abi.encodePacked(ret, state.pendingOwner);
+      else if (query == ADMIN)
+        ret = abi.encodePacked(ret, state.admin);
+      else if (query == FEE_RECIPIENT)
+        ret = abi.encodePacked(ret, state.feeRecipient);
+      else if (query == IMPLEMENTATION)
+        ret = abi.encodePacked(ret, _getImplementation());
+      else if (query == OUTBOUND_TRANSFER_PAUSED)
         ret = abi.encodePacked(ret, getPauseOutboundTransfers());
       else
-        break;
-
-      amountOfQueries--;
+        revert InvalidGovernanceQuery(query);
     }
 
     return (ret, offset);

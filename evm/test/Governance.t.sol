@@ -10,17 +10,11 @@ import "./utils/UpgradeTester.sol";
 
 import "tbr/assets/TbrDispatcher.sol";
 import "tbr/assets/TbrGovernance.sol";
+import "tbr/assets/TbrIds.sol";
 
 contract GovernanceTest is TbrTestBase {
   using BytesParsing for bytes;
   uint8 dispatcherVersion = 0;
-  uint8 governanceId;
-  uint8 governanceQueryId;
-
-  function _setUp1() internal override {
-    governanceId = tbr.GOVERNANCE_ID();
-    governanceQueryId = tbr.GOVERNANCE_QUERIES_ID();
-  }
 
   function testOwnerContractUpgrade() public {
     UpgradeTester upgradeTester = new UpgradeTester();
@@ -30,9 +24,9 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         dispatcherVersion, 
-        governanceQueryId, 
+        GOVERNANCE_QUERIES_ID, 
         amountOfCommands, 
-        GovernanceQueryType.Implementation
+        IMPLEMENTATION
       )
     ).asAddressUnchecked(0);
 
@@ -41,9 +35,9 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         dispatcherVersion, 
-        governanceId, 
+        GOVERNANCE_ID, 
         amountOfCommands, 
-        GovernanceCommand.UpgradeContract, 
+        UPGRADE_CONTRACT, 
         address(upgradeTester)
       )
     );
@@ -54,9 +48,9 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         dispatcherVersion, 
-        governanceId, 
+        GOVERNANCE_ID, 
         amountOfCommands, 
-        GovernanceCommand.UpgradeContract, 
+        UPGRADE_CONTRACT, 
         address(upgradeTester)
       )
     );
@@ -66,9 +60,9 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         dispatcherVersion, 
-        governanceId, 
+        GOVERNANCE_ID, 
         amountOfCommands, 
-        GovernanceCommand.UpgradeContract, 
+        UPGRADE_CONTRACT, 
         address(upgradeTester)
       )
     );
@@ -82,9 +76,9 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         dispatcherVersion, 
-        governanceQueryId, 
+        GOVERNANCE_QUERIES_ID, 
         amountOfCommands, 
-        GovernanceQueryType.Implementation
+        IMPLEMENTATION
       )
     ).asAddressUnchecked(0);
     assertEq(restoredImplementation, implementation);
@@ -99,9 +93,9 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         dispatcherVersion,
-        governanceId,
+        GOVERNANCE_ID,
         amountOfCommands, 
-        GovernanceCommand.ProposeOwnershipTransfer, 
+        PROPOSE_OWNERSHIP_TRANSFER, 
         newOwner
       )
     );
@@ -111,9 +105,9 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         dispatcherVersion, 
-        governanceId, 
+        GOVERNANCE_ID, 
         amountOfCommands, 
-        GovernanceCommand.ProposeOwnershipTransfer, 
+        PROPOSE_OWNERSHIP_TRANSFER, 
         newOwner
       )
     );
@@ -123,10 +117,10 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         dispatcherVersion, 
-        governanceQueryId, 
+        GOVERNANCE_QUERIES_ID, 
         amountOfCommands, 
-        GovernanceQueryType.Owner, 
-        GovernanceQueryType.PendingOwner
+        OWNER, 
+        PENDING_OWNER
       )
     );
     (address owner_,        ) = getRes.asAddressUnchecked(0);
@@ -141,7 +135,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         dispatcherVersion, 
-        governanceId, 
+        GOVERNANCE_ID, 
         amountOfCommands, 
         new bytes(0)
       )
@@ -152,10 +146,10 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         dispatcherVersion, 
-        governanceQueryId, 
+        GOVERNANCE_QUERIES_ID, 
         amountOfCommands, 
-        GovernanceQueryType.Owner, 
-        GovernanceQueryType.PendingOwner
+        OWNER, 
+        PENDING_OWNER
       )
     );
     (owner_,        ) = getRes.asAddressUnchecked(0);
@@ -174,9 +168,9 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         dispatcherVersion, 
-        governanceId, 
+        GOVERNANCE_ID, 
         amountOfCommands, 
-        GovernanceCommand.UpdateAdmin, 
+        UPDATE_ADMIN, 
         newAdmin
       )
     );
@@ -186,9 +180,9 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         dispatcherVersion, 
-        governanceId, 
+        GOVERNANCE_ID, 
         amountOfCommands, 
-        GovernanceCommand.UpdateAdmin, 
+        UPDATE_ADMIN, 
         newAdmin
       )
     );
@@ -197,9 +191,9 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         dispatcherVersion, 
-        governanceQueryId, 
+        GOVERNANCE_QUERIES_ID, 
         amountOfCommands, 
-        GovernanceQueryType.Admin
+        ADMIN
       )
     ).asAddressUnchecked(0);
 
@@ -214,9 +208,9 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         dispatcherVersion, 
-        governanceId, 
+        GOVERNANCE_ID, 
         amountOfCommands, 
-        GovernanceCommand.RelinquishOwnership
+        RELINQUISH_OWNERSHIP
       )
     );
 
@@ -229,10 +223,10 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         dispatcherVersion, 
-        governanceId, 
+        GOVERNANCE_ID, 
         amountOfCommands,
-        GovernanceCommand.RelinquishOwnership, 
-        GovernanceCommand.UpdateAdmin
+        RELINQUISH_OWNERSHIP, 
+        UPDATE_ADMIN
       )
     );
 
@@ -241,9 +235,9 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         dispatcherVersion, 
-        governanceId, 
+        GOVERNANCE_ID, 
         amountOfCommands, 
-        GovernanceCommand.RelinquishOwnership
+        RELINQUISH_OWNERSHIP
       )
     );
 
@@ -251,9 +245,9 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         dispatcherVersion, 
-        governanceQueryId, 
+        GOVERNANCE_QUERIES_ID, 
         amountOfCommands,
-        GovernanceQueryType.Owner
+        OWNER
       )
     ).asAddressUnchecked(0);
 
@@ -270,9 +264,9 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         dispatcherVersion, 
-        governanceId, 
+        GOVERNANCE_ID, 
         amountOfCommands, 
-        GovernanceCommand.AddPeer, 
+        ADD_PEER, 
         peerChain, 
         newPeer
       )
@@ -283,9 +277,9 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         dispatcherVersion, 
-        governanceId, 
+        GOVERNANCE_ID, 
         amountOfCommands, 
-        GovernanceCommand.AddPeer, 
+        ADD_PEER, 
         peerChain, 
         newPeer
       )
@@ -295,9 +289,9 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         dispatcherVersion, 
-        governanceQueryId, 
+        GOVERNANCE_QUERIES_ID, 
         amountOfCommands, 
-        GovernanceQueryType.Peers,
+        PEERS,
         peerChain
       )
     ).asBytes32Unchecked(0);
@@ -315,9 +309,9 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         dispatcherVersion, 
-        governanceId, 
+        GOVERNANCE_ID, 
         amountOfCommands, 
-        GovernanceCommand.UpdateMaxGasDropoff, 
+        UPDATE_MAX_GAS_DROPOFF, 
         targetChain,
         maxGasDropoff
       )
@@ -328,9 +322,9 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         dispatcherVersion, 
-        governanceId, 
+        GOVERNANCE_ID, 
         amountOfCommands, 
-        GovernanceCommand.UpdateMaxGasDropoff, 
+        UPDATE_MAX_GAS_DROPOFF, 
         targetChain,
         maxGasDropoff
       )
@@ -340,9 +334,9 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         dispatcherVersion, 
-        governanceQueryId, 
+        GOVERNANCE_QUERIES_ID, 
         amountOfCommands, 
-        GovernanceQueryType.MaxGasDropoff,
+        MAX_GAS_DROPOFF,
         targetChain
       )
     ).asUint32Unchecked(0);
@@ -359,9 +353,9 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         dispatcherVersion, 
-        governanceId, 
+        GOVERNANCE_ID, 
         amountOfCommands, 
-        GovernanceCommand.UpdateFeeRecipient, 
+        UPDATE_FEE_RECIPIENT, 
         newFeeRecipient
       )
     );
@@ -371,9 +365,9 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         dispatcherVersion, 
-        governanceId, 
+        GOVERNANCE_ID, 
         amountOfCommands, 
-        GovernanceCommand.UpdateFeeRecipient, 
+        UPDATE_FEE_RECIPIENT, 
         newFeeRecipient
       )
     );
@@ -382,9 +376,9 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         dispatcherVersion, 
-        governanceQueryId, 
+        GOVERNANCE_QUERIES_ID, 
         amountOfCommands, 
-        GovernanceQueryType.FeeRecipient
+        FEE_RECIPIENT
       )
     ).asAddressUnchecked(0);
 
@@ -400,9 +394,9 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         dispatcherVersion, 
-        governanceId, 
+        GOVERNANCE_ID, 
         amountOfCommands, 
-        GovernanceCommand.UpdateRelayFee, 
+        UPDATE_RELAY_FEE, 
         newRelayFee
       )
     );
@@ -412,9 +406,9 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         dispatcherVersion, 
-        governanceId, 
+        GOVERNANCE_ID, 
         amountOfCommands, 
-        GovernanceCommand.UpdateRelayFee, 
+        UPDATE_RELAY_FEE, 
         newRelayFee
       )
     );
@@ -423,9 +417,9 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         dispatcherVersion, 
-        governanceQueryId, 
+        GOVERNANCE_QUERIES_ID, 
         amountOfCommands, 
-        GovernanceQueryType.RelayFee
+        RELAY_FEE
       )
     ).asUint32Unchecked(0);
 
@@ -441,9 +435,9 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         dispatcherVersion, 
-        governanceId, 
+        GOVERNANCE_ID, 
         amountOfCommands, 
-        GovernanceCommand.PauseOutboundTransfers, 
+        PAUSE_OUTBOUND_TRANSFERS, 
         paused
       )
     );
@@ -453,9 +447,9 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         dispatcherVersion, 
-        governanceId, 
+        GOVERNANCE_ID, 
         amountOfCommands, 
-        GovernanceCommand.PauseOutboundTransfers, 
+        PAUSE_OUTBOUND_TRANSFERS, 
         paused
       )
     );
@@ -464,9 +458,9 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         dispatcherVersion, 
-        governanceQueryId, 
+        GOVERNANCE_QUERIES_ID, 
         amountOfCommands, 
-        GovernanceQueryType.OutboundTransfersPaused
+        OUTBOUND_TRANSFER_PAUSED
       )
     ).asBoolUnchecked(0);
 
@@ -483,9 +477,9 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         dispatcherVersion, 
-        governanceId, 
+        GOVERNANCE_ID, 
         amountOfCommands, 
-        GovernanceCommand.UpdateCanonicalPeer, 
+        UPDATE_CANONICAL_PEER, 
         peerChain,
         newCanonicalPeer
       )
@@ -496,9 +490,9 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         dispatcherVersion, 
-        governanceId, 
+        GOVERNANCE_ID, 
         amountOfCommands, 
-        GovernanceCommand.UpdateCanonicalPeer, 
+        UPDATE_CANONICAL_PEER, 
         peerChain,
         newCanonicalPeer
       )
@@ -508,9 +502,9 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         dispatcherVersion, 
-        governanceQueryId, 
+        GOVERNANCE_QUERIES_ID, 
         amountOfCommands, 
-        GovernanceQueryType.CanonicalPeer,
+        CANONICAL_PEER,
         peerChain
       )
     ).asBytes32Unchecked(0);
@@ -518,38 +512,42 @@ contract GovernanceTest is TbrTestBase {
     assertEq(newCanonicalPeer_, newCanonicalPeer);
   }
 
-  function testUnknownCommand() public {
+  function testInvalidCommand() public {
     uint8 amountOfCommands = 1;
-    uint8 fakeCommand = uint8(type(GovernanceCommand).max) + 1;
 
+    // The first query command, so should fail because the exec 
+    // function will not be able to handle it.
+    uint8 fakeCommand = 0x80;
     vm.prank(owner);
     vm.expectRevert(
-      abi.encodeWithSelector(UnknownGovernanceCommand.selector, fakeCommand)
+      abi.encodeWithSelector(InvalidGovernanceCommand.selector, fakeCommand)
     );
     invokeTbr(
       abi.encodePacked(
         tbr.exec768.selector, 
         dispatcherVersion, 
-        governanceId, 
+        GOVERNANCE_ID, 
         amountOfCommands, 
         fakeCommand
       )
     );
   }
 
-  function testUnknownQuery() public {
+  function testInvalidQuery() public {
     uint8 amountOfCommands = 1;
-    uint8 fakeQuery = uint8(type(GovernanceQueryType).max) + 1;
-
+    
+    // The last exec command, so should fail because the get
+    // function will not be able to handle it.
+    uint8 fakeQuery = 0x79;
     vm.prank(owner);
     vm.expectRevert(
-      abi.encodeWithSelector(UnknownGovernanceQuery.selector, fakeQuery)
+      abi.encodeWithSelector(InvalidGovernanceQuery.selector, fakeQuery)
     );
     invokeTbr(
       abi.encodePacked(
         tbr.get1959.selector, 
         dispatcherVersion, 
-        governanceQueryId, 
+        GOVERNANCE_QUERIES_ID, 
         amountOfCommands, 
         fakeQuery
       )
