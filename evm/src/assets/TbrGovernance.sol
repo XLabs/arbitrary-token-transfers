@@ -206,6 +206,11 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
         (peersChainId, offset) = queries.asUint16Unchecked(offset);
         ret = abi.encodePacked(ret, getPeers(peersChainId));
       }
+      else if (query == IS_CHAIN_SUPPORTED) {
+        uint16 chainId;
+        (chainId, offset) = queries.asUint16Unchecked(offset);
+        ret = abi.encodePacked(ret, isChainSupported(chainId));
+      }
       else if (query == OWNER)
         ret = abi.encodePacked(ret, state.owner); 
       else if (query == PENDING_OWNER)

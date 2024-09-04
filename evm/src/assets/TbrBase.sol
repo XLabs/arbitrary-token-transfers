@@ -97,30 +97,6 @@ abstract contract TbrBase is OracleIntegration {
     peersState.peers[peerChainId].push(peer);
   }
 
-  function removePeer(uint16 peerChainId, bytes32 peer) internal {
-    if (peerChainId == 0 || peerChainId == _chainId)
-      revert InvalidChainId();
-
-    if (peer == bytes32(0))
-      revert PeerIsZeroAddress();
-
-    TbrPeersState storage peersState = tbrPeersState();
-    bytes32[] memory currentPeers = peersState.peers[peerChainId];
-    for (uint i = 0; i < currentPeers.length; i++) {
-      if (currentPeers[i] == peer) {
-        if (i == 0 && currentPeers.length > 1) 
-          revert CannotRemoveCanonicalPeer();
-
-        if (i != currentPeers.length - 1)
-          currentPeers[i] = currentPeers[currentPeers.length - 1];
-
-        peersState.peers[peerChainId] = currentPeers;
-        peersState.peers[peerChainId].pop();
-        return;
-      }
-    }
-  }
-
   function getCanonicalPeer(uint16 peerChainId) internal view returns (bytes32) {
     return getPeers(peerChainId)[0];
   }
@@ -153,6 +129,10 @@ abstract contract TbrBase is OracleIntegration {
     } else {
       peersState.peers[peerChainId].push(peer);
     }
+  }
+
+  function isChainSupported(uint16 chainId) internal view returns (bool) {
+    return tbrPeersState().peers[chainId].length != 0;
   }
 
   function getRelayFee() internal view returns (uint32) {

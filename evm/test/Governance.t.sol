@@ -539,6 +539,49 @@ contract GovernanceTest is TbrTestBase {
     assertEq(address(owner).balance, ownerEthBalance + ethAmount);
   }
 
+  function testIsChainSupported() public {
+    uint16 chainId = 1;
+    uint8 commandCount = 1;
+    bytes32 fakePeer = 0x1234567890123456789012345678901234567890123456789012345678901234;
+
+    (bool isSupported, ) = invokeTbr(
+      abi.encodePacked(
+        tbr.get1959.selector, 
+        dispatcherVersion, 
+        GOVERNANCE_QUERIES_ID, 
+        commandCount, 
+        IS_CHAIN_SUPPORTED, 
+        chainId
+      )
+    ).asBoolUnchecked(0);
+    assertEq(isSupported, false);
+
+    vm.prank(owner);
+    invokeTbr(
+      abi.encodePacked(
+        tbr.exec768.selector, 
+        dispatcherVersion, 
+        GOVERNANCE_ID, 
+        commandCount, 
+        ADD_PEER, 
+        chainId, 
+        fakePeer
+      )
+    );
+
+    (isSupported, ) = invokeTbr(
+      abi.encodePacked(
+        tbr.get1959.selector, 
+        dispatcherVersion, 
+        GOVERNANCE_QUERIES_ID, 
+        commandCount, 
+        IS_CHAIN_SUPPORTED, 
+        chainId
+      )
+    ).asBoolUnchecked(0);
+    assertEq(isSupported, true);
+  }
+
   function testInvalidCommand() public {
     uint8 commandCount = 1;
 

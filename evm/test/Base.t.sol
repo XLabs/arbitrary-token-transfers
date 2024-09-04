@@ -37,50 +37,6 @@ contract BaseTest is TbrTestBase {
     assertEq(peers[0], peer);
   }
 
-  function testRemovePeer() public {
-    uint16 chainId = 1;
-    uint16 wrongChainId = 0;
-    bytes32 peer = 0x1234567890123456789012345678901234567890123456789012345678901234;
-    bytes32 anotherPeer = 0x1234567890123456789012345678901234567890123456789012345678901235;
-    bytes32 wrongPeer = bytes32(0);
-
-    vm.expectRevert(
-      abi.encodeWithSelector(InvalidChainId.selector)
-    );
-    tbrExposer.exposedRemovePeer(wrongChainId, peer);
-
-    vm.expectRevert(
-      abi.encodeWithSelector(PeerIsZeroAddress.selector)
-    );
-    tbrExposer.exposedRemovePeer(chainId, wrongPeer);
-
-    tbrExposer.exposedAddPeer(chainId, peer);
-    tbrExposer.exposedRemovePeer(chainId, peer);
-    bytes32[] memory peers = tbrExposer.exposedGetPeers(chainId);
-    assertEq(peers.length, 0);
-
-    tbrExposer.exposedAddPeer(chainId, peer);
-    tbrExposer.exposedAddPeer(chainId, anotherPeer);
-    vm.expectRevert(
-      abi.encodeWithSelector(CannotRemoveCanonicalPeer.selector)
-    );
-    tbrExposer.exposedRemovePeer(chainId, peer);
-    peers = tbrExposer.exposedGetPeers(chainId);
-    assertEq(peers.length, 2);
-
-    tbrExposer.exposedRemovePeer(chainId, anotherPeer);
-    peers = tbrExposer.exposedGetPeers(chainId);
-    assertEq(peers.length, 1);
-    assertEq(peers[0], peer);
-
-    tbrExposer.exposedAddPeer(chainId, anotherPeer);
-    tbrExposer.exposedSetCanonicalPeer(chainId, anotherPeer);
-    tbrExposer.exposedRemovePeer(chainId, peer);
-    peers = tbrExposer.exposedGetPeers(chainId);
-    assertEq(peers.length, 1);
-    assertEq(peers[0], anotherPeer); 
-  }
-
   function testSetCanonicalPeer() public {
     uint16 chainId = 1;
     uint16 wrongChainId = 0;
