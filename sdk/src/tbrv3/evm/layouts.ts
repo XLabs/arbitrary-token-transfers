@@ -73,10 +73,10 @@ export const transferTokenWithRelayLayout = [
   { name: "recipient", binary: "bytes", layout: recipientLayout },
   { name: "inputToken", ...evmAddressItem },
   { name: "inputAmount", ...layoutItems.amountItem },
-  acquireModeItem,
   { name: "gasDropoff", ...gasDropoffItem },
   { name: "maxFee", ...layoutItems.amountItem },
   { name: "unwrapIntent", ...layoutItems.boolItem },
+  acquireModeItem,
 ] as const satisfies Layout;
 
 export const wrapAndTransferGasTokenWithRelayLayout = [
@@ -179,3 +179,17 @@ export const TBRv3Message = [
   { name: "gasDropoff", ...gasDropoffItem },
   { name: "unwrapIntent", ...layoutItems.boolItem },
 ] as const satisfies Layout;
+
+export const versionedTbrMessageLayout = {
+  name: "versionedMessage",
+  binary: "switch",
+  idSize: 1,
+  idTag: "version",
+  layouts: [
+    [[0, "Version3"], [{
+      name: "message",
+      binary: "bytes",
+      layout: TBRv3Message,
+    }]],
+  ]
+} as const satisfies NamedLayoutItem;
