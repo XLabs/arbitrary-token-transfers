@@ -14,8 +14,8 @@ import {
   TransferReceipt,
   TransferState,
 } from "@wormhole-foundation/sdk-connect";
-import { Tbrv3 } from "../tbrv3/evm/contract";
-import { acquireModeItem, relayFeeUnit } from "../tbrv3/evm/layouts";
+import { Tbrv3 } from "../tbrv3/evm/contract.js";
+import { acquireModeItem, relayFeeUnit } from "../tbrv3/evm/layouts.js";
 
 type AcquireMode = LayoutToType<typeof acquireModeItem>;
 

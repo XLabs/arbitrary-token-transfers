@@ -1,8 +1,7 @@
 import { Chain, Network } from "@wormhole-foundation/sdk-base";
 import { EmptyPlatformMap, UnsignedTransaction, VAA } from "@wormhole-foundation/sdk-definitions";
-import { EvmChains, EvmUnsignedTransaction } from "@wormhole-foundation/sdk-evm";
-import { SupportedChains } from "../tbrv3/evm/layouts";
-import { BaseRelayingParamsReturn, RelayingFeesParams, RelayingFeesReturn, TransferParams } from "./types";
+import { SupportedChains } from "../tbrv3/evm/layouts.js";
+import { BaseRelayingParamsReturn, RelayingFeesParams, RelayingFeesReturn, TransferParams } from "./types.js";
 
 export namespace AutomaticTokenBridgeV3 {
   const _protocol = "AutomaticTokenBridgeV3";

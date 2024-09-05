@@ -2,10 +2,10 @@ import { encoding, LayoutToType, Network } from "@wormhole-foundation/sdk-base";
 import { ChainsConfig, Contracts, isNative, VAA } from "@wormhole-foundation/sdk-definitions";
 import { EvmChains, EvmPlatform, EvmPlatformType, EvmUnsignedTransaction } from "@wormhole-foundation/sdk-evm";
 import { Provider } from "ethers";
-import { AutomaticTokenBridgeV3 } from "../../../definitions";
-import { BaseRelayingParamsReturn, RelayingFeesParams, RelayingFeesReturn, TransferParams } from "../../../definitions/types";
-import { Tbrv3 } from "../../../tbrv3/evm/contract";
-import { acquireModeItem, SupportedChains } from "../../../tbrv3/evm/layouts";
+import { AutomaticTokenBridgeV3 } from "../../../definitions/index.js";
+import { BaseRelayingParamsReturn, RelayingFeesParams, RelayingFeesReturn, TransferParams } from "../../../definitions/types.js";
+import { Tbrv3 } from "../../../tbrv3/evm/contract.js";
+import { acquireModeItem, SupportedChains } from "../../../tbrv3/evm/layouts.js";
 
 export type AcquireMode = LayoutToType<typeof acquireModeItem>;
 

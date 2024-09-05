@@ -1,7 +1,7 @@
 import { Chain, CustomConversion, Layout, ManualSizePureBytes, NamedLayoutItem, UintLayoutItem } from "@wormhole-foundation/sdk-base";
 import { layoutItems } from "@wormhole-foundation/sdk-definitions";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
-import { supportedChains } from "./consts";
+import { supportedChains } from "./consts.js";
 
 const { chainItem, universalAddressItem, amountItem } = layoutItems;
 
