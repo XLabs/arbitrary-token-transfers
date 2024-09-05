@@ -57,15 +57,10 @@
     },
     "external": [
       "@internal/loader",
-      "haml-coffee",
-      "@certusone/wormhole-sdk",
-      "coffee-script"
-    ],
-    "noExternal": [
-      "@xlabs-xyz/wallet-monitor",
-      "@xlabs/relayer-engine",
-      "@xlabs/relayer-engine-middleware",
-      "@xlabs/relayers-common"
+      "@wormhole-foundation/sdk-definitions",
+      "@wormhole-foundation/sdk-base",
+      "@wormhole-foundation/sdk-evm",
+      "ethers"
     ]
   }
 }
