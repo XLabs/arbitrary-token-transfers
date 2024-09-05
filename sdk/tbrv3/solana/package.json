@@ -1,0 +1,28 @@
+{
+  "name": "@xlabs-xyz/solana-arbitrary-token-transfers",
+  "version": "3.0.0",
+  "license": "ISC",
+  "main": "sdk/index.ts",
+  "scripts": {
+    "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
+    "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.30.1",
+    "@solana/web3.js": "^1.95.3",
+    "@wormhole-foundation/sdk-base": "^0.10.0",
+    "@wormhole-foundation/sdk-definitions": "^0.10.4",
+    "@wormhole-foundation/sdk-solana-tokenbridge": "^0.10.4",
+    "solana-price-oracle-sdk": "ssh://git@github.com/XLabs/relayer-infra-contracts"
+  },
+  "devDependencies": {
+    "@types/bn.js": "^5.1.0",
+    "@types/chai": "^4.3.0",
+    "@types/mocha": "^9.0.0",
+    "chai": "^4.3.4",
+    "mocha": "^9.0.3",
+    "prettier": "^2.6.2",
+    "ts-mocha": "^10.0.0",
+    "typescript": "^4.3.5"
+  }
+}

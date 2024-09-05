@@ -36,3 +36,6 @@ tmp/
 
 # Ignore cache files
 cache/
+
+# Rust
+target/
