@@ -63,7 +63,7 @@ export interface TbrPartialTx {
   /**
    * Calldata of the transaction.
    */
-  calldata: Uint8Array;
+  data: Uint8Array;
   /**
    * Address of the Token Brigde Relayer contract that must be called.
    */
@@ -177,11 +177,11 @@ export class Tbrv3 {
       methodCalls.push(args);
     }
     const methods = Tbrv3.createEnvelope(methodCalls);
-    const calldata = Tbrv3.encodeExecute(methods);
+    const data = Tbrv3.encodeExecute(methods);
 
     return {
       to: this.address,
-      calldata,
+      data,
       value,
     };
   }
@@ -210,11 +210,11 @@ export class Tbrv3 {
 
     const args = vaas.map((vaa) => ({vaa: serialize(vaa)}));
     const methods = Tbrv3.createEnvelopeWithSingleMethodKind("Complete", args);
-    const calldata = Tbrv3.encodeExecute(methods);
+    const data = Tbrv3.encodeExecute(methods);
 
     return {
       to: this.address,
-      calldata,
+      data,
       value,
     }
   }
