@@ -1,7 +1,28 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "lib": ["es2023"]
+    "baseUrl": ".",
+    "experimentalDecorators": true,
+    "rootDir": "..", // lib/*
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2023"],
+    "outDir": "build",
+    "composite": false,
+    "declaration": true,
+    "skipLibCheck": true,
+    "allowJs": true,
+    "noImplicitAny": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "emitDecoratorMetadata": true,
+    "resolveJsonModule": true,
+    "downlevelIteration": true,
+    "sourceMap": true,
+    "strict": true,
+    "isolatedModules": true,
   },
   "include": ["src"],
   "references": []
