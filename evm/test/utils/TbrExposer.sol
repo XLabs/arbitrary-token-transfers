@@ -8,9 +8,10 @@ contract TbrExposer is Tbr {
 
   constructor(
     address _permit2, 
+    address _tokenBridge,
     address _oracle, 
     uint8 _oracleVersion
-  ) Tbr(_permit2, _oracle, _oracleVersion) {}
+  ) Tbr(_permit2, _tokenBridge, _oracle, _oracleVersion) {}
 
   function exposedAddPeer(uint16 chainId, bytes32 peer) public {
     addPeer(chainId, peer);

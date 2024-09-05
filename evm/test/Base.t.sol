@@ -11,6 +11,7 @@ contract BaseTest is TbrTestBase {
   function testAddPeer() public {
     uint16 chainId = 1;
     uint16 wrongChainId = 0;
+    uint16 notSupportedChainId = 100;
     bytes32 peer = 0x1234567890123456789012345678901234567890123456789012345678901234;
     bytes32 wrongPeer = bytes32(0);
 
@@ -23,6 +24,11 @@ contract BaseTest is TbrTestBase {
       abi.encodeWithSelector(PeerIsZeroAddress.selector)
     );
     tbrExposer.exposedAddPeer(chainId, wrongPeer);
+
+    vm.expectRevert(
+      abi.encodeWithSelector(ChainNoSupportedByTokenBridge.selector, notSupportedChainId)
+    );
+    tbrExposer.exposedAddPeer(notSupportedChainId, peer);
 
     tbrExposer.exposedAddPeer(chainId, peer);
 
@@ -40,6 +46,7 @@ contract BaseTest is TbrTestBase {
   function testSetCanonicalPeer() public {
     uint16 chainId = 1;
     uint16 wrongChainId = 0;
+    uint16 notSupportedChainId = 100;
     bytes32 peer = 0x1234567890123456789012345678901234567890123456789012345678901234;
     bytes32 wrongPeer = bytes32(0);
 
@@ -52,6 +59,11 @@ contract BaseTest is TbrTestBase {
       abi.encodeWithSelector(PeerIsZeroAddress.selector)
     );
     tbrExposer.exposedSetCanonicalPeer(chainId, wrongPeer);
+
+    vm.expectRevert(
+      abi.encodeWithSelector(ChainNoSupportedByTokenBridge.selector, notSupportedChainId)
+    );
+    tbrExposer.exposedSetCanonicalPeer(notSupportedChainId, peer);
 
     tbrExposer.exposedAddPeer(chainId, peer);
     tbrExposer.exposedSetCanonicalPeer(chainId, peer);

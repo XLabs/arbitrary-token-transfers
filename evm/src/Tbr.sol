@@ -9,9 +9,10 @@ contract Tbr is TbrDispatcher {
 
   constructor(
     address permit2,
+    address tokenBridge,
     address oracle,
     uint8 oracleVersion
-  ) TbrBase(permit2, oracle, oracleVersion) {}
+  ) TbrBase(permit2, tokenBridge, oracle, oracleVersion) {}
 
   //constructor of the proxy contract setting storage variables
   function _proxyConstructor(bytes calldata args) internal override {

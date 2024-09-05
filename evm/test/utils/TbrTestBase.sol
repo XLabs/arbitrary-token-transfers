@@ -9,17 +9,19 @@ import { forwardError } from "wormhole-sdk/Utils.sol";
 import "@openzeppelin/token/ERC20/IERC20.sol";
 import { Tbr } from "tbr/Tbr.sol";
 import "./TbrExposer.sol";
+import "wormhole-sdk/interfaces/ITokenBridge.sol";
 
 contract TbrTestBase is Test {
   using BytesParsing for bytes;
 
-  uint8   immutable oracleVersion;
-  address immutable owner;
-  address immutable admin;
-  address immutable feeRecipient;
-  address immutable permit2;
-  address immutable oracle;
-  IERC20  immutable usdt;
+  uint8        immutable oracleVersion;
+  address      immutable owner;
+  address      immutable admin;
+  address      immutable feeRecipient;
+  address      immutable permit2;
+  address      immutable oracle;
+  IERC20       immutable usdt;
+  ITokenBridge immutable tokenBridge;
 
   address tbrImplementation;
   Tbr tbr;
@@ -33,6 +35,7 @@ contract TbrTestBase is Test {
     oracle        = makeAddr("oracle");
     oracleVersion = 0;
     usdt          = IERC20(vm.envAddress("TEST_USDT_ADDRESS"));
+    tokenBridge   = ITokenBridge(vm.envAddress("TEST_TOKEN_BRIDGE_ADDRESS"));
   }
 
   function _setUp1() internal virtual { }
@@ -40,6 +43,7 @@ contract TbrTestBase is Test {
   function setUp() public {
     tbrImplementation = address(new Tbr(
       permit2,
+      address(tokenBridge),
       oracle,
       oracleVersion
     ));
@@ -55,6 +59,7 @@ contract TbrTestBase is Test {
 
     tbrExposer = new TbrExposer(
       permit2,
+      address(tokenBridge),
       oracle,
       oracleVersion
     );

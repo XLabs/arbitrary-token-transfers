@@ -4,13 +4,11 @@ pragma solidity ^0.8.24;
 
 import "@openzeppelin/token/ERC20/IERC20.sol";
 import "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
-
 import "wormhole-sdk/interfaces/token/IPermit2.sol";
-
 import "wormhole-sdk/libraries/BytesParsing.sol";
 import "oracle/IOracle.sol";
 import {OracleIntegration} from "oracle/OracleIntegration.sol";
-
+import "wormhole-sdk/interfaces/ITokenBridge.sol";
 
 struct TbrPeersState {
   /**
@@ -59,20 +57,24 @@ error PeerAlreadyRegistered(uint16 chainId, bytes32 peer);
 error CannotRemoveCanonicalPeer();
 error InvalidChainId();
 error EthTransferFailed();
+error ChainNoSupportedByTokenBridge(uint16 chainId);
 
 abstract contract TbrBase is OracleIntegration {
   using BytesParsing for bytes;
 
   IPermit2     internal immutable _permit2;
   uint16       internal immutable _chainId;
+  ITokenBridge internal immutable _tokenBridge;
 
   constructor(
     address permit2,
+    address tokenBridge,
     address oracle,
     uint8 oracleVersion
   ) OracleIntegration(oracle, oracleVersion) {
     _permit2 = IPermit2(permit2);
     _chainId = oracleChainId();
+    _tokenBridge = ITokenBridge(tokenBridge);
   }
 
   function getPeers(uint16 peersChainId) internal view returns (bytes32[] memory) {
@@ -85,6 +87,10 @@ abstract contract TbrBase is OracleIntegration {
 
     if (peer == bytes32(0))
       revert PeerIsZeroAddress();
+
+    bytes32 bridgeContractOnPeerChain = _tokenBridge.bridgeContracts(peerChainId);
+    if (bridgeContractOnPeerChain == bytes32(0))
+      revert ChainNoSupportedByTokenBridge(peerChainId);
 
     TbrPeersState storage peersState = tbrPeersState();
     bytes32[] memory currentPeers = peersState.peers[peerChainId];
@@ -107,6 +113,10 @@ abstract contract TbrBase is OracleIntegration {
 
     if (peer == bytes32(0))
       revert PeerIsZeroAddress();
+
+    bytes32 bridgeContractOnPeerChain = _tokenBridge.bridgeContracts(peerChainId);
+    if (bridgeContractOnPeerChain == bytes32(0))
+      revert ChainNoSupportedByTokenBridge(peerChainId);
       
     TbrPeersState storage peersState = tbrPeersState();
     bytes32[] memory currentPeers = peersState.peers[peerChainId];
