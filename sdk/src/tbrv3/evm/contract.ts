@@ -282,22 +282,25 @@ function fixedLengthArrayLayout<const T extends ProperLayout>(length: number, la
   } as const satisfies FixedLengthArray;
 }
 
-const exampleTransferArgs = {
-  acquireMode: {mode: "Preapproved"},
-  inputAmount: 1000n,
-  gasDropoff: 10n,
-  recipient: { chain: "Ethereum", address: toUniversal("Ethereum" ,"0xabababababa")},
-  inputToken: "0xabababababa",
-  unwrapIntent: false,
-} as const;
-
-const test = await (new Tbrv3(undefined as any, "Mainnet")).relayingFee({
-  gasDropoff: exampleTransferArgs.gasDropoff,
-  targetChain: exampleTransferArgs.recipient.chain,
-});
-
-(new Tbrv3(undefined as any, "Mainnet")).transferWithRelay({
-  method: "TransferTokenWithRelay",
-  feeEstimation: test[0],
-  args: exampleTransferArgs,
-});
+async function example() {
+  const exampleTransferArgs = {
+    acquireMode: {mode: "Preapproved"},
+    inputAmount: 1000n,
+    gasDropoff: 10n,
+    recipient: { chain: "Ethereum", address: toUniversal("Ethereum" ,"0xabababababa")},
+    inputToken: "0xabababababa",
+    unwrapIntent: false,
+  } as const;
+  
+  const test = await (new Tbrv3(undefined as any, "Mainnet")).relayingFee({
+    gasDropoff: exampleTransferArgs.gasDropoff,
+    targetChain: exampleTransferArgs.recipient.chain,
+  });
+  
+  (new Tbrv3(undefined as any, "Mainnet")).transferWithRelay({
+    method: "TransferTokenWithRelay",
+    feeEstimation: test[0],
+    args: exampleTransferArgs,
+  });
+  
+}

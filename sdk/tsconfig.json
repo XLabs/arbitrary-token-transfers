@@ -3,12 +3,10 @@
   "compilerOptions": {
     "baseUrl": ".",
     "experimentalDecorators": true,
-    "rootDir": "..",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "lib": ["ES2023"],
-    "outDir": "build",
-    "composite": false,
+    "composite": true,
     "declaration": true,
     "skipLibCheck": true,
     "allowJs": true,

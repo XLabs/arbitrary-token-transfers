@@ -1,6 +1,6 @@
 {
-  "name": "@xlabs-xyz/tbr-sdk",
-  "version": "0.0.1",
+  "name": "@xlabs-xyz/evm-arbitrary-token-transfers",
+  "version": "0.0.1-alpha1",
   "description": "",
   "type": "module",
   "module": "ts-build/src/index.js",
@@ -43,6 +43,7 @@
     "entry": [
       "src/index.ts"
     ],
+    "tsconfig": "tsconfig.build.json",
     "splitting": false,
     "sourcemap": true,
     "minify": false,
