@@ -668,9 +668,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xlabs-xyz/tbr-sdk@workspace:sdk":
+"@xlabs-xyz/evm-arbitrary-token-transfers@workspace:sdk":
   version: 0.0.0-use.local
-  resolution: "@xlabs-xyz/tbr-sdk@workspace:sdk"
+  resolution: "@xlabs-xyz/evm-arbitrary-token-transfers@workspace:sdk"
   dependencies:
     "@types/node": "npm:20.14.14"
     "@wormhole-foundation/sdk-base": "npm:0.9.1"
