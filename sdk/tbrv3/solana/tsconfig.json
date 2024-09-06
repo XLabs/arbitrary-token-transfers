@@ -14,7 +14,7 @@
     "resolveJsonModule": true,
     "esModuleInterop": true
   },
-  "include": [
+  "files": [
     "src",
     "../../../target/idl",
     "index.ts"
