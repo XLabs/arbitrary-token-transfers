@@ -11,7 +11,9 @@ mod signer_sequence;
 pub use signer_sequence::*;
 use solana_price_oracle::state::{EvmPricesAccount, PriceOracleConfigAccount};
 
-/// Returns the transfer fee in SOL.
+const KLAMPORTS_PER_SOL: u64 = 1_000_000;
+
+/// Returns the transfer fee in Klamports.
 ///
 /// # Arguments
 ///
@@ -41,7 +43,8 @@ pub fn calculate_total_fee(
     //  Mwei * μusd/Mwei + μusd
     let total_fees_usd = total_fees_mwei * target_evm_quote.gas_token_price + config.relayer_fee;
 
-    total_fees_usd / local_quote.sol_price
+    // Klamports/SOL * μusd / μusd/SOL
+    (KLAMPORTS_PER_SOL * total_fees_usd) / local_quote.sol_price
 }
 
 /// Returns whether the transaction size changes the transaction price or not.

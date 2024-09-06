@@ -195,7 +195,7 @@ fn transfer_tokens(
     recipient_chain: u16,
     transferred_amount: u64,
     gas_dropoff_amount: TargetChainGas,
-    max_fee_sol: KiloLamports,
+    max_fee_klam: KiloLamports,
     recipient_address: [u8; 32],
 ) -> Result<()> {
     check_prices_are_set(&ctx.accounts.oracle_config, &ctx.accounts.oracle_evm_prices)?;
@@ -209,7 +209,7 @@ fn transfer_tokens(
     let (transferred_amount, gas_dropoff_amount) =
         normalize_amounts(&ctx.accounts.mint, transferred_amount, gas_dropoff_amount)?;
 
-    let total_fees_sol = calculate_total_fee(
+    let total_fees_klam = calculate_total_fee(
         &ctx.accounts.tbr_config,
         &ctx.accounts.oracle_evm_prices,
         &ctx.accounts.oracle_config,
@@ -217,7 +217,7 @@ fn transfer_tokens(
         gas_dropoff_amount,
     );
     require!(
-        total_fees_sol <= max_fee_sol,
+        total_fees_klam <= max_fee_klam,
         TokenBridgeRelayerError::FeeExceedingMaximum
     );
 
@@ -230,7 +230,7 @@ fn transfer_tokens(
                 to: ctx.accounts.fee_recipient.to_account_info(),
             },
         ),
-        total_fees_sol,
+        total_fees_klam,
     )?;
 
     // Transfer the tokens to the custody account, to be transferred through the TBR:
@@ -295,7 +295,7 @@ pub fn transfer_native_tokens(
     recipient_chain: u16,
     transferred_amount: u64,
     gas_dropoff_amount: TargetChainGas,
-    max_fee_sol: KiloLamports,
+    max_fee_klam: KiloLamports,
     recipient_address: [u8; 32],
 ) -> Result<()> {
     transfer_tokens(
@@ -304,7 +304,7 @@ pub fn transfer_native_tokens(
         recipient_chain,
         transferred_amount,
         gas_dropoff_amount,
-        max_fee_sol,
+        max_fee_klam,
         recipient_address,
     )
 }
@@ -314,7 +314,7 @@ pub fn transfer_wrapped_tokens(
     recipient_chain: u16,
     transferred_amount: u64,
     gas_dropoff_amount: TargetChainGas,
-    max_fee_sol: KiloLamports,
+    max_fee_klam: KiloLamports,
     recipient_address: [u8; 32],
 ) -> Result<()> {
     transfer_tokens(
@@ -323,7 +323,7 @@ pub fn transfer_wrapped_tokens(
         recipient_chain,
         transferred_amount,
         gas_dropoff_amount,
-        max_fee_sol,
+        max_fee_klam,
         recipient_address,
     )
 }

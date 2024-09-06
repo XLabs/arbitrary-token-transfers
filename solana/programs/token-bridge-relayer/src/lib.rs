@@ -156,14 +156,14 @@ pub mod token_bridge_relayer {
         recipient_address: [u8; 32],
         transferred_amount: u64,
         gas_dropoff_amount: TargetChainGas,
-        max_fee_sol: KiloLamports,
+        max_fee_klam: KiloLamports,
     ) -> Result<()> {
         processor::transfer_native_tokens(
             ctx,
             recipient_chain,
             transferred_amount,
             gas_dropoff_amount,
-            max_fee_sol,
+            max_fee_klam,
             recipient_address,
         )
     }
@@ -175,14 +175,14 @@ pub mod token_bridge_relayer {
         recipient_address: [u8; 32],
         transferred_amount: u64,
         gas_dropoff_amount: TargetChainGas,
-        max_fee_sol: KiloLamports,
+        max_fee_klam: KiloLamports,
     ) -> Result<()> {
         processor::transfer_wrapped_tokens(
             ctx,
             recipient_chain,
             transferred_amount,
             gas_dropoff_amount,
-            max_fee_sol,
+            max_fee_klam,
             recipient_address,
         )
     }
