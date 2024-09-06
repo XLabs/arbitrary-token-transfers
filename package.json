@@ -17,8 +17,8 @@
     "typescript": "5.5.4"
   },
   "workspaces": [
-    "sdk/tbrv3/evm",
-    "sdk/tbrv3/solana"
+    "sdk/evm",
+    "sdk/solana"
   ],
   "packageManager": "yarn@4.4.0"
 }

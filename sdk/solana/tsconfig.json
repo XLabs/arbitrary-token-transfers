@@ -1,5 +1,5 @@
 {
-  "extends": "../../../tsconfig.json",
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "types": [
       "mocha",
@@ -15,10 +15,10 @@
     "esModuleInterop": true
   },
   "include": [
-    "src",
-    "../../../target/idl"
+    "tbrv3",
+    "../../target/idl"
   ],
   "files": [
-    "index.ts"
+    "tbrv3/index.ts"
   ]
 }

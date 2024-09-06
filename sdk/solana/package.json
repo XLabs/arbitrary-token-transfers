@@ -1,7 +1,7 @@
 {
   "name": "@xlabs-xyz/solana-arbitrary-token-transfers",
   "version": "0.0.1-alpha1",
-  "main": "sdk/index.ts",
+  "main": "tbrv3/index.ts",
   "scripts": {
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check"

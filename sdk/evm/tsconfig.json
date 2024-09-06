@@ -1,13 +1,13 @@
 {
-  "extends": "../../../tsconfig.json",
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "lib": [
       "es2023"
     ]
   },
   "include": [
-    "src",
-    "src/index.ts"
+    "tbrv3",
+    "tbrv3/index.ts"
   ],
   "references": []
 }
