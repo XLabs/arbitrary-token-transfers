@@ -21,17 +21,12 @@
     "isolatedModules": true
   },
   "references": [
-    {
-      "path": "./sdk/evm/tsconfig.json"
-    },
-    {
-      "path": "./sdk/solana/tsconfig.json"
-    },
-    {
-      "path": "./deployment"
-    },
-    {
-      "path": "./solana/tsconfig.json"
-    }
+    { "path": "./sdk/evm/tsconfig.json" },
+    { "path": "./sdk/solana/tsconfig.json" },
+    { "path": "./deployment" },
+    { "path": "./solana/tsconfig.json" },
+    { "path": "./connect/definitions" },
+    { "path": "./connect/platforms/evm" },
+    { "path": "./connect/route" }
   ]
 }

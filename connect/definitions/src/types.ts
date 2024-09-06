@@ -1,7 +1,7 @@
 import { Chain } from "@wormhole-foundation/sdk-base";
 import { AccountAddress, ChainAddress, TokenAddress } from "@wormhole-foundation/sdk-definitions";
+import { supportedChains } from "./consts.js";
 
-export const supportedChains = ["Ethereum", "Solana"] as const satisfies readonly Chain[];
 export type SupportedChains = typeof supportedChains[number];
 
 export interface RelayingFeesReturn {

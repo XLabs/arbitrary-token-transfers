@@ -14,8 +14,9 @@ import {
   TransferReceipt,
   TransferState,
 } from "@wormhole-foundation/sdk-connect";
-import { Tbrv3 } from "../tbrv3/evm/contract.js";
-import { acquireModeItem, relayFeeUnit } from "../tbrv3/evm/layouts.js";
+import { Tbrv3, acquireModeItem, relayFeeUnit } from "@xlabs-xyz/evm-arbitrary-token-transfers"
+import "@xlabs-xyz/arbitrary-token-transfers-definitions";
+import { supportedChains } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
 
 type AcquireMode = LayoutToType<typeof acquireModeItem>;
 
@@ -43,7 +44,7 @@ export class AutomaticTokenBridgeRoute<N extends Network>
   static supportedChains(network: Network): Chain[] {
     // if (network === 'Devnet') return [];
     // return Tbrv3.addresses[network] || [];
-    return [];
+    return [...supportedChains];
   }
 
   // get the list of source tokens that are possible to send

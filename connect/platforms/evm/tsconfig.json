@@ -1,0 +1,17 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "experimentalDecorators": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2023"],
+    "outDir": "ts-build"
+  },
+  "include": ["src"],
+  "exclude": ["ts-build"],
+  "references": [
+    { "path": "../../../sdk" },
+    { "path": "../../definitions" },
+  ]
+}

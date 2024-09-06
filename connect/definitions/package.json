@@ -1,22 +1,20 @@
 {
-  "name": "@xlabs-xyz/evm-arbitrary-token-transfers",
-  "version": "0.0.1-alpha4",
+  "name": "@xlabs-xyz/arbitrary-token-transfers-definitions",
+  "version": "0.0.1-alpha1",
   "description": "",
   "type": "module",
-  "module": "ts-build/tbrv3/index.js",
-  "types": "ts-build/tbrv3/index.d.ts",
+  "module": "ts-build/src/index.js",
+  "types": "ts-build/src/index.d.ts",
   "exports": {
     ".": {
-      "require": "./ts-build/tbrv3/index.cjs",
-      "import": "./ts-build/tbrv3/index.js",
-      "types": "./ts-build/tbrv3/index.d.ts"
+      "require": "./ts-build/src/index.cjs",
+      "import": "./ts-build/src/index.js",
+      "types": "./ts-build/src/index.d.ts"
     }
   },
   "scripts": {
     "build": "tsc --noEmit -p ./tsconfig.json && tsup",
     "prettier": "prettier --write .",
-    "test:integration": "tsc -p ./test/tsconfig.json && mocha build-test/test/integration.tbrv3.test.js",
-    "test:deploy:integration": "yarn workspace deployment run deploy:evm:localnet && yarn test:integration",
     "clean": "rm -r ts-build"
   },
   "files": [
@@ -31,31 +29,27 @@
   "author": "",
   "license": "Apache 2",
   "dependencies": {
-    "@wormhole-foundation/sdk-base": "0.10.7",
-    "@wormhole-foundation/sdk-definitions": "0.10.7",
-    "@wormhole-foundation/sdk-evm": "0.10.7",
+    "@wormhole-foundation/sdk-base": "0.10.3",
+    "@wormhole-foundation/sdk-definitions": "0.10.3",
+    "@wormhole-foundation/sdk-evm": "0.10.3",
     "ethers": "^6.13.2"
   },
   "devDependencies": {
-    "@types/chai": "^4.3.19",
-    "@types/mocha": "^10",
-    "@types/node": "20.16.5",
-    "chai": "^5.1.1",
-    "mocha": "^10.7.3",
+    "@types/node": "20.14.14",
     "tsup": "^8.2.4",
-    "tsx": "4.19.1",
-    "typescript": "5.6.2"
+    "tsx": "4.16.5",
+    "typescript": "5.5.4"
   },
   "tsup": {
     "entry": [
-      "tbrv3/index.ts"
+      "src/index.ts"
     ],
     "tsconfig": "tsconfig.build.json",
     "splitting": false,
     "sourcemap": true,
     "minify": false,
     "clean": true,
-    "outDir": "ts-build/tbrv3",
+    "outDir": "build/src",
     "format": [
       "esm",
       "cjs"

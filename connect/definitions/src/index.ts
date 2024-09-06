@@ -20,5 +20,6 @@ declare module "@wormhole-foundation/sdk-definitions" {
 }
 
 export * from "./automatic.js";
-export * from "./layout.js"
-export type * from "./layout.js"
+export * from "./layout.js";
+export * from "./consts.js";
+export * from "./types.js";

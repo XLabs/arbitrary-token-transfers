@@ -5,7 +5,8 @@
   "description": "",
   "scripts": {
     "build": "tsc --build tsconfig.json && yarn workspaces foreach -A --exclude solana/tests run build",
-    "prettier": "prettier --write ."
+    "prettier": "prettier --write .",
+    "clean": "yarn workspaces foreach -A run clean"
   },
   "keywords": [],
   "author": "",
@@ -35,7 +36,10 @@
     "sdk/evm",
     "sdk/solana",
     "solana",
-    "deployment"
+    "deployment",
+    "connect/definitions",
+    "connect/platforms/evm",
+    "connect/route"
   ],
   "packageManager": "yarn@4.4.1"
 }
