@@ -17,8 +17,5 @@
   "include": [
     "tbrv3",
     "../../target/idl"
-  ],
-  "files": [
-    "tbrv3/index.ts"
   ]
 }
