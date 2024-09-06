@@ -1,15 +1,15 @@
 {
   "name": "@xlabs-xyz/evm-arbitrary-token-transfers",
-  "version": "0.0.1-alpha1",
+  "version": "0.0.1-alpha2",
   "description": "",
   "type": "module",
-  "module": "ts-build/src/index.js",
-  "types": "ts-build/src/index.d.ts",
+  "module": "ts-build/tbrv3/index.js",
+  "types": "ts-build/tbrv3/index.d.ts",
   "exports": {
     ".": {
-      "require": "./build/src/index.cjs",
-      "import": "./build/src/index.js",
-      "types": "./build/src/index.d.ts"
+      "require": "./ts-build/tbrv3/index.cjs",
+      "import": "./ts-build/tbrv3/index.js",
+      "types": "./ts-build/tbrv3/index.d.ts"
     }
   },
   "scripts": {
@@ -48,7 +48,7 @@
     "sourcemap": true,
     "minify": false,
     "clean": true,
-    "outDir": "build/src",
+    "outDir": "ts-build/tbrv3",
     "format": [
       "esm",
       "cjs"
