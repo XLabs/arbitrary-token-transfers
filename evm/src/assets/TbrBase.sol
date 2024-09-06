@@ -10,11 +10,18 @@ import "oracle/IOracle.sol";
 import {OracleIntegration} from "oracle/OracleIntegration.sol";
 import "wormhole-sdk/interfaces/ITokenBridge.sol";
 
+struct ChainData {
+  bytes32 canonicalPeer;
+  mapping(bytes32 => bool) peers;
+  bool isPaused;
+  bool txSizeSensitive;
+}
+
 struct TbrPeersState {
   /**
    * @notice The peers for each chain ID, the first peer is the canonical peer
    */
-  mapping(uint16 => bytes32[]) peers;
+  mapping(uint16 => ChainData) state;
 }
 
 // keccak256("TbrPeersState") - 1
@@ -36,10 +43,6 @@ struct TbrConfigState {
    * @notice The maximum gas dropoff is denominated in Twei of the target chain native token, i.e. 10^12 wei
    */
   mapping(uint16 => uint32) maxGasDropoff;
-  /**
-   * @notice If true, outbound transfers are paused
-   */
-  bool outboundTransfersPaused;
 }
 
 // keccak256("TbrConfigState") - 1
@@ -77,72 +80,69 @@ abstract contract TbrBase is OracleIntegration {
     _tokenBridge = ITokenBridge(tokenBridge);
   }
 
-  function getPeers(uint16 peersChainId) internal view returns (bytes32[] memory) {
-    return tbrPeersState().peers[peersChainId];
+  function getTargetChainData(uint16 destinationChain) internal view returns (bytes32, bool, bool) {
+    ChainData storage data = tbrPeersState().state[destinationChain];
+    return (data.canonicalPeer, data.isPaused, data.txSizeSensitive);
   }
 
-  function addPeer(uint16 peerChainId, bytes32 peer) internal {
-    if (peerChainId == 0 || peerChainId == _chainId)
+  function isPeer(uint16 destinationChain, bytes32 peer) internal view returns (bool) {
+    return tbrPeersState().state[destinationChain].peers[peer];
+  }
+
+  function addPeer(uint16 destinationChain, bytes32 peer) internal {
+    if (destinationChain == 0 || destinationChain == _chainId)
       revert InvalidChainId();
 
     if (peer == bytes32(0))
       revert PeerIsZeroAddress();
 
-    bytes32 bridgeContractOnPeerChain = _tokenBridge.bridgeContracts(peerChainId);
+    bytes32 bridgeContractOnPeerChain = _tokenBridge.bridgeContracts(destinationChain);
     if (bridgeContractOnPeerChain == bytes32(0))
-      revert ChainNoSupportedByTokenBridge(peerChainId);
+      revert ChainNoSupportedByTokenBridge(destinationChain);
 
-    TbrPeersState storage peersState = tbrPeersState();
-    bytes32[] memory currentPeers = peersState.peers[peerChainId];
+    ChainData storage data = tbrPeersState().state[destinationChain];
+    bool isAlreadyPeer = data.peers[peer];
+    if (isAlreadyPeer)
+      revert PeerAlreadyRegistered(destinationChain, peer);
+
+    data.peers[peer] = true;
+  }
+
+  function isChainTxSizeSensitive(uint16 chainId) internal view returns (bool) {
+    return tbrPeersState().state[chainId].txSizeSensitive;
+  }
+
+  function setChainTxSizeSensitive(uint16 chainId, bool txSizeSensitive) internal {
+    tbrPeersState().state[chainId].txSizeSensitive = txSizeSensitive;
+  }
+
+  function getCanonicalPeer(uint16 destinationChain) internal view returns (bytes32) {
+    return tbrPeersState().state[destinationChain].canonicalPeer;
+  }
+
+  function setCanonicalPeer(uint16 destinationChain, bytes32 peer) internal {
+    if (destinationChain == 0 || destinationChain == _chainId)
+      revert InvalidChainId();
+
+    if (peer == bytes32(0))
+      revert PeerIsZeroAddress();
+
+    bytes32 bridgeContractOnPeerChain = _tokenBridge.bridgeContracts(destinationChain);
+    if (bridgeContractOnPeerChain == bytes32(0))
+      revert ChainNoSupportedByTokenBridge(destinationChain);
     
-    for (uint i = 0; i < currentPeers.length; i++) {
-      if (currentPeers[i] == peer)
-        revert PeerAlreadyRegistered(peerChainId, peer);
-    }
-
-    peersState.peers[peerChainId].push(peer);
-  }
-
-  function getCanonicalPeer(uint16 peerChainId) internal view returns (bytes32) {
-    return getPeers(peerChainId)[0];
-  }
-
-  function setCanonicalPeer(uint16 peerChainId, bytes32 peer) internal {
-    if (peerChainId == 0 || peerChainId == _chainId)
-      revert InvalidChainId();
-
-    if (peer == bytes32(0))
-      revert PeerIsZeroAddress();
-
-    bytes32 bridgeContractOnPeerChain = _tokenBridge.bridgeContracts(peerChainId);
-    if (bridgeContractOnPeerChain == bytes32(0))
-      revert ChainNoSupportedByTokenBridge(peerChainId);
+    ChainData storage data = tbrPeersState().state[destinationChain];
+    bool isAlreadyPeer = data.peers[peer];
+    if (!isAlreadyPeer)
+      data.peers[peer] = true;
       
-    TbrPeersState storage peersState = tbrPeersState();
-    bytes32[] memory currentPeers = peersState.peers[peerChainId];
-
-    for (uint i = 0; i < currentPeers.length; i++) {
-      if (currentPeers[i] == peer && i != 0) {
-        bytes32 exCanonicalPeer = currentPeers[0];
-        currentPeers[0] = peer;
-        currentPeers[i] = exCanonicalPeer;
-        peersState.peers[peerChainId] = currentPeers;
-        return;
-      }
-    }
-
-    if (currentPeers.length != 0) {
-      bytes32 exCanonicalPeer = currentPeers[0];
-      currentPeers[0] = peer;
-      peersState.peers[peerChainId] = currentPeers;
-      peersState.peers[peerChainId].push(exCanonicalPeer);
-    } else {
-      peersState.peers[peerChainId].push(peer);
-    }
+    bytes32 currentCanonicalPeer = data.canonicalPeer;
+    if (currentCanonicalPeer != peer)
+      data.canonicalPeer = peer;
   }
 
   function isChainSupported(uint16 chainId) internal view returns (bool) {
-    return tbrPeersState().peers[chainId].length != 0;
+    return getCanonicalPeer(chainId) != bytes32(0);
   }
 
   function getRelayFee() internal view returns (uint32) {
@@ -161,12 +161,18 @@ abstract contract TbrBase is OracleIntegration {
     tbrConfigState().maxGasDropoff[chainId] = maxGasDropoff;
   }
 
-  function getPauseOutboundTransfers() internal view returns (bool) {
-    return tbrConfigState().outboundTransfersPaused;
+  /**
+   * @notice Check if outbound transfers are paused for a given chain
+   */
+  function isPaused(uint16 chainId) internal view returns (bool) {
+    return tbrPeersState().state[chainId].isPaused;
   }
 
-  function setPauseOutboundTransfers(bool paused) internal {
-    tbrConfigState().outboundTransfersPaused = paused;
+  /**
+   * @notice Set outbound transfers for a given chain
+   */
+  function setPause(uint16 chainId, bool paused) internal {
+    tbrPeersState().state[chainId].isPaused = paused;
   }
 
   function transferEth(address to, uint256 amount) internal {

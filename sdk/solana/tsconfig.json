@@ -1,0 +1,21 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "types": [
+      "mocha",
+      "chai"
+    ],
+    "lib": [
+      "ES2023"
+    ],
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "target": "es6",
+    "resolveJsonModule": true,
+    "esModuleInterop": true
+  },
+  "include": [
+    "tbrv3",
+    "../../target/idl"
+  ]
+}

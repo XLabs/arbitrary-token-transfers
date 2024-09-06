@@ -41,7 +41,7 @@
   },
   "tsup": {
     "entry": [
-      "src/index.ts"
+      "tbrv3/index.ts"
     ],
     "tsconfig": "tsconfig.build.json",
     "splitting": false,

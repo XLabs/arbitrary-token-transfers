@@ -122,10 +122,19 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
         (newMaxGasDropoff, offset) = commands.asUint32Unchecked(offset);
         setMaxGasDropoff(targetChain, newMaxGasDropoff);
       }
-      else if (command == PAUSE_OUTBOUND_TRANSFERS) {
+      else if (command == PAUSE_CHAIN) {
+        uint16 targetChain;
         bool paused;
+        (targetChain, offset) = commands.asUint16Unchecked(offset);
         (paused, offset) = commands.asBoolUnchecked(offset);
-        setPauseOutboundTransfers(paused);
+        setPause(targetChain, paused);
+      }
+      else if (command == UPDATE_TX_SIZE_SENSITIVE) {
+        uint16 targetChain;
+        bool txSizeSensitive;
+        (targetChain, offset) = commands.asUint16Unchecked(offset);
+        (txSizeSensitive, offset) = commands.asBoolUnchecked(offset);
+        setChainTxSizeSensitive(targetChain, txSizeSensitive);
       }
       else if (command == UPGRADE_CONTRACT) {
         if (!isOwner)
@@ -201,15 +210,27 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
         (peerChainId, offset) = queries.asUint16Unchecked(offset);
         ret = abi.encodePacked(ret, getCanonicalPeer(peerChainId));
       }
-      else if (query == PEERS) {
-        uint16 peersChainId;
-        (peersChainId, offset) = queries.asUint16Unchecked(offset);
-        ret = abi.encodePacked(ret, getPeers(peersChainId));
+      else if (query == IS_PEER) {
+        uint16 peerChainId;
+        bytes32 peer;
+        (peerChainId, offset) = queries.asUint16Unchecked(offset);
+        (peer, offset) = queries.asBytes32Unchecked(offset);
+        ret = abi.encodePacked(ret, isPeer(peerChainId, peer));
       }
       else if (query == IS_CHAIN_SUPPORTED) {
         uint16 chainId;
         (chainId, offset) = queries.asUint16Unchecked(offset);
         ret = abi.encodePacked(ret, isChainSupported(chainId));
+      }
+      else if (query == IS_CHAIN_PAUSED) {
+        uint16 chainId;
+        (chainId, offset) = queries.asUint16Unchecked(offset);
+        ret = abi.encodePacked(ret, isPaused(chainId));
+      }
+      else if (query == IS_TX_SIZE_SENSITIVE) {
+        uint16 chainId;
+        (chainId, offset) = queries.asUint16Unchecked(offset);
+        ret = abi.encodePacked(ret, isChainTxSizeSensitive(chainId));
       }
       else if (query == OWNER)
         ret = abi.encodePacked(ret, state.owner); 
@@ -221,8 +242,6 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
         ret = abi.encodePacked(ret, state.feeRecipient);
       else if (query == IMPLEMENTATION)
         ret = abi.encodePacked(ret, _getImplementation());
-      else if (query == OUTBOUND_TRANSFER_PAUSED)
-        ret = abi.encodePacked(ret, getPauseOutboundTransfers());
       else
         revert InvalidGovernanceQuery(query);
     }

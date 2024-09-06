@@ -37,10 +37,8 @@ contract BaseTest is TbrTestBase {
     );
     tbrExposer.exposedAddPeer(chainId, peer);
 
-    bytes32[] memory peers = tbrExposer.exposedGetPeers(chainId);
-
-    assertEq(peers.length, 1);
-    assertEq(peers[0], peer);
+    bool isPeer = tbrExposer.exposedIsPeer(chainId, peer);
+    assertEq(isPeer, true);
   }
 
   function testSetCanonicalPeer() public {
@@ -65,7 +63,6 @@ contract BaseTest is TbrTestBase {
     );
     tbrExposer.exposedSetCanonicalPeer(notSupportedChainId, peer);
 
-    tbrExposer.exposedAddPeer(chainId, peer);
     tbrExposer.exposedSetCanonicalPeer(chainId, peer);
     bytes32 canonicalPeer = tbrExposer.exposedGetCanonicalPeer(chainId);
     assertEq(canonicalPeer, peer);
