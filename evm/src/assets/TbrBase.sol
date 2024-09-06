@@ -79,19 +79,19 @@ error ChainNoSupportedByTokenBridge(uint16 chainId);
 abstract contract TbrBase is OracleIntegration {
   using BytesParsing for bytes;
 
-  IPermit2     internal immutable _permit2;
-  uint16       internal immutable _chainId;
-  ITokenBridge internal immutable _tokenBridge;
+  IPermit2     internal immutable permit2;
+  uint16       internal immutable whChainId;
+  ITokenBridge internal immutable tokenBridge;
 
   constructor(
-    address permit2,
-    address tokenBridge,
+    address initPermit2,
+    address initTokenBridge,
     address oracle,
     uint8 oracleVersion
   ) OracleIntegration(oracle, oracleVersion) {
-    _permit2 = IPermit2(permit2);
-    _chainId = oracleChainId();
-    _tokenBridge = ITokenBridge(tokenBridge);
+    permit2 = IPermit2(initPermit2);
+    whChainId = oracleChainId();
+    tokenBridge = ITokenBridge(initTokenBridge);
   }
 
   function getTargetChainData(uint16 destinationChain) internal view returns (bytes32, bool, bool, uint32) {
@@ -104,13 +104,13 @@ abstract contract TbrBase is OracleIntegration {
   }
 
   function addPeer(uint16 destinationChain, bytes32 peer) internal {
-    if (destinationChain == 0 || destinationChain == _chainId)
+    if (destinationChain == 0 || destinationChain == whChainId)
       revert InvalidChainId();
 
     if (peer == bytes32(0))
       revert PeerIsZeroAddress();
 
-    bytes32 bridgeContractOnPeerChain = _tokenBridge.bridgeContracts(destinationChain);
+    bytes32 bridgeContractOnPeerChain = tokenBridge.bridgeContracts(destinationChain);
     if (bridgeContractOnPeerChain == bytes32(0))
       revert ChainNoSupportedByTokenBridge(destinationChain);
 
@@ -135,13 +135,13 @@ abstract contract TbrBase is OracleIntegration {
   }
 
   function setCanonicalPeer(uint16 destinationChain, bytes32 peer) internal {
-    if (destinationChain == 0 || destinationChain == _chainId)
+    if (destinationChain == 0 || destinationChain == whChainId)
       revert InvalidChainId();
 
     if (peer == bytes32(0))
       revert PeerIsZeroAddress();
 
-    bytes32 bridgeContractOnPeerChain = _tokenBridge.bridgeContracts(destinationChain);
+    bytes32 bridgeContractOnPeerChain = tokenBridge.bridgeContracts(destinationChain);
     if (bridgeContractOnPeerChain == bytes32(0))
       revert ChainNoSupportedByTokenBridge(destinationChain);
     
