@@ -1,7 +1,7 @@
 import { chainToPlatform, FixedLengthArray, Layout, layout, LayoutToType, Network, ProperLayout } from "@wormhole-foundation/sdk-base";
 import { serialize, toNative, toUniversal, VAA } from "@wormhole-foundation/sdk-definitions";
 import { ethers } from "ethers";
-import { baseRelayingConfigReturnLayout, BaseRelayingParamsReturn, dispatcherLayout, gasDropoffUnit, relayFeeUnit, relayingFeesInputLayout, RelayingFeesReturn, RelayingFeesReturnItem, relayingFeesReturnLayout, SupportedChains, TBRv3Message, transferTokenWithRelayLayout, versionEnvelopeLayout, wrapAndTransferGasTokenWithRelayLayout } from "./layouts";
+import { baseRelayingConfigReturnLayout, BaseRelayingParamsReturn, dispatcherLayout, gasDropoffUnit, relayFeeUnit, relayingFeesInputLayout, RelayingFeesReturn, RelayingFeesReturnItem, relayingFeesReturnLayout, SupportedChains, TBRv3Message, transferTokenWithRelayLayout, versionEnvelopeLayout, wrapAndTransferGasTokenWithRelayLayout } from "./layouts.js";
 
 /**
  * Gives you a type that keeps the properties of `T1` while making both properties common to `T1` and `T2` and properties exclusive to `T2` optional.
@@ -150,7 +150,7 @@ export class Tbrv3 {
     // TODO: decide if we want to check that requested gas dropoff doesn't exceed max gas dropoff per transfer
     // Here we need to batch `this.baseRelayingParams` per target chain together with the relaying fee per transfer
 
-    let value = 0n;
+    let value: bigint = 0n;
     const methodCalls = [];
     for (const [i, transfer] of transfers.entries()) {
       if (transfer.feeEstimation.isPaused) {
@@ -200,7 +200,7 @@ export class Tbrv3 {
       throw new Error("At least one of the VAAs points to an unexpected contract.");
     }
 
-    let value = 0n;
+    let value: bigint = 0n;
     for (const vaa of vaas) {
       const tbrv3Message = layout.deserializeLayout(TBRv3Message, vaa.payload.payload);
       // We use the unit of an EVM chain
@@ -282,22 +282,25 @@ function fixedLengthArrayLayout<const T extends ProperLayout>(length: number, la
   } as const satisfies FixedLengthArray;
 }
 
-const exampleTransferArgs = {
-  acquireMode: {mode: "Preapproved"},
-  inputAmount: 1000n,
-  gasDropoff: 10n,
-  recipient: { chain: "Ethereum", address: toUniversal("Ethereum" ,"0xabababababa")},
-  inputToken: "0xabababababa",
-  unwrapIntent: false,
-} as const;
-
-const test = await (new Tbrv3(undefined as any, "Mainnet")).relayingFee({
-  gasDropoff: exampleTransferArgs.gasDropoff,
-  targetChain: exampleTransferArgs.recipient.chain,
-});
-
-(new Tbrv3(undefined as any, "Mainnet")).transferWithRelay({
-  method: "TransferTokenWithRelay",
-  feeEstimation: test[0],
-  args: exampleTransferArgs,
-});
+async function example() {
+  const exampleTransferArgs = {
+    acquireMode: {mode: "Preapproved"},
+    inputAmount: 1000n,
+    gasDropoff: 10n,
+    recipient: { chain: "Ethereum", address: toUniversal("Ethereum" ,"0xabababababa")},
+    inputToken: "0xabababababa",
+    unwrapIntent: false,
+  } as const;
+  
+  const test = await (new Tbrv3(undefined as any, "Mainnet")).relayingFee({
+    gasDropoff: exampleTransferArgs.gasDropoff,
+    targetChain: exampleTransferArgs.recipient.chain,
+  });
+  
+  (new Tbrv3(undefined as any, "Mainnet")).transferWithRelay({
+    method: "TransferTokenWithRelay",
+    feeEstimation: test[0],
+    args: exampleTransferArgs,
+  });
+  
+}

@@ -1,10 +1,28 @@
 {
-  "name": "token-bridge-relayer-sdk",
-  "version": "1.0.0",
+  "name": "@xlabs-xyz/evm-arbitrary-token-transfers",
+  "version": "0.0.1-alpha1",
   "description": "",
+  "type": "module",
+  "module": "ts-build/src/index.js",
+  "types": "ts-build/src/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./build/src/index.cjs",
+      "import": "./build/src/index.js",
+      "types": "./build/src/index.d.ts"
+    }
+  },
   "scripts": {
-    "build": "tsc --build tsconfig.json",
+    "build": "tsc --noEmit -p ./tsconfig.json && tsup",
     "prettier": "prettier --write ."
+  },
+  "files": [
+    "build",
+    "!**/*.tsbuildinfo"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/XLabs/arbitrary-token-transfers.git"
   },
   "keywords": [],
   "author": "",
@@ -17,7 +35,33 @@
   },
   "devDependencies": {
     "@types/node": "20.14.14",
+    "tsup": "^8.2.4",
     "tsx": "4.16.5",
     "typescript": "5.5.4"
+  },
+  "tsup": {
+    "entry": [
+      "src/index.ts"
+    ],
+    "tsconfig": "tsconfig.build.json",
+    "splitting": false,
+    "sourcemap": true,
+    "minify": false,
+    "clean": true,
+    "outDir": "build/src",
+    "format": [
+      "esm",
+      "cjs"
+    ],
+    "dts": {
+      "resolve": true
+    },
+    "external": [
+      "@internal/loader",
+      "@wormhole-foundation/sdk-definitions",
+      "@wormhole-foundation/sdk-base",
+      "@wormhole-foundation/sdk-evm",
+      "ethers"
+    ]
   }
 }
