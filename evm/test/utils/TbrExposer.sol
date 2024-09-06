@@ -17,8 +17,8 @@ contract TbrExposer is Tbr {
     addPeer(chainId, peer);
   }
 
-  function exposedGetPeers(uint16 chainId) public view returns (bytes32[] memory) {
-    return getPeers(chainId);
+  function exposedIsPeer(uint16 chainId, bytes32 peer) public view returns (bool) {
+    return isPeer(chainId, peer);
   }
 
   function exposedSetCanonicalPeer(uint16 chainId, bytes32 peer) public {

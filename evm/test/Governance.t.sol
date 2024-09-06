@@ -285,18 +285,19 @@ contract GovernanceTest is TbrTestBase {
       )
     );
 
-    (bytes32 peer, ) = invokeTbr(
+    (bool isPeer, ) = invokeTbr(
       abi.encodePacked(
         tbr.get1959.selector, 
         dispatcherVersion, 
         GOVERNANCE_QUERIES_ID, 
         commandCount, 
-        PEERS,
-        peerChain
+        IS_PEER,
+        peerChain,
+        newPeer
       )
-    ).asBytes32Unchecked(0);
+    ).asBoolUnchecked(0);
 
-    assertEq(peer, newPeer);
+    assertEq(isPeer, true);
   }
 
   function testUpdateMaxGasDropoff() public {
@@ -426,9 +427,10 @@ contract GovernanceTest is TbrTestBase {
     assertEq(newRelayFee_, newRelayFee);
   }
 
-  function testPauseOutboundTransfers() public {
+  function testPauseChain() public {
     bool paused = true;
     uint8 commandCount = 1;
+    uint16 fakeChainId = 2;
 
     vm.expectRevert(NotAuthorized.selector);
     invokeTbr(
@@ -437,8 +439,9 @@ contract GovernanceTest is TbrTestBase {
         dispatcherVersion, 
         GOVERNANCE_ID, 
         commandCount, 
-        PAUSE_OUTBOUND_TRANSFERS, 
-        paused
+        PAUSE_CHAIN, 
+        paused,
+        fakeChainId
       )
     );
 
@@ -449,7 +452,8 @@ contract GovernanceTest is TbrTestBase {
         dispatcherVersion, 
         GOVERNANCE_ID, 
         commandCount, 
-        PAUSE_OUTBOUND_TRANSFERS, 
+        PAUSE_CHAIN, 
+        fakeChainId,
         paused
       )
     );
@@ -460,7 +464,8 @@ contract GovernanceTest is TbrTestBase {
         dispatcherVersion, 
         GOVERNANCE_QUERIES_ID, 
         commandCount, 
-        OUTBOUND_TRANSFER_PAUSED
+        IS_CHAIN_PAUSED,
+        fakeChainId
       )
     ).asBoolUnchecked(0);
 
@@ -563,7 +568,7 @@ contract GovernanceTest is TbrTestBase {
         dispatcherVersion, 
         GOVERNANCE_ID, 
         commandCount, 
-        ADD_PEER, 
+        UPDATE_CANONICAL_PEER, 
         chainId, 
         fakePeer
       )
@@ -580,6 +585,51 @@ contract GovernanceTest is TbrTestBase {
       )
     ).asBoolUnchecked(0);
     assertEq(isSupported, true);
+  }
+
+  function testSetChainTxSensitive() public {
+    uint16 chainId = 1;
+    bool txSensitive = true;
+    uint8 commandCount = 1;
+
+    vm.expectRevert(NotAuthorized.selector);
+    invokeTbr(
+      abi.encodePacked(
+        tbr.exec768.selector, 
+        dispatcherVersion, 
+        GOVERNANCE_ID, 
+        commandCount, 
+        UPDATE_TX_SIZE_SENSITIVE, 
+        chainId,
+        txSensitive
+      )
+    );
+
+    vm.prank(admin);
+    invokeTbr(
+      abi.encodePacked(
+        tbr.exec768.selector, 
+        dispatcherVersion, 
+        GOVERNANCE_ID, 
+        commandCount, 
+        UPDATE_TX_SIZE_SENSITIVE, 
+        chainId,
+        txSensitive
+      )
+    );
+
+    (bool txSensitive_, ) = invokeTbr(
+      abi.encodePacked(
+        tbr.get1959.selector, 
+        dispatcherVersion, 
+        GOVERNANCE_QUERIES_ID, 
+        commandCount, 
+        IS_TX_SIZE_SENSITIVE,
+        chainId
+      )
+    ).asBoolUnchecked(0);
+
+    assertEq(txSensitive_, txSensitive);
   }
 
   function testInvalidCommand() public {
