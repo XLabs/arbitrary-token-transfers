@@ -22,6 +22,11 @@
     "isolatedModules": true,
   },
   "references": [
-    { "path": "./sdk" },
+    {
+      "path": "./sdk/evm/tsconfig.json"
+    },
+    {
+      "path": "./sdk/solana/tsconfig.json"
+    }
   ]
 }
