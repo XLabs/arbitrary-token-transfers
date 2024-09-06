@@ -6,8 +6,7 @@
     ]
   },
   "include": [
-    "tbrv3",
-    "tbrv3/index.ts"
+    "tbrv3"
   ],
   "references": []
 }
