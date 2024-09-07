@@ -119,14 +119,14 @@ abstract contract TbrUser is TbrBase {
   function quoteRelay(uint16 destinationChain, uint32 gasDropoff, bool txCommitEthereum) view internal returns (uint256) {
     uint32 relayFee = getRelayFee();
     if (destinationChain == SOLANA_CHAIN) {
-      return oracleSolanaQuote(gasDropoff, SOLANA_RELAY_SPAWNED_ACCOUNTS, SOLANA_RELAY_TOTAL_SIZE, relayFee);
+      return solanaTransactionQuote(gasDropoff, SOLANA_RELAY_SPAWNED_ACCOUNTS, SOLANA_RELAY_TOTAL_SIZE, relayFee);
     }
 
     if (txCommitEthereum) {
-      return oracleTransferFeesWithTxSizeQuote(destinationChain, gasDropoff, EVM_RELAY_GAS_COST, relayFee, EVM_RELAY_TX_SIZE);
+      return evmTransactionWithTxSizeQuote(destinationChain, gasDropoff, EVM_RELAY_GAS_COST, relayFee, EVM_RELAY_TX_SIZE);
     }
 
-    return oracleTransferFeesQuote(destinationChain, gasDropoff, EVM_RELAY_GAS_COST, relayFee);
+    return evmTransactionQuote(destinationChain, gasDropoff, EVM_RELAY_GAS_COST, relayFee);
   }
 
   function tbrv3Message(bytes32 recipient, uint32 gasDropoff, bool unwrapIntent) internal pure returns (bytes memory) {
