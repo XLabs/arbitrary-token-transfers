@@ -2,13 +2,18 @@
 
 pragma solidity ^0.8.24;
 
-import "@openzeppelin/token/ERC20/IERC20.sol";
-import "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
-import "wormhole-sdk/interfaces/token/IPermit2.sol";
-import "wormhole-sdk/libraries/BytesParsing.sol";
-import "oracle/IPriceOracle.sol";
+import {IERC20} from "@openzeppelin/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
+import {IPermit2} from "wormhole-sdk/interfaces/token/IPermit2.sol";
+import {BytesParsing} from "wormhole-sdk/libraries/BytesParsing.sol";
+import {IPriceOracle} from "oracle/IPriceOracle.sol";
 import {PriceOracleIntegration} from "oracle/PriceOracleIntegration.sol";
-import "wormhole-sdk/interfaces/ITokenBridge.sol";
+import {ITokenBridge} from "wormhole-sdk/interfaces/ITokenBridge.sol";
+
+/**
+ * Decoding the command failed.
+ */
+error InvalidCommand(uint8 command, uint256 commandIndex);
 
 struct ChainData {
   /**

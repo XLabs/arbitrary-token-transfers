@@ -3,18 +3,15 @@
 pragma solidity ^0.8.25;
 
 import {BytesParsing} from "wormhole-sdk/libraries/BytesParsing.sol";
-import "wormhole-sdk/interfaces/ITokenBridge.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {TbrBase} from "./TbrBase.sol";
+import {TRANSFER_TOKEN_WITH_RELAY_ID} from "./TbrIds.sol";
+import {TbrBase, InvalidCommand} from "./TbrBase.sol";
 
 uint8 constant ACQUIRE_PREAPPROVED = 0;
 uint8 constant ACQUIRE_PERMIT = 1;
 uint8 constant ACQUIRE_PERMIT2TRANSFER = 2;
 uint8 constant ACQUIRE_PERMITE2PERMIT = 3;
-
-// Command identifiers
-uint8 constant TRANSFER_TOKEN_COMMAND = 0;
 
 // Wormhole chain id for Solana
 uint16 constant SOLANA_CHAIN = 1;
@@ -57,10 +54,6 @@ error GasDropoffRequestedExceedsMaximum(uint32 maxGasDropoff, uint256 commandInd
  * The attached gas token value does not cover the relay fee.
  */
 error FeesInsufficient(uint256 feeReceived, uint256 commandIndex);
-/**
- * Decoding the command failed.
- */
-error InvalidCommand(uint8 command, uint256 commandIndex);
 /**
  * The acquire mode is not implemented at this time.
  */
@@ -193,7 +186,7 @@ library TransferTokenWithRelay {
     uint256 size
   ) {
     if (data.length < MINIMUM_SIZE) {
-      revert InvalidCommand(TRANSFER_TOKEN_COMMAND, commandIndex);
+      revert InvalidCommand(TRANSFER_TOKEN_WITH_RELAY_ID, commandIndex);
     }
 
     acquireMode = uint8(data[ACQUIREMODE_OFFSET]);

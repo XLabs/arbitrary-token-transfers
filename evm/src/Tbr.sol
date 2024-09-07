@@ -2,7 +2,9 @@
 
 pragma solidity ^0.8.25;
 
-import "./assets/TbrDispatcher.sol";
+import {BytesParsing} from "wormhole-sdk/libraries/BytesParsing.sol";
+import {TbrDispatcher} from "./assets/TbrDispatcher.sol";
+import {TbrBase} from "./assets/TbrBase.sol";
 
 contract Tbr is TbrDispatcher {
   using BytesParsing for bytes;
