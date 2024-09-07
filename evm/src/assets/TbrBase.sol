@@ -6,8 +6,8 @@ import "@openzeppelin/token/ERC20/IERC20.sol";
 import "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import "wormhole-sdk/interfaces/token/IPermit2.sol";
 import "wormhole-sdk/libraries/BytesParsing.sol";
-import "oracle/IOracle.sol";
-import {OracleIntegration} from "oracle/OracleIntegration.sol";
+import "oracle/IPriceOracle.sol";
+import {PriceOracleIntegration} from "oracle/PriceOracleIntegration.sol";
 import "wormhole-sdk/interfaces/ITokenBridge.sol";
 
 struct ChainData {
@@ -76,7 +76,7 @@ error InvalidChainId();
 error EthTransferFailed();
 error ChainNoSupportedByTokenBridge(uint16 chainId);
 
-abstract contract TbrBase is OracleIntegration {
+abstract contract TbrBase is PriceOracleIntegration {
   using BytesParsing for bytes;
 
   IPermit2     internal immutable permit2;
@@ -88,7 +88,7 @@ abstract contract TbrBase is OracleIntegration {
     address initTokenBridge,
     address oracle,
     uint8 oracleVersion
-  ) OracleIntegration(oracle, oracleVersion) {
+  ) PriceOracleIntegration(oracle, oracleVersion) {
     permit2 = IPermit2(initPermit2);
     whChainId = oracleChainId();
     tokenBridge = ITokenBridge(initTokenBridge);
