@@ -19,7 +19,7 @@ struct GovernanceState {
   address  owner; //puts owner address in eip1967 admin slot
   address  pendingOwner;
   address  admin;
-  address  feeRecipient;
+  address payable feeRecipient;
 }
 
 // we use the designated eip1967 admin storage slot: keccak256("eip1967.proxy.admin") - 1
@@ -34,6 +34,7 @@ error NotAuthorized();
 error InvalidFeeRecipient();
 error InvalidGovernanceCommand(uint8 command);
 error InvalidGovernanceQuery(uint8 query);
+error UnknownRole(Role role);
 
 enum Role {
   Owner,
@@ -52,7 +53,7 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
   function _governanceConstruction(
     address owner,
     address admin,
-    address feeRecipient
+    address payable feeRecipient
   ) internal {
     if (feeRecipient == address(0))
       revert InvalidFeeRecipient();
@@ -249,6 +250,10 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
     return (ret, offset);
   }
 
+  function getFeeRecipient() view internal returns(address payable) {
+    return governanceState().feeRecipient;
+  }
+
   // ---- private ----
 
   function _updateRole(Role role, address newAddress) private {
@@ -268,10 +273,10 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
         revert InvalidFeeRecipient();
 
       oldAddress = state.feeRecipient;
-      state.feeRecipient = newAddress;
+      state.feeRecipient = payable(newAddress);
     }
     else
-      return;
+      revert UnknownRole(role);
 
     emit RoleUpdated(role, oldAddress, newAddress, block.timestamp);
   }

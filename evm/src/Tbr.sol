@@ -27,6 +27,6 @@ contract Tbr is TbrDispatcher {
     (admin,      offset) = args.asAddressUnchecked(offset);
     (feeRecipient, offset) = args.asAddressUnchecked(offset);
 
-    _governanceConstruction(owner, admin, feeRecipient);
+    _governanceConstruction(owner, admin, payable(feeRecipient));
   }
 }
