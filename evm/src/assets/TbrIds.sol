@@ -4,10 +4,12 @@ pragma solidity ^0.8.25;
 
 // ----------- Dispatcher Ids -----------
 
+uint8 constant COMMAND_PROTOCOL_VERSION0 = 0;
+
 // Execute commands
 
-uint8 constant TRANSFER_TOKENS_WITH_RELAY_ID = 0;
-uint8 constant WRAP_AND_TRANSFER_ETH_WITH_RELAY_ID = 1;
+uint8 constant TRANSFER_TOKEN_WITH_RELAY_ID = 0;
+uint8 constant TRANSFER_GAS_TOKEN_WITH_RELAY_ID = 1;
 uint8 constant COMPLETE_ID = 2;
 uint8 constant GOVERNANCE_ID = 3;
 
