@@ -153,7 +153,7 @@ library TransferTokenWithRelay {
   //   20 bytes token address
   uint256 constant private TOKEN_OFFSET = CHAIN_OFFSET + 2;
   //   32 bytes token amount
-  uint256 constant private TOKENAMOUNT_OFFSET = CHAIN_OFFSET + 20;
+  uint256 constant private TOKENAMOUNT_OFFSET = TOKEN_OFFSET + 20;
   //   4 bytes uint gasDropoff
   uint256 constant private GASDROPOFF_OFFSET = TOKENAMOUNT_OFFSET + 32;
   //   1 byte boolean unwrapIntent
