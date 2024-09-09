@@ -11,6 +11,7 @@ build/
 ts-build/
 build-test/
 build-forge/
+ethers-contracts/
 
 # Ignore log files
 *.log

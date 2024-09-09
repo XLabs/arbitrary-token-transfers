@@ -2,7 +2,7 @@
   "name": "deployment",
   "version": "0.0.1",
   "scripts": {
-    "build:evm": "FOUNDRY_PROFILE=production forge build",
+    "build:contracts": "FOUNDRY_PROFILE=production forge build --root=../evm && typechain --target=ethers-v6 --out-dir=./ethers-contracts ../evm/build-forge/*.sol/!(*.dbg).json --show-stack-traces",
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check"
   },
@@ -11,6 +11,8 @@
     "typescript": "^5.6.2"
   },
   "dependencies": {
-    "ethers": "^6.13.2"
+    "@typechain/ethers-v6": "^0.5.1",
+    "ethers": "^6.13.2",
+    "typechain": "^8.3.2"
   }
 }
