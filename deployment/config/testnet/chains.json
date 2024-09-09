@@ -1,0 +1,38 @@
+{
+  "guardianSetIndex": 0,
+  "description": "This file contains the chains against which all the scripts should run.",
+  "chains": [
+    {
+      "description": "Sepolia",
+      "evmNetworkId": 11155111,
+      "chainId": 10002,
+      "rpc": "https://rpc.sepolia.org",
+      "rpcWs": "wss://sepolia.gateway.tenderly.co",
+      "wormholeAddress": "0x4a8bc80Ed5a4067f1CCf107057b8270E0cC11A78"
+    },
+    {
+      "description": "Fuji",
+      "evmNetworkId": 43113,
+      "chainId": 6,
+      "rpc": "https://api.avax-test.network/ext/bc/C/rpc",
+      "rpcWs": "wss://avalanche-fuji-c-chain.publicnode.com",
+      "wormholeAddress": "0x7bbcE28e64B3F8b84d876Ab298393c38ad7aac4C"
+    },
+    {
+      "description": "Arbitrum Sepolia",
+      "evmNetworkId": 421614,
+      "chainId": 10003,
+      "rpc": "https://arbitrum-sepolia.blockpi.network/v1/rpc/public",
+      "rpcWs": "",
+      "wormholeAddress": "0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35"
+    },
+    {
+      "description": "Alfajores (Celo)",
+      "evmNetworkId": 44787,
+      "chainId": 14,
+      "rpc": "https://alfajores-forno.celo-testnet.org",
+      "rpcWs": "",
+      "wormholeAddress": "0x88505117CA88e7dd2eC6EA1E13f0948db2D50D56"
+    }
+  ]
+}

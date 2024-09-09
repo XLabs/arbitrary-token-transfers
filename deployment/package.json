@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "scripts": {
     "build:contracts": "FOUNDRY_PROFILE=production forge build --root=../evm && typechain --target=ethers-v6 --out-dir=./ethers-contracts ../evm/build-forge/*.sol/!(*.dbg).json --show-stack-traces",
+    "deploy:evm:testnet": "ENV=testnet tsx evm/deploy.ts",
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check"
   },
@@ -12,7 +13,12 @@
   },
   "dependencies": {
     "@typechain/ethers-v6": "^0.5.1",
-    "ethers": "^6.13.2",
+    "@wormhole-foundation/sdk-base": "^0.10.4",
+    "@xlabs-xyz/evm-arbitrary-token-transfers": "workspace:*",
+    "@xlabs-xyz/ledger-signer": "^0.0.4",
+    "@xlabs-xyz/ledger-signer-ethers-v6": "^0.0.1",
+    "@xlabs-xyz/ledger-signer-solana": "^0.0.1",
+    "ethers": "6.12.1",
     "typechain": "^8.3.2"
   }
 }

@@ -6,6 +6,6 @@
     ],
     "outDir": "ts-build"
   },
-  "include": ["evm"],
+  "include": ["evm", "helpers", "config", "ethers-contracts"],
   "references": []
 }
