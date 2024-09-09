@@ -2024,7 +2024,6 @@ const RAW_RUNTIME_STATE =
           ["@wormhole-foundation/sdk-evm", "npm:0.10.3"],\
           ["@xlabs-xyz/arbitrary-token-transfer-evm-route", "workspace:connect/platforms/evm"],\
           ["@xlabs-xyz/arbitrary-token-transfers-definitions", "workspace:connect/definitions"],\
-          ["@xlabs-xyz/evm-arbitrary-token-transfers", "workspace:sdk/evm"],\
           ["ethers", "npm:6.13.2"],\
           ["tsup", "virtual:9bef669af1c3b4b384f01597b4618f767933970b69e6fd62d81f9bbc7b8c4900225bffb44e48b8c05eea593d7778ed11aa109309394c7caa9adf8cbab67e8377#npm:8.2.4"],\
           ["tsx", "npm:4.16.5"],\

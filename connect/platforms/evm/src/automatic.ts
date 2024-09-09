@@ -1,7 +1,7 @@
 import { encoding, LayoutToType, Network } from "@wormhole-foundation/sdk-base";
 import { ChainsConfig, Contracts, isNative, VAA } from "@wormhole-foundation/sdk-definitions";
 import { EvmChains, EvmPlatform, EvmPlatformType, EvmUnsignedTransaction } from "@wormhole-foundation/sdk-evm";
-import { AutomaticTokenBridgeV3, BaseRelayingParamsReturn, RelayingFeesParams, RelayingFeesReturn, TransferParams } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
+import { AutomaticTokenBridgeV3, BaseRelayingParamsReturnItem, RelayingFeesParams, RelayingFeesReturnItem, TransferParams } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
 import { acquireModeItem, SupportedChains, Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
 import { Provider } from "ethers";
 
@@ -52,8 +52,9 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
 
     if (params.recipient.chain !== 'Solana' && params.recipient.chain !== 'Ethereum') throw new Error(`Unsupported destination chain ${params.recipient.chain}`);
 
-    const transferArgs = {
+    const transferParams = await this.tbr.transferWithRelay({
       args: {
+        method: isNative(params.token) ? 'TransferGasTokenWithRelay' : 'TransferTokenWithRelay',
         acquireMode: params.acquireMode,
         gasDropoff: params.gasDropOff ?? 0n,
         inputAmount: params.amount,
@@ -68,11 +69,6 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
         fee: params.fee,
         isPaused: false
       }
-    };
-    
-    const transferParams = await this.tbr.transferWithRelay({
-      ...transferArgs,
-      method: isNative(params.token) ? 'WrapAndTransferGasTokenWithRelay' : 'TransferTokenWithRelay'
     });
 
     // yield the transfer tx
@@ -141,16 +137,13 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
     );
   }
 
-  async relayingFee(args: RelayingFeesParams): Promise<RelayingFeesReturn> {
+  async relayingFee(args: RelayingFeesParams): Promise<RelayingFeesReturnItem> {
     const [fee] = await this.tbr.relayingFee(args);
     return fee;
   }
 
-  async baseRelayingParams(chain: SupportedChains): Promise<BaseRelayingParamsReturn> {
+  async baseRelayingParams(chain: SupportedChains): Promise<BaseRelayingParamsReturnItem> {
     const [params] = await this.tbr.baseRelayingParams(chain);
-    return {
-      baseFee: BigInt(params.baseFee),
-      maxGasDropoff: BigInt(params.maxGasDropoff)
-    };
+    return params;
   }
 }

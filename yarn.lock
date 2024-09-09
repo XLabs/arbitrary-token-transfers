@@ -1716,7 +1716,6 @@ __metadata:
     "@wormhole-foundation/sdk-evm": "npm:0.10.3"
     "@xlabs-xyz/arbitrary-token-transfer-evm-route": "workspace:^0.0.1-alpha1"
     "@xlabs-xyz/arbitrary-token-transfers-definitions": "workspace:^0.0.1-alpha1"
-    "@xlabs-xyz/evm-arbitrary-token-transfers": "workspace:^0.0.1-alpha1"
     ethers: "npm:^6.13.2"
     tsup: "npm:^8.2.4"
     tsx: "npm:4.16.5"

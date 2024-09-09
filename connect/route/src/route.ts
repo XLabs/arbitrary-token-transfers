@@ -1,5 +1,3 @@
-import { LayoutToType } from "@wormhole-foundation/sdk-base";
-import { toNative } from "@wormhole-foundation/sdk-definitions";
 import {
   AttestationReceipt,
   Chain,
@@ -14,11 +12,9 @@ import {
   TransferReceipt,
   TransferState,
 } from "@wormhole-foundation/sdk-connect";
-import { Tbrv3, acquireModeItem, relayFeeUnit } from "@xlabs-xyz/evm-arbitrary-token-transfers"
+import { toNative } from "@wormhole-foundation/sdk-definitions";
 import "@xlabs-xyz/arbitrary-token-transfers-definitions";
-import { supportedChains } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
-
-type AcquireMode = LayoutToType<typeof acquireModeItem>;
+import { AcquireMode, relayFeeUnit, supportedChains } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
 
 interface TransferOptions {
   gasDropoff: bigint;
@@ -77,11 +73,11 @@ export class AutomaticTokenBridgeRoute<N extends Network>
     try {
       if (request.fromChain.chain !== 'Ethereum' && request.fromChain.chain !== 'Solana') throw new Error('Sourche chain not supported');
       if (request.fromChain.config.network === 'Devnet') throw new Error('Devnet not supported');
-      const tbr = new Tbrv3({} as any, request.fromChain.config.network);
+      const tbr = await request.fromChain.getProtocol('AutomaticTokenBridgeV3');
 
       const options = params.options ?? this.getDefaultOptions();
 
-      const [base] = await tbr.baseRelayingParams(request.fromChain.chain);
+      const base = await tbr.baseRelayingParams(request.fromChain.chain);
       if (base.maxGasDropoff < options.gasDropoff) throw new Error(`Gas dropoff above max available ${base.maxGasDropoff}`);
 
       return {
@@ -104,12 +100,15 @@ export class AutomaticTokenBridgeRoute<N extends Network>
       const targetChain = request.fromChain.chain;
       if (targetChain !== 'Ethereum' && targetChain !== 'Solana') throw new Error('Sourche chain not supported');
       if (request.fromChain.config.network === 'Devnet') throw new Error('Devnet not supported');
-      const tbr = new Tbrv3({} as any, request.fromChain.config.network);
 
-      const [{ fee, isPaused }] = await tbr.relayingFee({
+      const tbr = await request.fromChain.getProtocol('AutomaticTokenBridgeV3');
+
+      const { fee, isPaused } = await tbr.relayingFee({
         gasDropoff: params.options.gasDropoff,
         targetChain
       });
+
+      if (isPaused) throw new Error('Relaying is paused');
 
       return {
         success: true,
