@@ -13,7 +13,6 @@ import {InvalidCommand} from "./TbrBase.sol";
  * Command protocol version is unsupported
  */
 error UnsupportedVersion(uint8 version);
-error InvalidQuery(uint8 query);
 /**
  * Payment to the destination failed.
  */
@@ -27,7 +26,7 @@ abstract contract TbrDispatcher is RawDispatcher, TbrGovernance, TbrUser {
     uint8 version;
     (version, offset) = data.asUint8Unchecked(offset);
 
-    if (version != COMMAND_PROTOCOL_VERSION0) revert UnsupportedVersion(version);
+    if (version != DISPATCHER_PROTOCOL_VERSION0) revert UnsupportedVersion(version);
 
     uint256 senderRefund = msg.value;
     uint256 commandIndex = 0;
@@ -73,29 +72,30 @@ abstract contract TbrDispatcher is RawDispatcher, TbrGovernance, TbrUser {
     uint8 version;
     (version, offset) = data.asUint8Unchecked(offset);
 
-    if (version == 0) {
-      while (offset < data.length) {
-        uint8 query;
-        (query, offset) = data.asUint8Unchecked(offset);
-        
-        bytes memory result;
-        uint movedOffset;
-        if (query == RELAY_FEE_ID) {
-          //(result, movedOffset) = _relayFee(data[offset:]);
-        } else if (query == BASE_RELAYING_CONFIG_ID) {
-          //(result, movedOffset) = _baseRelayingConfig(data[offset:]);
-        } 
-        else if (query == GOVERNANCE_QUERIES_ID) 
-          (result, movedOffset) = batchGovernanceQueries(data[offset:]);
-        else
-          revert InvalidQuery(query);
+    if (version != DISPATCHER_PROTOCOL_VERSION0) revert UnsupportedVersion(version);
 
-        ret = abi.encodePacked(ret, result);
-        offset += movedOffset;
-      }
-      data.checkLength(offset);
-      return ret;
-    } else
-      revert UnsupportedVersion(version);
+    uint256 queryIndex = 0;
+    while (offset < data.length) {
+      uint8 query;
+      (query, offset) = data.asUint8Unchecked(offset);
+      
+      bytes memory result;
+      uint movedOffset;
+      if (query == RELAY_FEE_ID) {
+        //(result, movedOffset) = _relayFee(data[offset:]);
+      } else if (query == BASE_RELAYING_CONFIG_ID) {
+        //(result, movedOffset) = _baseRelayingConfig(data[offset:]);
+      } 
+      else if (query == GOVERNANCE_QUERIES_ID) 
+        (result, movedOffset) = batchGovernanceQueries(data[offset:]);
+      else
+        revert InvalidCommand(query, queryIndex);
+
+      ret = abi.encodePacked(ret, result);
+      offset += movedOffset;
+      queryIndex += 1;
+    }
+    data.checkLength(offset);
+    return ret;
   }
 }

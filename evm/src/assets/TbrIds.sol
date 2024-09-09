@@ -4,7 +4,7 @@ pragma solidity ^0.8.25;
 
 // ----------- Dispatcher Ids -----------
 
-uint8 constant COMMAND_PROTOCOL_VERSION0 = 0;
+uint8 constant DISPATCHER_PROTOCOL_VERSION0 = 0;
 
 // Execute commands
 
