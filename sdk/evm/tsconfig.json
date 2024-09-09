@@ -1,24 +1,10 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "composite": true,
-    "target": "ESNext",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "declaration": true,
-    "outDir": "ts-build",
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
-    "sourceMap": true,
-    "strict": true,
-    "noImplicitAny": true,
-    "noErrorTruncation": true,
-    "skipLibCheck": true,
-    "allowJs": true,
-    "allowSyntheticDefaultImports": true,
-    "resolveJsonModule": true,
-    "downlevelIteration": true,
-    "isolatedModules": true
+    "lib": [
+      "es2023"
+    ],
+    "outDir": "ts-build"
   },
   "include": ["tbrv3"],
   "references": []

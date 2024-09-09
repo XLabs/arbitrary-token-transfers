@@ -1,4 +1,5 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "types": [
       "mocha",
@@ -7,25 +8,10 @@
     "lib": [
       "ES2023"
     ],
-    "composite": true,
     "target": "es6",
     "module": "CommonJS",
     "moduleResolution": "Node",
-    "declaration": true,
     "outDir": "ts-build",
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
-    "sourceMap": true,
-    "strict": true,
-    "noImplicitAny": true,
-    "noErrorTruncation": true,
-    "skipLibCheck": true,
-    "allowJs": true,
-    "allowSyntheticDefaultImports": true,
-    "resolveJsonModule": true,
-    "downlevelIteration": true,
-    "isolatedModules": true
   },
   "include": [
     "tbrv3",
