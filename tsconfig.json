@@ -26,6 +26,9 @@
     },
     {
       "path": "./sdk/solana/tsconfig.json"
+    },
+    {
+      "path": "./deployment"
     }
   ]
 }
