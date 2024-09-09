@@ -8,14 +8,14 @@
     "lib": [
       "ES2023"
     ],
+    "target": "es6",
     "module": "CommonJS",
     "moduleResolution": "Node",
-    "target": "es6",
-    "resolveJsonModule": true,
-    "esModuleInterop": true
+    "outDir": "ts-build",
   },
   "include": [
     "tbrv3",
     "../../target/idl"
-  ]
+  ],
+  "references": []
 }

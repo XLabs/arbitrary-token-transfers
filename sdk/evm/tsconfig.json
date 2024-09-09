@@ -3,10 +3,9 @@
   "compilerOptions": {
     "lib": [
       "es2023"
-    ]
+    ],
+    "outDir": "ts-build"
   },
-  "include": [
-    "tbrv3"
-  ],
+  "include": ["tbrv3"],
   "references": []
 }
