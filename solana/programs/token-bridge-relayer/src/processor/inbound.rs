@@ -1,8 +1,10 @@
 use crate::{
-    constant::SEED_PREFIX_TEMPORARY, error::TokenBridgeRelayerError, message::RelayerMessage,
+    constant::SEED_PREFIX_TEMPORARY,
+    error::{TokenBridgeRelayerError, TokenBridgeRelayerResult},
+    message::RelayerMessage,
     state::TbrConfigState,
 };
-use anchor_lang::prelude::*;
+use anchor_lang::{prelude::*, solana_program::program_option::COption};
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use wormhole_anchor_sdk::{
     token_bridge::{self, program::TokenBridge},
@@ -113,18 +115,24 @@ pub struct CompleteTransfer<'info> {
     /// unchecked because a token account may not have been created for this
     /// mint yet. Mutable.
     ///
-    /// Only used in wrapped transfers.
+    /// # Exclusive
+    ///
+    /// Native transfer only.
     #[account(mut)]
     pub token_bridge_custody: Option<UncheckedAccount<'info>>,
 
     /// CHECK: Token Bridge custody signer. Read-only.
     ///
-    /// Only used in wrapped transfers.
+    /// # Exclusive
+    ///
+    /// Native transfer only.
     pub token_bridge_custody_signer: Option<UncheckedAccount<'info>>,
 
     /// CHECK: Token Bridge custody signer. Read-only.
     ///
-    /// Only used in wrapped transfers.
+    /// # Exclusive
+    ///
+    /// Wrapped transfer only.
     pub token_bridge_mint_authority: Option<UncheckedAccount<'info>>,
 
     /// CHECK: Token Bridge program's wrapped metadata, which stores info
@@ -133,7 +141,9 @@ pub struct CompleteTransfer<'info> {
     ///   * Token's native contract address
     ///   * Token's native decimals
     ///
-    /// Only used in wrapped transfers.
+    /// # Exclusive
+    ///
+    /// Wrapped transfer only.
     pub token_bridge_wrapped_meta: Option<UncheckedAccount<'info>>,
 
     /* Programs */
@@ -144,7 +154,7 @@ pub struct CompleteTransfer<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub fn complete_transfer(ctx: Context<CompleteTransfer>, native: bool) -> Result<()> {
+pub fn complete_transfer(ctx: Context<CompleteTransfer>) -> Result<()> {
     // The intended recipient must agree with the recipient account.
     let RelayerMessage::V0 {
         gas_dropoff_amount,
@@ -155,7 +165,7 @@ pub fn complete_transfer(ctx: Context<CompleteTransfer>, native: bool) -> Result
         TokenBridgeRelayerError::InvalidRecipient
     );
 
-    if native {
+    if is_native(&ctx)? {
         token_bridge_complete_native(&ctx)?;
     } else {
         token_bridge_complete_wrapped(&ctx)?;
@@ -262,4 +272,38 @@ fn token_bridge_complete_wrapped(ctx: &Context<CompleteTransfer>) -> Result<()> 
         },
         &[config_seed],
     ))
+}
+
+fn is_native(ctx: &Context<CompleteTransfer>) -> TokenBridgeRelayerResult<bool> {
+    fn is_native(ctx: &Context<CompleteTransfer>) -> TokenBridgeRelayerResult<bool> {
+        match (
+            &ctx.accounts.token_bridge_mint_authority,
+            &ctx.accounts.token_bridge_wrapped_meta,
+            &ctx.accounts.token_bridge_custody,
+            &ctx.accounts.token_bridge_custody_signer,
+        ) {
+            (None, None, Some(_), Some(_)) => {
+                if ctx.accounts.mint.mint_authority != COption::Some(crate::WORMHOLE_MINT_AUTHORITY)
+                {
+                    Ok(true)
+                } else {
+                    Err(TokenBridgeRelayerError::WrongMintAuthority)
+                }
+            }
+
+            (Some(_), Some(_), None, None) => {
+                if ctx.accounts.mint.mint_authority == COption::Some(crate::WORMHOLE_MINT_AUTHORITY)
+                {
+                    Ok(false)
+                } else {
+                    Err(TokenBridgeRelayerError::WrongMintAuthority)
+                }
+            }
+
+            _otherwise => Err(TokenBridgeRelayerError::WronglySetOptionalAccounts),
+        }
+    }
+
+    is_native(ctx)
+        .inspect_err(|_| msg!("Could not determine whether it is a native or wrapped transfer"))
 }

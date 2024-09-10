@@ -9,7 +9,7 @@ crate-type = ["cdylib", "lib"]
 name = "token_bridge_relayer"
 
 [features]
-default = ["solana-price-oracle/cpi"]
+default = ["solana-price-oracle/cpi", "mainnet"]
 cpi = ["no-entrypoint"]
 no-entrypoint = []
 no-idl = []
@@ -20,7 +20,14 @@ idl-build = [
     "wormhole-anchor-sdk/idl-build",
 ]
 
+# Environments
+mainnet = []
+solana-devnet = []
+tilt-devnet = []
+
+
 [dependencies]
+cfg-if = "1"
 anchor-lang = { version = "0.30.1", git = "https://github.com/coral-xyz/anchor/", rev = "06527e57c3e59683c36eb0a5c69ee669100b42e5", features = ["init-if-needed"] }
 anchor-spl = { version = "0.30.1", git = "https://github.com/coral-xyz/anchor/", rev = "06527e57c3e59683c36eb0a5c69ee669100b42e5" }
 

@@ -2382,6 +2382,7 @@ version = "3.0.0"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
+ "cfg-if",
  "solana-price-oracle",
  "wormhole-anchor-sdk",
  "wormhole-io",

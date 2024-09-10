@@ -1,11 +1,11 @@
 use crate::{
     constant::{SEED_PREFIX_BRIDGED, SEED_PREFIX_TEMPORARY},
-    error::TokenBridgeRelayerError,
+    error::{TokenBridgeRelayerError, TokenBridgeRelayerResult},
     message::RelayerMessage,
     state::{calculate_total_fee, ChainConfigState, SignerSequenceState, TbrConfigState},
     KiloLamports, TargetChainGas,
 };
-use anchor_lang::prelude::*;
+use anchor_lang::{prelude::*, solana_program::program_option::COption};
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use solana_price_oracle::{
     state::{EvmPricesAccount, PriceOracleConfigAccount},
@@ -108,7 +108,9 @@ pub struct OutboundTransfer<'info> {
     /// unchecked because a token account may not have been created for this
     /// mint yet. Mutable.
     ///
-    /// This account is only used in case of a native transfer.
+    /// # Exclusive
+    ///
+    /// Native transfer only.
     #[account(mut)]
     pub token_bridge_custody: Option<UncheckedAccount<'info>>,
 
@@ -117,7 +119,9 @@ pub struct OutboundTransfer<'info> {
 
     /// CHECK: Token Bridge custody signer. Read-only.
     ///
-    /// This account is only used in case of a native transfer.
+    /// # Exclusive
+    ///
+    /// Native transfer only.
     pub token_bridge_custody_signer: Option<UncheckedAccount<'info>>,
 
     /// CHECK: Token Bridge program's wrapped metadata, which stores info
@@ -126,8 +130,9 @@ pub struct OutboundTransfer<'info> {
     ///   * Token's native contract address
     ///   * Token's native decimals
     ///
-    /// Use this account only in a case of wrapped transfer. It will not be
-    /// used for a native transfer.
+    /// # Exclusive
+    ///
+    /// Wrapped transfer only.
     pub token_bridge_wrapped_meta: Option<UncheckedAccount<'info>>,
 
     /// CHECK: Wormhole bridge data. Mutable.
@@ -175,7 +180,6 @@ pub struct OutboundTransfer<'info> {
 
 pub fn transfer_tokens(
     mut ctx: Context<OutboundTransfer>,
-    native: bool,
     recipient_chain: u16,
     transferred_amount: u64,
     gas_dropoff_amount: TargetChainGas,
@@ -247,7 +251,7 @@ pub fn transfer_tokens(
 
     let relayer_message = RelayerMessage::new(recipient_address, gas_dropoff_amount);
 
-    if native {
+    if is_native(&ctx)? {
         token_bridge_transfer_native(
             &mut ctx,
             transferred_amount,
@@ -449,4 +453,37 @@ fn check_prices_are_set(
     );
 
     Ok(())
+}
+
+fn is_native(ctx: &Context<OutboundTransfer>) -> TokenBridgeRelayerResult<bool> {
+    fn is_native(ctx: &Context<OutboundTransfer>) -> TokenBridgeRelayerResult<bool> {
+        match (
+            &ctx.accounts.token_bridge_wrapped_meta,
+            &ctx.accounts.token_bridge_custody,
+            &ctx.accounts.token_bridge_custody_signer,
+        ) {
+            (None, Some(_), Some(_)) => {
+                if ctx.accounts.mint.mint_authority != COption::Some(crate::WORMHOLE_MINT_AUTHORITY)
+                {
+                    Ok(true)
+                } else {
+                    Err(TokenBridgeRelayerError::WrongMintAuthority)
+                }
+            }
+
+            (Some(_), None, None) => {
+                if ctx.accounts.mint.mint_authority == COption::Some(crate::WORMHOLE_MINT_AUTHORITY)
+                {
+                    Ok(false)
+                } else {
+                    Err(TokenBridgeRelayerError::WrongMintAuthority)
+                }
+            }
+
+            _otherwise => Err(TokenBridgeRelayerError::WronglySetOptionalAccounts),
+        }
+    }
+
+    is_native(ctx)
+        .inspect_err(|_| msg!("Could not determine whether it is a native or wrapped transfer"))
 }

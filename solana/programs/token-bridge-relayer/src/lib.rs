@@ -9,7 +9,18 @@ use processor::*;
 type TargetChainGas = u64;
 type KiloLamports = u64;
 
-declare_id!("46kv4wCpfEtLsHPDh4zm7jJb2pVdvke8Pj2ABYYJotFD");
+cfg_if::cfg_if! {
+    if #[cfg(feature = "mainnet")] {
+        declare_id!("46kv4wCpfEtLsHPDh4zm7jJb2pVdvke8Pj2ABYYJotFD");
+        const WORMHOLE_MINT_AUTHORITY: Pubkey = anchor_lang::pubkey!("BCD75RNBHrJJpW4dXVagL5mPjzRLnVZq4YirJdjEYMV7");
+    } else if #[cfg(feature = "solana-devnet")] {
+        declare_id!("46kv4wCpfEtLsHPDh4zm7jJb2pVdvke8Pj2ABYYJotFD");
+        const WORMHOLE_MINT_AUTHORITY: Pubkey = anchor_lang::pubkey!("rRsXLHe7sBHdyKU3KY3wbcgWvoT1Ntqudf6e9PKusgb");
+    } else if #[cfg(feature = "tilt-devnet")] {
+        declare_id!("46kv4wCpfEtLsHPDh4zm7jJb2pVdvke8Pj2ABYYJotFD");
+        const WORMHOLE_MINT_AUTHORITY: Pubkey = anchor_lang::pubkey!("8P2wAnHr2t4pAVEyJftzz7k6wuCE7aP1VugNwehzCJJY");
+    }
+}
 
 pub mod constant {
     use anchor_lang::prelude::*;
@@ -146,8 +157,7 @@ pub mod token_bridge_relayer {
 
     /* Transfers */
 
-    /// Transfers original tokens to another chain.
-    pub fn transfer_native_tokens(
+    pub fn transfer_tokens(
         ctx: Context<OutboundTransfer>,
         recipient_chain: u16,
         recipient_address: [u8; 32],
@@ -157,7 +167,6 @@ pub mod token_bridge_relayer {
     ) -> Result<()> {
         processor::transfer_tokens(
             ctx,
-            true,
             recipient_chain,
             transferred_amount,
             gas_dropoff_amount,
@@ -166,39 +175,8 @@ pub mod token_bridge_relayer {
         )
     }
 
-    /// Transfers Wormhole tokens to another chain.
-    pub fn transfer_wrapped_tokens(
-        ctx: Context<OutboundTransfer>,
-        recipient_chain: u16,
-        recipient_address: [u8; 32],
-        transferred_amount: u64,
-        gas_dropoff_amount: TargetChainGas,
-        max_fee_klam: KiloLamports,
-    ) -> Result<()> {
-        processor::transfer_tokens(
-            ctx,
-            false,
-            recipient_chain,
-            transferred_amount,
-            gas_dropoff_amount,
-            max_fee_klam,
-            recipient_address,
-        )
-    }
-
-    /// Complete a native transfer initiated on another chain.
-    pub fn complete_native_transfer(
-        ctx: Context<CompleteTransfer>,
-        _vaa_hash: [u8; 32],
-    ) -> Result<()> {
-        processor::complete_transfer(ctx, true)
-    }
-
-    /// Complete a wrapped transfer initiated on another chain.
-    pub fn complete_wrapped_transfer(
-        ctx: Context<CompleteTransfer>,
-        _vaa_hash: [u8; 32],
-    ) -> Result<()> {
-        processor::complete_transfer(ctx, false)
+    /// Complete a transfer initiated from another chain.
+    pub fn complete_transfer(ctx: Context<CompleteTransfer>, _vaa_hash: [u8; 32]) -> Result<()> {
+        processor::complete_transfer(ctx)
     }
 }

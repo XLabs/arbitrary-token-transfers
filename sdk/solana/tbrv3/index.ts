@@ -4,7 +4,7 @@ import {
   PublicKey, Connection
 } from '@solana/web3.js';
 import { Chain, chainToChainId, encoding } from '@wormhole-foundation/sdk-base';
-import { QuoterClient } from 'solana-price-oracle-sdk';
+import { SolanaPriceOracleClient } from 'solana-price-oracle-sdk/src/solana/sdk';
 import { SYSTEM_PROGRAM_ID } from '@coral-xyz/anchor/dist/cjs/native/system';
 
 import { TokenBridgeRelayer } from '../../../target/types/token_bridge_relayer';
@@ -60,7 +60,7 @@ export interface ReadTbrAccounts {
 export class TbrClient {
   private _connection: Connection;
   private readonly program: anchor.Program<TokenBridgeRelayer>;
-  private quoterClient: QuoterClient;
+  private priceOracleClient: SolanaPriceOracleClient;
   private tokenBridgeProgramId: PublicKey;
   private wormholeProgramId: PublicKey;
 
@@ -70,7 +70,7 @@ export class TbrClient {
   ) {
     this._connection = connection;
     this.program = new Program<TokenBridgeRelayer>(IDL as any, { connection });
-    this.quoterClient = new QuoterClient(connection);
+    this.priceOracleClient = new SolanaPriceOracleClient(connection);
     this.tokenBridgeProgramId = tokenBridgeProgramId;
     this.wormholeProgramId = wormholeProgramId;
   }
@@ -232,8 +232,8 @@ export class TbrClient {
       userTokenAccount,
       temporaryAccount: pda.temporary(this.program.programId, mint),
       feeRecipient,
-      oracleConfig: this.quoterClient.address.config(),
-      oracleEvmPrices: this.quoterClient.address.evmPrices(recipientChain),
+      oracleConfig: this.priceOracleClient.address.config(),
+      oracleEvmPrices: this.priceOracleClient.address.evmPrices(recipientChain),
       ...tokenBridgeAccounts,
       wormholeMessage: pda.wormholeMessage(this.program.programId, signer, payerSequenceNumber),
       payerSequence: this.address.signerSequence(signer),
@@ -280,8 +280,8 @@ export class TbrClient {
       userTokenAccount,
       temporaryAccount: pda.temporary(this.program.programId, tokenBridgeAccounts.mint),
       feeRecipient,
-      oracleConfig: this.quoterClient.address.config(),
-      oracleEvmPrices: this.quoterClient.address.evmPrices(recipientChain),
+      oracleConfig: this.priceOracleClient.address.config(),
+      oracleEvmPrices: this.priceOracleClient.address.evmPrices(recipientChain),
       ...tokenBridgeAccounts,
       wormholeMessage: pda.wormholeMessage(this.program.programId, signer, payerSequenceNumber),
       payerSequence: this.address.signerSequence(signer),
