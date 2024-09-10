@@ -6,13 +6,13 @@ pub(crate) enum TokenBridgeRelayerError {
     #[msg("OwnerOnly")]
     OwnerOnly,
 
-    /// Only the program's owner or admin are permitted.
-    #[msg("AuthorizedOnly")]
-    AuthorizedOnly,
-
     /// Only the program's pending owner is permitted.
-    #[msg("NotPendingOwner")]
-    NotPendingOwner,
+    #[msg("PendingOwnerOnly")]
+    PendingOwnerOnly,
+
+    /// Only the program's owner or admin are permitted.
+    #[msg("OwnerOrAdminOnly")]
+    OwnerOrAdminOnly,
 
     /// Specified key is already the program's owner.
     #[msg("AlreadyTheOwner")]
@@ -86,7 +86,7 @@ pub(crate) enum TokenBridgeRelayerError {
     #[msg("EvmChainPriceNotSet")]
     EvmChainPriceNotSet,
 
-    /// An outbound transfer must go to the canonical peer.
-    #[msg("MustSendToCanonicalPeer")]
-    MustSendToCanonicalPeer,
+    /// Transfers are paused for this chain.
+    #[msg("PausedTransfers")]
+    PausedTransfers,
 }

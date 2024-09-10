@@ -1,4 +1,9 @@
-TARGET='../../../target/idl'
+TARGET='../../../target'
+NAME='token_bridge_relayer'
 
-mkdir -p $TARGET
-anchor idl build --skip-lint --out $TARGET/token-bridge-relayer.json --out-ts $TARGET/token-bridge-relayer.ts
+mkdir -p $TARGET/idl
+mkdir -p $TARGET/types
+
+anchor idl build --skip-lint \
+    --out $TARGET/idl/$NAME.json \
+    --out-ts $TARGET/types/$NAME.ts

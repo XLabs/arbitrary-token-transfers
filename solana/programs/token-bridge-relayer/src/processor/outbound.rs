@@ -1,16 +1,15 @@
 use crate::{
-    constants::{SEED_PREFIX_BRIDGED, SEED_PREFIX_CUSTODY},
     error::TokenBridgeRelayerError,
     message::RelayerMessage,
-    state::{
-        calculate_total_fee, ChainConfigAccount, ForeignContractAccount, SignerSequenceAccount,
-        TbrConfigAccount,
-    },
-    KiloLamports, TargetChainGas,
+    state::{calculate_total_fee, ChainConfigState, SignerSequenceState, TbrConfigState},
+    KiloLamports, TargetChainGas, {SEED_PREFIX_BRIDGED, SEED_PREFIX_TEMPORARY},
 };
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use solana_price_oracle::state::{EvmPricesAccount, PriceOracleConfigAccount};
+use solana_price_oracle::{
+    state::{EvmPricesAccount, PriceOracleConfigAccount},
+    PriceOracle,
+};
 use wormhole_anchor_sdk::{
     token_bridge::{self, program::TokenBridge},
     wormhole::program::Wormhole,
@@ -34,40 +33,24 @@ pub struct OutboundTransfer<'info> {
     /// This program's config.
     #[account(
         has_one = fee_recipient @ TokenBridgeRelayerError::WrongFeeRecipient,
-        seeds = [TbrConfigAccount::SEED_PREFIX],
+        seeds = [TbrConfigState::SEED_PREFIX],
         bump
     )]
-    pub tbr_config: Account<'info, TbrConfigAccount>,
+    pub tbr_config: Account<'info, TbrConfigState>,
 
     /// The peer config. We need to verify that the transfer is sent to the
     /// canonical peer.
     #[account(
-        constraint = chain_config.canonical_peer_address == recipient_address
-            @ TokenBridgeRelayerError::MustSendToCanonicalPeer,
         seeds = [
-            ChainConfigAccount::SEED_PREFIX,
+            ChainConfigState::SEED_PREFIX,
             recipient_chain.to_be_bytes().as_ref(),
         ],
         bump
     )]
-    pub chain_config: Account<'info, ChainConfigAccount>,
-
-    /// Foreign Contract account. Send tokens to the contract specified in this
-    /// account. Funnily enough, the Token Bridge program does not have any
-    /// requirements for outbound transfers for the recipient chain to be
-    /// registered. This account provides extra protection against sending
-    /// tokens to an unregistered Wormhole chain ID. Read-only.
-    #[account(
-        seeds = [
-            ForeignContractAccount::SEED_PREFIX,
-            &recipient_chain.to_be_bytes()
-        ],
-        bump,
-    )]
-    pub foreign_contract: Account<'info, ForeignContractAccount>,
+    pub chain_config: Account<'info, ChainConfigState>,
 
     /// Mint info. This is the SPL token that will be bridged over to the
-    /// foreign contract. Mutable.
+    /// canonical peer. Mutable.
     ///
     /// In the case of a native transfer, it's the native mint; in the case of a
     /// wrapped transfer, it's the token wrapped by Wormhole.
@@ -90,7 +73,7 @@ pub struct OutboundTransfer<'info> {
         init,
         payer = payer,
         seeds = [
-            SEED_PREFIX_CUSTODY,
+            SEED_PREFIX_TEMPORARY,
             mint.key().as_ref(),
         ],
         bump,
@@ -104,14 +87,14 @@ pub struct OutboundTransfer<'info> {
 
     #[account(
         seeds = [PriceOracleConfigAccount::SEED_PREFIX],
-        seeds::program = tbr_config.quoter_program_address,
+        seeds::program = PriceOracle::id(),
         bump,
     )]
     pub oracle_config: Account<'info, PriceOracleConfigAccount>,
 
     #[account(
         seeds = [EvmPricesAccount::SEED_PREFIX, recipient_chain.to_be_bytes().as_ref()],
-        seeds::program = tbr_config.quoter_program_address,
+        seeds::program = PriceOracle::id(),
         bump,
     )]
     pub oracle_evm_prices: Account<'info, EvmPricesAccount>,
@@ -174,11 +157,11 @@ pub struct OutboundTransfer<'info> {
     #[account(
         init_if_needed,
         payer = payer,
-        space = 8 + SignerSequenceAccount::INIT_SPACE,
-        seeds = [SignerSequenceAccount::SEED_PREFIX, payer.key().as_ref()],
+        space = 8 + SignerSequenceState::INIT_SPACE,
+        seeds = [SignerSequenceState::SEED_PREFIX, payer.key().as_ref()],
         bump,
     )]
-    payer_sequence: Account<'info, SignerSequenceAccount>,
+    payer_sequence: Account<'info, SignerSequenceState>,
 
     /* Programs */
     pub system_program: Program<'info, System>,
@@ -189,7 +172,7 @@ pub struct OutboundTransfer<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-fn transfer_tokens(
+pub fn transfer_tokens(
     mut ctx: Context<OutboundTransfer>,
     native: bool,
     recipient_chain: u16,
@@ -198,11 +181,12 @@ fn transfer_tokens(
     max_fee_klam: KiloLamports,
     recipient_address: [u8; 32],
 ) -> Result<()> {
+    ctx.accounts.chain_config.transfer_allowed()?;
     check_prices_are_set(&ctx.accounts.oracle_config, &ctx.accounts.oracle_evm_prices)?;
 
     // Seeds:
     let config_seed = &[
-        TbrConfigAccount::SEED_PREFIX.as_ref(),
+        TbrConfigState::SEED_PREFIX.as_ref(),
         &[ctx.bumps.tbr_config],
     ];
 
@@ -213,7 +197,7 @@ fn transfer_tokens(
         &ctx.accounts.tbr_config,
         &ctx.accounts.oracle_evm_prices,
         &ctx.accounts.oracle_config,
-        recipient_chain,
+        ctx.accounts.chain_config.relayer_fee,
         gas_dropoff_amount,
     );
     require!(
@@ -290,44 +274,6 @@ fn transfer_tokens(
     ))
 }
 
-pub fn transfer_native_tokens(
-    ctx: Context<OutboundTransfer>,
-    recipient_chain: u16,
-    transferred_amount: u64,
-    gas_dropoff_amount: TargetChainGas,
-    max_fee_klam: KiloLamports,
-    recipient_address: [u8; 32],
-) -> Result<()> {
-    transfer_tokens(
-        ctx,
-        true,
-        recipient_chain,
-        transferred_amount,
-        gas_dropoff_amount,
-        max_fee_klam,
-        recipient_address,
-    )
-}
-
-pub fn transfer_wrapped_tokens(
-    ctx: Context<OutboundTransfer>,
-    recipient_chain: u16,
-    transferred_amount: u64,
-    gas_dropoff_amount: TargetChainGas,
-    max_fee_klam: KiloLamports,
-    recipient_address: [u8; 32],
-) -> Result<()> {
-    transfer_tokens(
-        ctx,
-        false,
-        recipient_chain,
-        transferred_amount,
-        gas_dropoff_amount,
-        max_fee_klam,
-        recipient_address,
-    )
-}
-
 fn normalize_amounts(
     mint: &Account<Mint>,
     transferred_amount: u64,
@@ -363,7 +309,7 @@ fn token_bridge_transfer_native(
     relayer_message: RelayerMessage,
 ) -> Result<()> {
     let config_seed = &[
-        TbrConfigAccount::SEED_PREFIX.as_ref(),
+        TbrConfigState::SEED_PREFIX.as_ref(),
         &[ctx.bumps.tbr_config],
     ];
 
@@ -413,7 +359,7 @@ fn token_bridge_transfer_native(
         ),
         0,
         transferred_amount,
-        ctx.accounts.foreign_contract.address,
+        ctx.accounts.chain_config.canonical_peer,
         recipient_chain,
         relayer_message.try_to_vec()?,
         &crate::ID,
@@ -427,7 +373,7 @@ fn token_bridge_transfer_wrapped(
     relayer_message: RelayerMessage,
 ) -> Result<()> {
     let config_seed = &[
-        TbrConfigAccount::SEED_PREFIX.as_ref(),
+        TbrConfigState::SEED_PREFIX.as_ref(),
         &[ctx.bumps.tbr_config],
     ];
 
@@ -472,7 +418,7 @@ fn token_bridge_transfer_wrapped(
         ),
         0,
         transferred_amount,
-        ctx.accounts.foreign_contract.address,
+        ctx.accounts.chain_config.canonical_peer,
         recipient_chain,
         relayer_message.try_to_vec()?,
         &crate::ID,

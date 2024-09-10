@@ -1,6 +1,6 @@
 use crate::{
-    constants::SEED_PREFIX_CUSTODY, error::TokenBridgeRelayerError, message::RelayerMessage,
-    state::TbrConfigAccount,
+    error::TokenBridgeRelayerError, message::RelayerMessage, state::TbrConfigState,
+    SEED_PREFIX_TEMPORARY,
 };
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
@@ -11,8 +11,6 @@ use wormhole_anchor_sdk::{
 
 type PostedRelayerMessage = token_bridge::PostedTransferWith<RelayerMessage>;
 
-/// Complete a native token transfer. That means we will issue a wrapped token
-/// from this side.
 #[derive(Accounts)]
 #[instruction(vaa_hash: [u8; 32])]
 pub struct CompleteTransfer<'info> {
@@ -23,10 +21,10 @@ pub struct CompleteTransfer<'info> {
 
     /// This program's config.
     #[account(
-        seeds = [TbrConfigAccount::SEED_PREFIX],
+        seeds = [TbrConfigState::SEED_PREFIX],
         bump
     )]
-    pub tbr_config: Account<'info, TbrConfigAccount>,
+    pub tbr_config: Account<'info, TbrConfigState>,
 
     /// Mint info. This is the SPL token that will be bridged over to the
     /// foreign contract. Mutable.
@@ -36,7 +34,6 @@ pub struct CompleteTransfer<'info> {
     #[account(mut)]
     pub mint: Account<'info, Mint>,
 
-    /// Paye
     /// Recipient associated token account. The recipient authority check
     /// is necessary to ensure that the recipient is the intended recipient
     /// of the bridged tokens. Mutable.
@@ -77,7 +74,7 @@ pub struct CompleteTransfer<'info> {
         init,
         payer = payer,
         seeds = [
-            SEED_PREFIX_CUSTODY,
+            SEED_PREFIX_TEMPORARY,
             mint.key().as_ref(),
         ],
         bump,
@@ -147,7 +144,7 @@ pub struct CompleteTransfer<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-fn complete_transfer(ctx: Context<CompleteTransfer>, native: bool) -> Result<()> {
+pub fn complete_transfer(ctx: Context<CompleteTransfer>, native: bool) -> Result<()> {
     // The intended recipient must agree with the recipient account.
     let RelayerMessage::V0 {
         gas_dropoff_amount,
@@ -188,17 +185,9 @@ fn complete_transfer(ctx: Context<CompleteTransfer>, native: bool) -> Result<()>
     Ok(())
 }
 
-pub fn complete_native_transfer(ctx: Context<CompleteTransfer>) -> Result<()> {
-    complete_transfer(ctx, true)
-}
-
-pub fn complete_wrapped_transfer(ctx: Context<CompleteTransfer>) -> Result<()> {
-    complete_transfer(ctx, false)
-}
-
 fn token_bridge_complete_native(ctx: &Context<CompleteTransfer>) -> Result<()> {
     let config_seed = &[
-        TbrConfigAccount::SEED_PREFIX.as_ref(),
+        TbrConfigState::SEED_PREFIX.as_ref(),
         &[ctx.bumps.tbr_config],
     ];
 
@@ -237,7 +226,7 @@ fn token_bridge_complete_native(ctx: &Context<CompleteTransfer>) -> Result<()> {
 
 fn token_bridge_complete_wrapped(ctx: &Context<CompleteTransfer>) -> Result<()> {
     let config_seed = &[
-        TbrConfigAccount::SEED_PREFIX.as_ref(),
+        TbrConfigState::SEED_PREFIX.as_ref(),
         &[ctx.bumps.tbr_config],
     ];
 

@@ -1897,7 +1897,7 @@ dependencies = [
 [[package]]
 name = "solana-price-oracle"
 version = "0.1.0"
-source = "git+ssh://git@github.com/XLabs/relayer-infra-contracts?branch=solana-oracle#b644e445f3bac67052a0e97cc0b47c1cb6d68013"
+source = "git+ssh://git@github.com/XLabs/relayer-infra-contracts?branch=solana-program#cef4e57f8c4629d11c3ba0482c18095ad325cf76"
 dependencies = [
  "anchor-lang",
 ]

@@ -1,4 +1,3 @@
-mod constants;
 mod error;
 mod message;
 mod processor;
@@ -12,36 +11,42 @@ type KiloLamports = u64;
 
 declare_id!("46kv4wCpfEtLsHPDh4zm7jJb2pVdvke8Pj2ABYYJotFD");
 
+#[constant]
+pub const SEED_PREFIX_BRIDGED: &[u8] = b"bridged";
+
+#[constant]
+pub const SEED_PREFIX_TEMPORARY: &[u8] = b"tmp";
+
 #[program]
 pub mod token_bridge_relayer {
     use super::*;
 
-    pub fn initialize(ctx: Context<Initialize>, quoter_program: Pubkey) -> Result<()> {
-        processor::initialize(ctx, quoter_program)
+    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
+        processor::initialize(ctx)
     }
 
     /* Roles */
 
     /// Updates the owner account. This needs to be either cancelled or approved.
     pub fn submit_owner_transfer_request(
-        ctx: Context<ConfigUpdate>,
+        ctx: Context<UpdateTbrConfig>,
         new_owner: Pubkey,
     ) -> Result<()> {
         processor::submit_owner_transfer_request(ctx, new_owner)
     }
 
     /// The new owner confirms to be so.
-    pub fn confirm_owner_transfer_request(ctx: Context<ConfigUpdate>) -> Result<()> {
+    pub fn confirm_owner_transfer_request(ctx: Context<UpdateTbrConfig>) -> Result<()> {
         processor::confirm_owner_transfer_request(ctx)
     }
 
     /// The owner role transfer is cancelled by the current one.
-    pub fn cancel_owner_transfer_request(ctx: Context<ConfigUpdate>) -> Result<()> {
+    pub fn cancel_owner_transfer_request(ctx: Context<UpdateTbrConfig>) -> Result<()> {
         processor::cancel_owner_transfer_request(ctx)
     }
 
     /// Updates the admin account.
-    pub fn update_admin(ctx: Context<ConfigUpdate>, new_admin: Pubkey) -> Result<()> {
+    pub fn update_admin(ctx: Context<UpdateTbrConfig>, new_admin: Pubkey) -> Result<()> {
         processor::update_admin(ctx, new_admin)
     }
 
@@ -65,12 +70,12 @@ pub mod token_bridge_relayer {
     /// # Authorization
     ///
     /// Owner.
-    pub fn update_canonical(
-        ctx: Context<UpdateCanonical>,
+    pub fn update_canonical_peer(
+        ctx: Context<UpdateCanonicalPeer>,
         _chain_id: u16,
         peer_address: [u8; 32],
     ) -> Result<()> {
-        processor::update_canonical(ctx, peer_address)
+        processor::update_canonical_peer(ctx, peer_address)
     }
 
     /* Config update */
@@ -81,7 +86,7 @@ pub mod token_bridge_relayer {
     ///
     /// Owner or Admin.
     pub fn set_pause_for_outbound_transfers(
-        ctx: Context<ConfigUpdate>,
+        ctx: Context<UpdateChainConfig>,
         paused: bool,
     ) -> Result<()> {
         processor::set_pause_for_outbound_transfers(ctx, paused)
@@ -93,7 +98,7 @@ pub mod token_bridge_relayer {
     ///
     /// Owner or Admin.
     pub fn update_fee_recipient(
-        ctx: Context<ConfigUpdate>,
+        ctx: Context<UpdateTbrConfig>,
         new_fee_recipient: Pubkey,
     ) -> Result<()> {
         processor::update_fee_recipient(ctx, new_fee_recipient)
@@ -105,7 +110,7 @@ pub mod token_bridge_relayer {
     ///
     /// Owner or Admin.
     pub fn update_max_gas_dropoff(
-        ctx: Context<UpdateMaxGasDropoff>,
+        ctx: Context<UpdateChainConfig>,
         _chain_id: u16,
         max_gas_dropoff: u64,
     ) -> Result<()> {
@@ -118,7 +123,7 @@ pub mod token_bridge_relayer {
     /// # Authorization
     ///
     /// Owner or Admin.
-    pub fn update_relayer_fee(ctx: Context<ConfigUpdate>, relayer_fee: u64) -> Result<()> {
+    pub fn update_relayer_fee(ctx: Context<UpdateChainConfig>, relayer_fee: u64) -> Result<()> {
         processor::update_relayer_fee(ctx, relayer_fee)
     }
 
@@ -128,23 +133,11 @@ pub mod token_bridge_relayer {
     ///
     /// Owner or Admin.
     pub fn update_evm_transaction_config(
-        ctx: Context<ConfigUpdate>,
+        ctx: Context<UpdateTbrConfig>,
         evm_transaction_gas: u64,
         evm_transaction_size: u64,
     ) -> Result<()> {
         processor::update_evm_transaction_size(ctx, evm_transaction_gas, evm_transaction_size)
-    }
-
-    /// Updates the address of the quoter program to fetch the prices from.
-    ///
-    /// # Authorization
-    ///
-    /// Owner or Admin.
-    pub fn update_quoter_program_address(
-        ctx: Context<ConfigUpdate>,
-        quoter_program_address: Pubkey,
-    ) -> Result<()> {
-        processor::update_quoter_program_address(ctx, quoter_program_address)
     }
 
     /* Transfers */
@@ -158,8 +151,9 @@ pub mod token_bridge_relayer {
         gas_dropoff_amount: TargetChainGas,
         max_fee_klam: KiloLamports,
     ) -> Result<()> {
-        processor::transfer_native_tokens(
+        processor::transfer_tokens(
             ctx,
+            true,
             recipient_chain,
             transferred_amount,
             gas_dropoff_amount,
@@ -168,7 +162,7 @@ pub mod token_bridge_relayer {
         )
     }
 
-    /// Transfers Wormhole tokens back to their original chain.
+    /// Transfers Wormhole tokens to another chain.
     pub fn transfer_wrapped_tokens(
         ctx: Context<OutboundTransfer>,
         recipient_chain: u16,
@@ -177,8 +171,9 @@ pub mod token_bridge_relayer {
         gas_dropoff_amount: TargetChainGas,
         max_fee_klam: KiloLamports,
     ) -> Result<()> {
-        processor::transfer_wrapped_tokens(
+        processor::transfer_tokens(
             ctx,
+            false,
             recipient_chain,
             transferred_amount,
             gas_dropoff_amount,
@@ -192,7 +187,7 @@ pub mod token_bridge_relayer {
         ctx: Context<CompleteTransfer>,
         _vaa_hash: [u8; 32],
     ) -> Result<()> {
-        processor::complete_native_transfer(ctx)
+        processor::complete_transfer(ctx, true)
     }
 
     /// Complete a wrapped transfer initiated on another chain.
@@ -200,6 +195,6 @@ pub mod token_bridge_relayer {
         ctx: Context<CompleteTransfer>,
         _vaa_hash: [u8; 32],
     ) -> Result<()> {
-        processor::complete_wrapped_transfer(ctx)
+        processor::complete_transfer(ctx, false)
     }
 }

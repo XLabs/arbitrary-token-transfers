@@ -4,11 +4,11 @@ use anchor_lang::prelude::*;
 /// generated every transfer.
 #[account]
 #[derive(InitSpace)]
-pub struct SignerSequenceAccount {
+pub struct SignerSequenceState {
     pub value: u64,
 }
 
-impl SignerSequenceAccount {
+impl SignerSequenceState {
     pub const SEED_PREFIX: &'static [u8] = b"seq";
 
     pub fn take_and_uptick(&mut self) -> [u8; 8] {
@@ -20,7 +20,7 @@ impl SignerSequenceAccount {
     }
 }
 
-impl std::ops::Deref for SignerSequenceAccount {
+impl std::ops::Deref for SignerSequenceState {
     type Target = u64;
 
     fn deref(&self) -> &Self::Target {

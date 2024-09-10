@@ -1,14 +1,13 @@
-//! Everything about the owner or assistant role transfer.
+//! Everything about the owner or admin role transfer.
 
-use crate::{error::TokenBridgeRelayerError, processor::ConfigUpdate};
+use crate::{error::TokenBridgeRelayerError, processor::UpdateTbrConfig};
 use anchor_lang::prelude::*;
 
-pub fn submit_owner_transfer_request(ctx: Context<ConfigUpdate>, new_owner: Pubkey) -> Result<()> {
-    // Verify the authority (owner):
-    require!(
-        ctx.accounts.tbr_config.is_owner(ctx.accounts.signer.key),
-        TokenBridgeRelayerError::OwnerOnly
-    );
+pub fn submit_owner_transfer_request(
+    ctx: Context<UpdateTbrConfig>,
+    new_owner: Pubkey,
+) -> Result<()> {
+    ctx.accounts.only_owner()?;
 
     // Verify we're not updating to the same account:
     require_keys_neq!(
@@ -23,14 +22,8 @@ pub fn submit_owner_transfer_request(ctx: Context<ConfigUpdate>, new_owner: Pubk
     Ok(())
 }
 
-pub fn confirm_owner_transfer_request(ctx: Context<ConfigUpdate>) -> Result<()> {
-    // Verify the authority (pending owner):
-    require!(
-        ctx.accounts
-            .tbr_config
-            .is_pending_owner(ctx.accounts.signer.key),
-        TokenBridgeRelayerError::NotPendingOwner
-    );
+pub fn confirm_owner_transfer_request(ctx: Context<UpdateTbrConfig>) -> Result<()> {
+    ctx.accounts.only_pending_owner()?;
 
     let tbr_config = &mut ctx.accounts.tbr_config;
     tbr_config.owner = ctx.accounts.signer.key();
@@ -39,12 +32,8 @@ pub fn confirm_owner_transfer_request(ctx: Context<ConfigUpdate>) -> Result<()> 
     Ok(())
 }
 
-pub fn cancel_owner_transfer_request(ctx: Context<ConfigUpdate>) -> Result<()> {
-    // Verify the authority (owner):
-    require!(
-        ctx.accounts.tbr_config.is_owner(ctx.accounts.signer.key),
-        TokenBridgeRelayerError::OwnerOnly
-    );
+pub fn cancel_owner_transfer_request(ctx: Context<UpdateTbrConfig>) -> Result<()> {
+    ctx.accounts.only_owner()?;
 
     let tbr_config = &mut ctx.accounts.tbr_config;
     tbr_config.pending_owner = None;
@@ -52,12 +41,8 @@ pub fn cancel_owner_transfer_request(ctx: Context<ConfigUpdate>) -> Result<()> {
     Ok(())
 }
 
-pub fn update_admin(ctx: Context<ConfigUpdate>, new_admin: Pubkey) -> Result<()> {
-    // Verify the authority (owner):
-    require!(
-        ctx.accounts.tbr_config.is_owner(ctx.accounts.signer.key),
-        TokenBridgeRelayerError::OwnerOnly
-    );
+pub fn update_admin(ctx: Context<UpdateTbrConfig>, new_admin: Pubkey) -> Result<()> {
+    ctx.accounts.only_owner()?;
 
     // Verify we're not updating to the same account:
     require_keys_neq!(
