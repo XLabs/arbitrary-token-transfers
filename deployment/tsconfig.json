@@ -7,5 +7,7 @@
     "outDir": "ts-build"
   },
   "include": ["evm", "helpers", "config", "ethers-contracts"],
-  "references": []
+  "references": [
+    { "path": "../sdk/evm/tsconfig.json" }
+  ]
 }

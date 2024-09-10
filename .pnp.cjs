@@ -2803,6 +2803,7 @@ const RAW_RUNTIME_STATE =
           ["@xlabs-xyz/ledger-signer-ethers-v6", "npm:0.0.1"],\
           ["@xlabs-xyz/ledger-signer-solana", "npm:0.0.1"],\
           ["ethers", "npm:6.12.1"],\
+          ["tsx", "npm:4.19.0"],\
           ["typechain", "virtual:5449dbfbc8f715fdbd2c737c0a09a82e4cd2ffe644d99dd1bc0581b0889f04b69068ed991ce11b47be2adc46d31415f8c245c393d61c33529fcc22e453281945#npm:8.3.2"],\
           ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=74658d"]\
         ],\
@@ -5811,6 +5812,16 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["tsx", "npm:4.16.5"],\
           ["esbuild", "npm:0.21.5"],\
+          ["fsevents", "patch:fsevents@npm%3A2.3.3#optional!builtin<compat/fsevents>::version=2.3.3&hash=df0bf1"],\
+          ["get-tsconfig", "npm:4.7.6"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:4.19.0", {\
+        "packageLocation": "./.yarn/cache/tsx-npm-4.19.0-912efa055b-d14463a780.zip/node_modules/tsx/",\
+        "packageDependencies": [\
+          ["tsx", "npm:4.19.0"],\
+          ["esbuild", "npm:0.23.1"],\
           ["fsevents", "patch:fsevents@npm%3A2.3.3#optional!builtin<compat/fsevents>::version=2.3.3&hash=df0bf1"],\
           ["get-tsconfig", "npm:4.7.6"]\
         ],\

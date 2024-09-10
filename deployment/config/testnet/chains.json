@@ -7,32 +7,44 @@
       "evmNetworkId": 11155111,
       "chainId": 10002,
       "rpc": "https://rpc.sepolia.org",
-      "rpcWs": "wss://sepolia.gateway.tenderly.co",
-      "wormholeAddress": "0x4a8bc80Ed5a4067f1CCf107057b8270E0cC11A78"
+      "wormholeAddress": "0x4a8bc80Ed5a4067f1CCf107057b8270E0cC11A78",
+      "tokenBridgeAddress": "0xDB5492265f6038831E89f495670FF909aDe94bd9",
+      "permit2Address": "0x000000000022d473030f116ddee9f6b43ac78ba3",
+      "oracleAddress": "0x0000000000000000000000000000000000000000",
+      "oracleVersion": 1
     },
     {
       "description": "Fuji",
       "evmNetworkId": 43113,
       "chainId": 6,
       "rpc": "https://api.avax-test.network/ext/bc/C/rpc",
-      "rpcWs": "wss://avalanche-fuji-c-chain.publicnode.com",
-      "wormholeAddress": "0x7bbcE28e64B3F8b84d876Ab298393c38ad7aac4C"
+      "wormholeAddress": "0x7bbcE28e64B3F8b84d876Ab298393c38ad7aac4C",
+      "tokenBridgeAddress": "0x61E44E506Ca5659E6c0bba9b678586fA2d729756",
+      "permit2Address": "0x0000000000000000000000000000000000000000",
+      "oracleAddress": "0x0000000000000000000000000000000000000000",
+      "oracleVersion": 1
     },
     {
       "description": "Arbitrum Sepolia",
       "evmNetworkId": 421614,
       "chainId": 10003,
       "rpc": "https://arbitrum-sepolia.blockpi.network/v1/rpc/public",
-      "rpcWs": "",
-      "wormholeAddress": "0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35"
+      "wormholeAddress": "0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35",
+      "tokenBridgeAddress": "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e",
+      "permit2Address": "0x0000000000000000000000000000000000000000",
+      "oracleAddress": "0x0000000000000000000000000000000000000000",
+      "oracleVersion": 1
     },
     {
       "description": "Alfajores (Celo)",
       "evmNetworkId": 44787,
       "chainId": 14,
       "rpc": "https://alfajores-forno.celo-testnet.org",
-      "rpcWs": "",
-      "wormholeAddress": "0x88505117CA88e7dd2eC6EA1E13f0948db2D50D56"
+      "wormholeAddress": "0x88505117CA88e7dd2eC6EA1E13f0948db2D50D56",
+      "tokenBridgeAddress": "0x05ca6037eC51F8b712eD2E6Fa72219FEaE74E153",
+      "permit2Address": "0x0000000000000000000000000000000000000000",
+      "oracleAddress": "0x0000000000000000000000000000000000000000",
+      "oracleVersion": 1
     }
   ]
 }

@@ -1,7 +1,7 @@
 import { chainToPlatform, FixedLengthArray, Layout, layout, LayoutToType, Network, ProperLayout } from "@wormhole-foundation/sdk-base";
 import { serialize, toNative, toUniversal, VAA } from "@wormhole-foundation/sdk-definitions";
 import { ethers } from "ethers";
-import { baseRelayingConfigReturnLayout, BaseRelayingParamsReturn, dispatcherLayout, gasDropoffUnit, relayFeeUnit, relayingFeesInputLayout, RelayingFeesReturn, RelayingFeesReturnItem, relayingFeesReturnLayout, SupportedChains, TBRv3Message, transferTokenWithRelayLayout, versionEnvelopeLayout, transferGasTokenWithRelayLayout } from "./layouts.js";
+import { baseRelayingConfigReturnLayout, BaseRelayingParamsReturn, dispatcherLayout, gasDropoffUnit, relayFeeUnit, relayingFeesInputLayout, RelayingFeesReturn, RelayingFeesReturnItem, relayingFeesReturnLayout, SupportedChains, TBRv3Message, transferTokenWithRelayLayout, versionEnvelopeLayout, transferGasTokenWithRelayLayout, proxyConstructorLayout } from "./layouts.js";
 
 /**
  * Gives you a type that keeps the properties of `T1` while making both properties common to `T1` and `T2` and properties exclusive to `T2` optional.
@@ -248,6 +248,28 @@ export class Tbrv3 {
     result.set(selector, 0);
     result.set(methods, selector.length);
     return result;
+  }
+
+  /**
+   * Creates the initialization configuration for the TBRv3 proxy contract.
+   * 
+   * @param owner contract owner address, it must be a valid hex evm address
+   * @param admin admin address, it must be a valid hex evm address.
+   * @param feeRecipient fee recipient address, it must be a valid hex evm address.
+   * @returns The serialized layout of the initialization configuration.
+   */
+  static proxyConstructor(
+    owner: string,
+    admin: string,
+    feeRecipient: string,
+  ) {
+    const initConfig = {
+      owner,
+      admin,
+      feeRecipient,
+    };
+
+    return layout.serializeLayout(proxyConstructorLayout, initConfig);
   }
 
 }

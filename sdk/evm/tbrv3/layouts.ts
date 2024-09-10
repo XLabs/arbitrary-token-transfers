@@ -192,3 +192,9 @@ export const versionedTbrMessageLayout = {
     }]],
   ]
 } as const satisfies NamedLayoutItem;
+
+export const proxyConstructorLayout = [
+  { name: "owner", ...evmAddressItem },
+  { name: "admin", ...evmAddressItem },
+  { name: "feeRecipient", ...evmAddressItem },
+] as const satisfies Layout;

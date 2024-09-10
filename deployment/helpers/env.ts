@@ -14,6 +14,9 @@ export type ChainInfo = {
   rpc: string;
   wormholeAddress: string;
   tokenBridgeAddress: string;
+  permit2Address: string;
+  oracleAddress: string;
+  oracleVersion: 1;
 };
 
 export function init(): string {

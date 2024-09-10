@@ -7,8 +7,7 @@ import {
   loadScriptConfig,
 } from "../helpers/env.js";
 import { ethers } from "ethers";
-import { Tbr__factory, Proxy__factory } from "../ethers-contracts";
-import { Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
+import { Tbr__factory, Proxy__factory } from "../ethers-contracts/index.js";
 
 init();
 
@@ -19,6 +18,7 @@ const config = loadScriptConfig<DeployConfig>(processName);
 type DeployConfig = {
   owner?: string;
   admin?: string;
+  feeRecipient?: string;
 };
 
 async function run() {
@@ -71,7 +71,7 @@ async function deployTbrV3Relayer(chain: ChainInfo, config: DeployConfig) {
       implementation.address
     );
   } catch (error) {
-    console.log(`Failed to deploy contract implementation for chain ${chain.chainId}`);
+    console.log(`Failed to deploy proxy for chain ${chain.chainId}`);
     return { chainId: chain.chainId, error };
   }
 
@@ -95,7 +95,7 @@ async function deployRelayerImplementation(chain: ChainInfo) {
     signer,
   );
 
-  const contract = await factory.deploy(chain.chainId);
+  const contract = await factory.deploy(chain.permit2Address, chain.tokenBridgeAddress, chain.oracleAddress, chain.oracleVersion);
   const tx = contract.deploymentTransaction();
   if (tx === null) {
     throw new Error("Deployment transaction is missing")
@@ -112,10 +112,12 @@ async function deployProxy(
   console.log("deployPriceOracleImplementation " + chain.chainId);
   const signer = await getSigner(chain);
   const signerAddress = await signer.getAddress();
+  const { Tbrv3 } = await import("@xlabs-xyz/evm-arbitrary-token-transfers");
 
   const proxyConstructorArgs = await Tbrv3.proxyConstructor(
     config.owner || signerAddress,
     config.admin || signerAddress,
+    config.feeRecipient || signerAddress,
   );
 
   const contractInterface = Proxy__factory.createInterface();
