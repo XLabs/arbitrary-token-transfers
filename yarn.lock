@@ -1547,7 +1547,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@wormhole-foundation/sdk-base@npm:0.10.4, @wormhole-foundation/sdk-base@npm:^0.10.4":
+"@wormhole-foundation/sdk-base@npm:0.10.4":
   version: 0.10.4
   resolution: "@wormhole-foundation/sdk-base@npm:0.10.4"
   dependencies:
@@ -1688,7 +1688,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xlabs-xyz/evm-arbitrary-token-transfers@workspace:sdk/evm":
+"@xlabs-xyz/evm-arbitrary-token-transfers@workspace:*, @xlabs-xyz/evm-arbitrary-token-transfers@workspace:sdk/evm":
   version: 0.0.0-use.local
   resolution: "@xlabs-xyz/evm-arbitrary-token-transfers@workspace:sdk/evm"
   dependencies:
@@ -1983,7 +1983,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bignumber.js@npm:^9.1.2":
+"bignumber.js@npm:^9.0.1, bignumber.js@npm:^9.1.2":
   version: 9.1.2
   resolution: "bignumber.js@npm:9.1.2"
   checksum: 10c0/e17786545433f3110b868725c449fa9625366a6e675cd70eb39b60938d6adbd0158cb4b3ad4f306ce817165d37e63f4aa3098ba4110db1d9a3b9f66abfbaf10d

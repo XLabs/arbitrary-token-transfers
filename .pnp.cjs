@@ -75,7 +75,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@coral-xyz/anchor", "npm:0.29.0"],\
           ["@coral-xyz/borsh", "virtual:852da326f150408584798524fe58e9855b987bcc4f041389e1ca13248c23c659c3ffb4a9aa4176cc7542f503f2e1e6422a1f18f69e5e623ca255691d222a55ca#npm:0.29.0"],\
-          ["@noble/hashes", "npm:1.4.0"],\
+          ["@noble/hashes", "npm:1.5.0"],\
           ["@solana/web3.js", "npm:1.95.3"],\
           ["bn.js", "npm:5.2.1"],\
           ["bs58", "npm:4.0.1"],\
@@ -1838,7 +1838,7 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-base-npm-0.10.5-34b63ded35-621cd97edc.zip/node_modules/@wormhole-foundation/sdk-base/",\
         "packageDependencies": [\
           ["@wormhole-foundation/sdk-base", "npm:0.10.5"],\
-          ["@scure/base", "npm:1.1.7"]\
+          ["@scure/base", "npm:1.1.8"]\
         ],\
         "linkType": "HARD"\
       }],\
@@ -1887,7 +1887,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@wormhole-foundation/sdk-definitions", "npm:0.10.4"],\
           ["@noble/curves", "npm:1.6.0"],\
-          ["@noble/hashes", "npm:1.4.0"],\
+          ["@noble/hashes", "npm:1.5.0"],\
           ["@wormhole-foundation/sdk-base", "npm:0.10.4"]\
         ],\
         "linkType": "HARD"\
@@ -2032,7 +2032,7 @@ const RAW_RUNTIME_STATE =
           ["@types/bn.js", "npm:5.1.5"],\
           ["@types/chai", "npm:4.3.19"],\
           ["@types/mocha", "npm:9.1.1"],\
-          ["@wormhole-foundation/sdk-base", "npm:0.10.4"],\
+          ["@wormhole-foundation/sdk-base", "npm:0.10.5"],\
           ["@wormhole-foundation/sdk-definitions", "npm:0.10.4"],\
           ["@wormhole-foundation/sdk-solana-tokenbridge", "npm:0.10.4"],\
           ["chai", "npm:4.5.0"],\
