@@ -218,7 +218,7 @@ export class TbrClient {
       mint,
     });
 
-    return this.program.methods.transferNativeTokens(
+    return this.program.methods.transferTokens(
       chainToChainId(recipientChain),
       Array.from(recipientAddress),
       transferredAmount,
@@ -267,7 +267,7 @@ export class TbrClient {
       tokenAddress: Buffer.from(recipientAddress),
     });
 
-    return this.program.methods.transferWrappedTokens(
+    return this.program.methods.transferTokens(
       chainId,
       Array.from(recipientAddress),
       transferredAmount,
@@ -309,7 +309,7 @@ export class TbrClient {
       vaa,
     });
 
-    return this.program.methods.completeNativeTransfer(Array.from(vaa.hash)).accountsPartial({
+    return this.program.methods.completeTransfer(Array.from(vaa.hash)).accountsPartial({
       payer: signer,
       tbrConfig: this.address.config(),
       recipientTokenAccount,
@@ -334,7 +334,7 @@ export class TbrClient {
       vaa,
     });
 
-    return this.program.methods.completeWrappedTransfer(Array.from(vaa.hash)).accountsPartial({
+    return this.program.methods.completeTransfer(Array.from(vaa.hash)).accountsPartial({
       payer: signer,
       tbrConfig: this.address.config(),
       recipientTokenAccount,

@@ -2,7 +2,7 @@ use crate::{
     constant::SEED_PREFIX_TEMPORARY,
     error::{TokenBridgeRelayerError, TokenBridgeRelayerResult},
     message::RelayerMessage,
-    state::TbrConfigState,
+    state::{PeerState, TbrConfigState},
 };
 use anchor_lang::{prelude::*, solana_program::program_option::COption};
 use anchor_spl::token::{Mint, Token, TokenAccount};
@@ -85,6 +85,8 @@ pub struct CompleteTransfer<'info> {
     )]
     pub temporary_account: Account<'info, TokenAccount>,
 
+    pub peer: Account<'info, PeerState>,
+
     /// CHECK: Token Bridge config. Read-only.
     pub token_bridge_config: UncheckedAccount<'info>,
 
@@ -155,14 +157,29 @@ pub struct CompleteTransfer<'info> {
 }
 
 pub fn complete_transfer(ctx: Context<CompleteTransfer>) -> Result<()> {
-    // The intended recipient must agree with the recipient account.
     let RelayerMessage::V0 {
         gas_dropoff_amount,
         recipient,
     } = *ctx.accounts.vaa.message().data();
+
+    // The intended recipient must agree with the recipient account:
     require!(
         ctx.accounts.recipient.key() == Pubkey::from(recipient),
         TokenBridgeRelayerError::InvalidRecipient
+    );
+
+    // Also, it must be a known peer:
+    require_keys_eq!(
+        Pubkey::find_program_address(
+            &[
+                PeerState::SEED_PREFIX,
+                ctx.accounts.vaa.meta.emitter_chain.to_be_bytes().as_ref(),
+                ctx.accounts.vaa.meta.emitter_address.as_ref(),
+            ],
+            ctx.program_id
+        )
+        .0,
+        ctx.accounts.peer.key()
     );
 
     if is_native(&ctx)? {
