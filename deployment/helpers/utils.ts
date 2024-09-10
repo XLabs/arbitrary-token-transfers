@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import { ChainInfo, LoggerFn, UncheckedConstructorArgs, ValueDiff } from '.';
+import { ChainInfo, EvmChainInfo, LoggerFn, UncheckedConstructorArgs, ValueDiff } from './index.js';
 
 export const someoneIsDifferent = (values: ValueDiff[]) => values.some((value) => value.onChain.toString() !== value.offChain.toString() && Number(value.onChain) !== Number(value.offChain));
 
@@ -48,6 +48,7 @@ export function flattenObject(obj: Record<string, any>, parentKey = '', result: 
   return result;
 }
 
+// TODO: this is evm.
 export function getVerifyCommand({
   chain,
   contractName,
@@ -59,7 +60,7 @@ export function getVerifyCommand({
   verifierUrl,
   apiKey
 }: {  
-  chain: ChainInfo,
+  chain: EvmChainInfo,
   contractName: string,
   contractPath: string,
   contractAddress: string,

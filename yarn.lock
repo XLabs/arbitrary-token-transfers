@@ -2112,6 +2112,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"chalk@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "chalk@npm:5.3.0"
+  checksum: 10c0/8297d436b2c0f95801103ff2ef67268d362021b8210daf8ddbe349695333eb3610a71122172ff3b0272f1ef2cf7cc2c41fdaa4715f52e49ffe04c56340feed09
+  languageName: node
+  linkType: hard
+
 "check-error@npm:^1.0.3":
   version: 1.0.3
   resolution: "check-error@npm:1.0.3"
@@ -2415,6 +2422,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "deployment@workspace:deployment"
   dependencies:
+    "@solana/web3.js": "npm:^1.95.3"
     "@typechain/ethers-v6": "npm:^0.5.1"
     "@types/node": "npm:20.14.14"
     "@wormhole-foundation/sdk-base": "npm:^0.10.4"
@@ -2422,6 +2430,7 @@ __metadata:
     "@xlabs-xyz/ledger-signer": "npm:^0.0.4"
     "@xlabs-xyz/ledger-signer-ethers-v6": "npm:^0.0.1"
     "@xlabs-xyz/ledger-signer-solana": "npm:^0.0.1"
+    chalk: "npm:^5.3.0"
     ethers: "npm:^6.13.2"
     typechain: "npm:^8.3.2"
     typescript: "npm:^5.6.2"

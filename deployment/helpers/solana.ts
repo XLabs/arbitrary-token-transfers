@@ -7,12 +7,9 @@ import {
   Commitment
 } from "@solana/web3.js";
 import { SolanaLedgerSigner } from "@xlabs-xyz/ledger-signer-solana";
-import { ecosystemChains, env, getContractAddress, getEnv } from "./env";
-import type { SolanaScriptCb } from "./interfaces";
+import { ecosystemChains, env, getContractAddress, getEnv } from "./env.js";
+import type { SolanaScriptCb, SolanaChainInfo } from "./interfaces.js";
 import { inspect } from "util";
-import { circle, toChainId } from "@wormhole-foundation/sdk-base";
-import { MatchingEngineProgram, ProgramId as MatchingEngineProgramId } from "@wormhole-foundation/example-liquidity-layer-solana/matchingEngine";
-import { TokenRouterProgram, ProgramId as TokenRouterProgramId } from "@wormhole-foundation/example-liquidity-layer-solana/tokenRouter";
 
 export const connectionCommitmentLevel = (process.env.SOLANA_COMMITMENT || "confirmed") as Commitment;
 export const priorityMicrolamports = process.env.PRIORITY_MICROLAMPORTS !== "undefined" ? Number(process.env.PRIORITY_MICROLAMPORTS) : 1;
@@ -37,7 +34,7 @@ export function solanaOperatingChains() {
 };
 
 export async function runOnSolana(scriptName: string, cb: SolanaScriptCb) {
-  const chains = solanaOperatingChains();
+  const chains = solanaOperatingChains() as SolanaChainInfo[];
 
   console.log(`Running script on Solana:`, scriptName);
 
@@ -94,19 +91,3 @@ async function addLedgerSignature(tx: Transaction, signer: SolanaLedgerSigner, s
   const signedByPayer = await signer.signTransaction(tx.compileMessage().serialize());
   tx.addSignature(signerPk, signedByPayer);
 }
-
-export function getMatchingEngineProgram(connection: Connection) {
-  const matchingEngineId = getContractAddress("MatchingEngineProxy", toChainId("Solana")) as MatchingEngineProgramId;
-  const network = env === "mainnet" ? "Mainnet" : "Testnet";
-
-  const usdcMint = new PublicKey(circle.usdcContract(network, "Solana"));
-  return new MatchingEngineProgram(connection, matchingEngineId, usdcMint); 
-};
-
-export function getTokenRouterProgram(connection: Connection) {
-  const tokenRouterId = getContractAddress("TokenRouterProxy", toChainId("Solana")) as TokenRouterProgramId;
-  const network = env === "mainnet" ? "Mainnet" : "Testnet";
-
-  const usdcMint = new PublicKey(circle.usdcContract(network, "Solana"));
-  return new TokenRouterProgram(connection, tokenRouterId, usdcMint); 
-};

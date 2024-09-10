@@ -1,10 +1,10 @@
 import { LedgerSigner }  from "@xlabs-xyz/ledger-signer";
 import { ethers } from "ethers";
-import { ChainInfo, ecosystemChains, EvmScriptCb, getEnv } from "./index";
+import { ChainInfo, ecosystemChains, EvmScriptCb, getEnv, EvmChainInfo } from "./index.js";
 import { toChain } from "@wormhole-foundation/sdk-base";
 
 export async function runOnEvms(scriptName: string, cb: EvmScriptCb) {
-  const chains = evmOperatingChains();
+  const chains = evmOperatingChains() as EvmChainInfo[];
 
   console.log(`Running script on EVMs (${chains.map(c => c.chainId).join(", ")}):`, scriptName);
 
@@ -45,7 +45,7 @@ export async function runOnEvmsSequentially(scriptName: string, cb: EvmScriptCb)
   }
 }
 
-export function evmOperatingChains() {
+export function evmOperatingChains(): EvmChainInfo[] {
   const { operatingChains } = ecosystemChains;
   if (Array.isArray(operatingChains) && operatingChains.length >= 1) {
     return ecosystemChains.evm.networks.filter((x) => {
@@ -58,19 +58,23 @@ export function evmOperatingChains() {
 export async function getSigner(chain: ChainInfo): Promise<ethers.Signer> {
   const derivationPath = getEnv("EVM_LEDGER_BIP32_PATH");
   const provider = getProvider(chain);
-  return LedgerSigner.create(provider, derivationPath);
+  // TODO:
+  // allow to configure with non-ledger signer
+  //  fix ledger signing
+  // return LedgerSigner.create(provider as any, derivationPath);
+  throw new Error("NotImplemented");
 }
 
 export function getProvider(
   chain: ChainInfo
-): ethers.providers.StaticJsonRpcProvider {
+): ethers.JsonRpcProvider {
   const providerRpc = ecosystemChains.evm.networks.find((x: any) => x.chainId == chain.chainId)?.rpc || "";
 
   if (!providerRpc) {
     throw new Error("Failed to find a provider RPC for chain " + chain.chainId);
   }
 
-  let provider = new ethers.providers.StaticJsonRpcProvider(
+  let provider = new ethers.JsonRpcProvider(
     providerRpc,  
   );
 
