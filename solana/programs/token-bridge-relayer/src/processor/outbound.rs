@@ -1,8 +1,9 @@
 use crate::{
+    constant::{SEED_PREFIX_BRIDGED, SEED_PREFIX_TEMPORARY},
     error::TokenBridgeRelayerError,
     message::RelayerMessage,
     state::{calculate_total_fee, ChainConfigState, SignerSequenceState, TbrConfigState},
-    KiloLamports, TargetChainGas, {SEED_PREFIX_BRIDGED, SEED_PREFIX_TEMPORARY},
+    KiloLamports, TargetChainGas,
 };
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};

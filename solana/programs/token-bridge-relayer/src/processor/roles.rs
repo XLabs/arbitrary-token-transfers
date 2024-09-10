@@ -42,7 +42,7 @@ pub fn cancel_owner_transfer_request(ctx: Context<UpdateTbrConfig>) -> Result<()
 }
 
 pub fn update_admin(ctx: Context<UpdateTbrConfig>, new_admin: Pubkey) -> Result<()> {
-    ctx.accounts.only_owner()?;
+    ctx.accounts.only_owner_or_admin()?;
 
     // Verify we're not updating to the same account:
     require_keys_neq!(

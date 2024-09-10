@@ -11,11 +11,15 @@ type KiloLamports = u64;
 
 declare_id!("46kv4wCpfEtLsHPDh4zm7jJb2pVdvke8Pj2ABYYJotFD");
 
-#[constant]
-pub const SEED_PREFIX_BRIDGED: &[u8] = b"bridged";
+pub mod constant {
+    use anchor_lang::prelude::*;
 
-#[constant]
-pub const SEED_PREFIX_TEMPORARY: &[u8] = b"tmp";
+    #[constant]
+    pub const SEED_PREFIX_BRIDGED: &[u8] = b"bridged";
+
+    #[constant]
+    pub const SEED_PREFIX_TEMPORARY: &[u8] = b"tmp";
+}
 
 #[program]
 pub mod token_bridge_relayer {

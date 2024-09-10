@@ -18,7 +18,7 @@ pub struct ChainConfigState {
 }
 
 impl PeerState {
-    /// AKA `b"peer"`.
+    /// Value `b"peer"`.
     pub const SEED_PREFIX: &'static [u8; 4] = b"peer";
 }
 
@@ -37,6 +37,6 @@ impl ChainConfigState {
         Ok(())
     }
 
-    /// AKA `b"chainconfig"`.
+    /// Value `b"chainconfig"`.
     pub const SEED_PREFIX: &'static [u8; 11] = b"chainconfig";
 }
