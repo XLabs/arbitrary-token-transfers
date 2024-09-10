@@ -1,158 +1,187 @@
 import fs from "fs";
-import { ChainId } from "@wormhole-foundation/sdk-base";
 import { ethers } from "ethers";
+import { validateSolAddress } from "./solana.js";
+import { ChainConfig, ChainInfo, ContractsJson, Dependencies, DependenciesConfig, Ecosystem, VerificationApiKeys, UncheckedConstructorArgs } from "./interfaces.js";
+import { getSigner } from "./evm.js";
+// TODO: support different env files
+import 'dotenv/config';
+import { ChainId, Token, contracts as connectDependencies, toChain } from "@wormhole-foundation/sdk-base";
+import { getTokensBySymbol } from "@wormhole-foundation/sdk-base/tokens";
 
+export const env = getEnv("ENV");
+export const contracts = loadContracts();
+export const dependencies = loadDependencies();
+export const ecosystemChains = loadEcosystem();
+export const verificationApiKeys = loadVerificationApiKeys();
 
-const DEFAULT_ENV = "testnet";
-const loadedConfigs: Record<string, any> = {};
-
-let environment = "";
-
-export type ChainInfo = {
-  evmNetworkId: number;
-  chainId: ChainId;
-  rpc: string;
-  wormholeAddress: string;
-  tokenBridgeAddress: string;
-  permit2Address: string;
-  oracleAddress: string;
-  oracleVersion: 1;
-};
-
-export function init(): string {
-  let env = process.env.ENV;
-  if (!env) {
-    console.log(
-      "No environment was specified, using default environment files"
-    );
-    environment = DEFAULT_ENV;
-  } else {
-    environment = env;
-  }
-
-  return environment;
+function loadJson<T>(filename: string): T {
+  const fileContent = fs.readFileSync(
+    `./config/${env}/${filename}.json`
+  );
+  
+  return JSON.parse(fileContent.toString()) as T;
 }
 
-export function loadScriptConfig<T>(processName: string): T {
-  if (!loadedConfigs[processName]) {
-    const config = loadJsonFile(`${processName}.json`);
-    if (!config) {
-      throw Error("Failed to pull config file!");
+function loadDependencies(): DependenciesConfig[] {
+  return loadJson<DependenciesConfig[]>("dependencies");
+}
+
+function loadContracts<T extends ContractsJson>() {
+  return loadJson<T>("contracts");
+}
+
+function loadEcosystem(): Ecosystem {
+  return loadJson<Ecosystem>("ecosystem");
+}
+
+function loadVerificationApiKeys() {
+  return loadJson<VerificationApiKeys[]>("verification-api-keys");
+}
+
+export function getEnv(env: string): string {
+  const v = process.env[env];
+  if (!v) {
+    throw Error(`Env var not set: ${env}`);
+  }
+  return v;
+}
+
+export function getChainInfo(chainId: ChainId): ChainInfo {
+  if (ecosystemChains.solana.networks.length > 1) {
+    throw Error("Unexpected number of Solana networks.");
+  }
+
+  const chains = [
+    ...ecosystemChains.evm.networks,
+    ...ecosystemChains.solana.networks,
+  ];
+
+  const chain = chains.find((c) => c.chainId === chainId);
+  if (chain === undefined) {
+    throw Error(`Failed to find chain info for chain id: ${chainId}`);
+  }
+
+  return chain;
+}
+
+export async function getChainConfig<T extends ChainConfig>(filename: string, whChainId: ChainId): Promise<T> {
+  const scriptConfig: T[] = await loadJson(filename);
+
+  const chainConfig = scriptConfig.find((x) => x.chainId == whChainId);
+
+  if (!chainConfig) {
+    throw Error(`Failed to find chain config for chain ${whChainId}`);
+  }
+
+  return chainConfig;
+}
+
+export function getContractAddress(contractName: string, whChainId: ChainId): string {
+  const contract = contracts[contractName]?.find((c) => c.chainId === whChainId)?.address;
+
+  if (!contract) {
+    throw new Error(`No ${contractName} contract found for chain ${whChainId}`);
+  }
+
+
+  if (!ethers.isAddress(contract) && !validateSolAddress(contract)){
+    throw new Error(`Invalid address for ${contractName} contract found for chain ${whChainId}`);
+  }
+
+  return contract;
+}
+
+export function getLocalDependencyAddress(dependencyName: keyof Dependencies, chain: ChainInfo): string {
+  const chainDependencies = dependencies.find((d) => d.chainId === chain.chainId);
+
+  if (chainDependencies === undefined ) {
+    throw new Error(`No dependencies found for chain ${chain.chainId}`);
+  }
+
+  const dependency = chainDependencies[dependencyName as keyof Dependencies] as string;
+  if (dependency === undefined) {
+    throw new Error(`No dependency found for ${String(dependencyName)} for chain ${chain.chainId}`);
+  }
+
+  
+  if (!ethers.isAddress(dependency) && !validateSolAddress(dependency)){
+    throw new Error(`Invalid address for ${String(dependencyName)} dependency found for chain ${chain.chainId}`);
+  }
+
+  return dependency;
+}
+
+export function getDependencyAddress(dependencyName: keyof Dependencies, chain: ChainInfo): string {
+  const {
+    coreBridge,
+    tokenBridge,
+  } = connectDependencies;
+
+  const symbol = "USDC";
+  const nativeUSDC = (t: Token) => t.symbol === symbol && t.original === undefined
+  const token = getTokensBySymbol(chain.network, toChain(chain.chainId), symbol)?.find(nativeUSDC)?.address;
+
+  const dependencies = {
+    wormhole: coreBridge.get(chain.network, toChain(chain.chainId)),
+    tokenBridge: tokenBridge.get(chain.network, toChain(chain.chainId)),
+  } as Dependencies;
+  const connectDependency = dependencies[dependencyName as keyof Dependencies];
+  
+  try {
+    const localDependency = getLocalDependencyAddress(dependencyName, chain);
+    return localDependency === connectDependency ? connectDependency : localDependency;
+  } catch (e) {
+    if (connectDependency === undefined) {
+      throw new Error(`No dependency found for ${String(dependencyName)} for chain ${chain.chainId} on connect sdk`);
     }
-    loadedConfigs[processName] = config;
-  }
 
-  return loadedConfigs[processName];
+    return connectDependency;
+  }
 }
 
-export function loadChains(): ChainInfo[] {
-  const chains = loadJsonFile("chains.json");
-  if (!chains.chains) {
-    throw Error("Failed to pull chain config file!");
-  }
-  return chains.chains;
+export async function getContractInstance(
+  contractName: string,
+  contractAddress: string,
+  chain: ChainInfo,
+): Promise<ethers.BaseContract> {
+  const factory = require("../contract-bindings")[`${contractName}__factory`];
+  const signer = await getSigner(chain);
+  return factory.connect(contractAddress, signer);
 }
 
-export function getOperatingChains(): ChainInfo[] {
-  const allChains = loadChains();
-  let operatingChains: number[] | null = null;
+export function getDeploymentArgs(contractName: string, whChainId: ChainId): UncheckedConstructorArgs {
+  const constructorArgs = contracts[contractName]?.find((c) => c.chainId === whChainId)?.constructorArgs;
 
-  const chains = loadJsonFile("chains.json");
-  if (chains.operatingChains) {
-    operatingChains = chains.operatingChains;
-  }
-  if (!operatingChains) {
-    return allChains;
+  if (!constructorArgs) {
+    throw new Error(`No constructorArgs found for ${contractName} contract for chain ${whChainId}`);
   }
 
-  const output: ChainInfo[] = [];
-  operatingChains.forEach((x: number) => {
-    const item = allChains.find((y) => {
-      return x == y.chainId;
+  return constructorArgs;
+}
+
+export function writeDeployedContract(whChainId: ChainId, contractName: string, address: string, constructorArgs: UncheckedConstructorArgs ) {
+  const contracts = loadContracts();
+  if (!contracts[contractName]) {
+    contracts[contractName] = [{ chainId: whChainId, address, constructorArgs }];
+  }
+
+  else if (!contracts[contractName].find((c) => c.chainId === whChainId)) {
+    contracts[contractName].push({ chainId: whChainId, address, constructorArgs });
+  }
+
+  else {
+    contracts[contractName] = contracts[contractName].map((c) => {
+      if (c.chainId === whChainId) {
+        return { chainId: whChainId, address, constructorArgs };
+      }
+
+      return c;
     });
-    if (item) {
-      output.push(item);
-    }
-  });
-
-  return output;
-}
-
-export function loadPrivateKey(): string {
-  const privateKey = process.env.WALLET_KEY;
-  if (!privateKey) {
-    throw Error("Failed to find private key for this process!");
   }
-  return privateKey;
-}
-
-export async function getSigner(chain: ChainInfo, provider?: ethers.Provider): Promise<ethers.Signer> {
-  if (provider === undefined) {
-    provider = getProvider(chain);
-  }
-  const privateKey = loadPrivateKey();
-
-  if (privateKey === "ledger") {
-    if (process.env.LEDGER_BIP32_PATH === undefined) {
-      throw new Error(`Missing BIP32 derivation path. With ledger devices the path needs to be specified in env var 'LEDGER_BIP32_PATH'.`);
-    }
-    const { LedgerSigner } = await import("@xlabs-xyz/ledger-signer-ethers-v6");
-    const signer = await LedgerSigner.create(provider as any, process.env.LEDGER_BIP32_PATH);
-    const signerAddress = await signer.getAddress();
-    console.log(`Using Ledger signer with address: ${signerAddress}`);
-    return signer;
-  }
-
-  const signer = new ethers.Wallet(privateKey, provider);
-  return signer;
-}
-
-export function getProvider(
-  chain: ChainInfo
-): ethers.JsonRpcProvider {
-  const providerRpc =
-    loadChains().find((x: any) => x.chainId == chain.chainId)?.rpc || "";
-
-  if (!providerRpc) {
-    throw new Error("Failed to find a provider RPC for chain " + chain.chainId);
-  }
-
-  console.log("Using provider RPC: " + providerRpc);
-  const provider = new ethers.JsonRpcProvider(
-    providerRpc,
-    undefined,
-    { staticNetwork: true }
-  );
-
-  return provider;
-}
-
-export function writeOutputFiles(output: any, processName: string) {
-  fs.mkdirSync(`./evm/output/${environment}/${processName}`, {
-    recursive: true,
-  });
+  
   fs.writeFileSync(
-    `./evm/output/${environment}/${processName}/lastrun.json`,
-    JSON.stringify(output),
+    `./config/${env}/contracts.json`,
+    JSON.stringify(contracts),
     { flag: "w" }
   );
-  fs.writeFileSync(
-    `./evm/output/${environment}/${processName}/${Date.now()}.json`,
-    JSON.stringify(output),
-    { flag: "w" }
-  );
-}
-
-/**
- * Private section
- */
-function loadJsonFile(fileName: string) {
-  if (!environment) {
-    console.error("Environment not initialized!, please set ENV environment variable and call init()");
-    process.exit(1);
-  }
-
-  const configFile = fs.readFileSync(`./config/${environment}/${fileName}`);
-
-  return JSON.parse(configFile.toString());
 }

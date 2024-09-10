@@ -1,0 +1,48 @@
+{
+  "CoreLayers": [
+    {
+      "chainId": 2,
+      "address": "0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B"
+    },
+    {
+      "chainId": 4,
+      "address": "0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B"
+    },
+    {
+      "chainId": 5,
+      "address": "0x7A4B5a56256163F07b2C80A7cA55aBE66c4ec4d7"
+    },
+    {
+      "chainId": 6,
+      "address": "0x54a8e5f9c4CbA08F9943965859F6c34eAF03E26c"
+    },
+    {
+      "chainId": 10,
+      "address": "0x126783A6Cb203a3E35344528B26ca3a0489a1485"
+    },
+    {
+      "chainId": 13,
+      "address": "0x0C21603c4f3a6387e241c0091A7EA39E43E90bb7"
+    },
+    {
+      "chainId": 14,
+      "address": "0xa321448d90d4e5b0A732867c18eA198e75CAC48E"
+    },
+    {
+      "chainId": 16,
+      "address": "0xC8e2b0cD52Cf01b0Ce87d389Daa3d414d4cE29f3"
+    },
+    {
+      "chainId": 23,
+      "address": "0xa5f208e072434bC67592E4C49C1B991BA79BCA46"
+    },
+    {
+      "chainId": 24,
+      "address": "0xEe91C335eab126dF5fDB3797EA9d6aD93aeC9722"
+    },
+    {
+      "chainId": 30,
+      "address": "0xbebdb6C8ddC678FfA9f8748f85C815C556Dd8ac6"
+    }
+  ]
+}

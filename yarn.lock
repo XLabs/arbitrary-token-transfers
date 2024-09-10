@@ -1497,12 +1497,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@wormhole-foundation/sdk-base@npm:^0.10.0, @wormhole-foundation/sdk-base@npm:^0.10.4":
+"@wormhole-foundation/sdk-base@npm:^0.10.0":
   version: 0.10.4
   resolution: "@wormhole-foundation/sdk-base@npm:0.10.4"
   dependencies:
     "@scure/base": "npm:^1.1.3"
   checksum: 10c0/bf000a0a24b62cecf4bdb143bd84d4db3e84eee820d1009650f7850ca20ff40615ad97ca01ee773f16132760e9422aafeefaa0155f89e88f763e782a3404427e
+  languageName: node
+  linkType: hard
+
+"@wormhole-foundation/sdk-base@npm:^0.10.4":
+  version: 0.10.5
+  resolution: "@wormhole-foundation/sdk-base@npm:0.10.5"
+  dependencies:
+    "@scure/base": "npm:^1.1.3"
+  checksum: 10c0/621cd97edc858ee9131aae4c11f10864ded4f31ffa48d8cb2ec9fefeffdc637055eb0a2cfe6a57e9b09a27c8c8f0bf3f18f4fc4bb9f729431759a1c5269869f4
   languageName: node
   linkType: hard
 
@@ -2103,6 +2112,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"chalk@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "chalk@npm:5.3.0"
+  checksum: 10c0/8297d436b2c0f95801103ff2ef67268d362021b8210daf8ddbe349695333eb3610a71122172ff3b0272f1ef2cf7cc2c41fdaa4715f52e49ffe04c56340feed09
+  languageName: node
+  linkType: hard
+
 "check-error@npm:^1.0.3":
   version: 1.0.3
   resolution: "check-error@npm:1.0.3"
@@ -2413,7 +2429,8 @@ __metadata:
     "@xlabs-xyz/ledger-signer": "npm:^0.0.4"
     "@xlabs-xyz/ledger-signer-ethers-v6": "npm:^0.0.1"
     "@xlabs-xyz/ledger-signer-solana": "npm:^0.0.1"
-    ethers: "npm:6.12.1"
+    chalk: "npm:^5.3.0"
+    ethers: "npm:^6.13.2"
     tsx: "npm:^4.19.0"
     typechain: "npm:^8.3.2"
     typescript: "npm:^5.6.2"
@@ -4343,12 +4360,12 @@ __metadata:
   linkType: hard
 
 "pump@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "pump@npm:3.0.0"
+  version: 3.0.1
+  resolution: "pump@npm:3.0.1"
   dependencies:
     end-of-stream: "npm:^1.1.0"
     once: "npm:^1.3.1"
-  checksum: 10c0/bbdeda4f747cdf47db97428f3a135728669e56a0ae5f354a9ac5b74556556f5446a46f720a8f14ca2ece5be9b4d5d23c346db02b555f46739934cc6c093a5478
+  checksum: 10c0/6b2109ed5aca38424c3b3f18efa2555fc5afc48a2bf8464cc91cbc3bbe248762a475633bf908bdef77dd44928ac0172a632fde4f00a65be75ae11e2caeef14b9
   languageName: node
   linkType: hard
 

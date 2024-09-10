@@ -1585,7 +1585,7 @@ const RAW_RUNTIME_STATE =
           ["@types/ethers", null],\
           ["@types/typechain", null],\
           ["@types/typescript", null],\
-          ["ethers", "npm:6.12.1"],\
+          ["ethers", "npm:6.13.2"],\
           ["lodash", "npm:4.17.21"],\
           ["ts-essentials", "virtual:9d9d59e77a154ace80a497ad65534b0250a59b20d99ddfadb59d3a17148b62b6dde403d40350cd4b485786b726d24b1825a8256e1ccf2bf4789c79f483de843f#npm:7.0.3"],\
           ["typechain", "virtual:5449dbfbc8f715fdbd2c737c0a09a82e4cd2ffe644d99dd1bc0581b0889f04b69068ed991ce11b47be2adc46d31415f8c245c393d61c33529fcc22e453281945#npm:8.3.2"],\
@@ -1749,6 +1749,14 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-base-npm-0.10.4-4b1592672f-bf000a0a24.zip/node_modules/@wormhole-foundation/sdk-base/",\
         "packageDependencies": [\
           ["@wormhole-foundation/sdk-base", "npm:0.10.4"],\
+          ["@scure/base", "npm:1.1.7"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:0.10.5", {\
+        "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-base-npm-0.10.5-34b63ded35-621cd97edc.zip/node_modules/@wormhole-foundation/sdk-base/",\
+        "packageDependencies": [\
+          ["@wormhole-foundation/sdk-base", "npm:0.10.5"],\
           ["@scure/base", "npm:1.1.7"]\
         ],\
         "linkType": "HARD"\
@@ -2440,6 +2448,13 @@ const RAW_RUNTIME_STATE =
           ["supports-color", "npm:7.2.0"]\
         ],\
         "linkType": "HARD"\
+      }],\
+      ["npm:5.3.0", {\
+        "packageLocation": "./.yarn/cache/chalk-npm-5.3.0-d181999efb-8297d436b2.zip/node_modules/chalk/",\
+        "packageDependencies": [\
+          ["chalk", "npm:5.3.0"]\
+        ],\
+        "linkType": "HARD"\
       }]\
     ]],\
     ["check-error", [\
@@ -2797,12 +2812,13 @@ const RAW_RUNTIME_STATE =
           ["deployment", "workspace:deployment"],\
           ["@typechain/ethers-v6", "virtual:5449dbfbc8f715fdbd2c737c0a09a82e4cd2ffe644d99dd1bc0581b0889f04b69068ed991ce11b47be2adc46d31415f8c245c393d61c33529fcc22e453281945#npm:0.5.1"],\
           ["@types/node", "npm:20.14.14"],\
-          ["@wormhole-foundation/sdk-base", "npm:0.10.4"],\
+          ["@wormhole-foundation/sdk-base", "npm:0.10.5"],\
           ["@xlabs-xyz/evm-arbitrary-token-transfers", "workspace:sdk/evm"],\
           ["@xlabs-xyz/ledger-signer", "npm:0.0.4"],\
           ["@xlabs-xyz/ledger-signer-ethers-v6", "npm:0.0.1"],\
           ["@xlabs-xyz/ledger-signer-solana", "npm:0.0.1"],\
-          ["ethers", "npm:6.12.1"],\
+          ["chalk", "npm:5.3.0"],\
+          ["ethers", "npm:6.13.2"],\
           ["tsx", "npm:4.19.0"],\
           ["typechain", "virtual:5449dbfbc8f715fdbd2c737c0a09a82e4cd2ffe644d99dd1bc0581b0889f04b69068ed991ce11b47be2adc46d31415f8c245c393d61c33529fcc22e453281945#npm:8.3.2"],\
           ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=74658d"]\
@@ -4804,7 +4820,7 @@ const RAW_RUNTIME_STATE =
           ["mkdirp-classic", "npm:0.5.3"],\
           ["napi-build-utils", "npm:1.0.2"],\
           ["node-abi", "npm:3.67.0"],\
-          ["pump", "npm:3.0.0"],\
+          ["pump", "npm:3.0.1"],\
           ["rc", "npm:1.2.8"],\
           ["simple-get", "npm:4.0.1"],\
           ["tar-fs", "npm:2.1.1"],\
@@ -4859,10 +4875,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["pump", [\
-      ["npm:3.0.0", {\
-        "packageLocation": "./.yarn/cache/pump-npm-3.0.0-0080bf6a7a-bbdeda4f74.zip/node_modules/pump/",\
+      ["npm:3.0.1", {\
+        "packageLocation": "./.yarn/cache/pump-npm-3.0.1-c6f35afba3-6b2109ed5a.zip/node_modules/pump/",\
         "packageDependencies": [\
-          ["pump", "npm:3.0.0"],\
+          ["pump", "npm:3.0.1"],\
           ["end-of-stream", "npm:1.4.4"],\
           ["once", "npm:1.4.0"]\
         ],\
@@ -5526,7 +5542,7 @@ const RAW_RUNTIME_STATE =
           ["tar-fs", "npm:2.1.1"],\
           ["chownr", "npm:1.1.4"],\
           ["mkdirp-classic", "npm:0.5.3"],\
-          ["pump", "npm:3.0.0"],\
+          ["pump", "npm:3.0.1"],\
           ["tar-stream", "npm:2.2.0"]\
         ],\
         "linkType": "HARD"\

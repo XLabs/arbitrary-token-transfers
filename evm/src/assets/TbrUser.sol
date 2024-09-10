@@ -19,17 +19,17 @@ uint16 constant SOLANA_CHAIN = 1;
 // How many accounts are created by a relay on Solana.
 // Chosen by fair dice roll.
 // TODO: measure this.
-uint16 constant SOLANA_RELAY_SPAWNED_ACCOUNTS = 4;
+uint8 constant SOLANA_RELAY_SPAWNED_ACCOUNTS = 4;
 // Size of all accounts created during a relay to Solana.
 // TODO: measure this.
-uint128 constant SOLANA_RELAY_TOTAL_SIZE = 1000;
+uint32 constant SOLANA_RELAY_TOTAL_SIZE = 1000;
 
 // Gas cost of a single `complete transfer` method execution.
 // TODO: measure this.
 uint32 constant EVM_RELAY_GAS_COST = 400_000;
 // Size of the transaction in bytes.
 // TODO: measure this.
-uint64 constant EVM_RELAY_TX_SIZE = 1000;
+uint32 constant EVM_RELAY_TX_SIZE = 1000;
 
 
 uint8 constant tbrv3MessageVersion = 0;
