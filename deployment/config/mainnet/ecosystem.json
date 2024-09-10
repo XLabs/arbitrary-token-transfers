@@ -1,0 +1,93 @@
+{
+  "evm": {
+    "networks": [
+      {
+        "name": "Ethereum",
+        "externalId": 1,
+        "chainId": 2,
+        "network": "Mainnet",
+        "rpc": "https://rpc.ankr.com/eth"
+      },
+      {
+        "name": "BSC",
+        "externalId": 56,
+        "chainId": 4,
+        "network": "Mainnet",
+        "rpc": "https://bsc-dataseed1.binance.org/"
+      },
+      {
+        "name": "Polygon",
+        "externalId": 137,
+        "chainId": 5,
+        "network": "Mainnet",
+        "rpc": "https://rpc.ankr.com/polygon"
+      },
+      {
+        "name": "Avalanche",
+        "externalId": 43114,
+        "chainId": 6,
+        "network": "Mainnet",
+        "rpc": "https://api.avax.network/ext/bc/C/rpc"
+      },
+      {
+        "name": "Fantom",
+        "externalId": 250,
+        "chainId": 10,
+        "network": "Mainnet",
+        "rpc": "https://rpc3.fantom.network"
+      },
+      {
+        "name": "Klaytn",
+        "externalId": 8217,
+        "chainId": 13,
+        "network": "Mainnet",
+        "rpc": "https://public-en-cypress.klaytn.net"
+      },
+      {
+        "name": "Celo",
+        "externalId": 42220,
+        "chainId": 14,
+        "network": "Mainnet",
+        "rpc": "https://forno.celo.org"
+      },
+      {
+        "name": "Moonbeam",
+        "externalId": 1284,
+        "chainId": 16,
+        "network": "Mainnet",
+        "rpc": "https://rpc.api.moonbeam.network"
+      },
+      {
+        "name": "Arbitrum",
+        "externalId": 42161,
+        "chainId": 23,
+        "network": "Mainnet",
+        "rpc": "https://arbitrum.llamarpc.com"
+      },
+      {
+        "name": "Optimism",
+        "externalId": 10,
+        "chainId": 24,
+        "network": "Mainnet",
+        "rpc": "https://optimism.publicnode.com"
+      },
+      {
+        "name": "Base",
+        "externalId": 8453,
+        "chainId": 30,
+        "network": "Mainnet",
+        "rpc": "https://base.llamarpc.com"
+      }
+    ]
+  },
+  "solana": {
+    "networks": [
+      {
+        "name": "Solana",
+        "network": "Mainnet",
+        "chainId": 1,
+        "rpc": "https://api.mainnet-beta.solana.com"
+      }
+    ]
+  }
+}
