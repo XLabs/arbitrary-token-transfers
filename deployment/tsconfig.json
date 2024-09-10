@@ -1,11 +1,11 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": "../tsconfig.json",
   "compilerOptions": {
     "lib": [
       "es2023"
     ],
     "outDir": "ts-build"
   },
-  "include": ["tbrv3"],
+  "include": ["evm", "helpers", "config", "ethers-contracts", "solana"],
   "references": []
 }

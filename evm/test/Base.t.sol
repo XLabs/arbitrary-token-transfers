@@ -73,4 +73,28 @@ contract BaseTest is TbrTestBase {
     canonicalPeer = tbrExposer.exposedGetCanonicalPeer(chainId);
     assertEq(canonicalPeer, anotherPeer);
   }
+
+  function testGetTargetChainData() public {
+    bytes32 peer = 0x1234567890123456789012345678901234567890123456789012345678901234;
+    uint32 expectedMaxGasDropoff = 100;
+    bool txSizeSensitive = true;
+    bool paused = true;
+    uint16 chainId = 1;
+
+    tbrExposer.exposedSetCanonicalPeer(chainId, peer);
+    tbrExposer.exposedSetTxSizeSensitive(chainId, txSizeSensitive);
+    tbrExposer.exposedSetMaxGasDropoff(chainId, expectedMaxGasDropoff);
+    tbrExposer.exposedSetPause(chainId, paused);
+
+    (
+      bytes32 canonicalPeer, 
+      bool isPaused, 
+      bool txSensitive, 
+      uint32 maxGasDropoff
+    ) = tbrExposer.exposedGetTargetChainData(chainId);
+    assertEq(canonicalPeer, peer);
+    assertEq(txSensitive, txSizeSensitive);
+    assertEq(maxGasDropoff, expectedMaxGasDropoff);
+    assertEq(isPaused, paused);
+  }
 }

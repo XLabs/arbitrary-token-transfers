@@ -74,12 +74,11 @@ export const transferTokenWithRelayLayout = [
   { name: "inputToken", ...evmAddressItem },
   { name: "inputAmount", ...layoutItems.amountItem },
   { name: "gasDropoff", ...gasDropoffItem },
-  { name: "maxFee", ...layoutItems.amountItem },
   { name: "unwrapIntent", ...layoutItems.boolItem },
   acquireModeItem,
 ] as const satisfies Layout;
 
-export const wrapAndTransferGasTokenWithRelayLayout = [
+export const transferGasTokenWithRelayLayout = [
   { name: "recipient", binary: "bytes", layout: recipientLayout },
   // msg.value - inputAmount = maxFee(*)
   { name: "inputAmount", ...layoutItems.amountItem },
@@ -150,7 +149,7 @@ export const dispatcherLayout = {
   layouts: [
     //active user methods
     [[0, "TransferTokenWithRelay"], transferTokenWithRelayLayout],
-    [[1, "WrapAndTransferGasTokenWithRelay" ], wrapAndTransferGasTokenWithRelayLayout],
+    [[1, "TransferGasTokenWithRelay" ], transferGasTokenWithRelayLayout],
     [[2, "Complete"], [{ name: "vaa", binary: "bytes" }]],
     //TODO governance methods
 

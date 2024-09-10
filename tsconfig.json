@@ -6,7 +6,6 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "declaration": true,
-    "outDir": "ts-build",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
@@ -19,7 +18,7 @@
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "downlevelIteration": true,
-    "isolatedModules": true,
+    "isolatedModules": true
   },
   "references": [
     {
@@ -27,6 +26,9 @@
     },
     {
       "path": "./sdk/solana/tsconfig.json"
+    },
+    {
+      "path": "./deployment"
     }
   ]
 }

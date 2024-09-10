@@ -2,36 +2,59 @@
 
 pragma solidity ^0.8.24;
 
-import "@openzeppelin/token/ERC20/IERC20.sol";
-import "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
-import "wormhole-sdk/interfaces/token/IPermit2.sol";
-import "wormhole-sdk/libraries/BytesParsing.sol";
-import "oracle/IOracle.sol";
-import {OracleIntegration} from "oracle/OracleIntegration.sol";
-import "wormhole-sdk/interfaces/ITokenBridge.sol";
+import {IERC20} from "@openzeppelin/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
+import {IPermit2} from "wormhole-sdk/interfaces/token/IPermit2.sol";
+import {BytesParsing} from "wormhole-sdk/libraries/BytesParsing.sol";
+import {IPriceOracle} from "oracle/IPriceOracle.sol";
+import {PriceOracleIntegration} from "oracle/PriceOracleIntegration.sol";
+import {ITokenBridge} from "wormhole-sdk/interfaces/ITokenBridge.sol";
+
+/**
+ * Decoding the command failed.
+ */
+error InvalidCommand(uint8 command, uint256 commandIndex);
 
 struct ChainData {
+  /**
+   * @notice The canonical peer for the chain, i.e. to whom the relayer will send the messages to
+   */
   bytes32 canonicalPeer;
+  /**
+   * @notice The peers allowed on the target chain, i.e. the relayer will receive the messages from those peers
+   */
   mapping(bytes32 => bool) peers;
+  /**
+   * @notice The maximum gas dropoff is denominated in Twei / Klamport of the target chain native token
+   */
+  uint32 maxGasDropoff;
+  /**
+   * @notice If the chain is paused, no outbound transfers will be allowed
+   */
   bool isPaused;
+  /**
+   * @notice If the chain is sensitive to the transaction size, i.e. if commits a transaction to another chain
+   */
   bool txSizeSensitive;
 }
 
-struct TbrPeersState {
+struct TbrChainState {
   /**
-   * @notice The peers for each chain ID, the first peer is the canonical peer
+   * @notice The state related to each target chain
    */
-  mapping(uint16 => ChainData) state;
+  mapping(uint16 => ChainData) data;
 }
 
-// keccak256("TbrPeersState") - 1
-bytes32 constant TBR_PEERS_STORAGE_SLOT =
-  0xd4437fff88edf22117d6a799ad119fdffb5fc9fd69e769d05dee883a088dd657;
+// keccak256("TbrChainState") - 1
+bytes32 constant TBR_CHAIN_STORAGE_SLOT =
+  0x076d7575784c7c4eaae6dbc87cd7dc63264c591f7395b7447b536cfc549b21c5;
 
-function tbrPeersState() pure returns (TbrPeersState storage state) {
+function tbrChainState(uint16 destinationChain) view returns (ChainData storage) {
+  TbrChainState storage state;
   assembly ("memory-safe") {
-    state.slot := TBR_PEERS_STORAGE_SLOT
+    state.slot := TBR_CHAIN_STORAGE_SLOT
   }
+  return state.data[destinationChain];
 }
 
 struct TbrConfigState {
@@ -39,10 +62,6 @@ struct TbrConfigState {
    * @notice The relayer fee is denominated in Mwei of the source chain native token, i.e. 10^6 wei
    */
   uint32 relayFee;
-  /**
-   * @notice The maximum gas dropoff is denominated in Twei of the target chain native token, i.e. 10^12 wei
-   */
-  mapping(uint16 => uint32) maxGasDropoff;
 }
 
 // keccak256("TbrConfigState") - 1
@@ -62,45 +81,45 @@ error InvalidChainId();
 error EthTransferFailed();
 error ChainNoSupportedByTokenBridge(uint16 chainId);
 
-abstract contract TbrBase is OracleIntegration {
+abstract contract TbrBase is PriceOracleIntegration {
   using BytesParsing for bytes;
 
-  IPermit2     internal immutable _permit2;
-  uint16       internal immutable _chainId;
-  ITokenBridge internal immutable _tokenBridge;
+  IPermit2     internal immutable permit2;
+  uint16       internal immutable whChainId;
+  ITokenBridge internal immutable tokenBridge;
 
   constructor(
-    address permit2,
-    address tokenBridge,
+    address initPermit2,
+    address initTokenBridge,
     address oracle,
     uint8 oracleVersion
-  ) OracleIntegration(oracle, oracleVersion) {
-    _permit2 = IPermit2(permit2);
-    _chainId = oracleChainId();
-    _tokenBridge = ITokenBridge(tokenBridge);
+  ) PriceOracleIntegration(oracle, oracleVersion) {
+    permit2 = IPermit2(initPermit2);
+    whChainId = oracleChainId();
+    tokenBridge = ITokenBridge(initTokenBridge);
   }
 
-  function getTargetChainData(uint16 destinationChain) internal view returns (bytes32, bool, bool) {
-    ChainData storage data = tbrPeersState().state[destinationChain];
-    return (data.canonicalPeer, data.isPaused, data.txSizeSensitive);
+  function getTargetChainData(uint16 destinationChain) internal view returns (bytes32, bool, bool, uint32) {
+    ChainData storage data = tbrChainState(destinationChain);
+    return (data.canonicalPeer, data.isPaused, data.txSizeSensitive, data.maxGasDropoff);
   }
 
   function isPeer(uint16 destinationChain, bytes32 peer) internal view returns (bool) {
-    return tbrPeersState().state[destinationChain].peers[peer];
+    return tbrChainState(destinationChain).peers[peer];
   }
 
   function addPeer(uint16 destinationChain, bytes32 peer) internal {
-    if (destinationChain == 0 || destinationChain == _chainId)
+    if (destinationChain == 0 || destinationChain == whChainId)
       revert InvalidChainId();
 
     if (peer == bytes32(0))
       revert PeerIsZeroAddress();
 
-    bytes32 bridgeContractOnPeerChain = _tokenBridge.bridgeContracts(destinationChain);
+    bytes32 bridgeContractOnPeerChain = tokenBridge.bridgeContracts(destinationChain);
     if (bridgeContractOnPeerChain == bytes32(0))
       revert ChainNoSupportedByTokenBridge(destinationChain);
 
-    ChainData storage data = tbrPeersState().state[destinationChain];
+    ChainData storage data = tbrChainState(destinationChain);
     bool isAlreadyPeer = data.peers[peer];
     if (isAlreadyPeer)
       revert PeerAlreadyRegistered(destinationChain, peer);
@@ -108,30 +127,30 @@ abstract contract TbrBase is OracleIntegration {
     data.peers[peer] = true;
   }
 
-  function isChainTxSizeSensitive(uint16 chainId) internal view returns (bool) {
-    return tbrPeersState().state[chainId].txSizeSensitive;
+  function isChainTxSizeSensitive(uint16 destinationChain) internal view returns (bool) {
+    return tbrChainState(destinationChain).txSizeSensitive;
   }
 
-  function setChainTxSizeSensitive(uint16 chainId, bool txSizeSensitive) internal {
-    tbrPeersState().state[chainId].txSizeSensitive = txSizeSensitive;
+  function setChainTxSizeSensitive(uint16 destinationChain, bool txSizeSensitive) internal {
+    tbrChainState(destinationChain).txSizeSensitive = txSizeSensitive;
   }
 
   function getCanonicalPeer(uint16 destinationChain) internal view returns (bytes32) {
-    return tbrPeersState().state[destinationChain].canonicalPeer;
+    return tbrChainState(destinationChain).canonicalPeer;
   }
 
   function setCanonicalPeer(uint16 destinationChain, bytes32 peer) internal {
-    if (destinationChain == 0 || destinationChain == _chainId)
+    if (destinationChain == 0 || destinationChain == whChainId)
       revert InvalidChainId();
 
     if (peer == bytes32(0))
       revert PeerIsZeroAddress();
 
-    bytes32 bridgeContractOnPeerChain = _tokenBridge.bridgeContracts(destinationChain);
+    bytes32 bridgeContractOnPeerChain = tokenBridge.bridgeContracts(destinationChain);
     if (bridgeContractOnPeerChain == bytes32(0))
       revert ChainNoSupportedByTokenBridge(destinationChain);
     
-    ChainData storage data = tbrPeersState().state[destinationChain];
+    ChainData storage data = tbrChainState(destinationChain);
     bool isAlreadyPeer = data.peers[peer];
     if (!isAlreadyPeer)
       data.peers[peer] = true;
@@ -141,8 +160,8 @@ abstract contract TbrBase is OracleIntegration {
       data.canonicalPeer = peer;
   }
 
-  function isChainSupported(uint16 chainId) internal view returns (bool) {
-    return getCanonicalPeer(chainId) != bytes32(0);
+  function isChainSupported(uint16 destinationChain) internal view returns (bool) {
+    return getCanonicalPeer(destinationChain) != bytes32(0);
   }
 
   function getRelayFee() internal view returns (uint32) {
@@ -153,26 +172,26 @@ abstract contract TbrBase is OracleIntegration {
     tbrConfigState().relayFee = fee;
   }
 
-  function getMaxGasDropoff(uint16 chainId) internal view returns (uint32) {
-    return tbrConfigState().maxGasDropoff[chainId];
+  function getMaxGasDropoff(uint16 destinationChain) internal view returns (uint32) {
+    return tbrChainState(destinationChain).maxGasDropoff;
   }
 
-  function setMaxGasDropoff(uint16 chainId, uint32 maxGasDropoff) internal {
-    tbrConfigState().maxGasDropoff[chainId] = maxGasDropoff;
+  function setMaxGasDropoff(uint16 destinationChain, uint32 maxGasDropoff) internal {
+    tbrChainState(destinationChain).maxGasDropoff = maxGasDropoff;
   }
 
   /**
    * @notice Check if outbound transfers are paused for a given chain
    */
-  function isPaused(uint16 chainId) internal view returns (bool) {
-    return tbrPeersState().state[chainId].isPaused;
+  function isPaused(uint16 destinationChain) internal view returns (bool) {
+    return tbrChainState(destinationChain).isPaused;
   }
 
   /**
    * @notice Set outbound transfers for a given chain
    */
-  function setPause(uint16 chainId, bool paused) internal {
-    tbrPeersState().state[chainId].isPaused = paused;
+  function setPause(uint16 destinationChain, bool paused) internal {
+    tbrChainState(destinationChain).isPaused = paused;
   }
 
   function transferEth(address to, uint256 amount) internal {

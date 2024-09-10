@@ -9,11 +9,10 @@
       "ES2023"
     ],
     "rootDir": "../../",
+    "target": "es6",
     "module": "CommonJS",
     "moduleResolution": "Node",
-    "target": "es6",
-    "resolveJsonModule": true,
-    "esModuleInterop": true
+    "outDir": "ts-build",
   },
   "files": [
     "../../target/types/token_bridge_relayer.ts",

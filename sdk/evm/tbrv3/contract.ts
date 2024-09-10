@@ -1,7 +1,7 @@
 import { chainToPlatform, FixedLengthArray, Layout, layout, LayoutToType, Network, ProperLayout } from "@wormhole-foundation/sdk-base";
 import { serialize, toNative, toUniversal, VAA } from "@wormhole-foundation/sdk-definitions";
 import { ethers } from "ethers";
-import { baseRelayingConfigReturnLayout, BaseRelayingParamsReturn, dispatcherLayout, gasDropoffUnit, relayFeeUnit, relayingFeesInputLayout, RelayingFeesReturn, RelayingFeesReturnItem, relayingFeesReturnLayout, SupportedChains, TBRv3Message, transferTokenWithRelayLayout, versionEnvelopeLayout, wrapAndTransferGasTokenWithRelayLayout } from "./layouts.js";
+import { baseRelayingConfigReturnLayout, BaseRelayingParamsReturn, dispatcherLayout, gasDropoffUnit, relayFeeUnit, relayingFeesInputLayout, RelayingFeesReturn, RelayingFeesReturnItem, relayingFeesReturnLayout, SupportedChains, TBRv3Message, transferTokenWithRelayLayout, versionEnvelopeLayout, transferGasTokenWithRelayLayout } from "./layouts.js";
 
 /**
  * Gives you a type that keeps the properties of `T1` while making both properties common to `T1` and `T2` and properties exclusive to `T2` optional.
@@ -70,14 +70,10 @@ export interface TbrPartialTx {
   to: string;
 }
 
-type OmitMaxFee<T> = Omit<T, "maxFee">
-
-type TransferTokenWithRelayInputWithMaxFee = LayoutToType<typeof transferTokenWithRelayLayout>;
-type WrapAndTransferGasTokenWithRelayInputWithMaxFee = LayoutToType<typeof wrapAndTransferGasTokenWithRelayLayout>;
 
 export type RelayingFeesInput = LayoutToType<typeof relayingFeesInputLayout>;
-export type TransferTokenWithRelayInput = OmitMaxFee<TransferTokenWithRelayInputWithMaxFee>;
-export type WrapAndTransferGasTokenWithRelayInput = OmitMaxFee<WrapAndTransferGasTokenWithRelayInputWithMaxFee>;
+export type TransferTokenWithRelayInput = LayoutToType<typeof transferTokenWithRelayLayout> & {readonly method: "TransferTokenWithRelay";};
+export type TransferGasTokenWithRelayInput = LayoutToType<typeof transferGasTokenWithRelayLayout> & {readonly method: "TransferGasTokenWithRelay";};
 export type NetworkMain = Exclude<Network, "Devnet">;
 
 interface ConnectionPrimitives/*<T>*/ {
@@ -97,24 +93,17 @@ const executeFunction = "exec768";
 const queryFunction = "get1959";
 type DispatcherFunction = typeof executeFunction | typeof queryFunction;
 
-export type Transfer =
-{
+export interface Transfer {
   /**
    * Fee estimation obtained by calling `relayingFee`.
-   * The transaction will encode a `maxFee` based on `feeEstimation.fee`.
+   * The transaction will encode a max fee based on `feeEstimation.fee`.
    * If you want to overestimate the fee, you should increase it with a multiplier of some kind.
    * Increasing this estimation won't affect the actual cost.
    * Excedent gas tokens will be returned to the caller of the contract.
    */
   feeEstimation: RelayingFeesReturnItem;
-} &
-({
-  method: "TransferTokenWithRelay";
-  args: TransferTokenWithRelayInput;
-} | {
-  method: "WrapAndTransferGasTokenWithRelay";
-  args: WrapAndTransferGasTokenWithRelayInput;
-});
+  args: TransferTokenWithRelayInput | TransferGasTokenWithRelayInput;
+};
 
 export class Tbrv3 {
 
@@ -159,22 +148,11 @@ export class Tbrv3 {
       const convertedFee = transfer.feeEstimation.fee * relayFeeUnit;
       value += convertedFee;
 
-      let args;
-      if (transfer.method === "WrapAndTransferGasTokenWithRelay") {
+      if (transfer.args.method === "TransferGasTokenWithRelay") {
         value += transfer.args.inputAmount;
-        args = {
-          ...transfer.args,
-          method: transfer.method,
-        };
-      } else {
-        args = {
-          ...transfer.args,
-          maxFee: convertedFee,
-          method: transfer.method,
-        };
       }
 
-      methodCalls.push(args);
+      methodCalls.push(transfer.args);
     }
     const methods = Tbrv3.createEnvelope(methodCalls);
     const data = Tbrv3.encodeExecute(methods);
@@ -284,6 +262,7 @@ function fixedLengthArrayLayout<const T extends ProperLayout>(length: number, la
 
 async function example() {
   const exampleTransferArgs = {
+    method: "TransferTokenWithRelay",
     acquireMode: {mode: "Preapproved"},
     inputAmount: 1000n,
     gasDropoff: 10n,
@@ -298,7 +277,6 @@ async function example() {
   });
   
   (new Tbrv3(undefined as any, "Mainnet")).transferWithRelay({
-    method: "TransferTokenWithRelay",
     feeEstimation: test[0],
     args: exampleTransferArgs,
   });

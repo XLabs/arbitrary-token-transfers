@@ -28,4 +28,20 @@ contract TbrExposer is Tbr {
   function exposedGetCanonicalPeer(uint16 chainId) public view returns (bytes32) {
     return getCanonicalPeer(chainId);
   }
+
+  function exposedGetTargetChainData(uint16 destinationChain) public view returns (bytes32, bool, bool, uint32) {
+    return getTargetChainData(destinationChain);
+  }
+
+  function exposedSetTxSizeSensitive(uint16 chainId, bool txSizeSensitive) public {
+    setChainTxSizeSensitive(chainId, txSizeSensitive);
+  }
+
+  function exposedSetMaxGasDropoff(uint16 chainId, uint32 maxGasDropoff) public {
+    setMaxGasDropoff(chainId, maxGasDropoff);
+  }
+
+  function exposedSetPause(uint16 chainId, bool paused) public {
+    setPause(chainId, paused);
+  }
 }

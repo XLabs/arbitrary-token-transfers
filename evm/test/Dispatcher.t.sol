@@ -6,13 +6,14 @@ import "wormhole-sdk/libraries/BytesParsing.sol";
 import { TbrTestBase } from "./utils/TbrTestBase.sol";
 import "tbr/assets/TbrDispatcher.sol";
 import "tbr/assets/TbrGovernance.sol";
+import { DISPATCHER_PROTOCOL_VERSION0 } from "tbr/assets/TbrIds.sol";
 
 contract DispatcherTest is TbrTestBase {
   using BytesParsing for bytes;
 
   function testExec() public {
-    uint8 version = 0;
     uint8 wrongVersion = 1;
+    uint256 expectedCommandIndex = 0;
 
     vm.expectRevert(
       abi.encodeWithSelector(UnsupportedVersion.selector, wrongVersion)
@@ -25,16 +26,16 @@ contract DispatcherTest is TbrTestBase {
     // function will not be able to handle it.
     uint8 fakeCommand = 0x80;
     vm.expectRevert(
-      abi.encodeWithSelector(InvalidCommand.selector, fakeCommand)
+      abi.encodeWithSelector(InvalidCommand.selector, fakeCommand, expectedCommandIndex)
     );
     invokeTbr(
-      abi.encodePacked(tbr.exec768.selector, version, fakeCommand)
+      abi.encodePacked(tbr.exec768.selector, DISPATCHER_PROTOCOL_VERSION0, fakeCommand)
     );
   }
 
   function testGet() public {
-    uint8 version = 0;
     uint8 wrongVersion = 1;
+    uint256 expextedQueryIndex = 0;
 
     vm.expectRevert(
       abi.encodeWithSelector(UnsupportedVersion.selector, wrongVersion)
@@ -47,10 +48,10 @@ contract DispatcherTest is TbrTestBase {
     // function will not be able to handle it.
     uint8 fakeQuery = 0x79;
     vm.expectRevert(
-      abi.encodeWithSelector(InvalidQuery.selector, fakeQuery)
+      abi.encodeWithSelector(InvalidCommand.selector, fakeQuery, expextedQueryIndex)
     );
     invokeTbr(
-      abi.encodePacked(tbr.get1959.selector, version, fakeQuery)
+      abi.encodePacked(tbr.get1959.selector, DISPATCHER_PROTOCOL_VERSION0, fakeQuery)
     );
   }
 }
