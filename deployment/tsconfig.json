@@ -4,6 +4,8 @@
     "lib": [
       "es2023"
     ],
+    "module": "commonjs",
+    "moduleResolution": "node",
     "outDir": "ts-build"
   },
   "include": ["evm", "helpers", "config", "ethers-contracts", "solana"],

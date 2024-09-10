@@ -56,13 +56,19 @@ export function evmOperatingChains(): EvmChainInfo[] {
 };
 
 export async function getSigner(chain: ChainInfo): Promise<ethers.Signer> {
-  const derivationPath = getEnv("EVM_LEDGER_BIP32_PATH");
+  const privateKey = getEnv("WALLET_KEY");
+  if (privateKey == "ledger") {
+    const derivationPath = getEnv("EVM_LEDGER_BIP32_PATH");
+    const provider = getProvider(chain);
+    // TODO:
+    // allow to configure with non-ledger signer
+    //  fix ledger signing
+    // return LedgerSigner.create(provider as any, derivationPath);
+    throw new Error("NotImplemented");
+  }
+
   const provider = getProvider(chain);
-  // TODO:
-  // allow to configure with non-ledger signer
-  //  fix ledger signing
-  // return LedgerSigner.create(provider as any, derivationPath);
-  throw new Error("NotImplemented");
+  return new ethers.Wallet(privateKey, provider);
 }
 
 export function getProvider(

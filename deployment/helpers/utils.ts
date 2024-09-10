@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import { ChainInfo, EvmChainInfo, LoggerFn, UncheckedConstructorArgs, ValueDiff } from './index.js';
+import { EvmChainInfo, LoggerFn, UncheckedConstructorArgs, ValueDiff } from './index.js';
 
 export const someoneIsDifferent = (values: ValueDiff[]) => values.some((value) => value.onChain.toString() !== value.offChain.toString() && Number(value.onChain) !== Number(value.offChain));
 

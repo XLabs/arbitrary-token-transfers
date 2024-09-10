@@ -1,3 +1,10 @@
-{
-  
-}
+
+[
+  {
+    "chainId": 10002,
+    "owner": "",
+    "admin": "",
+    "feeRecipient": "",
+    "oracleVersion": 0
+  }
+]

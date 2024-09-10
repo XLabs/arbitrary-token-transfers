@@ -57,6 +57,8 @@ export interface ChainConfig {
 export interface Dependencies {
     wormhole: string;
     tokenBridge: string;
+    permit2: string;
+    oracle: string;
 };
 
 export interface DependenciesConfig extends ChainConfig, Dependencies {};

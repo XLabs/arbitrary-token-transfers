@@ -1,24 +1,25 @@
 import {
-  ChainInfo,
-  getOperatingChains,
-  init,
-  writeOutputFiles,
-  getSigner,
-  loadScriptConfig,
-} from "../helpers/env.js";
+  ChainConfig,
+ DependenciesConfig,
+ evm,
+ EvmChainInfo,
+ getChainConfig,
+ getDependencyAddress,
+ writeDeployedContract
+} from "../helpers";
 import { ethers } from "ethers";
 import { Tbr__factory, Proxy__factory } from "../ethers-contracts/index.js";
+import { getSigner } from "../helpers/evm";
 
-init();
 
 const processName = "tbr-v3";
-const chains = getOperatingChains();
-const config = loadScriptConfig<DeployConfig>(processName);
+const chains = evm.evmOperatingChains();
 
-type DeployConfig = {
+type DeployConfig = ChainConfig & {
   owner?: string;
   admin?: string;
   feeRecipient?: string;
+  oracleVersion: 0;
 };
 
 async function run() {
@@ -31,8 +32,10 @@ async function run() {
   const results = await Promise.all(
     chains.map(async (chain) => {
       console.log(`Deploy starting for chain ${chain.chainId}...`);
+      const config = await getChainConfig<DeployConfig>("tbr-v3", chain.chainId);
       const result = await deployTbrV3Relayer(chain, config);
       console.log(`Deploy finished for chain ${chain.chainId}...`);
+
       return result;
     })
   );
@@ -46,20 +49,17 @@ async function run() {
       console.log(`Successfully deployed to chain ${result.chainId}`);
       output.Implementations.push(result.implementation);
       output.Proxies.push(result.proxy);
+      writeDeployedContract(result.chainId, "tbr-v3", result.implementation?.address ?? "", [result.proxy?.proxyConstructorArgs ?? ""]);
     }
   }
 
-  writeOutputFiles(output, processName);
 }
 
-async function deployTbrV3Relayer(chain: ChainInfo, config: DeployConfig) {
-  const signer = await getSigner(chain);
-
+async function deployTbrV3Relayer(chain: EvmChainInfo, config: DeployConfig) {
   let implementation, proxy;
 
   try {
-    implementation = await deployRelayerImplementation(chain);
-
+    implementation = await deployRelayerImplementation(chain, config);
   } catch (error) {
     console.log(`Failed to deploy contract implementation for chain ${chain.chainId}`);
     return { chainId: chain.chainId, error };
@@ -68,6 +68,7 @@ async function deployTbrV3Relayer(chain: ChainInfo, config: DeployConfig) {
   try {
     proxy = await deployProxy(
       chain,
+      config,
       implementation.address
     );
   } catch (error) {
@@ -82,7 +83,7 @@ async function deployTbrV3Relayer(chain: ChainInfo, config: DeployConfig) {
   };
 }
 
-async function deployRelayerImplementation(chain: ChainInfo) {
+async function deployRelayerImplementation(chain: EvmChainInfo, config: DeployConfig) {
   console.log("deployPriceOracleImplementation " + chain.chainId);
   const signer = await getSigner(chain);
 
@@ -95,7 +96,12 @@ async function deployRelayerImplementation(chain: ChainInfo) {
     signer,
   );
 
-  const contract = await factory.deploy(chain.permit2Address, chain.tokenBridgeAddress, chain.oracleAddress, chain.oracleVersion);
+  const permit2 = await getDependencyAddress("permit2", chain);
+  const tokenBridge = await getDependencyAddress("tokenBridge", chain);
+  const oracle = await getDependencyAddress("oracle", chain);
+
+  const contract = await factory.deploy(permit2, tokenBridge, oracle, config.oracleVersion);
+
   const tx = contract.deploymentTransaction();
   if (tx === null) {
     throw new Error("Deployment transaction is missing")
@@ -106,7 +112,8 @@ async function deployRelayerImplementation(chain: ChainInfo) {
 }
 
 async function deployProxy(
-  chain: ChainInfo,
+  chain: EvmChainInfo,
+  config: DeployConfig,
   implementationAddress: string,
 ) {
   console.log("deployPriceOracleImplementation " + chain.chainId);
@@ -138,7 +145,7 @@ async function deployProxy(
   }
   const address = await contract.getAddress();
   console.log("Successfully deployed proxy at " + address);
-  return { address, chainId: chain.chainId };
+  return { address, chainId: chain.chainId, proxyConstructorArgs };
 }
 
 

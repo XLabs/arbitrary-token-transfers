@@ -1,5 +1,9 @@
-{
-  "owner": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-  "admin": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-  "feeRecipient": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"  
-}
+[
+  {
+    "chainId": 10002,
+    "owner": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "admin": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "feeRecipient": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "oracleVersion": 0
+  }
+]
