@@ -5,6 +5,7 @@ pragma solidity ^0.8.24;
 import {IERC20} from "@openzeppelin/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import {IPermit2} from "wormhole-sdk/interfaces/token/IPermit2.sol";
+import {IWETH} from "wormhole-sdk/interfaces/token/IWETH.sol";
 import {BytesParsing} from "wormhole-sdk/libraries/BytesParsing.sol";
 import {IPriceOracle} from "oracle/IPriceOracle.sol";
 import {PriceOracleIntegration} from "oracle/PriceOracleIntegration.sol";
@@ -87,16 +88,25 @@ abstract contract TbrBase is PriceOracleIntegration {
   IPermit2     internal immutable permit2;
   uint16       internal immutable whChainId;
   ITokenBridge internal immutable tokenBridge;
+  IWETH        internal immutable gasToken;
+  /**
+   * If true, the contract will call `deposit()` or `withdraw()` to convert from the native gas token to the ERC20 token and viceversa.
+   */
+  bool         internal immutable gasErc20TokenizationIsExplicit;
 
   constructor(
-    address initPermit2,
-    address initTokenBridge,
+    IPermit2 initPermit2,
+    ITokenBridge initTokenBridge,
     address oracle,
-    uint8 oracleVersion
+    uint8 oracleVersion,
+    IWETH initGasToken,
+    bool initGasErc20TokenizationIsExplicit
   ) PriceOracleIntegration(oracle, oracleVersion) {
-    permit2 = IPermit2(initPermit2);
+    permit2 = initPermit2;
     whChainId = oracleChainId();
-    tokenBridge = ITokenBridge(initTokenBridge);
+    tokenBridge = initTokenBridge;
+    gasToken = initGasToken;
+    gasErc20TokenizationIsExplicit = initGasErc20TokenizationIsExplicit;
   }
 
   function getTargetChainData(uint16 destinationChain) internal view returns (bytes32, bool, bool, uint32) {

@@ -150,7 +150,7 @@ export const dispatcherLayout = {
     //active user methods
     [[0, "TransferTokenWithRelay"], transferTokenWithRelayLayout],
     [[1, "TransferGasTokenWithRelay" ], transferGasTokenWithRelayLayout],
-    [[2, "Complete"], [{ name: "vaa", binary: "bytes" }]],
+    [[2, "CompleteTransfer"], [{ name: "vaa", binary: "bytes", lengthSize: 2 }]],
     //TODO governance methods
 
     // Queries
