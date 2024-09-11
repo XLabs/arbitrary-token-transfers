@@ -11,10 +11,10 @@ type KiloLamports = u64;
 
 cfg_if::cfg_if! {
     if #[cfg(feature = "mainnet")] {
-        declare_id!("46kv4wCpfEtLsHPDh4zm7jJb2pVdvke8Pj2ABYYJotFD");
+        declare_id!("AtTpCxEYQiPswfGz493qcbiK1eE13W3YZutvxBdANDeR");
         const WORMHOLE_MINT_AUTHORITY: Pubkey = anchor_lang::pubkey!("BCD75RNBHrJJpW4dXVagL5mPjzRLnVZq4YirJdjEYMV7");
     } else if #[cfg(feature = "solana-devnet")] {
-        declare_id!("46kv4wCpfEtLsHPDh4zm7jJb2pVdvke8Pj2ABYYJotFD");
+        declare_id!("AtTpCxEYQiPswfGz493qcbiK1eE13W3YZutvxBdANDeR");
         const WORMHOLE_MINT_AUTHORITY: Pubkey = anchor_lang::pubkey!("rRsXLHe7sBHdyKU3KY3wbcgWvoT1Ntqudf6e9PKusgb");
     } else if #[cfg(feature = "tilt-devnet")] {
         declare_id!("46kv4wCpfEtLsHPDh4zm7jJb2pVdvke8Pj2ABYYJotFD");
