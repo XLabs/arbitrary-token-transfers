@@ -1,4 +1,3 @@
-import { LedgerSigner }  from "@xlabs-xyz/ledger-signer";
 import { ethers } from "ethers";
 import { ChainInfo, ecosystemChains, EvmScriptCb, getEnv, EvmChainInfo } from "./index.js";
 import { toChain } from "@wormhole-foundation/sdk-base";
@@ -58,13 +57,11 @@ export function evmOperatingChains(): EvmChainInfo[] {
 export async function getSigner(chain: ChainInfo): Promise<ethers.Signer> {
   const privateKey = getEnv("WALLET_KEY");
   if (privateKey == "ledger") {
+    const { LedgerSigner } = await import("@xlabs-xyz/ledger-signer-ethers-v6");
+
     const derivationPath = getEnv("EVM_LEDGER_BIP32_PATH");
     const provider = getProvider(chain);
-    // TODO:
-    // allow to configure with non-ledger signer
-    //  fix ledger signing
-    // return LedgerSigner.create(provider as any, derivationPath);
-    throw new Error("NotImplemented");
+    return LedgerSigner.create(provider as any, derivationPath) as any;
   }
 
   const provider = getProvider(chain);
@@ -73,7 +70,7 @@ export async function getSigner(chain: ChainInfo): Promise<ethers.Signer> {
 
 export function getProvider(
   chain: ChainInfo
-): ethers.JsonRpcProvider {
+): ethers.Provider {
   const providerRpc = ecosystemChains.evm.networks.find((x: any) => x.chainId == chain.chainId)?.rpc || "";
 
   if (!providerRpc) {

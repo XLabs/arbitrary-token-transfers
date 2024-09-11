@@ -14,7 +14,8 @@
   },
   "scripts": {
     "build": "tsc --noEmit -p ./tsconfig.json && tsup",
-    "prettier": "prettier --write ."
+    "prettier": "prettier --write .",
+    "test:integration": "yarn workspace deployment run deploy:evm:localnet && tsc -p ./test/tsconfig.json && mocha build-test/test/integration.tbrv3.test.js"
   },
   "files": [
     "build",
@@ -34,7 +35,11 @@
     "ethers": "^6.13.2"
   },
   "devDependencies": {
+    "@types/chai": "^4.3.19",
+    "@types/mocha": "^10",
     "@types/node": "20.14.14",
+    "chai": "^5.1.1",
+    "mocha": "^10.7.3",
     "tsup": "^8.2.4",
     "tsx": "4.16.5",
     "typescript": "5.5.4"

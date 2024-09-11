@@ -67,7 +67,7 @@ export const ownerItem = {
   ...evmAddressItem 
 } as const satisfies NamedLayoutItem;
 
-export const governanceCommandRawLayout = [
+const governanceCommandRawLayout = [
   { name: "chain", ...layoutItems.chainItem({ allowedChains: supportedChains }) },
   { name: "command",
     binary: "switch",
@@ -89,7 +89,7 @@ export const governanceCommandRawLayout = [
   }
 ] as const satisfies Layout;
 
-export type GovernanceCommandRaw = LayoutToType<typeof governanceCommandRawLayout>;
+type GovernanceCommandRaw = LayoutToType<typeof governanceCommandRawLayout>;
 type ExcludedCommands = {
   readonly name: "AddPeer";
   readonly value: Uint8Array;

@@ -1,7 +1,7 @@
 import { Layout, NamedLayoutItem } from "@wormhole-foundation/sdk-base";
 import { layoutItems } from "@wormhole-foundation/sdk-definitions";
-import { governanceCommandRawLayout } from "./governanceLayouts.js";
 import { evmAddressItem, gasDropoffItem, subArrayLayout, supportedChainItem, supportedChains } from "./baseLayouts.js";
+import { governanceLayout } from "./governanceLayouts.js";
 
 export type SupportedChains = typeof supportedChains[number];
 
@@ -135,7 +135,7 @@ export const dispatcherLayout = {
     [[1, "TransferGasTokenWithRelay" ], transferGasTokenWithRelayLayout],
     [[2, "CompleteTransfer"], [{ name: "vaa", binary: "bytes", lengthSize: 2 }]],
     // Governance
-    [[3, "GovernanceCommand"], subArrayLayout("commands", governanceCommandRawLayout)],
+    [[3, "GovernanceCommand"], subArrayLayout("commands", governanceLayout)],
 
     // Queries
     [[0x80, "RelayFee"], relayingFeesInputLayout],

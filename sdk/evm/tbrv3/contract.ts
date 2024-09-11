@@ -1,8 +1,8 @@
 import { chainToPlatform, FixedLengthArray, Layout, layout, LayoutToType, Network, ProperLayout } from "@wormhole-foundation/sdk-base";
-import { serialize, toNative, toUniversal, VAA } from "@wormhole-foundation/sdk-definitions";
+import { serialize, toNative, toUniversal, UniversalAddress, VAA } from "@wormhole-foundation/sdk-definitions";
 import { ethers } from "ethers";
 import { baseRelayingConfigReturnLayout, BaseRelayingParamsReturn, dispatcherLayout, gasDropoffUnit, relayFeeUnit, relayingFeesInputLayout, RelayingFeesReturn, RelayingFeesReturnItem, relayingFeesReturnLayout, SupportedChains, TBRv3Message, transferTokenWithRelayLayout, versionEnvelopeLayout, transferGasTokenWithRelayLayout, proxyConstructorLayout } from "./layouts.js";
-import { GovernanceCommandRaw } from "./governanceLayouts.js";
+import { GovernanceCommand } from "./governanceLayouts.js";
 
 /**
  * Gives you a type that keeps the properties of `T1` while making both properties common to `T1` and `T2` and properties exclusive to `T2` optional.
@@ -231,11 +231,14 @@ export class Tbrv3 {
     return layout.deserializeLayout(baseRelayingReturnListLayout, ethers.getBytes(result));
   }
 
-  async addPeer(chain: SupportedChains, peer: string): Promise<void> {
+  addPeers(peers: [ { chain: SupportedChains, peer: UniversalAddress } ]): TbrPartialTx {
+    return this.governanceTx(peers.map(
+      (peer) => ({ chain: peer.chain, command: { name: "AddPeer", value: peer.peer } })
+    ));
   }
 
-  governanceTx<const C extends GovernanceCommandRaw[]>(commands: C): TbrPartialTx {
-    const methods = Tbrv3.createEnvelope([{ method: "GovernanceCommand", commands }]);
+  governanceTx<const C extends GovernanceCommand[]>(commands: C): TbrPartialTx {
+    const methods = Tbrv3.createEnvelope([{ method: "GovernanceCommand", commands: [commands] }]);
     const data = Tbrv3.encodeExecute(methods);
 
     return {
@@ -286,6 +289,10 @@ export class Tbrv3 {
     };
 
     return layout.serializeLayout(proxyConstructorLayout, initConfig);
+  }
+
+  static fromRpcUrl(rpc: string, network: NetworkMain): Tbrv3 {
+    return new Tbrv3(new ethers.JsonRpcProvider(rpc), network);
   }
 
 }
