@@ -26,7 +26,7 @@ pub struct CompleteTransfer<'info> {
         seeds = [TbrConfigState::SEED_PREFIX],
         bump
     )]
-    pub tbr_config: Account<'info, TbrConfigState>,
+    pub tbr_config: Box<Account<'info, TbrConfigState>>,
 
     /// Mint info. This is the SPL token that will be bridged over to the
     /// foreign contract. Mutable.
@@ -222,12 +222,12 @@ fn token_bridge_complete_native(ctx: &Context<CompleteTransfer>) -> Result<()> {
         .accounts
         .token_bridge_custody
         .as_ref()
-        .ok_or(TokenBridgeRelayerError::MissingCustody)?;
+        .expect("We have checked that before");
     let token_bridge_custody_signer = ctx
         .accounts
         .token_bridge_custody_signer
         .as_ref()
-        .ok_or(TokenBridgeRelayerError::MissingCustody)?;
+        .expect("We have checked that before");
 
     token_bridge::complete_transfer_native_with_payload(CpiContext::new_with_signer(
         ctx.accounts.token_bridge_program.to_account_info(),
@@ -261,12 +261,12 @@ fn token_bridge_complete_wrapped(ctx: &Context<CompleteTransfer>) -> Result<()> 
         .accounts
         .token_bridge_wrapped_meta
         .as_ref()
-        .ok_or(TokenBridgeRelayerError::MissingWrappedMeta)?;
+        .expect("We have checked that before");
     let token_bridge_mint_authority = ctx
         .accounts
         .token_bridge_mint_authority
         .as_ref()
-        .ok_or(TokenBridgeRelayerError::MissingMintAuthority)?;
+        .expect("We have checked that before");
 
     // Redeem the token transfer to the recipient token account.
     token_bridge::complete_transfer_wrapped_with_payload(CpiContext::new_with_signer(

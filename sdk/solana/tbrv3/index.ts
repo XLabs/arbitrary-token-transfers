@@ -7,7 +7,7 @@ import { Chain, chainToChainId, encoding } from '@wormhole-foundation/sdk-base';
 import { SolanaPriceOracleClient } from 'solana-price-oracle-sdk/src/solana/sdk';
 import { SYSTEM_PROGRAM_ID } from '@coral-xyz/anchor/dist/cjs/native/system';
 
-import { TokenBridgeRelayer } from '../../../target/types/token_bridge_relayer';
+import { TokenBridgeRelayer } from './idl/token_bridge_relayer';
 import IDL from '../../../target/idl/token_bridge_relayer.json';
 import {
   getTransferNativeWithPayloadCpiAccounts,

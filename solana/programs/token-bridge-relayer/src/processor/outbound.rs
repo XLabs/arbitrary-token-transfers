@@ -37,7 +37,7 @@ pub struct OutboundTransfer<'info> {
         seeds = [TbrConfigState::SEED_PREFIX],
         bump
     )]
-    pub tbr_config: Account<'info, TbrConfigState>,
+    pub tbr_config: Box<Account<'info, TbrConfigState>>,
 
     /// The peer config. We need to verify that the transfer is sent to the
     /// canonical peer.
@@ -48,7 +48,7 @@ pub struct OutboundTransfer<'info> {
         ],
         bump
     )]
-    pub chain_config: Account<'info, ChainConfigState>,
+    pub chain_config: Box<Account<'info, ChainConfigState>>,
 
     /// Mint info. This is the SPL token that will be bridged over to the
     /// canonical peer. Mutable.
@@ -56,7 +56,7 @@ pub struct OutboundTransfer<'info> {
     /// In the case of a native transfer, it's the native mint; in the case of a
     /// wrapped transfer, it's the token wrapped by Wormhole.
     #[account(mut)]
-    pub mint: Account<'info, Mint>,
+    pub mint: Box<Account<'info, Mint>>,
 
     /// Payer's token account. It holds the SPL token that will be transferred.
     #[account(
@@ -64,7 +64,7 @@ pub struct OutboundTransfer<'info> {
         constraint = user_token_account.mint == mint.key(),
         constraint = user_token_account.owner == payer.key(),
     )]
-    pub user_token_account: Account<'info, TokenAccount>,
+    pub user_token_account: Box<Account<'info, TokenAccount>>,
 
     /// Program's temporary token account. This account is created before the
     /// instruction is invoked to temporarily take custody of the payer's
@@ -81,7 +81,7 @@ pub struct OutboundTransfer<'info> {
         token::mint = mint,
         token::authority = tbr_config,
     )]
-    pub temporary_account: Account<'info, TokenAccount>,
+    pub temporary_account: Box<Account<'info, TokenAccount>>,
 
     /// Fee recipient's account. The fee will be transferred to this account.
     pub fee_recipient: UncheckedAccount<'info>,
@@ -91,14 +91,14 @@ pub struct OutboundTransfer<'info> {
         seeds::program = PriceOracle::id(),
         bump,
     )]
-    pub oracle_config: Account<'info, PriceOracleConfigAccount>,
+    pub oracle_config: Box<Account<'info, PriceOracleConfigAccount>>,
 
     #[account(
         seeds = [EvmPricesAccount::SEED_PREFIX, recipient_chain.to_be_bytes().as_ref()],
         seeds::program = PriceOracle::id(),
         bump,
     )]
-    pub oracle_evm_prices: Account<'info, EvmPricesAccount>,
+    pub oracle_evm_prices: Box<Account<'info, EvmPricesAccount>>,
 
     /// CHECK: Token Bridge config. Read-only.
     pub token_bridge_config: UncheckedAccount<'info>,
@@ -256,14 +256,14 @@ pub fn transfer_tokens(
             &mut ctx,
             transferred_amount,
             recipient_chain,
-            relayer_message,
+            &relayer_message,
         )?;
     } else {
         token_bridge_transfer_wrapped(
             &mut ctx,
             transferred_amount,
             recipient_chain,
-            relayer_message,
+            &relayer_message,
         )?;
     }
 
@@ -311,7 +311,7 @@ fn token_bridge_transfer_native(
     ctx: &mut Context<OutboundTransfer>,
     transferred_amount: u64,
     recipient_chain: u16,
-    relayer_message: RelayerMessage,
+    relayer_message: &RelayerMessage,
 ) -> Result<()> {
     let config_seed = &[
         TbrConfigState::SEED_PREFIX.as_ref(),
@@ -322,12 +322,12 @@ fn token_bridge_transfer_native(
         .accounts
         .token_bridge_custody
         .as_ref()
-        .ok_or(TokenBridgeRelayerError::MissingCustody)?;
+        .expect("We have checked that before");
     let token_bridge_custody_signer = ctx
         .accounts
         .token_bridge_custody_signer
         .as_ref()
-        .ok_or(TokenBridgeRelayerError::MissingCustody)?;
+        .expect("We have checked that before");
 
     token_bridge::transfer_native_with_payload(
         CpiContext::new_with_signer(
@@ -375,7 +375,7 @@ fn token_bridge_transfer_wrapped(
     ctx: &mut Context<OutboundTransfer>,
     transferred_amount: u64,
     recipient_chain: u16,
-    relayer_message: RelayerMessage,
+    relayer_message: &RelayerMessage,
 ) -> Result<()> {
     let config_seed = &[
         TbrConfigState::SEED_PREFIX.as_ref(),
@@ -386,7 +386,7 @@ fn token_bridge_transfer_wrapped(
         .accounts
         .token_bridge_wrapped_meta
         .as_ref()
-        .ok_or(TokenBridgeRelayerError::MissingWrappedMeta)?;
+        .expect("We have checked that before");
 
     token_bridge::transfer_wrapped_with_payload(
         CpiContext::new_with_signer(

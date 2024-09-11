@@ -60,19 +60,6 @@ pub(crate) enum TokenBridgeRelayerError {
     #[msg("Overflow")]
     Overflow,
 
-    //=============================
-    /// The wrapped meta account must be provided.
-    #[msg("MissingWrappedMeta")]
-    MissingWrappedMeta,
-
-    /// The mint authority account must be provided.
-    #[msg("MissingMintAuthority")]
-    MissingMintAuthority,
-
-    /// The custody info must be provided for a native transfer.
-    #[msg("MissingCustody")]
-    MissingCustody,
-    //=============================
     /// The optional accounts are wrongly set. Accounts used only in native
     /// transfers cannot be mixed with accounts used only in wrapped transfers.
     #[msg("WronglySetOptionalAccounts")]

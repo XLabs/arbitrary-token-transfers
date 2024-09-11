@@ -1,21 +1,15 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "types": [
-      "mocha",
-      "chai"
-    ],
     "lib": [
       "ES2023"
     ],
-    "rootDir": "../../",
     "target": "es6",
     "module": "CommonJS",
     "moduleResolution": "Node",
     "outDir": "ts-build",
   },
   "files": [
-    "../../target/types/token_bridge_relayer.ts",
     "../../target/idl/token_bridge_relayer.json"
   ],
   "include": [
