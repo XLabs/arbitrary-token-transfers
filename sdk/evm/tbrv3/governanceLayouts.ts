@@ -8,7 +8,7 @@ import {
   chainToPlatform,
 } from "@wormhole-foundation/sdk-base";
 import { UniversalAddress, layoutItems, toUniversal } from "@wormhole-foundation/sdk-definitions";
-import { evmAddressItem, gasDropoffItem, supportedChainItem, supportedChains } from "./layouts.js";
+import { evmAddressItem, gasDropoffItem, supportedChainItem, supportedChains } from "./baseLayouts.js";
 
 export const tokenItem = {
   name: "token",

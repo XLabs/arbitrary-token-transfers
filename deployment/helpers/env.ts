@@ -181,7 +181,7 @@ export function writeDeployedContract(whChainId: ChainId, contractName: string, 
   
   fs.writeFileSync(
     `./config/${env}/contracts.json`,
-    JSON.stringify(contracts),
+    JSON.stringify(contracts, null, 2),
     { flag: "w" }
   );
 }

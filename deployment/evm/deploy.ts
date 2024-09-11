@@ -49,7 +49,7 @@ async function run() {
       console.log(`Successfully deployed to chain ${result.chainId}`);
       output.Implementations.push(result.implementation);
       output.Proxies.push(result.proxy);
-      writeDeployedContract(result.chainId, "tbr-v3", result.implementation?.address ?? "", [result.proxy?.proxyConstructorArgs ?? ""]);
+      writeDeployedContract(result.chainId, "TbrV3", result.implementation?.address ?? "", [""]);
     }
   }
 
@@ -104,8 +104,13 @@ async function deployRelayerImplementation(chain: EvmChainInfo, config: DeployCo
 
   const tx = contract.deploymentTransaction();
   if (tx === null) {
-    throw new Error("Deployment transaction is missing")
+    throw new Error("Implementation deployment transaction is missing")
   }
+  const receipt = await tx.wait();
+  if (receipt?.status !== 1) {
+    throw new Error("Implementation deployment failed with status " + receipt?.status);
+  }
+  
   const address = await contract.getAddress();
   console.log("Successfully deployed implementation at " + address);
   return { address, chainId: chain.chainId };
@@ -141,7 +146,11 @@ async function deployProxy(
   );
   const tx = contract.deploymentTransaction();
   if (tx === null) {
-    throw new Error("Deployment transaction is missing")
+    throw new Error("Proxy deployment transaction is missing")
+  }
+  const receipt = await tx.wait();
+  if (receipt?.status !== 1) {
+    throw new Error("Proxy deployment failed with status " + receipt?.status);
   }
   const address = await contract.getAddress();
   console.log("Successfully deployed proxy at " + address);
