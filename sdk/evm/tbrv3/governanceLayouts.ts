@@ -67,7 +67,7 @@ export const ownerItem = {
   ...evmAddressItem 
 } as const satisfies NamedLayoutItem;
 
-const governanceCommandRawLayout = [
+export const governanceCommandRawLayout = [
   { name: "chain", ...layoutItems.chainItem({ allowedChains: supportedChains }) },
   { name: "command",
     binary: "switch",
@@ -89,7 +89,7 @@ const governanceCommandRawLayout = [
   }
 ] as const satisfies Layout;
 
-type GovernanceCommandRaw = LayoutToType<typeof governanceCommandRawLayout>;
+export type GovernanceCommandRaw = LayoutToType<typeof governanceCommandRawLayout>;
 type ExcludedCommands = {
   readonly name: "AddPeer";
   readonly value: Uint8Array;
@@ -162,3 +162,25 @@ export const governanceLayout = {
 } as const satisfies Layout;
 
 export type GovernaceCommandsLayout = LayoutToType<typeof governanceLayout>;
+
+export const governanceQueryLayout = {
+  binary: "switch",
+  idSize: 1,
+  idTag: "query",
+  layouts: [
+    [[0x80, "RelayFee"], []],
+    [[0x81, "MaxGasDropoff"], []],
+    [[0x82, "IsChainPaused"], []],
+    [[0x83, "IsPeer"], []],
+    [[0x84, "IsTxSixeSensitive"], []],
+    [[0x85, "CanonicalPeer"], []],
+    [[0x86, "Owner"], []],
+    [[0x87, "IsChainSupported"], []],
+    [[0x88, "PendingOwner"], []],
+    [[0x89, "Admin"], []],
+    [[0x8A, "FeeRecipient"], []],
+    [[0x8B, "Implementation"], []],
+
+  ],
+} as const satisfies Layout;
+export type GovernanceQuery = LayoutToType<typeof governanceQueryLayout>;

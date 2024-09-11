@@ -1,6 +1,7 @@
 import { Chain, CustomConversion, Layout, ManualSizePureBytes, NamedLayoutItem, UintLayoutItem } from "@wormhole-foundation/sdk-base";
 import { layoutItems } from "@wormhole-foundation/sdk-definitions";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
+import { governanceCommandRawLayout, governanceQueryLayout } from "./governanceLayouts.js";
 
 // TODO: update supported chains to the actual chains supported
 export const supportedChains = ["Ethereum", "Solana"] as const satisfies readonly Chain[];
@@ -141,6 +142,19 @@ export const baseRelayingConfigReturnLayout = [
   { name: "baseFee", binary: "uint", size: 4 },
 ] as const satisfies Layout;
 
+const subArrayLayout = <const N extends string, const L extends Layout>(
+  name: N,
+  layout: L
+) =>
+  [
+    {
+      name,
+      binary: "array",
+      lengthSize: 1,
+      layout: layout,
+    },
+  ] as const;
+
 export const dispatcherLayout = {
   name: "dispatcher",
   binary: "switch",
@@ -151,11 +165,14 @@ export const dispatcherLayout = {
     [[0, "TransferTokenWithRelay"], transferTokenWithRelayLayout],
     [[1, "TransferGasTokenWithRelay" ], transferGasTokenWithRelayLayout],
     [[2, "CompleteTransfer"], [{ name: "vaa", binary: "bytes", lengthSize: 2 }]],
-    //TODO governance methods
+    // Governance
+    [[3, "GovernanceCommand"], subArrayLayout("commands", governanceCommandRawLayout)],
 
     // Queries
     [[0x80, "RelayFee"], relayingFeesInputLayout],
     [[0x81, "BaseRelayingConfig"], baseRelayingConfigInputLayout],
+    // TODO: Governance queries
+    // [[0x82, "GovernanceQuery"], subArrayLayout("queries", governanceQueryLayout)],
   ]
 } as const satisfies NamedLayoutItem;
 

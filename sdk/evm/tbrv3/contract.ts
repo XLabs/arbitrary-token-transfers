@@ -2,6 +2,7 @@ import { chainToPlatform, FixedLengthArray, Layout, layout, LayoutToType, Networ
 import { serialize, toNative, toUniversal, VAA } from "@wormhole-foundation/sdk-definitions";
 import { ethers } from "ethers";
 import { baseRelayingConfigReturnLayout, BaseRelayingParamsReturn, dispatcherLayout, gasDropoffUnit, relayFeeUnit, relayingFeesInputLayout, RelayingFeesReturn, RelayingFeesReturnItem, relayingFeesReturnLayout, SupportedChains, TBRv3Message, transferTokenWithRelayLayout, versionEnvelopeLayout, transferGasTokenWithRelayLayout, proxyConstructorLayout } from "./layouts.js";
+import { GovernanceCommandRaw } from "./governanceLayouts.js";
 
 /**
  * Gives you a type that keeps the properties of `T1` while making both properties common to `T1` and `T2` and properties exclusive to `T2` optional.
@@ -187,7 +188,7 @@ export class Tbrv3 {
     }
 
     const args = vaas.map((vaa) => ({vaa: serialize(vaa)}));
-    const methods = Tbrv3.createEnvelopeWithSingleMethodKind("Complete", args);
+    const methods = Tbrv3.createEnvelopeWithSingleMethodKind("CompleteTransfer", args);
     const data = Tbrv3.encodeExecute(methods);
 
     return {
@@ -230,9 +231,24 @@ export class Tbrv3 {
     return layout.deserializeLayout(baseRelayingReturnListLayout, ethers.getBytes(result));
   }
 
+  async addPeer(chain: SupportedChains, peer: string): Promise<void> {
+  }
+
+  governanceTx<const C extends GovernanceCommandRaw[]>(commands: C): TbrPartialTx {
+    const methods = Tbrv3.createEnvelope([{ method: "GovernanceCommand", commands }]);
+    const data = Tbrv3.encodeExecute(methods);
+
+    return {
+      to: this.address,
+      data,
+      value: 0n,
+    };
+  }
+
   static encodeExecute(methods: Uint8Array): Uint8Array {
     return this.encodeForDispatcher(executeFunction, methods);
   }
+
   static encodeQuery(methods: Uint8Array): Uint8Array {
     return this.encodeForDispatcher(queryFunction, methods);
   }
