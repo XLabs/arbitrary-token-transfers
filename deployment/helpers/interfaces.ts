@@ -59,6 +59,7 @@ export interface Dependencies {
     tokenBridge: string;
     permit2: string;
     oracle: string;
+    initGasToken: string;
 };
 
 export interface DependenciesConfig extends ChainConfig, Dependencies {};

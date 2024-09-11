@@ -4,6 +4,7 @@
     "owner": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
     "admin": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
     "feeRecipient": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-    "oracleVersion": 0
+    "oracleVersion": 0,
+    "initGasErc20TokenizationIsExplicit": false
   }
 ]

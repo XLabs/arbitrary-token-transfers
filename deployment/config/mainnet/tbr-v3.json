@@ -5,6 +5,7 @@
     "owner": "",
     "admin": "",
     "feeRecipient": "",
-    "oracleVersion": 0
+    "oracleVersion": 0,
+    "initGasErc20TokenizationIsExplicit": false
   }
 ]

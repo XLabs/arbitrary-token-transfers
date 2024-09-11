@@ -20,6 +20,7 @@ type DeployConfig = ChainConfig & {
   admin?: string;
   feeRecipient?: string;
   oracleVersion: 0;
+  initGasErc20TokenizationIsExplicit: boolean;
 };
 
 async function run() {
@@ -99,8 +100,9 @@ async function deployRelayerImplementation(chain: EvmChainInfo, config: DeployCo
   const permit2 = await getDependencyAddress("permit2", chain);
   const tokenBridge = await getDependencyAddress("tokenBridge", chain);
   const oracle = await getDependencyAddress("oracle", chain);
+  const initGasToken = await getDependencyAddress("initGasToken", chain);
 
-  const contract = await factory.deploy(permit2, tokenBridge, oracle, config.oracleVersion);
+  const contract = await factory.deploy(permit2, tokenBridge, oracle, config.oracleVersion, initGasToken, config.initGasErc20TokenizationIsExplicit);
 
   const tx = contract.deploymentTransaction();
   if (tx === null) {
