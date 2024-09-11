@@ -42,7 +42,8 @@ abstract contract TbrDispatcher is RawDispatcher, TbrGovernance, TbrUser {
       } else if (command == TRANSFER_GAS_TOKEN_WITH_RELAY_ID) {
         //(movedOffset) = _wrapAndTransferEthWithRelay(data[offset:]);
       } else if (command == COMPLETE_TRANSFER_ID) {
-        //(movedOffset) = _complete(data[offset:]);
+        uint256 gasDropoffSpent;
+        (gasDropoffSpent, offset) = completeTransfer(data[offset:], senderRefund, commandIndex);
       }
       else if (command == GOVERNANCE_ID)
         movedOffset = batchGovernanceCommands(data[offset:]);
