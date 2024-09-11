@@ -61,10 +61,14 @@ abstract contract TbrDispatcher is RawDispatcher, TbrGovernance, TbrUser {
     address payable feeRecipient = getFeeRecipient();
     // TODO: encapsulate these into a `pay` util?
     bool success = false;
-    (success,) = feeRecipient.call{value: fees}("");
-    if (!success) revert PaymentFailure(feeRecipient);
-    (success,) = msg.sender.call{value: senderRefund}("");
-    if (!success) revert PaymentFailure(msg.sender);
+    if (fees > 0) {
+      (success,) = feeRecipient.call{value: fees}("");
+      if (!success) revert PaymentFailure(feeRecipient);
+    }
+    if (senderRefund > 0) {
+      (success,) = msg.sender.call{value: senderRefund}("");
+      if (!success) revert PaymentFailure(msg.sender);
+    }
   }
 
   function _get(bytes calldata data) internal view override returns (bytes memory) {
