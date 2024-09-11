@@ -1,5 +1,5 @@
 import { BN, AnchorError, web3 } from "@coral-xyz/anchor";
-import { SendTransactionError } from "@solana/web3.js";
+import { PublicKey, SendTransactionError } from "@solana/web3.js";
 import {
   assertResolveFailure,
   assertEqKeys,
@@ -13,7 +13,11 @@ import { describe } from "mocha";
 describe("Token Bridge Relayer Program", () => {
   const clients = Array.from(
     { length: 4 },
-    () => new ClientWrapper(newProvider(), { tokenBridgeProgramId: null, wormholeProgramId: null }),
+    () =>
+      new ClientWrapper(newProvider(), {
+        tokenBridgeProgramId: PublicKey.default,
+        wormholeProgramId: PublicKey.default,
+      }),
   );
   const [ownerClient, newOwnerClient, adminClient, unauthorizedClient] = clients;
 

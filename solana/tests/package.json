@@ -6,15 +6,13 @@
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.1",
     "@solana/web3.js": "^1.95.3",
-    "@wormhole-foundation/sdk-base": "^0.10.4",
-    "@xlabs-xyz/solana-arbitrary-token-transfers": "workspace:^"
-  },
-  "devDependencies": {
     "@types/chai": "^4.3.0",
-    "@types/mocha": "^10",
-    "chai": "^5",
-    "mocha": "^10",
-    "ts-mocha": "^10",
-    "typescript": "^5"
+    "@types/mocha": "8.*",
+    "@wormhole-foundation/sdk-base": "^0.10.4",
+    "@xlabs-xyz/solana-arbitrary-token-transfers": "workspace:^",
+    "chai": "^5.0",
+    "mocha": "8.*",
+    "ts-mocha": "8.*",
+    "typescript": "^5.0"
   }
 }

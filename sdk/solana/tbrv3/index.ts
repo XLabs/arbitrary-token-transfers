@@ -2,7 +2,7 @@ import * as anchor from "@coral-xyz/anchor";
 import { Program, BN, web3 } from "@coral-xyz/anchor";
 import { PublicKey, Connection } from "@solana/web3.js";
 import { Chain, chainToChainId, encoding } from "@wormhole-foundation/sdk-base";
-import { SolanaPriceOracleClient } from "solana-price-oracle-sdk/src/solana/sdk";
+import { SolanaPriceOracleClient } from "@xlabs/solana-price-oracle-sdk";
 import { SYSTEM_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/native/system";
 
 import { TokenBridgeRelayer } from "./idl/token_bridge_relayer";
