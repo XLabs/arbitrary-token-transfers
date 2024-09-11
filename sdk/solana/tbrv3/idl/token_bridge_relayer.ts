@@ -712,6 +712,10 @@ export type TokenBridgeRelayer = {
       ],
       "args": [
         {
+          "name": "chainId",
+          "type": "u16"
+        },
+        {
           "name": "paused",
           "type": "bool"
         }
@@ -1571,6 +1575,10 @@ export type TokenBridgeRelayer = {
         }
       ],
       "args": [
+        {
+          "name": "chainId",
+          "type": "u16"
+        },
         {
           "name": "relayerFee",
           "type": "u64"

@@ -2,8 +2,7 @@
 
 [workspace]
 members = ["solana/programs/*"]
-types = "../sdk/solana/tbrv3/idl"
-idl = "../sdk/solana/tbrv3/idl"
+types = "sdk/solana/tbrv3/idl"
 
 [features]
 resolution = true
@@ -20,4 +19,4 @@ cluster = "Localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
-test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+test = "yarn run ts-mocha -p ./solana/tests/tsconfig.json -t 1000000 solana/tests/*.ts"

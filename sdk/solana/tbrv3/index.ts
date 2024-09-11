@@ -1,60 +1,59 @@
-import * as anchor from '@coral-xyz/anchor';
-import { Program, BN, web3 } from '@coral-xyz/anchor';
-import {
-  PublicKey, Connection
-} from '@solana/web3.js';
-import { Chain, chainToChainId, encoding } from '@wormhole-foundation/sdk-base';
-import { SolanaPriceOracleClient } from 'solana-price-oracle-sdk/src/solana/sdk';
-import { SYSTEM_PROGRAM_ID } from '@coral-xyz/anchor/dist/cjs/native/system';
+import * as anchor from "@coral-xyz/anchor";
+import { Program, BN, web3 } from "@coral-xyz/anchor";
+import { PublicKey, Connection } from "@solana/web3.js";
+import { Chain, chainToChainId, encoding } from "@wormhole-foundation/sdk-base";
+import { SolanaPriceOracleClient } from "solana-price-oracle-sdk/src/solana/sdk";
+import { SYSTEM_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/native/system";
 
-import { TokenBridgeRelayer } from './idl/token_bridge_relayer';
-import IDL from '../../../target/idl/token_bridge_relayer.json';
+import { TokenBridgeRelayer } from "./idl/token_bridge_relayer";
+import IDL from "../../../target/idl/token_bridge_relayer.json";
 import {
   getTransferNativeWithPayloadCpiAccounts,
   getTransferWrappedWithPayloadCpiAccounts,
   getCompleteTransferNativeWithPayloadCpiAccounts,
   getCompleteTransferWrappedWithPayloadCpiAccounts,
-} from '@wormhole-foundation/sdk-solana-tokenbridge/';
-import { VAA } from '@wormhole-foundation/sdk-definitions';
+} from "@wormhole-foundation/sdk-solana-tokenbridge/";
+import { VAA } from "@wormhole-foundation/sdk-definitions";
 
-type UniversalAddress = number[] | Uint8Array | Buffer;
+export type UniversalAddress = number[] | Uint8Array | Buffer;
+export type VaaMessage = VAA<"TokenBridge:TransferWithPayload">;
 
-interface TransferNativeParameters {
-  recipientChain: Chain,
-  recipientAddress: UniversalAddress,
-  mint: PublicKey,
-  userTokenAccount: PublicKey,
-  transferredAmount: BN,
-  gasDropoffAmount: BN,
-  maxFeeSol: BN,
+export interface TransferNativeParameters {
+  recipientChain: Chain;
+  recipientAddress: UniversalAddress;
+  mint: PublicKey;
+  tokenAccount: PublicKey;
+  transferredAmount: BN;
+  gasDropoffAmount: BN;
+  maxFeeSol: BN;
 }
 
-interface TransferWrappedParameters {
-  recipientChain: Chain,
-  recipientAddress: UniversalAddress,
-  userTokenAccount: PublicKey,
-  transferredAmount: BN,
-  gasDropoffAmount: BN,
-  maxFeeSol: BN,
+export interface TransferWrappedParameters {
+  recipientChain: Chain;
+  recipientAddress: UniversalAddress;
+  userTokenAccount: PublicKey;
+  transferredAmount: BN;
+  gasDropoffAmount: BN;
+  maxFeeSol: BN;
 }
 
-type TbrConfigAccount = anchor.IdlAccounts<TokenBridgeRelayer>['tbrConfigState'];
-type ChainConfigAccount = anchor.IdlAccounts<TokenBridgeRelayer>['chainConfigState'];
-type PeerAccount = anchor.IdlAccounts<TokenBridgeRelayer>['peerState'];
-type SignerSequenceAccount = anchor.IdlAccounts<TokenBridgeRelayer>['signerSequenceState'];
+export type TbrConfigAccount = anchor.IdlAccounts<TokenBridgeRelayer>["tbrConfigState"];
+export type ChainConfigAccount = anchor.IdlAccounts<TokenBridgeRelayer>["chainConfigState"];
+export type PeerAccount = anchor.IdlAccounts<TokenBridgeRelayer>["peerState"];
+export type SignerSequenceAccount = anchor.IdlAccounts<TokenBridgeRelayer>["signerSequenceState"];
 
 export interface TbrAddresses {
-  config(): PublicKey,
-  chainConfig(chain: Chain): PublicKey,
-  peer(chain: Chain, peerAddress: UniversalAddress): PublicKey,
-  signerSequence(signer: PublicKey): PublicKey,
+  config(): PublicKey;
+  chainConfig(chain: Chain): PublicKey;
+  peer(chain: Chain, peerAddress: UniversalAddress): PublicKey;
+  signerSequence(signer: PublicKey): PublicKey;
 }
 
 export interface ReadTbrAccounts {
-  config(): Promise<TbrConfigAccount>,
-  chainConfig(chain: Chain): Promise<ChainConfigAccount>,
-  peer(chain: Chain, peerAddress: UniversalAddress): Promise<PeerAccount>,
-  signerSequence(signer: PublicKey): Promise<SignerSequenceAccount>,
+  config(): Promise<TbrConfigAccount>;
+  chainConfig(chain: Chain): Promise<ChainConfigAccount>;
+  peer(chain: Chain, peerAddress: UniversalAddress): Promise<PeerAccount>;
+  signerSequence(signer: PublicKey): Promise<SignerSequenceAccount>;
 }
 
 export class TbrClient {
@@ -66,7 +65,10 @@ export class TbrClient {
 
   constructor(
     connection: Connection,
-    { tokenBridgeProgramId, wormholeProgramId }: { tokenBridgeProgramId: PublicKey, wormholeProgramId: PublicKey }
+    {
+      tokenBridgeProgramId,
+      wormholeProgramId,
+    }: { tokenBridgeProgramId: PublicKey; wormholeProgramId: PublicKey },
   ) {
     this._connection = connection;
     this.program = new Program<TokenBridgeRelayer>(IDL as any, { connection });
@@ -83,7 +85,8 @@ export class TbrClient {
     return {
       config: () => pda.tbrConfig(this.program.programId),
       chainConfig: (chain: Chain) => pda.chainConfig(this.program.programId, chain),
-      peer: (chain: Chain, peerAddress: UniversalAddress) => pda.peer(this.program.programId, chain, peerAddress),
+      peer: (chain: Chain, peerAddress: UniversalAddress) =>
+        pda.peer(this.program.programId, chain, peerAddress),
       signerSequence: (signer: PublicKey) => pda.signerSequence(this.program.programId, signer),
     };
   }
@@ -91,78 +94,114 @@ export class TbrClient {
   get read(): ReadTbrAccounts {
     return {
       config: () => this.program.account.tbrConfigState.fetch(this.address.config()),
-      chainConfig: (chain: Chain) => this.program.account.chainConfigState.fetch(this.address.chainConfig(chain)),
-      peer: (chain: Chain, peerAddress: UniversalAddress) => this.program.account.peerState.fetch(this.address.peer(chain, peerAddress)),
-      signerSequence: (signer: PublicKey) => this.program.account.signerSequenceState.fetch(this.address.signerSequence(signer)),
+      chainConfig: (chain: Chain) =>
+        this.program.account.chainConfigState.fetch(this.address.chainConfig(chain)),
+      peer: (chain: Chain, peerAddress: UniversalAddress) =>
+        this.program.account.peerState.fetch(this.address.peer(chain, peerAddress)),
+      signerSequence: (signer: PublicKey) =>
+        this.program.account.signerSequenceState.fetch(this.address.signerSequence(signer)),
     };
   }
 
   async initialize(owner: PublicKey): Promise<web3.TransactionInstruction> {
-    return this.program.methods.initialize().accounts({
-      owner,
-    }).instruction()
+    return this.program.methods
+      .initialize()
+      .accounts({
+        owner,
+      })
+      .instruction();
   }
 
   /* Roles */
 
-  async submitOwnerTransferRequest(signer: PublicKey, newOwner: PublicKey): Promise<web3.TransactionInstruction> {
-    return this.program.methods.submitOwnerTransferRequest(newOwner).accounts({
-      signer,
-    }).instruction();
+  async submitOwnerTransferRequest(
+    signer: PublicKey,
+    newOwner: PublicKey,
+  ): Promise<web3.TransactionInstruction> {
+    return this.program.methods
+      .submitOwnerTransferRequest(newOwner)
+      .accounts({
+        signer,
+      })
+      .instruction();
   }
 
   async confirmOwnerTransferRequest(signer: PublicKey): Promise<web3.TransactionInstruction> {
-    return this.program.methods.confirmOwnerTransferRequest().accounts({
-      signer,
-    }).instruction()
+    return this.program.methods
+      .confirmOwnerTransferRequest()
+      .accounts({
+        signer,
+      })
+      .instruction();
   }
 
   async cancelOwnerTransferRequest(signer: PublicKey): Promise<web3.TransactionInstruction> {
-    return this.program.methods.cancelOwnerTransferRequest().accounts({
-      signer,
-    }).instruction()
+    return this.program.methods
+      .cancelOwnerTransferRequest()
+      .accounts({
+        signer,
+      })
+      .instruction();
   }
 
   async updateAdmin(signer: PublicKey, newAdmin: PublicKey): Promise<web3.TransactionInstruction> {
-    return this.program.methods.updateAdmin(newAdmin).accounts({
-      signer,
-    }).instruction()
+    return this.program.methods
+      .updateAdmin(newAdmin)
+      .accounts({
+        signer,
+      })
+      .instruction();
   }
 
   /* Peer management */
 
-  async registerPeer(signer: PublicKey, chain: Chain, peerAddress: UniversalAddress): Promise<web3.TransactionInstruction> {
-    return this.program.methods.registerPeer(chainToChainId(chain), Array.from(peerAddress)).accountsStrict({
-      signer,
-      tbrConfig: this.address.config(),
-      peer: this.address.peer(chain, peerAddress),
-      chainConfig: this.address.chainConfig(chain),
-      systemProgram: SYSTEM_PROGRAM_ID,
-    }).instruction()
+  async registerPeer(
+    signer: PublicKey,
+    chain: Chain,
+    peerAddress: UniversalAddress,
+  ): Promise<web3.TransactionInstruction> {
+    return this.program.methods
+      .registerPeer(chainToChainId(chain), Array.from(peerAddress))
+      .accountsStrict({
+        signer,
+        tbrConfig: this.address.config(),
+        peer: this.address.peer(chain, peerAddress),
+        chainConfig: this.address.chainConfig(chain),
+        systemProgram: SYSTEM_PROGRAM_ID,
+      })
+      .instruction();
   }
 
-  async updateCanonicalPeer(signer: PublicKey, chain: Chain, peerAddress: UniversalAddress): Promise<web3.TransactionInstruction> {
-    return this.program.methods.updateCanonicalPeer(chainToChainId(chain), Array.from(peerAddress)).accountsStrict({
-      owner: signer,
-      tbrConfig: this.address.config(),
-      peer: this.address.peer(chain, peerAddress),
-      chainConfig: this.address.chainConfig(chain),
-      systemProgram: SYSTEM_PROGRAM_ID,
-    }).instruction()
+  async updateCanonicalPeer(
+    signer: PublicKey,
+    chain: Chain,
+    peerAddress: UniversalAddress,
+  ): Promise<web3.TransactionInstruction> {
+    return this.program.methods
+      .updateCanonicalPeer(chainToChainId(chain), Array.from(peerAddress))
+      .accountsStrict({
+        owner: signer,
+        tbrConfig: this.address.config(),
+        peer: this.address.peer(chain, peerAddress),
+        chainConfig: this.address.chainConfig(chain),
+        systemProgram: SYSTEM_PROGRAM_ID,
+      })
+      .instruction();
   }
 
-  /* Config update */
+  /* Chain config update */
 
-  async setPauseForOutboundTransfers(signer: PublicKey, paused: boolean): Promise<web3.TransactionInstruction> {
-    return this.program.methods.setPauseForOutboundTransfers(paused).accounts({
-      signer,
-    }).instruction()
-  }
-
-  async updateFeeRecipient(signer: PublicKey, newFeeRecipient: PublicKey): Promise<web3.TransactionInstruction> {
-    return this.program.methods.updateFeeRecipient(newFeeRecipient).accounts({
-      signer,
-    }).instruction()
+  async setPauseForOutboundTransfers(
+    signer: PublicKey,
+    chain: Chain,
+    paused: boolean,
+  ): Promise<web3.TransactionInstruction> {
+    return this.program.methods
+      .setPauseForOutboundTransfers(chainToChainId(chain), paused)
+      .accounts({
+        signer,
+      })
+      .instruction();
   }
 
   async updateMaxGasDropoff(
@@ -170,17 +209,41 @@ export class TbrClient {
     chain: Chain,
     maxGasDropoff: BN,
   ): Promise<web3.TransactionInstruction> {
-    return this.program.methods.updateMaxGasDropoff(chainToChainId(chain), maxGasDropoff).accountsStrict({
-      signer,
-      chainConfig: this.address.chainConfig(chain),
-      tbrConfig: this.address.config(),
-    }).instruction()
+    return this.program.methods
+      .updateMaxGasDropoff(chainToChainId(chain), maxGasDropoff)
+      .accountsStrict({
+        signer,
+        chainConfig: this.address.chainConfig(chain),
+        tbrConfig: this.address.config(),
+      })
+      .instruction();
   }
 
-  async updateRelayerFee(signer: PublicKey, relayerFee: BN): Promise<web3.TransactionInstruction> {
-    return this.program.methods.updateRelayerFee(relayerFee).accounts({
-      signer,
-    }).instruction()
+  async updateRelayerFee(
+    signer: PublicKey,
+    chain: Chain,
+    relayerFee: BN,
+  ): Promise<web3.TransactionInstruction> {
+    return this.program.methods
+      .updateRelayerFee(chainToChainId(chain), relayerFee)
+      .accounts({
+        signer,
+      })
+      .instruction();
+  }
+
+  /* Config update */
+
+  async updateFeeRecipient(
+    signer: PublicKey,
+    newFeeRecipient: PublicKey,
+  ): Promise<web3.TransactionInstruction> {
+    return this.program.methods
+      .updateFeeRecipient(newFeeRecipient)
+      .accounts({
+        signer,
+      })
+      .instruction();
   }
 
   async updateEvmTransactionConfig(
@@ -188,19 +251,25 @@ export class TbrClient {
     evmTransactionGas: BN,
     evmTransactionSize: BN,
   ): Promise<web3.TransactionInstruction> {
-    return this.program.methods.updateEvmTransactionConfig(evmTransactionGas, evmTransactionSize).accounts({
-      signer,
-    }).instruction()
+    return this.program.methods
+      .updateEvmTransactionConfig(evmTransactionGas, evmTransactionSize)
+      .accounts({
+        signer,
+      })
+      .instruction();
   }
 
   /* Transfers */
 
-  async transferNativeTokens(signer: PublicKey, params: TransferNativeParameters): Promise<web3.TransactionInstruction> {
+  async transferNativeTokens(
+    signer: PublicKey,
+    params: TransferNativeParameters,
+  ): Promise<web3.TransactionInstruction> {
     const {
       recipientChain,
       recipientAddress,
       mint,
-      userTokenAccount,
+      tokenAccount: userTokenAccount,
       transferredAmount,
       gasDropoffAmount,
       maxFeeSol,
@@ -210,7 +279,7 @@ export class TbrClient {
     let payerSequenceNumber = new BN(0);
     try {
       payerSequenceNumber = (await this.read.signerSequence(signer)).value;
-    } catch { };
+    } catch {}
     const tokenBridgeAccounts = transferNativeTokenBridgeAccounts({
       programId: this.program.programId,
       tokenBridgeProgramId: this.tokenBridgeProgramId,
@@ -218,31 +287,37 @@ export class TbrClient {
       mint,
     });
 
-    return this.program.methods.transferTokens(
-      chainToChainId(recipientChain),
-      Array.from(recipientAddress),
-      transferredAmount,
-      gasDropoffAmount,
-      maxFeeSol,
-    ).accountsPartial({
-      payer: signer,
-      tbrConfig: this.address.config(),
-      chainConfig: this.address.chainConfig(recipientChain),
-      mint,
-      userTokenAccount,
-      temporaryAccount: pda.temporary(this.program.programId, mint),
-      feeRecipient,
-      oracleConfig: this.priceOracleClient.address.config(),
-      oracleEvmPrices: this.priceOracleClient.address.evmPrices(recipientChain),
-      ...tokenBridgeAccounts,
-      wormholeMessage: pda.wormholeMessage(this.program.programId, signer, payerSequenceNumber),
-      payerSequence: this.address.signerSequence(signer),
-      tokenBridgeProgram: this.tokenBridgeProgramId,
-      wormholeProgram: this.wormholeProgramId,
-    }).instruction()
+    return this.program.methods
+      .transferTokens(
+        chainToChainId(recipientChain),
+        Array.from(recipientAddress),
+        transferredAmount,
+        gasDropoffAmount,
+        maxFeeSol,
+      )
+      .accountsPartial({
+        payer: signer,
+        tbrConfig: this.address.config(),
+        chainConfig: this.address.chainConfig(recipientChain),
+        mint,
+        userTokenAccount,
+        temporaryAccount: pda.temporary(this.program.programId, mint),
+        feeRecipient,
+        oracleConfig: this.priceOracleClient.address.config(),
+        oracleEvmPrices: this.priceOracleClient.address.evmPrices(recipientChain),
+        ...tokenBridgeAccounts,
+        wormholeMessage: pda.wormholeMessage(this.program.programId, signer, payerSequenceNumber),
+        payerSequence: this.address.signerSequence(signer),
+        tokenBridgeProgram: this.tokenBridgeProgramId,
+        wormholeProgram: this.wormholeProgramId,
+      })
+      .instruction();
   }
 
-  async transferWrappedTokens(signer: PublicKey, params: TransferWrappedParameters): Promise<web3.TransactionInstruction> {
+  async transferWrappedTokens(
+    signer: PublicKey,
+    params: TransferWrappedParameters,
+  ): Promise<web3.TransactionInstruction> {
     const {
       recipientChain,
       recipientAddress,
@@ -258,7 +333,7 @@ export class TbrClient {
     let payerSequenceNumber = new BN(0);
     try {
       payerSequenceNumber = (await this.read.signerSequence(signer)).value;
-    } catch { };
+    } catch {}
     const tokenBridgeAccounts = transferWrappedTokenBridgeAccounts({
       programId: this.program.programId,
       tokenBridgeProgramId: this.tokenBridgeProgramId,
@@ -267,39 +342,42 @@ export class TbrClient {
       tokenAddress: Buffer.from(recipientAddress),
     });
 
-    return this.program.methods.transferTokens(
-      chainId,
-      Array.from(recipientAddress),
-      transferredAmount,
-      gasDropoffAmount,
-      maxFeeSol,
-    ).accountsPartial({
-      payer: signer,
-      tbrConfig: this.address.config(),
-      chainConfig: this.address.chainConfig(recipientChain),
-      userTokenAccount,
-      temporaryAccount: pda.temporary(this.program.programId, tokenBridgeAccounts.mint),
-      feeRecipient,
-      oracleConfig: this.priceOracleClient.address.config(),
-      oracleEvmPrices: this.priceOracleClient.address.evmPrices(recipientChain),
-      ...tokenBridgeAccounts,
-      wormholeMessage: pda.wormholeMessage(this.program.programId, signer, payerSequenceNumber),
-      payerSequence: this.address.signerSequence(signer),
-      tokenBridgeProgram: this.tokenBridgeProgramId,
-      wormholeProgram: this.wormholeProgramId,
-    }).instruction()
+    return this.program.methods
+      .transferTokens(
+        chainId,
+        Array.from(recipientAddress),
+        transferredAmount,
+        gasDropoffAmount,
+        maxFeeSol,
+      )
+      .accountsPartial({
+        payer: signer,
+        tbrConfig: this.address.config(),
+        chainConfig: this.address.chainConfig(recipientChain),
+        userTokenAccount,
+        temporaryAccount: pda.temporary(this.program.programId, tokenBridgeAccounts.mint),
+        feeRecipient,
+        oracleConfig: this.priceOracleClient.address.config(),
+        oracleEvmPrices: this.priceOracleClient.address.evmPrices(recipientChain),
+        ...tokenBridgeAccounts,
+        wormholeMessage: pda.wormholeMessage(this.program.programId, signer, payerSequenceNumber),
+        payerSequence: this.address.signerSequence(signer),
+        tokenBridgeProgram: this.tokenBridgeProgramId,
+        wormholeProgram: this.wormholeProgramId,
+      })
+      .instruction();
   }
 
   /**
-   * 
-   * @param signer 
-   * @param vaa 
+   *
+   * @param signer
+   * @param vaa
    * @param recipientTokenAccount The account receiving the SPL tokens.
    * @param recipient The account receiving the gas dropoff.
    */
   async completeNativeTransfer(
     signer: PublicKey,
-    vaa: VAA<"TokenBridge:TransferWithPayload">,
+    vaa: VaaMessage,
     recipientTokenAccount: PublicKey,
     recipient: PublicKey,
   ): Promise<web3.TransactionInstruction> {
@@ -309,22 +387,25 @@ export class TbrClient {
       vaa,
     });
 
-    return this.program.methods.completeTransfer(Array.from(vaa.hash)).accountsPartial({
-      payer: signer,
-      tbrConfig: this.address.config(),
-      recipientTokenAccount,
-      recipient,
-      vaa: pda.vaa(this.wormholeProgramId, vaa.hash),
-      temporaryAccount: pda.temporary(this.program.programId, tokenBridgeAccounts.mint),
-      ...tokenBridgeAccounts,
-      tokenBridgeProgram: this.tokenBridgeProgramId,
-      wormholeProgram: this.wormholeProgramId,
-    }).instruction()
+    return this.program.methods
+      .completeTransfer(Array.from(vaa.hash))
+      .accountsPartial({
+        payer: signer,
+        tbrConfig: this.address.config(),
+        recipientTokenAccount,
+        recipient,
+        vaa: pda.vaa(this.wormholeProgramId, vaa.hash),
+        temporaryAccount: pda.temporary(this.program.programId, tokenBridgeAccounts.mint),
+        ...tokenBridgeAccounts,
+        tokenBridgeProgram: this.tokenBridgeProgramId,
+        wormholeProgram: this.wormholeProgramId,
+      })
+      .instruction();
   }
 
   async completeWrappedTransfer(
     signer: PublicKey,
-    vaa: VAA<"TokenBridge:TransferWithPayload">,
+    vaa: VaaMessage,
     recipientTokenAccount: PublicKey,
     recipient: PublicKey,
   ): Promise<web3.TransactionInstruction> {
@@ -334,116 +415,81 @@ export class TbrClient {
       vaa,
     });
 
-    return this.program.methods.completeTransfer(Array.from(vaa.hash)).accountsPartial({
-      payer: signer,
-      tbrConfig: this.address.config(),
-      recipientTokenAccount,
-      recipient,
-      vaa: pda.vaa(this.wormholeProgramId, vaa.hash),
-      temporaryAccount: pda.temporary(this.program.programId, tokenBridgeAccounts.mint),
-      ...tokenBridgeAccounts,
-      tokenBridgeProgram: this.tokenBridgeProgramId,
-      wormholeProgram: this.wormholeProgramId,
-    }).instruction()
+    return this.program.methods
+      .completeTransfer(Array.from(vaa.hash))
+      .accountsPartial({
+        payer: signer,
+        tbrConfig: this.address.config(),
+        recipientTokenAccount,
+        recipient,
+        vaa: pda.vaa(this.wormholeProgramId, vaa.hash),
+        temporaryAccount: pda.temporary(this.program.programId, tokenBridgeAccounts.mint),
+        ...tokenBridgeAccounts,
+        tokenBridgeProgram: this.tokenBridgeProgramId,
+        wormholeProgram: this.wormholeProgramId,
+      })
+      .instruction();
   }
 }
-
 
 const chainSeed = (chain: Chain) => encoding.bignum.toBytes(chainToChainId(chain), 2);
 const pda = {
   tbrConfig: (programId: PublicKey): PublicKey => {
-    return PublicKey.findProgramAddressSync(
-      [Buffer.from('redeemer')],
-      programId,
-    )[0]
+    return PublicKey.findProgramAddressSync([Buffer.from("redeemer")], programId)[0];
   },
 
   peer: (programId: PublicKey, chain: Chain, peerAddress: UniversalAddress): PublicKey => {
     return PublicKey.findProgramAddressSync(
-      [
-        Buffer.from('peer'),
-        chainSeed(chain),
-        Buffer.from(peerAddress),
-      ],
+      [Buffer.from("peer"), chainSeed(chain), Buffer.from(peerAddress)],
       programId,
-    )[0]
+    )[0];
   },
 
   chainConfig: (programId: PublicKey, chain: Chain): PublicKey => {
     return PublicKey.findProgramAddressSync(
-      [
-        Buffer.from('chainconfig'),
-        chainSeed(chain),
-      ],
+      [Buffer.from("chainconfig"), chainSeed(chain)],
       programId,
-    )[0]
+    )[0];
   },
 
   signerSequence: (programId: PublicKey, signer: PublicKey): PublicKey => {
-    return PublicKey.findProgramAddressSync(
-      [
-        Buffer.from('seq'),
-        signer.toBuffer(),
-      ],
-      programId,
-    )[0]
+    return PublicKey.findProgramAddressSync([Buffer.from("seq"), signer.toBuffer()], programId)[0];
   },
 
   // Internal:
 
   temporary: (programId: PublicKey, mint: PublicKey): PublicKey => {
-    return PublicKey.findProgramAddressSync(
-      [
-        Buffer.from('tmp'),
-        mint.toBuffer(),
-      ],
-      programId,
-    )[0]
+    return PublicKey.findProgramAddressSync([Buffer.from("tmp"), mint.toBuffer()], programId)[0];
   },
 
   vaa: (programId: PublicKey, vaaHash: Uint8Array): PublicKey => {
-    return PublicKey.findProgramAddressSync(
-      [
-        Buffer.from('PostedVAA'),
-        vaaHash,
-      ],
-      programId,
-    )[0]
+    return PublicKey.findProgramAddressSync([Buffer.from("PostedVAA"), vaaHash], programId)[0];
   },
 
   wormholeMessage: (programId: PublicKey, payer: PublicKey, payerSequence: BN): PublicKey => {
     return PublicKey.findProgramAddressSync(
-      [
-        Buffer.from('bridged'),
-        payer.toBuffer(),
-        payerSequence.toBuffer(),
-      ],
+      [Buffer.from("bridged"), payer.toBuffer(), payerSequence.toBuffer()],
       programId,
-    )[0]
+    )[0];
   },
-}
+};
 
 function transferNativeTokenBridgeAccounts(params: {
-  programId: PublicKey,
-  tokenBridgeProgramId: PublicKey,
-  wormholeProgramId: PublicKey,
-  mint: PublicKey,
+  programId: PublicKey;
+  tokenBridgeProgramId: PublicKey;
+  wormholeProgramId: PublicKey;
+  mint: PublicKey;
 }): {
-  tokenBridgeConfig: PublicKey,
-  tokenBridgeCustody: PublicKey,
-  tokenBridgeAuthoritySigner: PublicKey,
-  tokenBridgeCustodySigner: PublicKey,
-  tokenBridgeWrappedMeta: null,
-  wormholeBridge: PublicKey,
-  tokenBridgeEmitter: PublicKey,
-  tokenBridgeSequence: PublicKey,
+  tokenBridgeConfig: PublicKey;
+  tokenBridgeCustody: PublicKey;
+  tokenBridgeAuthoritySigner: PublicKey;
+  tokenBridgeCustodySigner: PublicKey;
+  tokenBridgeWrappedMeta: null;
+  wormholeBridge: PublicKey;
+  tokenBridgeEmitter: PublicKey;
+  tokenBridgeSequence: PublicKey;
 } {
-  const {
-    programId,
-    tokenBridgeProgramId,
-    wormholeProgramId,
-    mint,
-  } = params;
+  const { programId, tokenBridgeProgramId, wormholeProgramId, mint } = params;
 
   const {
     tokenBridgeConfig,
@@ -460,7 +506,7 @@ function transferNativeTokenBridgeAccounts(params: {
     PublicKey.default, // we don't need payer
     PublicKey.default, // we don't need message
     PublicKey.default, // we don't need fromTokenAccount
-    mint
+    mint,
   );
 
   return {
@@ -476,29 +522,23 @@ function transferNativeTokenBridgeAccounts(params: {
 }
 
 function transferWrappedTokenBridgeAccounts(params: {
-  programId: PublicKey,
-  tokenBridgeProgramId: PublicKey,
-  wormholeProgramId: PublicKey,
-  tokenChain: number,
-  tokenAddress: Buffer,
+  programId: PublicKey;
+  tokenBridgeProgramId: PublicKey;
+  wormholeProgramId: PublicKey;
+  tokenChain: number;
+  tokenAddress: Buffer;
 }): {
-  tokenBridgeConfig: PublicKey,
-  tokenBridgeCustody: null,
-  tokenBridgeAuthoritySigner: PublicKey,
-  tokenBridgeCustodySigner: null,
-  tokenBridgeWrappedMeta: PublicKey,
-  wormholeBridge: PublicKey,
-  tokenBridgeEmitter: PublicKey,
-  tokenBridgeSequence: PublicKey,
-  mint: PublicKey,
+  tokenBridgeConfig: PublicKey;
+  tokenBridgeCustody: null;
+  tokenBridgeAuthoritySigner: PublicKey;
+  tokenBridgeCustodySigner: null;
+  tokenBridgeWrappedMeta: PublicKey;
+  wormholeBridge: PublicKey;
+  tokenBridgeEmitter: PublicKey;
+  tokenBridgeSequence: PublicKey;
+  mint: PublicKey;
 } {
-  const {
-    programId,
-    tokenBridgeProgramId,
-    wormholeProgramId,
-    tokenChain,
-    tokenAddress,
-  } = params;
+  const { programId, tokenBridgeProgramId, wormholeProgramId, tokenChain, tokenAddress } = params;
 
   const {
     tokenBridgeConfig,
@@ -533,24 +573,20 @@ function transferWrappedTokenBridgeAccounts(params: {
 }
 
 function completeNativeTokenBridgeAccounts(params: {
-  tokenBridgeProgramId: PublicKey,
-  wormholeProgramId: PublicKey,
-  vaa: VAA<"TokenBridge:TransferWithPayload">,
+  tokenBridgeProgramId: PublicKey;
+  wormholeProgramId: PublicKey;
+  vaa: VaaMessage;
 }): {
-  tokenBridgeConfig: PublicKey,
-  tokenBridgeClaim: PublicKey,
-  tokenBridgeForeignEndpoint: PublicKey,
-  tokenBridgeCustody: PublicKey,
-  tokenBridgeCustodySigner: PublicKey,
-  tokenBridgeMintAuthority: null,
-  tokenBridgeWrappedMeta: null,
-  mint: PublicKey,
+  tokenBridgeConfig: PublicKey;
+  tokenBridgeClaim: PublicKey;
+  tokenBridgeForeignEndpoint: PublicKey;
+  tokenBridgeCustody: PublicKey;
+  tokenBridgeCustodySigner: PublicKey;
+  tokenBridgeMintAuthority: null;
+  tokenBridgeWrappedMeta: null;
+  mint: PublicKey;
 } {
-  const {
-    tokenBridgeProgramId,
-    wormholeProgramId,
-    vaa,
-  } = params;
+  const { tokenBridgeProgramId, wormholeProgramId, vaa } = params;
 
   const {
     tokenBridgeConfig,
@@ -564,7 +600,7 @@ function completeNativeTokenBridgeAccounts(params: {
     wormholeProgramId,
     PublicKey.default,
     vaa,
-    PublicKey.default
+    PublicKey.default,
   );
 
   return {
@@ -576,28 +612,24 @@ function completeNativeTokenBridgeAccounts(params: {
     tokenBridgeMintAuthority: null,
     tokenBridgeWrappedMeta: null,
     mint,
-  }
+  };
 }
 
 function completeWrappedTokenBridgeAccounts(params: {
-  tokenBridgeProgramId: PublicKey,
-  wormholeProgramId: PublicKey,
-  vaa: VAA<"TokenBridge:TransferWithPayload">,
+  tokenBridgeProgramId: PublicKey;
+  wormholeProgramId: PublicKey;
+  vaa: VaaMessage;
 }): {
-  tokenBridgeConfig: PublicKey,
-  tokenBridgeClaim: PublicKey,
-  tokenBridgeForeignEndpoint: PublicKey,
-  tokenBridgeCustody: null,
-  tokenBridgeCustodySigner: null,
-  tokenBridgeMintAuthority: PublicKey,
-  tokenBridgeWrappedMeta: PublicKey,
-  mint: PublicKey
+  tokenBridgeConfig: PublicKey;
+  tokenBridgeClaim: PublicKey;
+  tokenBridgeForeignEndpoint: PublicKey;
+  tokenBridgeCustody: null;
+  tokenBridgeCustodySigner: null;
+  tokenBridgeMintAuthority: PublicKey;
+  tokenBridgeWrappedMeta: PublicKey;
+  mint: PublicKey;
 } {
-  const {
-    tokenBridgeProgramId,
-    wormholeProgramId,
-    vaa,
-  } = params;
+  const { tokenBridgeProgramId, wormholeProgramId, vaa } = params;
 
   const {
     tokenBridgeConfig,
@@ -611,7 +643,7 @@ function completeWrappedTokenBridgeAccounts(params: {
     wormholeProgramId,
     PublicKey.default,
     vaa,
-    PublicKey.default
+    PublicKey.default,
   );
 
   return {
@@ -622,6 +654,6 @@ function completeWrappedTokenBridgeAccounts(params: {
     tokenBridgeCustodySigner: null,
     tokenBridgeMintAuthority,
     tokenBridgeWrappedMeta,
-    mint: tokenBridgeWrappedMint
+    mint: tokenBridgeWrappedMint,
   };
 }

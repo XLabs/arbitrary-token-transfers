@@ -38,5 +38,6 @@ tmp/
 # Ignore cache files
 cache/
 
-# Rust
+# Solana
 target/
+.anchor/

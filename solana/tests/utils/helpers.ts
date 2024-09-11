@@ -1,16 +1,21 @@
-import { AnchorProvider, BN, Wallet, Provider } from '@coral-xyz/anchor';
+import { AnchorProvider, BN, Wallet, Provider } from "@coral-xyz/anchor";
 import {
-  PublicKey, Transaction, TransactionInstruction, TransactionSignature, Connection, LAMPORTS_PER_SOL,
-  Keypair, RpcResponseAndContext, SignatureResult
-} from '@solana/web3.js'
-import { Chain } from '@wormhole-foundation/sdk-base'
-import { TbrClient, ReadTbrAccounts } from '@xlabs-xyz/solana-arbitrary-token-transfers';
-import { expect } from 'chai';
+  PublicKey,
+  Transaction,
+  TransactionInstruction,
+  TransactionSignature,
+  Connection,
+  LAMPORTS_PER_SOL,
+  Keypair,
+  RpcResponseAndContext,
+  SignatureResult,
+} from "@solana/web3.js";
+import { expect } from "chai";
 
-const LOCALHOST = 'http://localhost:8899';
+const LOCALHOST = "http://localhost:8899";
 
 export interface ErrorConstructor {
-  new(...args: any[]): Error;
+  new (...args: any[]): Error;
 }
 
 export async function assertResolveFailure(
@@ -26,15 +31,15 @@ export async function assertResolveFailure(
     }
     return;
   }
-  throw new Error(`Did not fail. Result: ${result}`)
+  throw new Error(`Did not fail. Result: ${result}`);
 }
 
 export function assertEqKeys(left: PublicKey, right: PublicKey) {
-  expect(left.toString()).equal(right.toString())
+  expect(left.toString()).equal(right.toString());
 }
 
 export function assertEqBns(left: BN, right: BN) {
-  expect(left.toString()).equal(right.toString())
+  expect(left.toString()).equal(right.toString());
 }
 
 export async function sendAndConfirmIx(
@@ -47,7 +52,7 @@ export async function sendAndConfirmIx(
 }
 
 export function newProvider(): AnchorProvider {
-  const connection = new Connection(LOCALHOST, 'processed');
+  const connection = new Connection(LOCALHOST, "processed");
   const wallet = new Wallet(new Keypair());
 
   return new AnchorProvider(connection, wallet);
@@ -55,17 +60,19 @@ export function newProvider(): AnchorProvider {
 
 export async function requestAirdrop(provider: Provider) {
   if (provider.publicKey === undefined) {
-    throw new Error('The provider must have a public key to request airdrop');
+    throw new Error("The provider must have a public key to request airdrop");
   }
 
   await confirmTransaction(
     provider,
-    await provider.connection.requestAirdrop(provider.publicKey, 10 * LAMPORTS_PER_SOL)
+    await provider.connection.requestAirdrop(provider.publicKey, 10 * LAMPORTS_PER_SOL),
   );
 }
 
-export async function confirmTransaction(provider: Provider, signature: TransactionSignature)
-  : Promise<RpcResponseAndContext<SignatureResult>> {
+export async function confirmTransaction(
+  provider: Provider,
+  signature: TransactionSignature,
+): Promise<RpcResponseAndContext<SignatureResult>> {
   const latestBlockHash = await provider.connection.getLatestBlockhash();
 
   return provider.connection.confirmTransaction({

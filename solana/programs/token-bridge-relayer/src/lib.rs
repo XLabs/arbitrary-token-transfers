@@ -102,6 +102,7 @@ pub mod token_bridge_relayer {
     /// Owner or Admin.
     pub fn set_pause_for_outbound_transfers(
         ctx: Context<UpdateChainConfig>,
+        _chain_id: u16,
         paused: bool,
     ) -> Result<()> {
         processor::set_pause_for_outbound_transfers(ctx, paused)
@@ -118,6 +119,8 @@ pub mod token_bridge_relayer {
     ) -> Result<()> {
         processor::update_fee_recipient(ctx, new_fee_recipient)
     }
+
+    /* Chain config */
 
     /// What is the maximum allowed gas dropoff for this chain.
     ///
@@ -138,7 +141,11 @@ pub mod token_bridge_relayer {
     /// # Authorization
     ///
     /// Owner or Admin.
-    pub fn update_relayer_fee(ctx: Context<UpdateChainConfig>, relayer_fee: u64) -> Result<()> {
+    pub fn update_relayer_fee(
+        ctx: Context<UpdateChainConfig>,
+        _chain_id: u16,
+        relayer_fee: u64,
+    ) -> Result<()> {
         processor::update_relayer_fee(ctx, relayer_fee)
     }
 
