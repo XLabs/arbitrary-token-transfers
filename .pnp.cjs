@@ -1941,7 +1941,8 @@ const RAW_RUNTIME_STATE =
           ["@coral-xyz/borsh", "virtual:852da326f150408584798524fe58e9855b987bcc4f041389e1ca13248c23c659c3ffb4a9aa4176cc7542f503f2e1e6422a1f18f69e5e623ca255691d222a55ca#npm:0.29.0"],\
           ["@solana/web3.js", "npm:1.95.3"],\
           ["@wormhole-foundation/sdk-connect", "npm:0.10.5"],\
-          ["@wormhole-foundation/sdk-solana", "npm:0.10.5"]\
+          ["@wormhole-foundation/sdk-solana", "npm:0.10.5"],\
+          ["bn.js", "npm:5.1.2"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -1956,7 +1957,8 @@ const RAW_RUNTIME_STATE =
           ["@solana/web3.js", "npm:1.95.3"],\
           ["@wormhole-foundation/sdk-connect", "npm:0.10.5"],\
           ["@wormhole-foundation/sdk-solana", "npm:0.10.5"],\
-          ["@wormhole-foundation/sdk-solana-core", "npm:0.10.5"]\
+          ["@wormhole-foundation/sdk-solana-core", "npm:0.10.5"],\
+          ["bn.js", "npm:5.1.2"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -2383,6 +2385,13 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/bn.js-npm-4.12.0-3ec6c884f6-9736aaa317.zip/node_modules/bn.js/",\
         "packageDependencies": [\
           ["bn.js", "npm:4.12.0"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:5.1.2", {\
+        "packageLocation": "./.yarn/cache/bn.js-npm-5.1.2-cb72ababd7-5012aada90.zip/node_modules/bn.js/",\
+        "packageDependencies": [\
+          ["bn.js", "npm:5.1.2"]\
         ],\
         "linkType": "HARD"\
       }],\
@@ -2993,6 +3002,7 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./deployment/",\
         "packageDependencies": [\
           ["deployment", "workspace:deployment"],\
+          ["@coral-xyz/anchor", "npm:0.30.1"],\
           ["@solana/web3.js", "npm:1.95.3"],\
           ["@typechain/ethers-v6", "virtual:5449dbfbc8f715fdbd2c737c0a09a82e4cd2ffe644d99dd1bc0581b0889f04b69068ed991ce11b47be2adc46d31415f8c245c393d61c33529fcc22e453281945#npm:0.5.1"],\
           ["@types/node", "npm:20.14.14"],\
@@ -3002,6 +3012,7 @@ const RAW_RUNTIME_STATE =
           ["@xlabs-xyz/ledger-signer", "npm:0.0.4"],\
           ["@xlabs-xyz/ledger-signer-ethers-v6", "npm:0.0.1"],\
           ["@xlabs-xyz/ledger-signer-solana", "npm:0.0.1"],\
+          ["@xlabs-xyz/solana-arbitrary-token-transfers", "workspace:sdk/solana"],\
           ["chalk", "npm:5.3.0"],\
           ["dotenv", "npm:16.4.5"],\
           ["ethers", "npm:6.13.2"],\
@@ -6190,10 +6201,10 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "HARD"\
       }],\
-      ["npm:4.19.1", {\
-        "packageLocation": "./.yarn/cache/tsx-npm-4.19.1-aace436c49-cbea9baf57.zip/node_modules/tsx/",\
+      ["npm:4.19.0", {\
+        "packageLocation": "./.yarn/cache/tsx-npm-4.19.0-912efa055b-d14463a780.zip/node_modules/tsx/",\
         "packageDependencies": [\
-          ["tsx", "npm:4.19.1"],\
+          ["tsx", "npm:4.19.0"],\
           ["esbuild", "npm:0.23.1"],\
           ["fsevents", "patch:fsevents@npm%3A2.3.3#optional!builtin<compat/fsevents>::version=2.3.3&hash=df0bf1"],\
           ["get-tsconfig", "npm:4.7.6"]\

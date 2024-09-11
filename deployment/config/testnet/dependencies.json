@@ -22,5 +22,10 @@
     "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
     "oracle": "0x82EA95b20845D3766830182952851B19FDA08f00",
     "initGasToken": "0x4200000000000000000000000000000000000006"
+  },
+  {
+    "chainId": 1,
+    "wormhole": "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth",
+    "tokenBridge": "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"
   }
 ]

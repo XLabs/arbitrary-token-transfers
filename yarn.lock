@@ -1723,12 +1723,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xlabs-xyz/solana-arbitrary-token-transfers@workspace:^, @xlabs-xyz/solana-arbitrary-token-transfers@workspace:sdk/solana":
+"@xlabs-xyz/solana-arbitrary-token-transfers@workspace:*, @xlabs-xyz/solana-arbitrary-token-transfers@workspace:^, @xlabs-xyz/solana-arbitrary-token-transfers@workspace:sdk/solana":
   version: 0.0.0-use.local
   resolution: "@xlabs-xyz/solana-arbitrary-token-transfers@workspace:sdk/solana"
   dependencies:
     "@coral-xyz/anchor": "npm:^0.30.1"
     "@solana/web3.js": "npm:^1.95.3"
+    "@types/bn.js": "npm:^5.1.0"
     "@wormhole-foundation/sdk-base": "npm:^0.10.4"
     "@wormhole-foundation/sdk-definitions": "npm:^0.10.4"
     "@wormhole-foundation/sdk-solana-tokenbridge": "npm:^0.10.4"
@@ -2032,6 +2033,13 @@ __metadata:
     inherits: "npm:^2.0.4"
     readable-stream: "npm:^3.4.0"
   checksum: 10c0/02847e1d2cb089c9dc6958add42e3cdeaf07d13f575973963335ac0fdece563a50ac770ac4c8fa06492d2dd276f6cc3b7f08c7cd9c7a7ad0f8d388b2a28def5f
+  languageName: node
+  linkType: hard
+
+"bn.js@npm:5.1.2":
+  version: 5.1.2
+  resolution: "bn.js@npm:5.1.2"
+  checksum: 10c0/5012aada90fdaf5196e06fdb460d2925489b5d47dd9cf257befd4e60246ada816fd246c242aef2cbdf7b23996d786e7016c625c80b410debdab341a9f680be0e
   languageName: node
   linkType: hard
 
@@ -2551,6 +2559,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "deployment@workspace:deployment"
   dependencies:
+    "@coral-xyz/anchor": "npm:^0.30.1"
     "@solana/web3.js": "npm:^1.95.3"
     "@typechain/ethers-v6": "npm:^0.5.1"
     "@types/node": "npm:20.14.14"
@@ -2560,6 +2569,7 @@ __metadata:
     "@xlabs-xyz/ledger-signer": "npm:^0.0.4"
     "@xlabs-xyz/ledger-signer-ethers-v6": "npm:^0.0.1"
     "@xlabs-xyz/ledger-signer-solana": "npm:^0.0.1"
+    "@xlabs-xyz/solana-arbitrary-token-transfers": "workspace:*"
     chalk: "npm:^5.3.0"
     dotenv: "npm:^16.4.5"
     ethers: "npm:^6.13.2"

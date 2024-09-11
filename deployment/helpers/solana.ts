@@ -7,7 +7,7 @@ import {
   Commitment
 } from "@solana/web3.js";
 import { SolanaLedgerSigner } from "@xlabs-xyz/ledger-signer-solana";
-import { ecosystemChains, env, getContractAddress, getEnv } from "./env.js";
+import { ecosystemChains, getEnv } from "./env.js";
 import type { SolanaScriptCb, SolanaChainInfo } from "./interfaces.js";
 import { inspect } from "util";
 
@@ -65,6 +65,14 @@ export async function getSigner(): Promise<SolanaLedgerSigner> {
   }
 
   return signer;
+}
+
+let connection: Connection;
+export function getConnection(chain: SolanaChainInfo) {
+  if (!connection) {
+    connection = new Connection(chain.rpc, connectionCommitmentLevel);
+  }
+  return connection;
 }
 
 export async function ledgerSignAndSend(connection: Connection, instructions: TransactionInstruction[], signers: Keypair[]) {

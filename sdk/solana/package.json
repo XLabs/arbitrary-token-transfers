@@ -3,6 +3,7 @@
   "version": "0.0.1-alpha1",
   "license": "ISC",
   "main": "tbrv3/index.ts",
+  "type": "module",
   "scripts": {
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check"
@@ -14,5 +15,8 @@
     "@wormhole-foundation/sdk-definitions": "^0.10.4",
     "@wormhole-foundation/sdk-solana-tokenbridge": "^0.10.4",
     "@xlabs/solana-price-oracle-sdk": "0.0.2-alpha1"
+  },
+  "devDependencies": {
+    "@types/bn.js": "^5.1.0"
   }
 }
