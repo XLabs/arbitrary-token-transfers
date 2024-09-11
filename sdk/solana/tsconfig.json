@@ -4,15 +4,12 @@
     "lib": [
       "ES2023"
     ],
-    "target": "es6",
     "module": "CommonJS",
     "moduleResolution": "Node",
     "outDir": "ts-build",
   },
-  "files": [
-    "../../target/idl/token_bridge_relayer.json"
-  ],
   "include": [
-    "tbrv3"
+    "tbrv3",
+    "tbrv3/**/*.json"
   ]
 }

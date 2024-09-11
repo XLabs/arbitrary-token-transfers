@@ -3,6 +3,15 @@
   "version": "0.0.1-alpha1",
   "license": "ISC",
   "main": "tbrv3/index.ts",
+  "module": "ts-build/tbrv3/index.js",
+  "types": "ts-build/tbrv3/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./ts-build/tbrv3/index.js",
+      "import": "./ts-build/tbrv3/index.js",
+      "types": "./ts-build/tbrv3/index.d.ts"
+    }
+  },
   "scripts": {
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check"
@@ -13,7 +22,7 @@
     "@wormhole-foundation/sdk-base": "^0.10.4",
     "@wormhole-foundation/sdk-definitions": "^0.10.4",
     "@wormhole-foundation/sdk-solana-tokenbridge": "^0.10.4",
-    "solana-price-oracle-sdk": "ssh://git@github.com/XLabs/relayer-infra-contracts#head=solana-program"
+    "@xlabs/solana-price-oracle-sdk": "0.0.2-alpha1"
   },
   "devDependencies": {
     "@types/bn.js": "^5.1.0"

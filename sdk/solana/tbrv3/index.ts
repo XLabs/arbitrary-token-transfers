@@ -1,18 +1,17 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program, BN, web3 } from "@coral-xyz/anchor";
-import { PublicKey, Connection } from "@solana/web3.js";
+import { PublicKey, Connection, SystemProgram } from "@solana/web3.js";
 import { Chain, chainToChainId, encoding } from "@wormhole-foundation/sdk-base";
-import { SolanaPriceOracleClient } from "solana-price-oracle-sdk/src/solana/sdk";
-import { SYSTEM_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/native/system";
+import { SolanaPriceOracleClient } from "@xlabs/solana-price-oracle-sdk";
 
-import { TokenBridgeRelayer } from "./idl/token_bridge_relayer";
-import IDL from "../../../target/idl/token_bridge_relayer.json";
+import { TokenBridgeRelayer } from "./idl/token_bridge_relayer.js";
+import IDL from "./idl/token_bridge_relayer.json";
 import {
   getTransferNativeWithPayloadCpiAccounts,
   getTransferWrappedWithPayloadCpiAccounts,
   getCompleteTransferNativeWithPayloadCpiAccounts,
   getCompleteTransferWrappedWithPayloadCpiAccounts,
-} from "@wormhole-foundation/sdk-solana-tokenbridge/";
+} from "@wormhole-foundation/sdk-solana-tokenbridge";
 import { VAA } from "@wormhole-foundation/sdk-definitions";
 
 export type UniversalAddress = number[] | Uint8Array | Buffer;
@@ -167,7 +166,7 @@ export class TbrClient {
         tbrConfig: this.address.config(),
         peer: this.address.peer(chain, peerAddress),
         chainConfig: this.address.chainConfig(chain),
-        systemProgram: SYSTEM_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
       })
       .instruction();
   }
@@ -184,7 +183,7 @@ export class TbrClient {
         tbrConfig: this.address.config(),
         peer: this.address.peer(chain, peerAddress),
         chainConfig: this.address.chainConfig(chain),
-        systemProgram: SYSTEM_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
       })
       .instruction();
   }

@@ -27,8 +27,8 @@ const RAW_RUNTIME_STATE =
       "reference": "workspace:sdk/solana"\
     },\
     {\
-      "name": "tests-d38e88",\
-      "reference": "workspace:solana/tests"\
+      "name": "solana-d8ec25",\
+      "reference": "workspace:solana"\
     }\
   ],\
   "enableTopLevelFallback": true,\
@@ -37,7 +37,7 @@ const RAW_RUNTIME_STATE =
     ["@xlabs-xyz/evm-arbitrary-token-transfers", ["workspace:sdk/evm"]],\
     ["@xlabs-xyz/solana-arbitrary-token-transfers", ["workspace:sdk/solana"]],\
     ["deployment", ["workspace:deployment"]],\
-    ["tests-d38e88", ["workspace:solana/tests"]],\
+    ["solana-d8ec25", ["workspace:solana"]],\
     ["token-bridge-relayer-root", ["workspace:."]]\
   ],\
   "fallbackPool": [\
@@ -1409,15 +1409,6 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
-    ["@openzeppelin/contracts", [\
-      ["npm:4.9.6", {\
-        "packageLocation": "./.yarn/cache/@openzeppelin-contracts-npm-4.9.6-96814aed89-f834b00077.zip/node_modules/@openzeppelin/contracts/",\
-        "packageDependencies": [\
-          ["@openzeppelin/contracts", "npm:4.9.6"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
     ["@pkgjs/parseargs", [\
       ["npm:0.11.0", {\
         "packageLocation": "./.yarn/cache/@pkgjs-parseargs-npm-0.11.0-cd2a3fe948-5bd7576bb1.zip/node_modules/@pkgjs/parseargs/",\
@@ -1836,14 +1827,6 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "HARD"\
       }],\
-      ["npm:0.3.3", {\
-        "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-base-npm-0.3.3-00a565b1bf-a9b9e699c0.zip/node_modules/@wormhole-foundation/sdk-base/",\
-        "packageDependencies": [\
-          ["@wormhole-foundation/sdk-base", "npm:0.3.3"],\
-          ["@scure/base", "npm:1.1.8"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
       ["npm:0.9.1", {\
         "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-base-npm-0.9.1-0235be2e0c-a73f680574.zip/node_modules/@wormhole-foundation/sdk-base/",\
         "packageDependencies": [\
@@ -1883,15 +1866,6 @@ const RAW_RUNTIME_STATE =
           ["@noble/curves", "npm:1.6.0"],\
           ["@noble/hashes", "npm:1.5.0"],\
           ["@wormhole-foundation/sdk-base", "npm:0.10.5"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
-      ["npm:0.3.3", {\
-        "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-definitions-npm-0.3.3-edb4f0e40a-b47f128a94.zip/node_modules/@wormhole-foundation/sdk-definitions/",\
-        "packageDependencies": [\
-          ["@wormhole-foundation/sdk-definitions", "npm:0.3.3"],\
-          ["@noble/hashes", "npm:1.5.0"],\
-          ["@wormhole-foundation/sdk-base", "npm:0.3.3"]\
         ],\
         "linkType": "HARD"\
       }],\
@@ -1941,7 +1915,8 @@ const RAW_RUNTIME_STATE =
           ["@coral-xyz/borsh", "virtual:852da326f150408584798524fe58e9855b987bcc4f041389e1ca13248c23c659c3ffb4a9aa4176cc7542f503f2e1e6422a1f18f69e5e623ca255691d222a55ca#npm:0.29.0"],\
           ["@solana/web3.js", "npm:1.95.3"],\
           ["@wormhole-foundation/sdk-connect", "npm:0.10.5"],\
-          ["@wormhole-foundation/sdk-solana", "npm:0.10.5"]\
+          ["@wormhole-foundation/sdk-solana", "npm:0.10.5"],\
+          ["bn.js", "npm:5.2.1"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -1956,7 +1931,8 @@ const RAW_RUNTIME_STATE =
           ["@solana/web3.js", "npm:1.95.3"],\
           ["@wormhole-foundation/sdk-connect", "npm:0.10.5"],\
           ["@wormhole-foundation/sdk-solana", "npm:0.10.5"],\
-          ["@wormhole-foundation/sdk-solana-core", "npm:0.10.5"]\
+          ["@wormhole-foundation/sdk-solana-core", "npm:0.10.5"],\
+          ["bn.js", "npm:5.2.1"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -2027,9 +2003,21 @@ const RAW_RUNTIME_STATE =
           ["@wormhole-foundation/sdk-base", "npm:0.10.5"],\
           ["@wormhole-foundation/sdk-definitions", "npm:0.10.5"],\
           ["@wormhole-foundation/sdk-solana-tokenbridge", "npm:0.10.5"],\
-          ["solana-price-oracle-sdk", "ssh://git@github.com/XLabs/relayer-infra-contracts#commit=cef4e57f8c4629d11c3ba0482c18095ad325cf76"]\
+          ["@xlabs/solana-price-oracle-sdk", "npm:0.0.2-alpha1::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40xlabs%2Fsolana-price-oracle-sdk%2F0.0.2-alpha1%2F1197464a18473e245d937e495bf6cb55c3a39bdc"]\
         ],\
         "linkType": "SOFT"\
+      }]\
+    ]],\
+    ["@xlabs/solana-price-oracle-sdk", [\
+      ["npm:0.0.2-alpha1::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40xlabs%2Fsolana-price-oracle-sdk%2F0.0.2-alpha1%2F1197464a18473e245d937e495bf6cb55c3a39bdc", {\
+        "packageLocation": "./.yarn/cache/@xlabs-solana-price-oracle-sdk-npm-0.0.2-alpha1-e74a040ac8-e8fea5951a.zip/node_modules/@xlabs/solana-price-oracle-sdk/",\
+        "packageDependencies": [\
+          ["@xlabs/solana-price-oracle-sdk", "npm:0.0.2-alpha1::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40xlabs%2Fsolana-price-oracle-sdk%2F0.0.2-alpha1%2F1197464a18473e245d937e495bf6cb55c3a39bdc"],\
+          ["@coral-xyz/anchor", "npm:0.30.1"],\
+          ["@solana/web3.js", "npm:1.95.3"],\
+          ["@wormhole-foundation/sdk-base", "npm:0.10.5"]\
+        ],\
+        "linkType": "HARD"\
       }]\
     ]],\
     ["@yarnpkg/types", [\
@@ -2986,15 +2974,6 @@ const RAW_RUNTIME_STATE =
           ["dot-case", "npm:3.0.4"],\
           ["no-case", "npm:3.0.4"],\
           ["tslib", "npm:2.7.0"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
-    ["dotenv", [\
-      ["npm:16.4.5", {\
-        "packageLocation": "./.yarn/cache/dotenv-npm-16.4.5-bcb20eb95d-48d9287007.zip/node_modules/dotenv/",\
-        "packageDependencies": [\
-          ["dotenv", "npm:16.4.5"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -5396,17 +5375,23 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
-    ["solana-price-oracle-sdk", [\
-      ["ssh://git@github.com/XLabs/relayer-infra-contracts#commit=cef4e57f8c4629d11c3ba0482c18095ad325cf76", {\
-        "packageLocation": "./.yarn/cache/solana-price-oracle-sdk-ssh-2685cf7223-7649ed3c52.zip/node_modules/solana-price-oracle-sdk/",\
+    ["solana-d8ec25", [\
+      ["workspace:solana", {\
+        "packageLocation": "./solana/",\
         "packageDependencies": [\
-          ["solana-price-oracle-sdk", "ssh://git@github.com/XLabs/relayer-infra-contracts#commit=cef4e57f8c4629d11c3ba0482c18095ad325cf76"],\
-          ["@openzeppelin/contracts", "npm:4.9.6"],\
-          ["@wormhole-foundation/sdk-base", "npm:0.3.3"],\
-          ["@wormhole-foundation/sdk-definitions", "npm:0.3.3"],\
-          ["dotenv", "npm:16.4.5"]\
+          ["solana-d8ec25", "workspace:solana"],\
+          ["@coral-xyz/anchor", "npm:0.30.1"],\
+          ["@solana/web3.js", "npm:1.95.3"],\
+          ["@types/chai", "npm:4.3.19"],\
+          ["@types/mocha", "npm:10.0.7"],\
+          ["@wormhole-foundation/sdk-base", "npm:0.10.5"],\
+          ["@xlabs-xyz/solana-arbitrary-token-transfers", "workspace:sdk/solana"],\
+          ["chai", "npm:5.1.1"],\
+          ["mocha", "npm:10.7.3"],\
+          ["ts-mocha", "virtual:33d4007d0290747430617a5c0eb2da58d74cdff8bc8263fdea6457aebe82a895aa6f9c4f9f07fab8e85221c695fc8a7b8d17e2e26cee5cd3bfae6b8271723910#npm:10.0.0"],\
+          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=74658d"]\
         ],\
-        "linkType": "HARD"\
+        "linkType": "SOFT"\
       }]\
     ]],\
     ["source-map", [\
@@ -5660,25 +5645,6 @@ const RAW_RUNTIME_STATE =
           ["readable-stream", "npm:3.6.2"]\
         ],\
         "linkType": "HARD"\
-      }]\
-    ]],\
-    ["tests-d38e88", [\
-      ["workspace:solana/tests", {\
-        "packageLocation": "./solana/tests/",\
-        "packageDependencies": [\
-          ["tests-d38e88", "workspace:solana/tests"],\
-          ["@coral-xyz/anchor", "npm:0.30.1"],\
-          ["@solana/web3.js", "npm:1.95.3"],\
-          ["@types/chai", "npm:4.3.19"],\
-          ["@types/mocha", "npm:10.0.7"],\
-          ["@wormhole-foundation/sdk-base", "npm:0.10.5"],\
-          ["@xlabs-xyz/solana-arbitrary-token-transfers", "workspace:sdk/solana"],\
-          ["chai", "npm:5.1.1"],\
-          ["mocha", "npm:10.7.3"],\
-          ["ts-mocha", "virtual:33d4007d0290747430617a5c0eb2da58d74cdff8bc8263fdea6457aebe82a895aa6f9c4f9f07fab8e85221c695fc8a7b8d17e2e26cee5cd3bfae6b8271723910#npm:10.0.0"],\
-          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=74658d"]\
-        ],\
-        "linkType": "SOFT"\
       }]\
     ]],\
     ["text-encoding-utf-8", [\

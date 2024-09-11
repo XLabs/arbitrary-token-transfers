@@ -9,7 +9,7 @@ import {
   UniversalAddress,
   VaaMessage,
 } from "@xlabs-xyz/solana-arbitrary-token-transfers";
-import { sendAndConfirmIx } from "./helpers";
+import { sendAndConfirmIx } from "./helpers.js";
 
 export class ClientWrapper {
   private readonly client: TbrClient;

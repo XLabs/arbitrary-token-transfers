@@ -1210,13 +1210,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@openzeppelin/contracts@npm:^4.9.5":
-  version: 4.9.6
-  resolution: "@openzeppelin/contracts@npm:4.9.6"
-  checksum: 10c0/f834b000778f634a260ed5507827cc67c0922557a1f57e1d76cf7ace061fea171aaf16640ba2e54fd7ed2cc629a9d706bc671a9692d2bb9a9469ea6154de6e8c
-  languageName: node
-  linkType: hard
-
 "@pkgjs/parseargs@npm:^0.11.0":
   version: 0.11.0
   resolution: "@pkgjs/parseargs@npm:0.11.0"
@@ -1540,7 +1533,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@wormhole-foundation/sdk-base@npm:0.10.5, @wormhole-foundation/sdk-base@npm:^0.10.4":
+"@wormhole-foundation/sdk-base@npm:0.10.5, @wormhole-foundation/sdk-base@npm:^0.10.0, @wormhole-foundation/sdk-base@npm:^0.10.4":
   version: 0.10.5
   resolution: "@wormhole-foundation/sdk-base@npm:0.10.5"
   dependencies:
@@ -1555,15 +1548,6 @@ __metadata:
   dependencies:
     "@scure/base": "npm:^1.1.3"
   checksum: 10c0/a73f680574a43708d8b40faf3744888e53b68a86b9ad52730a747818ff47a32d265a860a262123471adf22805c09835ffd6f24e847cd5c2209f401d9003a298d
-  languageName: node
-  linkType: hard
-
-"@wormhole-foundation/sdk-base@npm:^0.3.3":
-  version: 0.3.3
-  resolution: "@wormhole-foundation/sdk-base@npm:0.3.3"
-  dependencies:
-    "@scure/base": "npm:^1.1.3"
-  checksum: 10c0/a9b9e699c04cdd3534861f1d0a2d09dc68d193a6198bebda22d505788771a223fe70b687bd8351be8fe8c9921c800611807879803fd42981fbaec5b2387a2cea
   languageName: node
   linkType: hard
 
@@ -1608,16 +1592,6 @@ __metadata:
     "@noble/hashes": "npm:^1.3.1"
     "@wormhole-foundation/sdk-base": "npm:0.9.1"
   checksum: 10c0/7aad27cc33d2eddde16b2c78c39a06bf5a92dcc946bc444c7f5e6d432e417bdde676e31f9b4698661c23cf7b41cba6534022607c93290e465fb937af8eeae4bf
-  languageName: node
-  linkType: hard
-
-"@wormhole-foundation/sdk-definitions@npm:^0.3.3":
-  version: 0.3.3
-  resolution: "@wormhole-foundation/sdk-definitions@npm:0.3.3"
-  dependencies:
-    "@noble/hashes": "npm:^1.3.1"
-    "@wormhole-foundation/sdk-base": "npm:^0.3.3"
-  checksum: 10c0/b47f128a94c6dc649d97a775fe21e98cd24552ae70e0f6fc591f92694fd4a1f5af145a142394da311c00780d11d88a53f1cf5c75657839a9abd7cc56267db490
   languageName: node
   linkType: hard
 
@@ -1732,9 +1706,20 @@ __metadata:
     "@wormhole-foundation/sdk-base": "npm:^0.10.4"
     "@wormhole-foundation/sdk-definitions": "npm:^0.10.4"
     "@wormhole-foundation/sdk-solana-tokenbridge": "npm:^0.10.4"
-    solana-price-oracle-sdk: "ssh://git@github.com/XLabs/relayer-infra-contracts#head=solana-program"
+    "@xlabs/solana-price-oracle-sdk": "npm:0.0.2-alpha1"
   languageName: unknown
   linkType: soft
+
+"@xlabs/solana-price-oracle-sdk@npm:0.0.2-alpha1":
+  version: 0.0.2-alpha1
+  resolution: "@xlabs/solana-price-oracle-sdk@npm:0.0.2-alpha1::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40xlabs%2Fsolana-price-oracle-sdk%2F0.0.2-alpha1%2F1197464a18473e245d937e495bf6cb55c3a39bdc"
+  dependencies:
+    "@coral-xyz/anchor": "npm:^0.30.1"
+    "@solana/web3.js": "npm:^1.95.2"
+    "@wormhole-foundation/sdk-base": "npm:^0.10.0"
+  checksum: 10c0/e8fea5951a88edc7b7cb939535d9ee179080118746561968405d72827c2d65fb72d8db2f7fdcc8ff5fed865beb196de5072bd95f5855c6644f4b32c9ae4a1db2
+  languageName: node
+  linkType: hard
 
 "@yarnpkg/types@npm:^4.0.0":
   version: 4.0.0
@@ -2547,13 +2532,6 @@ __metadata:
     no-case: "npm:^3.0.4"
     tslib: "npm:^2.0.3"
   checksum: 10c0/5b859ea65097a7ea870e2c91b5768b72ddf7fa947223fd29e167bcdff58fe731d941c48e47a38ec8aa8e43044c8fbd15cd8fa21689a526bc34b6548197cd5b05
-  languageName: node
-  linkType: hard
-
-"dotenv@npm:^16.3.1":
-  version: 16.4.5
-  resolution: "dotenv@npm:16.4.5"
-  checksum: 10c0/48d92870076832af0418b13acd6e5a5a3e83bb00df690d9812e94b24aff62b88ade955ac99a05501305b8dc8f1b0ee7638b18493deb6fe93d680e5220936292f
   languageName: node
   linkType: hard
 
@@ -4825,17 +4803,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"solana-price-oracle-sdk@ssh://git@github.com/XLabs/relayer-infra-contracts#head=solana-program":
-  version: 1.0.0
-  resolution: "solana-price-oracle-sdk@ssh://git@github.com/XLabs/relayer-infra-contracts#commit=cef4e57f8c4629d11c3ba0482c18095ad325cf76"
+"solana-d8ec25@workspace:solana":
+  version: 0.0.0-use.local
+  resolution: "solana-d8ec25@workspace:solana"
   dependencies:
-    "@openzeppelin/contracts": "npm:^4.9.5"
-    "@wormhole-foundation/sdk-base": "npm:^0.3.3"
-    "@wormhole-foundation/sdk-definitions": "npm:^0.3.3"
-    dotenv: "npm:^16.3.1"
-  checksum: 10c0/7649ed3c52963763d3c0665e42b0cb62b38a1afd01d0b3a806a1c4284b7ab42eb577c42ca4cfb94729b6e4bd872c80990eea71fdc1d1d5451789474d103b5127
-  languageName: node
-  linkType: hard
+    "@coral-xyz/anchor": "npm:^0.30.1"
+    "@solana/web3.js": "npm:^1.95.3"
+    "@types/chai": "npm:^4.3.0"
+    "@types/mocha": "npm:^10"
+    "@wormhole-foundation/sdk-base": "npm:^0.10.4"
+    "@xlabs-xyz/solana-arbitrary-token-transfers": "workspace:^"
+    chai: "npm:^5"
+    mocha: "npm:^10"
+    ts-mocha: "npm:^10"
+    typescript: "npm:^5"
+  languageName: unknown
+  linkType: soft
 
 "source-map-support@npm:^0.5.6":
   version: 0.5.21
@@ -5072,23 +5055,6 @@ __metadata:
   checksum: 10c0/a5eca3eb50bc11552d453488344e6507156b9193efd7635e98e867fab275d527af53d8866e2370cd09dfe74378a18111622ace35af6a608e5223a7d27fe99537
   languageName: node
   linkType: hard
-
-"tests-d38e88@workspace:solana/tests":
-  version: 0.0.0-use.local
-  resolution: "tests-d38e88@workspace:solana/tests"
-  dependencies:
-    "@coral-xyz/anchor": "npm:^0.30.1"
-    "@solana/web3.js": "npm:^1.95.3"
-    "@types/chai": "npm:^4.3.0"
-    "@types/mocha": "npm:^10"
-    "@wormhole-foundation/sdk-base": "npm:^0.10.4"
-    "@xlabs-xyz/solana-arbitrary-token-transfers": "workspace:^"
-    chai: "npm:^5"
-    mocha: "npm:^10"
-    ts-mocha: "npm:^10"
-    typescript: "npm:^5"
-  languageName: unknown
-  linkType: soft
 
 "text-encoding-utf-8@npm:^1.0.2":
   version: 1.0.2

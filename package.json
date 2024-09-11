@@ -32,7 +32,7 @@
   "workspaces": [
     "sdk/evm",
     "sdk/solana",
-    "solana/tests",
+    "solana",
     "deployment"
   ],
   "packageManager": "yarn@4.4.0"
