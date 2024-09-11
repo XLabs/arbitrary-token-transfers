@@ -312,12 +312,12 @@ library TransferTokenWithRelay {
   }
 
   function decodeRecipient(bytes memory transferCommand) internal pure returns (bytes32) {
-    (bytes32 tokenAmount,) = transferCommand.asBytes32Unchecked(TOKENAMOUNT_OFFSET);
+    (bytes32 tokenAmount,) = transferCommand.asBytes32Unchecked(RECIPIENT_OFFSET);
     return tokenAmount;
   }
 
   function decodeUnrwapIntent(bytes memory transferCommand) internal pure returns (bool) {
-    (bool unwrapIntent,) = transferCommand.asBoolUnchecked(TOKENAMOUNT_OFFSET);
+    (bool unwrapIntent,) = transferCommand.asBoolUnchecked(UNWRAPINTENT_OFFSET);
     return unwrapIntent;
   }
 

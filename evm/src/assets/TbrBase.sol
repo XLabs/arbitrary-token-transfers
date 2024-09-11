@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: Apache 2
 
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.25;
 
 import {IERC20} from "@openzeppelin/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import {IPermit2} from "wormhole-sdk/interfaces/token/IPermit2.sol";
 import {IWETH} from "wormhole-sdk/interfaces/token/IWETH.sol";
 import {BytesParsing} from "wormhole-sdk/libraries/BytesParsing.sol";
-import {IPriceOracle} from "oracle/IPriceOracle.sol";
-import {PriceOracleIntegration} from "oracle/PriceOracleIntegration.sol";
+import {IPriceOracle} from "price-oracle/IPriceOracle.sol";
+import {PriceOracleIntegration} from "price-oracle/PriceOracleIntegration.sol";
 import {ITokenBridge} from "wormhole-sdk/interfaces/ITokenBridge.sol";
 
 /**
