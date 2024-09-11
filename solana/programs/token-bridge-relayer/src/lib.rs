@@ -127,7 +127,7 @@ pub mod token_bridge_relayer {
     pub fn update_max_gas_dropoff(
         ctx: Context<UpdateChainConfig>,
         _chain_id: u16,
-        max_gas_dropoff: u64,
+        max_gas_dropoff: TargetChainGas,
     ) -> Result<()> {
         processor::update_max_gas_dropoff(ctx, max_gas_dropoff)
     }

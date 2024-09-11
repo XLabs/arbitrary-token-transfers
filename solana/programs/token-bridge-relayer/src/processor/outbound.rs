@@ -484,6 +484,8 @@ fn is_native(ctx: &Context<OutboundTransfer>) -> TokenBridgeRelayerResult<bool> 
         }
     }
 
-    is_native(ctx)
-        .inspect_err(|_| msg!("Could not determine whether it is a native or wrapped transfer"))
+    is_native(ctx).map_err(|e| {
+        msg!("Could not determine whether it is a native or wrapped transfer");
+        e
+    })
 }
