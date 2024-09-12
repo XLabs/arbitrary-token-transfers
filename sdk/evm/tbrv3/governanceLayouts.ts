@@ -57,6 +57,11 @@ export const adminItem = {
   ...evmAddressItem
 } as const satisfies NamedLayoutItem;
 
+export const txSizeSensitiveItem = {
+  name: "txSizeSensitive",
+  ...evmAddressItem
+} as const satisfies NamedLayoutItem;
+
 export const contractItem = {
   name: "contract",
   ...evmAddressItem
@@ -66,6 +71,16 @@ export const ownerItem = {
   name: "owner", 
   ...evmAddressItem 
 } as const satisfies NamedLayoutItem;
+
+const addressSubItem = [
+  { name: "address", ...evmAddressItem },
+] as const satisfies Layout;
+
+const updateAdminLayout = [
+  { name: "isAdmin", ...layoutItems.boolItem },
+  ...addressSubItem,
+] as const satisfies Layout;
+
 
 const governanceCommandRawLayout = [
   { name: "chain", ...layoutItems.chainItem({ allowedChains: supportedChains }) },
@@ -77,14 +92,15 @@ const governanceCommandRawLayout = [
       [[0, "AddPeer"], [{ ...peerItem, name: "value" }]],
       [[1, "SweepTokens"], [{ ...tokenItem, name: "value" }, { ...amountItem, name: "value" }]],
       [[2, "UpdateMaxGasDropoff"], [{ ...maxGasDropoffItem, name: "value" }]],
-      [[3, "UpdateFeeRecipien"], [{ ...recipientItem, name: "value" }]],
+      [[3, "UpdateFeeRecipient"], [{ ...recipientItem, name: "value" }]],
       [[4, "UpdateRelayFee"], [{ ...feeItem, name: "value" }]],
       [[5, "PauseOutboundTransfers"], [{ ...isPausedItem, name: "value" }]],
-      [[6, "UpdateAdmin"], [{ ...adminItem, name: "value" }]],
-      [[7, "UpdateCanonicalPeer"], [{ ...peerItem, name: "value" }]],
-      [[8, "UpgradeContract"], [{ ...contractItem, name: "value" }]],
-      [[9, "ProposeOwnershipTransfer"], [{ ...ownerItem, name: "value" }]],
-      [[10, "RelinquishOwnership"], []],
+      [[6, "UpdateTxSizeSensitive"], [{ ...txSizeSensitiveItem, name: "value" }]],
+      [[7, "UpdateAdmin"], [{ ...adminItem, name: "value" }]],
+      [[8, "UpdateCanonicalPeer"], [{ ...peerItem, name: "value" }]],
+      [[9, "UpgradeContract"], [{ ...contractItem, name: "value" }]],
+      [[10, "ProposeOwnershipTransfer"], [{ ...ownerItem, name: "value" }]],
+      [[11, "RelinquishOwnership"], []],
     ]
   }
 ] as const satisfies Layout;
@@ -177,7 +193,7 @@ export const governanceQueryLayout = {
     [[0x86, "Owner"], []],
     [[0x87, "IsChainSupported"], []],
     [[0x88, "PendingOwner"], []],
-    [[0x89, "IsAdmin"], []],
+    [[0x89, "IsAdmin"], addressSubItem],
     [[0x8A, "FeeRecipient"], []],
     [[0x8B, "Implementation"], []],
 
