@@ -62,6 +62,7 @@ pub fn register_peer(ctx: Context<RegisterPeer>, peer_address: [u8; 32]) -> Resu
     if ctx.accounts.chain_config.is_uninitialized() {
         let canonical_peer = &mut ctx.accounts.chain_config;
         canonical_peer.canonical_peer = peer_address;
+        canonical_peer.paused_outbound_transfers = true;
     }
 
     Ok(())
@@ -97,6 +98,7 @@ pub struct UpdateCanonicalPeer<'info> {
     pub peer: Account<'info, PeerState>,
 
     #[account(
+        mut,
         seeds = [
             ChainConfigState::SEED_PREFIX,
             chain_id.to_be_bytes().as_ref(),
@@ -120,8 +122,8 @@ pub fn update_canonical_peer(
     }
 
     // Update the field:
-    let canonical_peer = &mut ctx.accounts.chain_config;
-    canonical_peer.canonical_peer = peer_address;
+    let chain_config = &mut ctx.accounts.chain_config;
+    chain_config.canonical_peer = peer_address;
 
     Ok(())
 }

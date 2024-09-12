@@ -93,7 +93,7 @@ pub mod token_bridge_relayer {
         processor::update_canonical_peer(ctx, peer_address)
     }
 
-    /* Config update */
+    /* Chain config */
 
     /// Forbids or allows any outbound transfer, *i.e.* from this chain.
     ///
@@ -107,20 +107,6 @@ pub mod token_bridge_relayer {
     ) -> Result<()> {
         processor::set_pause_for_outbound_transfers(ctx, paused)
     }
-
-    /// Updates the account to which the fees will be sent.
-    ///
-    /// # Authorization
-    ///
-    /// Owner or Admin.
-    pub fn update_fee_recipient(
-        ctx: Context<UpdateTbrConfig>,
-        new_fee_recipient: Pubkey,
-    ) -> Result<()> {
-        processor::update_fee_recipient(ctx, new_fee_recipient)
-    }
-
-    /* Chain config */
 
     /// What is the maximum allowed gas dropoff for this chain.
     ///
@@ -147,6 +133,20 @@ pub mod token_bridge_relayer {
         relayer_fee: u64,
     ) -> Result<()> {
         processor::update_relayer_fee(ctx, relayer_fee)
+    }
+
+    /* Config update */
+
+    /// Updates the account to which the fees will be sent.
+    ///
+    /// # Authorization
+    ///
+    /// Owner or Admin.
+    pub fn update_fee_recipient(
+        ctx: Context<UpdateTbrConfig>,
+        new_fee_recipient: Pubkey,
+    ) -> Result<()> {
+        processor::update_fee_recipient(ctx, new_fee_recipient)
     }
 
     /// Updates the transaction size of the EVM receiving side.

@@ -36,9 +36,11 @@ export async function assertResolveFailure(
 }
 
 export function assertEqChainConfigs(left: ChainConfigAccount, right: ChainConfigAccount) {
-  expect(left.canonicalPeer).deep.equal(right.canonicalPeer);
+  expect(Buffer.from(left.canonicalPeer).toString('hex')).equal(
+    Buffer.from(right.canonicalPeer).toString('hex'),
+  );
   assertEqBns(left.maxGasDropoff, right.maxGasDropoff);
-  expect(left.pausedOutboundTransfers).deep.equal(right.pausedOutboundTransfers);
+  expect(left.pausedOutboundTransfers).equal(right.pausedOutboundTransfers);
   assertEqBns(left.relayerFee, right.relayerFee);
 }
 

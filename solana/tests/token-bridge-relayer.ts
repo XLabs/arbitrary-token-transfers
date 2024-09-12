@@ -10,7 +10,9 @@ import {
   assertEqChainConfigs,
 } from './utils/helpers';
 import { ClientWrapper } from './utils/client-wrapper';
-import { assert } from 'chai';
+
+const ETHEREUM = 'Ethereum';
+const OASIS = 'Oasis';
 
 describe('Token Bridge Relayer Program', () => {
   const clients = Array.from(
@@ -22,19 +24,22 @@ describe('Token Bridge Relayer Program', () => {
       }),
   );
   const [ownerClient, newOwnerClient, adminClient, unauthorizedClient] = clients;
+  const feeRecipient = PublicKey.unique();
+  const evmTransactionGas = new BN(321000);
+  const evmTransactionSize = new BN(654000);
 
-  const canonicalEthereumPeer: { chain: Chain; address: Buffer } = {
-    chain: 'Ethereum',
-    address: PublicKey.unique().toBuffer(),
-  };
-  const otherEthereumPeer: { chain: Chain; address: Buffer } = {
-    chain: 'Ethereum',
-    address: PublicKey.unique().toBuffer(),
-  };
-  const oasisPeer: { chain: Chain; address: Buffer } = {
-    chain: 'Oasis',
-    address: PublicKey.unique().toBuffer(),
-  };
+  const ethereumPeer1 = Buffer.from(
+    'e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1',
+    'hex',
+  );
+  const ethereumPeer2 = Buffer.from(
+    'e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2',
+    'hex',
+  );
+  const oasisPeer = Buffer.from(
+    '0A51533333333333333333333333333333333333333333333333333333333333',
+    'hex',
+  );
 
   before(async () => Promise.all(clients.map((client) => requestAirdrop(client.provider))));
 
@@ -100,34 +105,32 @@ describe('Token Bridge Relayer Program', () => {
   });
 
   describe('Peers', () => {
-    xit('Registers peers', async () => {
-      await ownerClient.registerPeer(canonicalEthereumPeer.chain, canonicalEthereumPeer.address);
-
-      //const chainConfig = await unauthorizedClient.read.chainConfig(canonicalEthereumPeer.chain);
-      assertEqChainConfigs(await unauthorizedClient.read.chainConfig(canonicalEthereumPeer.chain), {
-        canonicalPeer: Array.from(canonicalEthereumPeer.address),
+    it('Registers peers', async () => {
+      await newOwnerClient.registerPeer(ETHEREUM, ethereumPeer1);
+      assertEqChainConfigs(await unauthorizedClient.read.chainConfig(ETHEREUM), {
+        canonicalPeer: Array.from(ethereumPeer1),
         maxGasDropoff: new BN(0),
         pausedOutboundTransfers: true,
         relayerFee: new BN(0),
       });
 
-      await adminClient.registerPeer(otherEthereumPeer.chain, otherEthereumPeer.address);
-      assertEqChainConfigs(await unauthorizedClient.read.chainConfig(otherEthereumPeer.chain), {
-        canonicalPeer: Array.from(canonicalEthereumPeer.address),
+      await adminClient.registerPeer(ETHEREUM, ethereumPeer2);
+      assertEqChainConfigs(await unauthorizedClient.read.chainConfig(ETHEREUM), {
+        canonicalPeer: Array.from(ethereumPeer1),
         maxGasDropoff: new BN(0),
         pausedOutboundTransfers: true,
         relayerFee: new BN(0),
       });
 
-      await adminClient.registerPeer(oasisPeer.chain, oasisPeer.address);
-      assertEqChainConfigs(await unauthorizedClient.read.chainConfig(oasisPeer.chain), {
-        canonicalPeer: Array.from(oasisPeer.address),
+      await adminClient.registerPeer(OASIS, oasisPeer);
+      assertEqChainConfigs(await unauthorizedClient.read.chainConfig(OASIS), {
+        canonicalPeer: Array.from(oasisPeer),
         maxGasDropoff: new BN(0),
         pausedOutboundTransfers: true,
         relayerFee: new BN(0),
       });
-      assertEqChainConfigs(await unauthorizedClient.read.chainConfig(otherEthereumPeer.chain), {
-        canonicalPeer: Array.from(canonicalEthereumPeer.address),
+      assertEqChainConfigs(await unauthorizedClient.read.chainConfig(ETHEREUM), {
+        canonicalPeer: Array.from(ethereumPeer1),
         maxGasDropoff: new BN(0),
         pausedOutboundTransfers: true,
         relayerFee: new BN(0),
@@ -135,12 +138,102 @@ describe('Token Bridge Relayer Program', () => {
     });
 
     it('Updates the canonical peer to another one', async () => {
-      //
+      await newOwnerClient.updateCanonicalPeer(ETHEREUM, ethereumPeer2);
+
+      assertEqChainConfigs(await unauthorizedClient.read.chainConfig(ETHEREUM), {
+        canonicalPeer: Array.from(ethereumPeer2),
+        maxGasDropoff: new BN(0),
+        pausedOutboundTransfers: true,
+        relayerFee: new BN(0),
+      });
+    });
+
+    it('Does not let update a peer from another chain as canonical', async () => {
+      await assertResolveFailure(
+        newOwnerClient.updateCanonicalPeer(ETHEREUM, oasisPeer),
+        SendTransactionError,
+      );
+    });
+
+    it('Cannot register an existing peer', async () => {
+      await assertResolveFailure(
+        newOwnerClient.updateCanonicalPeer(OASIS, oasisPeer),
+        SendTransactionError,
+      );
     });
 
     it('Does not let unauthorized signers register or update a peer', async () => {
       // Unauthorized cannot register a peer:
+      await assertResolveFailure(
+        unauthorizedClient.registerPeer(ETHEREUM, PublicKey.unique().toBuffer()),
+        SendTransactionError,
+      );
+
       // Admin cannot make another peer canonical:
+      await assertResolveFailure(
+        adminClient.updateCanonicalPeer(ETHEREUM, ethereumPeer1),
+        SendTransactionError,
+      );
+    });
+  });
+
+  describe('Chain Config', () => {
+    it('Values are updated', async () => {
+      const maxGasDropoff = new BN(123);
+      const relayerFee = new BN(456);
+      await Promise.all([
+        adminClient.setPauseForOutboundTransfers(ETHEREUM, false),
+        adminClient.updateMaxGasDropoff(ETHEREUM, maxGasDropoff),
+        adminClient.updateRelayerFee(ETHEREUM, relayerFee),
+      ]);
+
+      assertEqChainConfigs(await unauthorizedClient.read.chainConfig(ETHEREUM), {
+        canonicalPeer: Array.from(ethereumPeer2),
+        maxGasDropoff,
+        pausedOutboundTransfers: false,
+        relayerFee,
+      });
+    });
+
+    it('Unauthorized cannot update the values', async () => {
+      await assertResolveFailure(
+        unauthorizedClient.setPauseForOutboundTransfers(ETHEREUM, true),
+        SendTransactionError,
+      );
+      await assertResolveFailure(
+        unauthorizedClient.updateMaxGasDropoff(ETHEREUM, new BN(0)),
+        SendTransactionError,
+      );
+      await assertResolveFailure(
+        unauthorizedClient.updateRelayerFee(ETHEREUM, new BN(0)),
+        SendTransactionError,
+      );
+    });
+  });
+
+  describe('Main Config', () => {
+    it('Values are updated', async () => {
+      await Promise.all([
+        adminClient.updateFeeRecipient(feeRecipient),
+        adminClient.updateEvmTransactionConfig(evmTransactionGas, evmTransactionSize),
+      ]);
+
+      const config = await unauthorizedClient.read.config();
+
+      assertEqKeys(config.feeRecipient, feeRecipient);
+      assertEqBns(config.evmTransactionGas, evmTransactionGas);
+      assertEqBns(config.evmTransactionSize, evmTransactionSize);
+    });
+
+    it('Unauthorized cannot update the values', async () => {
+      await assertResolveFailure(
+        unauthorizedClient.updateFeeRecipient(PublicKey.unique()),
+        SendTransactionError,
+      );
+      await assertResolveFailure(
+        unauthorizedClient.updateEvmTransactionConfig(new BN(0), new BN(0)),
+        SendTransactionError,
+      );
     });
   });
 });

@@ -201,8 +201,10 @@ export class TbrClient {
   ): Promise<web3.TransactionInstruction> {
     return this.program.methods
       .setPauseForOutboundTransfers(chainToChainId(chain), paused)
-      .accounts({
+      .accountsStrict({
         signer,
+        chainConfig: this.address.chainConfig(chain),
+        tbrConfig: this.address.config(),
       })
       .instruction();
   }
@@ -229,8 +231,10 @@ export class TbrClient {
   ): Promise<web3.TransactionInstruction> {
     return this.program.methods
       .updateRelayerFee(chainToChainId(chain), relayerFee)
-      .accounts({
+      .accountsStrict({
         signer,
+        chainConfig: this.address.chainConfig(chain),
+        tbrConfig: this.address.config(),
       })
       .instruction();
   }
