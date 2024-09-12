@@ -25,6 +25,7 @@
     "@xlabs/solana-price-oracle-sdk": "0.0.2-alpha1"
   },
   "devDependencies": {
-    "@types/bn.js": "^5.1.0"
+    "@types/bn.js": "^5.1.0",
+    "typescript": "^5.6.2"
   }
 }
