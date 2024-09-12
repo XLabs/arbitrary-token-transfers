@@ -6,10 +6,10 @@ import {IERC20} from "@openzeppelin/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import {IPermit2} from "wormhole-sdk/interfaces/token/IPermit2.sol";
 import {IWETH} from "wormhole-sdk/interfaces/token/IWETH.sol";
+import {ITokenBridge} from "wormhole-sdk/interfaces/ITokenBridge.sol";
 import {BytesParsing} from "wormhole-sdk/libraries/BytesParsing.sol";
 import {IPriceOracle} from "price-oracle/IPriceOracle.sol";
 import {PriceOracleIntegration} from "price-oracle/PriceOracleIntegration.sol";
-import {ITokenBridge} from "wormhole-sdk/interfaces/ITokenBridge.sol";
 
 /**
  * Decoding the command failed.
@@ -79,8 +79,11 @@ error PeerIsZeroAddress();
 error PeerAlreadyRegistered(uint16 chainId, bytes32 peer);
 error CannotRemoveCanonicalPeer();
 error InvalidChainId();
-error EthTransferFailed();
 error ChainNoSupportedByTokenBridge(uint16 chainId);
+/**
+ * Payment to the destination failed.
+ */
+error PaymentFailure(address destination);
 
 abstract contract TbrBase is PriceOracleIntegration {
   using BytesParsing for bytes;
@@ -205,8 +208,9 @@ abstract contract TbrBase is PriceOracleIntegration {
   }
 
   function transferEth(address to, uint256 amount) internal {
+    if (amount == 0) return;
+
     (bool success, ) = to.call{value: amount}(new bytes(0));
-    if (!success)
-      revert EthTransferFailed();
+    if (!success) revert PaymentFailure(to);
   }
 }
