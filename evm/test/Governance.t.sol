@@ -161,6 +161,7 @@ contract GovernanceTest is TbrTestBase {
   function testUpdateAdmin() public {
     address newAdmin = makeAddr("newAdmin");
     uint8 commandCount = 1;
+    bool shouldBeAdmin = true;
 
     vm.expectRevert(NotAuthorized.selector);
     invokeTbr(
@@ -170,6 +171,7 @@ contract GovernanceTest is TbrTestBase {
         GOVERNANCE_ID, 
         commandCount, 
         UPDATE_ADMIN, 
+        shouldBeAdmin,
         newAdmin
       )
     );
@@ -182,21 +184,23 @@ contract GovernanceTest is TbrTestBase {
         GOVERNANCE_ID, 
         commandCount, 
         UPDATE_ADMIN, 
+        shouldBeAdmin,
         newAdmin
       )
     );
 
-    (address newAdmin_, ) = invokeTbr(
+    (bool isAdmin, ) = invokeTbr(
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_QUERIES_ID, 
         commandCount, 
-        ADMIN
+        IS_ADMIN,
+        newAdmin
       )
-    ).asAddressUnchecked(0);
+    ).asBoolUnchecked(0);
 
-    assertEq(newAdmin_, newAdmin);
+    assertEq(isAdmin, true);
   } 
 
   function testRelinquishOwnership() public {

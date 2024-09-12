@@ -7,7 +7,7 @@ import {fromUniversalAddress, forwardError} from "wormhole-sdk/Utils.sol";
 import {IWETH} from "wormhole-sdk/interfaces/token/IWETH.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {TRANSFER_TOKEN_WITH_RELAY_ID, COMPLETE_TRANSFER_ID, TB_TRANSFER_WITH_PAYLOAD} from "./TbrIds.sol";
+import {TRANSFER_TOKEN_WITH_RELAY_ID, COMPLETE_TRANSFER_ID, TB_TRANSFER_WITH_PAYLOAD, RELAY_FEE_ID, BASE_RELAYING_CONFIG_ID} from "./TbrIds.sol";
 import {TbrBase, InvalidCommand} from "./TbrBase.sol";
 
 uint8 constant ACQUIRE_PREAPPROVED = 0;
@@ -141,16 +141,16 @@ abstract contract TbrUser is TbrBase {
   }
 
   function quoteRelay(uint16 destinationChain, uint32 gasDropoff, bool txCommitEthereum) view internal returns (uint256) {
-    uint32 relayFee = getRelayFee();
+    uint32 fee = getRelayFee();
     if (destinationChain == SOLANA_CHAIN) {
-      return solanaTransactionQuote(gasDropoff, SOLANA_RELAY_SPAWNED_ACCOUNTS, SOLANA_RELAY_TOTAL_SIZE, relayFee);
+      return solanaTransactionQuote(gasDropoff, SOLANA_RELAY_SPAWNED_ACCOUNTS, SOLANA_RELAY_TOTAL_SIZE, fee);
     }
 
     if (txCommitEthereum) {
-      return evmTransactionWithTxSizeQuote(destinationChain, gasDropoff, EVM_RELAY_GAS_COST, relayFee, EVM_RELAY_TX_SIZE);
+      return evmTransactionWithTxSizeQuote(destinationChain, gasDropoff, EVM_RELAY_GAS_COST, fee, EVM_RELAY_TX_SIZE);
     }
 
-    return evmTransactionQuote(destinationChain, gasDropoff, EVM_RELAY_GAS_COST, relayFee);
+    return evmTransactionQuote(destinationChain, gasDropoff, EVM_RELAY_GAS_COST, fee);
   }
 
   function tbrv3Message(bytes32 recipient, uint32 gasDropoff, bool unwrapIntent) internal pure returns (bytes memory) {
@@ -169,7 +169,7 @@ abstract contract TbrUser is TbrBase {
 
   /**
    * Redeems a TB transfer VAA.
-   * Gas dropoff is reported to dispatcher so that any excedent can be refunded to the sender. 
+   * Gas dropoff is reported to dispatcher so that any excedent can be refunded to the sender.
    */
   function completeTransfer(bytes calldata data, uint256 unallocatedBalance, uint256 commandIndex) internal returns (uint256 gasDropoffSpent, uint256 offset) {
     (bytes memory vaa, uint256 size, uint256 bodyOffset) = CompleteTransfer.extractVaa(data, commandIndex);
@@ -220,9 +220,33 @@ abstract contract TbrUser is TbrBase {
 
   function deliverGasToken(address destination, uint256 amount/*, uint256 commandIndex*/) internal {
     // FIXME: we need to put an upper bound on the read bytes to ensure that the contract doesn't run out of gas.
-    // The error should be wrapped in our own error too.
+    // The error should be wrapped in our own error too. It should also indicate the command that failed.
     (bool success, bytes memory result) = destination.call{value: amount}("");
     if (!success) forwardError(result);
+  }
+
+  /**
+   * Returns the relay fee in gas token Mwei.
+   */
+  function relayFee(bytes calldata data, uint256 commandIndex) view internal returns(bytes memory result, uint256 offset) {
+    uint16 chainId;
+    uint32 gasDropoff;
+    (chainId, gasDropoff, offset) = RelayFee.parseRelayFeeArgs(data, commandIndex);
+    (, bool chainIsPaused, bool txCommitEthereum, uint32 maxGasDropoff) = getTargetChainData(chainId);
+
+    if (gasDropoff > maxGasDropoff) revert GasDropoffRequestedExceedsMaximum(maxGasDropoff, commandIndex);
+
+    uint64 fee = uint64(quoteRelay(chainId, gasDropoff, txCommitEthereum) / (10 ** 6));
+    result = abi.encodePacked(chainIsPaused, fee);
+  }
+
+  function baseRelayingConfig(bytes calldata data, uint256 commandIndex) view internal returns(bytes memory result, uint256 offset) {
+    uint16 chainId;
+    (chainId, offset) = BaseRelayingConfig.parseBaseRelayingConfigArgs(data, commandIndex);
+    (bytes32 peer, bool chainIsPaused, bool txCommitEthereum, uint32 maxGasDropoff) = getTargetChainData(chainId);
+    uint32 baseFee = getRelayFee();
+
+    result = abi.encodePacked(peer, chainIsPaused, txCommitEthereum, maxGasDropoff, baseFee);
   }
 
 
@@ -249,9 +273,9 @@ library TransferTokenWithRelay {
   //   32 bytes token amount
   uint256 constant private TOKENAMOUNT_OFFSET = TOKEN_OFFSET + 20;
   //   4 bytes uint gasDropoff
-  uint256 constant private GASDROPOFF_OFFSET = TOKENAMOUNT_OFFSET + 32;
+  uint256 constant private GAS_DROPOFF_OFFSET = TOKENAMOUNT_OFFSET + 32;
   //   1 byte boolean unwrapIntent
-  uint256 constant private UNWRAPINTENT_OFFSET = GASDROPOFF_OFFSET + 4;
+  uint256 constant private UNWRAPINTENT_OFFSET = GAS_DROPOFF_OFFSET + 4;
   //   1 byte acquire mode discriminator:
   uint256 constant private ACQUIREMODE_OFFSET = UNWRAPINTENT_OFFSET + 1;
   uint256 constant private MINIMUM_SIZE = ACQUIREMODE_OFFSET + 1;
@@ -302,7 +326,7 @@ library TransferTokenWithRelay {
   }
 
   function decodeGasdropoff(bytes memory transferCommand) internal pure returns (uint32) {
-    (uint32 gasDropoff,) = transferCommand.asUint32Unchecked(GASDROPOFF_OFFSET);
+    (uint32 gasDropoff,) = transferCommand.asUint32Unchecked(GAS_DROPOFF_OFFSET);
     return gasDropoff;
   }
 
@@ -458,5 +482,40 @@ library CompleteTransfer {
     (tokenAmount,) = vaa.asUint256Unchecked(bodyOffset + AMOUNT_OFFSET);
     (gasDropoff,) = vaa.asUint32Unchecked(bodyOffset + GAS_DROPOFF_OFFSET);
     (unwrapIntent,) = vaa.asBoolUnchecked(bodyOffset + UNWRAP_INTENT_OFFSET);
+  }
+}
+
+library RelayFee {
+  using BytesParsing for bytes;
+
+  // 2 bytes uint chain id
+  uint256 constant private CHAIN_OFFSET = 0;
+  // 4 bytes uint gas dropoff
+  uint256 constant private GAS_DROPOFF_OFFSET = CHAIN_OFFSET + 2;
+  uint256 constant private RELAY_FEE_SIZE = GAS_DROPOFF_OFFSET + 4;
+
+  function parseRelayFeeArgs(bytes calldata data, uint256 commandIndex) pure internal returns(uint16 chainId, uint32 gasDropoff, uint256 consumedBytes) {
+    consumedBytes = RELAY_FEE_SIZE;
+    if (data.length < consumedBytes) revert InvalidCommand(RELAY_FEE_ID, commandIndex);
+
+    bytes memory relayFeeQuery = data[:consumedBytes];
+    (chainId,) = relayFeeQuery.asUint16Unchecked(CHAIN_OFFSET);
+    (gasDropoff,) = relayFeeQuery.asUint32Unchecked(GAS_DROPOFF_OFFSET);
+  }
+}
+
+library BaseRelayingConfig {
+  using BytesParsing for bytes;
+
+  // 2 bytes uint chain id
+  uint256 constant private CHAIN_OFFSET = 0;
+  uint256 constant private BASE_RELAYING_CONFIG_SIZE = CHAIN_OFFSET + 2;
+
+  function parseBaseRelayingConfigArgs(bytes calldata data, uint256 commandIndex) pure internal returns(uint16 chainId, uint256 consumedBytes) {
+    consumedBytes = BASE_RELAYING_CONFIG_SIZE;
+    if (data.length < consumedBytes) revert InvalidCommand(BASE_RELAYING_CONFIG_ID, commandIndex);
+
+    bytes memory BaseRelayingConfigQuery = data[:consumedBytes];
+    (chainId,) = BaseRelayingConfigQuery.asUint16Unchecked(CHAIN_OFFSET);
   }
 }
