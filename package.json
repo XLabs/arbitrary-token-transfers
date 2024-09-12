@@ -13,7 +13,7 @@
   "prettier": {
     "trailingComma": "all",
     "printWidth": 100,
-    "jsxSingleQuote": true
+    "singleQuote": true
   },
   "dependencies": {
     "@yarnpkg/types": "^4.0.0",

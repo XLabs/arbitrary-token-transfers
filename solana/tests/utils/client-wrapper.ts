@@ -1,6 +1,6 @@
-import { AnchorProvider, BN } from "@coral-xyz/anchor";
-import { PublicKey, TransactionSignature } from "@solana/web3.js";
-import { Chain } from "@wormhole-foundation/sdk-base";
+import { AnchorProvider, BN } from '@coral-xyz/anchor';
+import { PublicKey, TransactionSignature } from '@solana/web3.js';
+import { Chain } from '@wormhole-foundation/sdk-base';
 import {
   TbrClient,
   ReadTbrAccounts,
@@ -8,8 +8,8 @@ import {
   TransferWrappedParameters,
   UniversalAddress,
   VaaMessage,
-} from "@xlabs-xyz/solana-arbitrary-token-transfers";
-import { sendAndConfirmIx } from "./helpers";
+} from '@xlabs-xyz/solana-arbitrary-token-transfers';
+import { sendAndConfirmIx } from './helpers';
 
 export class ClientWrapper {
   private readonly client: TbrClient;

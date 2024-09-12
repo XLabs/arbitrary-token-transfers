@@ -1,22 +1,25 @@
-import * as anchor from "@coral-xyz/anchor";
-import { Program, BN, web3 } from "@coral-xyz/anchor";
-import { PublicKey, Connection } from "@solana/web3.js";
-import { Chain, chainToChainId, encoding } from "@wormhole-foundation/sdk-base";
-import { SolanaPriceOracleClient } from "@xlabs/solana-price-oracle-sdk";
-import { SYSTEM_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/native/system";
+import * as anchor from '@coral-xyz/anchor';
+import { Program, BN, web3 } from '@coral-xyz/anchor';
+import { PublicKey, Connection } from '@solana/web3.js';
+import { Chain, chainToChainId, encoding } from '@wormhole-foundation/sdk-base';
+import { SolanaPriceOracleClient } from '@xlabs/solana-price-oracle-sdk';
+import { SYSTEM_PROGRAM_ID } from '@coral-xyz/anchor/dist/cjs/native/system';
 
-import { TokenBridgeRelayer } from "./idl/token_bridge_relayer";
-import IDL from "../../../target/idl/token_bridge_relayer.json";
+import { TokenBridgeRelayer } from './idl/token_bridge_relayer';
+import IDL from '../../../target/idl/token_bridge_relayer.json';
 import {
   getTransferNativeWithPayloadCpiAccounts,
   getTransferWrappedWithPayloadCpiAccounts,
   getCompleteTransferNativeWithPayloadCpiAccounts,
   getCompleteTransferWrappedWithPayloadCpiAccounts,
-} from "@wormhole-foundation/sdk-solana-tokenbridge/";
-import { VAA } from "@wormhole-foundation/sdk-definitions";
+} from '@wormhole-foundation/sdk-solana-tokenbridge/';
+import { VAA } from '@wormhole-foundation/sdk-definitions';
 
+/**
+ * 32 bytes.
+ */
 export type UniversalAddress = number[] | Uint8Array | Buffer;
-export type VaaMessage = VAA<"TokenBridge:TransferWithPayload">;
+export type VaaMessage = VAA<'TokenBridge:TransferWithPayload'>;
 
 export interface TransferNativeParameters {
   recipientChain: Chain;
@@ -37,10 +40,10 @@ export interface TransferWrappedParameters {
   maxFeeSol: BN;
 }
 
-export type TbrConfigAccount = anchor.IdlAccounts<TokenBridgeRelayer>["tbrConfigState"];
-export type ChainConfigAccount = anchor.IdlAccounts<TokenBridgeRelayer>["chainConfigState"];
-export type PeerAccount = anchor.IdlAccounts<TokenBridgeRelayer>["peerState"];
-export type SignerSequenceAccount = anchor.IdlAccounts<TokenBridgeRelayer>["signerSequenceState"];
+export type TbrConfigAccount = anchor.IdlAccounts<TokenBridgeRelayer>['tbrConfigState'];
+export type ChainConfigAccount = anchor.IdlAccounts<TokenBridgeRelayer>['chainConfigState'];
+export type PeerAccount = anchor.IdlAccounts<TokenBridgeRelayer>['peerState'];
+export type SignerSequenceAccount = anchor.IdlAccounts<TokenBridgeRelayer>['signerSequenceState'];
 
 export interface TbrAddresses {
   config(): PublicKey;
@@ -435,40 +438,40 @@ export class TbrClient {
 const chainSeed = (chain: Chain) => encoding.bignum.toBytes(chainToChainId(chain), 2);
 const pda = {
   tbrConfig: (programId: PublicKey): PublicKey => {
-    return PublicKey.findProgramAddressSync([Buffer.from("redeemer")], programId)[0];
+    return PublicKey.findProgramAddressSync([Buffer.from('redeemer')], programId)[0];
   },
 
   peer: (programId: PublicKey, chain: Chain, peerAddress: UniversalAddress): PublicKey => {
     return PublicKey.findProgramAddressSync(
-      [Buffer.from("peer"), chainSeed(chain), Buffer.from(peerAddress)],
+      [Buffer.from('peer'), chainSeed(chain), Buffer.from(peerAddress)],
       programId,
     )[0];
   },
 
   chainConfig: (programId: PublicKey, chain: Chain): PublicKey => {
     return PublicKey.findProgramAddressSync(
-      [Buffer.from("chainconfig"), chainSeed(chain)],
+      [Buffer.from('chainconfig'), chainSeed(chain)],
       programId,
     )[0];
   },
 
   signerSequence: (programId: PublicKey, signer: PublicKey): PublicKey => {
-    return PublicKey.findProgramAddressSync([Buffer.from("seq"), signer.toBuffer()], programId)[0];
+    return PublicKey.findProgramAddressSync([Buffer.from('seq'), signer.toBuffer()], programId)[0];
   },
 
   // Internal:
 
   temporary: (programId: PublicKey, mint: PublicKey): PublicKey => {
-    return PublicKey.findProgramAddressSync([Buffer.from("tmp"), mint.toBuffer()], programId)[0];
+    return PublicKey.findProgramAddressSync([Buffer.from('tmp'), mint.toBuffer()], programId)[0];
   },
 
   vaa: (programId: PublicKey, vaaHash: Uint8Array): PublicKey => {
-    return PublicKey.findProgramAddressSync([Buffer.from("PostedVAA"), vaaHash], programId)[0];
+    return PublicKey.findProgramAddressSync([Buffer.from('PostedVAA'), vaaHash], programId)[0];
   },
 
   wormholeMessage: (programId: PublicKey, payer: PublicKey, payerSequence: BN): PublicKey => {
     return PublicKey.findProgramAddressSync(
-      [Buffer.from("bridged"), payer.toBuffer(), payerSequence.toBuffer()],
+      [Buffer.from('bridged'), payer.toBuffer(), payerSequence.toBuffer()],
       programId,
     )[0];
   },
