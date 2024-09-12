@@ -339,7 +339,11 @@ function decodeQueryResponseLayout<const T extends Layout>(tbrLayout: T, value: 
 
   const [header, offset] = layout.deserializeLayout(responseHeaderLayout, value, {consumeAll: false});
   // TODO: do we want to perform any check on the length?
-  return layout.deserializeLayout(tbrLayout, value, {offset});
+  const [response, offsetPadding] = layout.deserializeLayout(tbrLayout, value, {offset, consumeAll: false});
+  for (let i = offsetPadding; i < value.length; ++i) {
+    if (value[i] !== 0) throw new Error(`Found nonzero byte at padding. Buffer: ${value.toString()}`);
+  }
+  return response;
 }
 
 async function example() {
