@@ -199,6 +199,8 @@ abstract contract TbrUser is TbrBase {
       gasToken.withdraw(tokenAmount);
 
       // Transfer full amount
+      // FIXME: we need to put an upper bound on the read bytes to ensure that the contract doesn't run out of gas.
+      // The error should be wrapped in our own error too.
       (bool success, bytes memory result) = destination.call{value: gasDropoff + tokenAmount}("");
       if (!success) forwardError(result);
       return (gasDropoff, offset);
@@ -208,6 +210,8 @@ abstract contract TbrUser is TbrBase {
     // Otherwise, transfer tokens and perform gas dropoff
     SafeERC20.safeTransfer(token, destination, tokenAmount);
     // Transfer gas dropoff
+    // FIXME: we need to put an upper bound on the read bytes to ensure that the contract doesn't run out of gas.
+    // The error should be wrapped in our own error too.
     (bool success, bytes memory result) = destination.call{value: gasDropoff}("");
     if (!success) forwardError(result);
   }
