@@ -20,8 +20,8 @@ import "./TbrIds.sol";
 struct GovernanceState {
   address  owner; //puts owner address in eip1967 admin slot
   address  pendingOwner;
-  address  admin;
   address payable feeRecipient;
+  mapping(address => bool) admins;
 }
 
 // we use the designated eip1967 admin storage slot: keccak256("eip1967.proxy.admin") - 1
@@ -45,6 +45,7 @@ enum Role {
 }
 
 event RoleUpdated(Role role, address oldAddress, address newAddress, uint256 timestamp);
+event AdminsUpdated(address newAddress, bool isAdmin, uint256 timestamp);
 
 abstract contract TbrGovernance is TbrBase, ProxyBase {
   using BytesParsing for bytes;
@@ -61,9 +62,9 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
       revert InvalidFeeRecipient();
 
     GovernanceState storage state = governanceState();
-    state.owner          = owner;
-    state.admin          = admin;
-    state.feeRecipient   = feeRecipient;
+    state.owner         = owner;
+    state.feeRecipient  = feeRecipient;
+    state.admins[admin] = true;
   }
 
   // ---- externals ----
@@ -73,7 +74,7 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
     bool isOwner;
     if (msg.sender == state.owner) //check highest privilege level first
       isOwner = true;
-    else if (msg.sender == state.admin)
+    else if (isAdmin(msg.sender))
       isOwner = false;
     else if (msg.sender == state.pendingOwner) {
       _updateRole(Role.Owner, msg.sender);
@@ -154,9 +155,11 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
         if (!isOwner)
           revert NotAuthorized();
         
+        bool authorization;
         address newAdmin;
+        (authorization, offset) = commands.asBoolUnchecked(offset);
         (newAdmin, offset) = commands.asAddressUnchecked(offset);
-        _updateRole(Role.Admin, newAdmin);
+        _updateAdmins(newAdmin, authorization);
       }
       else if (command == UPDATE_CANONICAL_PEER) {
         if (!isOwner)
@@ -239,8 +242,11 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
         ret = abi.encodePacked(ret, state.owner); 
       else if (query == PENDING_OWNER)
         ret = abi.encodePacked(ret, state.pendingOwner);
-      else if (query == ADMIN)
-        ret = abi.encodePacked(ret, state.admin);
+      else if (query == IS_ADMIN) {
+        address admin;
+        (admin, offset) = queries.asAddressUnchecked(offset);
+        ret = abi.encodePacked(ret, isAdmin(admin));
+      }
       else if (query == FEE_RECIPIENT)
         ret = abi.encodePacked(ret, state.feeRecipient);
       else if (query == IMPLEMENTATION)
@@ -256,6 +262,11 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
     return governanceState().feeRecipient;
   }
 
+  function isAdmin(address admin) internal view returns (bool) {
+    GovernanceState storage state = governanceState();
+    return state.admins[admin];
+  }
+
   // ---- private ----
 
   function _updateRole(Role role, address newAddress) private {
@@ -266,10 +277,6 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
       state.owner = newAddress;
       state.pendingOwner = address(0);
     }
-    else if (role == Role.Admin) {
-      oldAddress = state.admin;
-      state.admin = newAddress;
-    }
     else if (role == Role.FeeRecipient) {
       if (newAddress == address(0))
         revert InvalidFeeRecipient();
@@ -278,8 +285,14 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
       state.feeRecipient = payable(newAddress);
     }
     else
-      revert UnknownRole(role);
+      return;
 
     emit RoleUpdated(role, oldAddress, newAddress, block.timestamp);
+  }
+
+  function _updateAdmins(address admin, bool authorization) private {
+    GovernanceState storage state = governanceState();
+    state.admins[admin] = authorization;
+    emit AdminsUpdated(admin, authorization, block.timestamp);
   }
 }
