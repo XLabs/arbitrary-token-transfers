@@ -260,8 +260,8 @@ export class Tbrv3 {
     return result;
   }
 
-  async getAdmin() {
-    const result = await this.governanceQuery([{ query: "Admin" }]);
+  async owner() {
+    const result = await this.governanceQuery([{ query: "Owner" }]);
     return ethers.hexlify(result);
   }
 

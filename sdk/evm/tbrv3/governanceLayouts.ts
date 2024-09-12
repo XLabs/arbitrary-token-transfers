@@ -177,7 +177,7 @@ export const governanceQueryLayout = {
     [[0x86, "Owner"], []],
     [[0x87, "IsChainSupported"], []],
     [[0x88, "PendingOwner"], []],
-    [[0x89, "Admin"], []],
+    [[0x89, "IsAdmin"], []],
     [[0x8A, "FeeRecipient"], []],
     [[0x8B, "Implementation"], []],
 

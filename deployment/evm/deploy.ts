@@ -20,6 +20,10 @@ type DeployConfig = ChainConfig & {
   feeRecipient?: string;
   oracleVersion: 0;
   initGasErc20TokenizationIsExplicit: boolean;
+  relayFee: number;
+  maxGasDropoff: number;
+  txSizeSensitive: boolean;
+  canonicalPeer: string;
 };
 
 async function run() {
@@ -45,7 +49,8 @@ async function run() {
     } else {
       console.log(`Successfully deployed to chain ${result.chainId}`);
 
-      writeDeployedContract(result.chainId, "TbrV3", result.implementation?.address ?? "", [""]);
+      writeDeployedContract(result.chainId, "TbrV3", result.implementation?.address ?? "", []);
+      writeDeployedContract(result.chainId, "TbrV3Proxies", result.proxy?.address ?? "", []);
     }
   }
 

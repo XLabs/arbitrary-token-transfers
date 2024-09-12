@@ -3,6 +3,10 @@
     "chainId": 10002,
     "feeRecipient": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
     "oracleVersion": 0,
-    "initGasErc20TokenizationIsExplicit": false
+    "initGasErc20TokenizationIsExplicit": false,
+    "relayFee": 1,
+    "maxGasDropoff": 1,
+    "txSizeSensitive": 1000000000000000000,
+    "canonicalPeer": "0x0000000000000000000000000000000000000000"
   }
 ]

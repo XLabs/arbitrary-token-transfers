@@ -31,16 +31,15 @@ describe('TbrV3 SDK Integration test', () => {
     expect(relayingFee).to.not.be.undefined;
   });
 
-  it.skip("should obtain base relaying params", async () => {
+  it("should obtain base relaying params", async () => {
     const baseRelayingParams = await tbrv3.baseRelayingParams("Ethereum");
     expect(baseRelayingParams).to.not.be.undefined;
   });
 
   // governance
-  it.skip("should obtain admin", async () => {
-    const admin = await tbrv3.getAdmin();
-    expect(admin).to.not.be.undefined;
-    expect(admin).to.be(await signer.getAddress());
+  it("should obtain owner", async () => {
+    const owner = await tbrv3.owner();
+    expect(owner).to.not.be.undefined;
   });
 
   it("should set peer", async () => {
