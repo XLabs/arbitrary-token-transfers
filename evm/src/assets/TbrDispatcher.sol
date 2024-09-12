@@ -78,14 +78,12 @@ abstract contract TbrDispatcher is RawDispatcher, TbrGovernance, TbrUser {
       bytes memory result;
       uint movedOffset;
       if (query == RELAY_FEE_ID) {
-        //(result, movedOffset) = _relayFee(data[offset:]);
+        (result, movedOffset) = relayFee(data[offset:], queryIndex);
       } else if (query == BASE_RELAYING_CONFIG_ID) {
-        //(result, movedOffset) = _baseRelayingConfig(data[offset:]);
-      } 
-      else if (query == GOVERNANCE_QUERIES_ID) 
+        (result, movedOffset) = baseRelayingConfig(data[offset:], queryIndex);
+      } else if (query == GOVERNANCE_QUERIES_ID) {
         (result, movedOffset) = batchGovernanceQueries(data[offset:]);
-      else
-        revert InvalidCommand(query, queryIndex);
+      } else revert InvalidCommand(query, queryIndex);
 
       ret = abi.encodePacked(ret, result);
       offset += movedOffset;

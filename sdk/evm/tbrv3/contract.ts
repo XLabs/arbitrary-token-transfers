@@ -187,7 +187,7 @@ export class Tbrv3 {
     }
 
     const args = vaas.map((vaa) => ({vaa: serialize(vaa)}));
-    const methods = Tbrv3.createEnvelopeWithSingleMethodKind("Complete", args);
+    const methods = Tbrv3.createEnvelopeWithSingleMethodKind("CompleteTransfer", args);
     const data = Tbrv3.encodeExecute(methods);
 
     return {
