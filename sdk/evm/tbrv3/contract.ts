@@ -2,7 +2,7 @@ import { chainToPlatform, FixedLengthArray, Layout, layout, LayoutToType, Networ
 import { serialize, toNative, toUniversal, UniversalAddress, VAA } from "@wormhole-foundation/sdk-definitions";
 import { ethers } from "ethers";
 import { baseRelayingConfigReturnLayout, BaseRelayingParamsReturn, dispatcherLayout, gasDropoffUnit, relayFeeUnit, relayingFeesInputLayout, RelayingFeesReturn, RelayingFeesReturnItem, relayingFeesReturnLayout, SupportedChains, TBRv3Message, transferTokenWithRelayLayout, versionEnvelopeLayout, transferGasTokenWithRelayLayout, proxyConstructorLayout } from "./layouts.js";
-import { GovernanceCommand } from "./governanceLayouts.js";
+import { GovernanceCommand, GovernanceQuery } from "./governanceLayouts.js";
 
 /**
  * Gives you a type that keeps the properties of `T1` while making both properties common to `T1` and `T2` and properties exclusive to `T2` optional.
@@ -248,6 +248,23 @@ export class Tbrv3 {
     };
   }
 
+  async governanceQuery<const C extends GovernanceQuery[]>(queries: C): Promise<string> {
+    const methods = Tbrv3.createEnvelope([{ method: "GovernanceQuery", queries }]);
+    const data = Tbrv3.encodeQuery(methods);
+
+    const result = await this.provider.call({
+      data: ethers.hexlify(data),
+      to: this.address,
+    });
+
+    return result;
+  }
+
+  async getAdmin() {
+    const result = await this.governanceQuery([{ query: "Admin" }]);
+    return ethers.hexlify(result);
+  }
+
   static encodeExecute(methods: Uint8Array): Uint8Array {
     return this.encodeForDispatcher(executeFunction, methods);
   }
@@ -266,6 +283,7 @@ export class Tbrv3 {
     const result = new Uint8Array(selector.length + methods.length);
     result.set(selector, 0);
     result.set(methods, selector.length);
+
     return result;
   }
 

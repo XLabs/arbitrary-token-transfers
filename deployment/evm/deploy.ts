@@ -24,10 +24,7 @@ type DeployConfig = ChainConfig & {
 
 async function run() {
   console.log(`Start ${processName}!`);
-  const output: any = {
-    Implementations: [],
-    Proxies: [],
-  };
+
 
   const results = await Promise.all(
     chains.map(async (chain) => {
@@ -47,8 +44,7 @@ async function run() {
       );
     } else {
       console.log(`Successfully deployed to chain ${result.chainId}`);
-      output.Implementations.push(result.implementation);
-      output.Proxies.push(result.proxy);
+
       writeDeployedContract(result.chainId, "TbrV3", result.implementation?.address ?? "", [""]);
     }
   }

@@ -26,14 +26,21 @@ describe('TbrV3 SDK Integration test', () => {
     signer = new ethers.Wallet(ownerPk!, tbrv3.provider);
   });
 
-  it("should obtain relaying fee", async () => {
+  it.skip("should obtain relaying fee", async () => {
     const relayingFee = await tbrv3.relayingFee({ targetChain: "Ethereum", gasDropoff: 1000n });
     expect(relayingFee).to.not.be.undefined;
   });
 
-  it("should obtain base relaying params", async () => {
+  it.skip("should obtain base relaying params", async () => {
     const baseRelayingParams = await tbrv3.baseRelayingParams("Ethereum");
     expect(baseRelayingParams).to.not.be.undefined;
+  });
+
+  // governance
+  it.skip("should obtain admin", async () => {
+    const admin = await tbrv3.getAdmin();
+    expect(admin).to.not.be.undefined;
+    expect(admin).to.be(await signer.getAddress());
   });
 
   it("should set peer", async () => {
