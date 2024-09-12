@@ -7,7 +7,7 @@ import {fromUniversalAddress, forwardError} from "wormhole-sdk/Utils.sol";
 import {IWETH} from "wormhole-sdk/interfaces/token/IWETH.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {TRANSFER_TOKEN_WITH_RELAY_ID, COMPLETE_TRANSFER_ID, TB_TRANSFER_WITH_PAYLOAD} from "./TbrIds.sol";
+import {TRANSFER_TOKEN_WITH_RELAY_ID, COMPLETE_TRANSFER_ID, TB_TRANSFER_WITH_PAYLOAD, RELAY_FEE_ID, BASE_RELAYING_CONFIG_ID} from "./TbrIds.sol";
 import {TbrBase, InvalidCommand} from "./TbrBase.sol";
 
 uint8 constant ACQUIRE_PREAPPROVED = 0;
@@ -141,16 +141,16 @@ abstract contract TbrUser is TbrBase {
   }
 
   function quoteRelay(uint16 destinationChain, uint32 gasDropoff, bool txCommitEthereum) view internal returns (uint256) {
-    uint32 relayFee = getRelayFee();
+    uint32 fee = getRelayFee();
     if (destinationChain == SOLANA_CHAIN) {
-      return solanaTransactionQuote(gasDropoff, SOLANA_RELAY_SPAWNED_ACCOUNTS, SOLANA_RELAY_TOTAL_SIZE, relayFee);
+      return solanaTransactionQuote(gasDropoff, SOLANA_RELAY_SPAWNED_ACCOUNTS, SOLANA_RELAY_TOTAL_SIZE, fee);
     }
 
     if (txCommitEthereum) {
-      return evmTransactionWithTxSizeQuote(destinationChain, gasDropoff, EVM_RELAY_GAS_COST, relayFee, EVM_RELAY_TX_SIZE);
+      return evmTransactionWithTxSizeQuote(destinationChain, gasDropoff, EVM_RELAY_GAS_COST, fee, EVM_RELAY_TX_SIZE);
     }
 
-    return evmTransactionQuote(destinationChain, gasDropoff, EVM_RELAY_GAS_COST, relayFee);
+    return evmTransactionQuote(destinationChain, gasDropoff, EVM_RELAY_GAS_COST, fee);
   }
 
   function tbrv3Message(bytes32 recipient, uint32 gasDropoff, bool unwrapIntent) internal pure returns (bytes memory) {
@@ -225,6 +225,9 @@ abstract contract TbrUser is TbrBase {
     if (!success) forwardError(result);
   }
 
+  /**
+   * Returns the relay fee in gas token Mwei.
+   */
   function relayFee(bytes calldata data, uint256 commandIndex) view internal returns(bytes memory result, uint256 offset) {
     uint16 chainId;
     uint32 gasDropoff;
@@ -233,7 +236,7 @@ abstract contract TbrUser is TbrBase {
 
     if (gasDropoff > maxGasDropoff) revert GasDropoffRequestedExceedsMaximum(maxGasDropoff, commandIndex);
 
-    uint64 fee = quoteRelay(chainId, gasDropoff, txCommitEthereum);
+    uint64 fee = uint64(quoteRelay(chainId, gasDropoff, txCommitEthereum) / (10 ** 6));
     result = abi.encodePacked(chainIsPaused, fee);
   }
 
@@ -493,7 +496,7 @@ library RelayFee {
 
   function parseRelayFeeArgs(bytes calldata data, uint256 commandIndex) pure internal returns(uint16 chainId, uint32 gasDropoff, uint256 consumedBytes) {
     consumedBytes = RELAY_FEE_SIZE;
-    if (data.length < consumedBytes) revert InvalidCommand(commandIndex);
+    if (data.length < consumedBytes) revert InvalidCommand(RELAY_FEE_ID, commandIndex);
 
     bytes memory relayFeeQuery = data[:consumedBytes];
     (chainId,) = relayFeeQuery.asUint16Unchecked(CHAIN_OFFSET);
@@ -510,7 +513,7 @@ library BaseRelayingConfig {
 
   function parseBaseRelayingConfigArgs(bytes calldata data, uint256 commandIndex) pure internal returns(uint16 chainId, uint256 consumedBytes) {
     consumedBytes = BASE_RELAYING_CONFIG_SIZE;
-    if (data.length < consumedBytes) revert InvalidCommand(commandIndex);
+    if (data.length < consumedBytes) revert InvalidCommand(BASE_RELAYING_CONFIG_ID, commandIndex);
 
     bytes memory BaseRelayingConfigQuery = data[:consumedBytes];
     (chainId,) = BaseRelayingConfigQuery.asUint16Unchecked(CHAIN_OFFSET);
