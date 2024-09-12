@@ -118,6 +118,19 @@ export type RelayingFeesReturn = readonly RelayingFeesReturnItem[];
 export const maxGasDropoffLayout = { name: "targetChain", ...supportedChainItem } as const satisfies NamedLayoutItem;
 export interface BaseRelayingParamsReturnItem {
   /**
+   * This is the TBRv3 peer address on the chosen chain.
+   */
+  peer: Uint8Array;
+  /**
+   * If true, outbound transfers are rejected to this chain.
+   */
+  paused: boolean;
+  /**
+   * If true, txs sent to this chain are later committed in the Ethereum chain.
+   * This is mostly informational as it only matters for quoting prices for relays.
+   */
+  txCommitEthereum: boolean;
+  /**
    * This is denominated in μETH or equivalent for EVM native tokens.
    * Equivalently, Twei, 10 ** 12 wei.
    */
