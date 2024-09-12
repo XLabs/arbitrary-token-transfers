@@ -1798,6 +1798,16 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@wormhole-foundation/sdk-definitions", [\
+      ["npm:0.10.5", {\
+        "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-definitions-npm-0.10.5-17e99026f8-8face24197.zip/node_modules/@wormhole-foundation/sdk-definitions/",\
+        "packageDependencies": [\
+          ["@wormhole-foundation/sdk-definitions", "npm:0.10.5"],\
+          ["@noble/curves", "npm:1.6.0"],\
+          ["@noble/hashes", "npm:1.5.0"],\
+          ["@wormhole-foundation/sdk-base", "npm:0.10.5"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
       ["npm:0.3.3", {\
         "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-definitions-npm-0.3.3-edb4f0e40a-b47f128a94.zip/node_modules/@wormhole-foundation/sdk-definitions/",\
         "packageDependencies": [\
@@ -2879,6 +2889,7 @@ const RAW_RUNTIME_STATE =
           ["@typechain/ethers-v6", "virtual:5449dbfbc8f715fdbd2c737c0a09a82e4cd2ffe644d99dd1bc0581b0889f04b69068ed991ce11b47be2adc46d31415f8c245c393d61c33529fcc22e453281945#npm:0.5.1"],\
           ["@types/node", "npm:20.14.14"],\
           ["@wormhole-foundation/sdk-base", "npm:0.10.5"],\
+          ["@wormhole-foundation/sdk-definitions", "npm:0.10.5"],\
           ["@xlabs-xyz/evm-arbitrary-token-transfers", "workspace:sdk/evm"],\
           ["@xlabs-xyz/ledger-signer", "npm:0.0.4"],\
           ["@xlabs-xyz/ledger-signer-ethers-v6", "npm:0.0.1"],\

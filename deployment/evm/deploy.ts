@@ -1,11 +1,11 @@
 import {
-  ChainConfig,
   evm,
   EvmChainInfo,
   getChainConfig,
   getDependencyAddress,
   writeDeployedContract
 } from "../helpers";
+import { Tbrv3Config } from "./config.types";
 import { ethers } from "ethers";
 import { Tbr__factory, Proxy__factory } from "../ethers-contracts/index.js";
 import { getSigner } from "../helpers/evm";
@@ -14,18 +14,6 @@ import { getSigner } from "../helpers/evm";
 const processName = "tbr-v3";
 const chains = evm.evmOperatingChains();
 
-type DeployConfig = ChainConfig & {
-  owner?: string;
-  admin?: string;
-  feeRecipient?: string;
-  oracleVersion: 0;
-  initGasErc20TokenizationIsExplicit: boolean;
-  relayFee: number;
-  maxGasDropoff: number;
-  txSizeSensitive: boolean;
-  canonicalPeer: string;
-};
-
 async function run() {
   console.log(`Start ${processName}!`);
 
@@ -33,7 +21,7 @@ async function run() {
   const results = await Promise.all(
     chains.map(async (chain) => {
       console.log(`Deploy starting for chain ${chain.chainId}...`);
-      const config = await getChainConfig<DeployConfig>("tbr-v3", chain.chainId);
+      const config = await getChainConfig<Tbrv3Config>("tbr-v3", chain.chainId);
       const result = await deployTbrV3Relayer(chain, config);
       console.log(`Deploy finished for chain ${chain.chainId}...`);
 
@@ -56,7 +44,7 @@ async function run() {
 
 }
 
-async function deployTbrV3Relayer(chain: EvmChainInfo, config: DeployConfig) {
+async function deployTbrV3Relayer(chain: EvmChainInfo, config: Tbrv3Config) {
   let implementation, proxy;
 
   try {
@@ -84,7 +72,7 @@ async function deployTbrV3Relayer(chain: EvmChainInfo, config: DeployConfig) {
   };
 }
 
-async function deployRelayerImplementation(chain: EvmChainInfo, config: DeployConfig) {
+async function deployRelayerImplementation(chain: EvmChainInfo, config: Tbrv3Config) {
   console.log("deployRelayerImplementation " + chain.chainId);
   const signer = await getSigner(chain);
 
@@ -120,7 +108,7 @@ async function deployRelayerImplementation(chain: EvmChainInfo, config: DeployCo
 
 async function deployProxy(
   chain: EvmChainInfo,
-  config: DeployConfig,
+  config: Tbrv3Config,
   implementationAddress: string,
 ) {
   console.log("deployRelayerProxy " + chain.chainId);

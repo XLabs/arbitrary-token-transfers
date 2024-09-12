@@ -231,7 +231,7 @@ export class Tbrv3 {
     return layout.deserializeLayout(baseRelayingReturnListLayout, ethers.getBytes(result));
   }
 
-  addPeers(peers: [ { chain: SupportedChains, peer: UniversalAddress } ]): TbrPartialTx {
+  addPeers(peers: { chain: SupportedChains, peer: UniversalAddress }[]): TbrPartialTx {
     return this.governanceTx(peers.map(
       (peer) => ({ chain: peer.chain, command: { name: "AddPeer", value: peer.peer } })
     ));

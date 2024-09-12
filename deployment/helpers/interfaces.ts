@@ -23,14 +23,14 @@ export type ChainInfo = {
   name: string;
   chainId: ChainId; // wormhole chain id
   rpc: string;
-  network: Network;
+  network: "Mainnet" | "Testnet";
 };
 
 export type Deployment = {
   /**
    * Wormhole ChainId
    */
-  chainId: number;
+  chainId: ChainId;
   address: string;
   constructorArgs: UncheckedConstructorArgs;
 };
