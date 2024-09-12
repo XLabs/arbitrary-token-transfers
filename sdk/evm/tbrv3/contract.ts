@@ -1,5 +1,5 @@
-import { chainToPlatform, FixedLengthArray, Layout, layout, LayoutToType, Network, ProperLayout } from "@wormhole-foundation/sdk-base";
 import { serialize, toNative, toUniversal, UniversalAddress, VAA } from "@wormhole-foundation/sdk-definitions";
+import { chainToPlatform, FixedLengthArray, Layout, layout, LayoutItem, LayoutToType, Network, ProperLayout } from "@wormhole-foundation/sdk-base";
 import { ethers } from "ethers";
 import { baseRelayingConfigReturnLayout, BaseRelayingParamsReturn, dispatcherLayout, gasDropoffUnit, relayFeeUnit, relayingFeesInputLayout, RelayingFeesReturn, RelayingFeesReturnItem, relayingFeesReturnLayout, SupportedChains, TBRv3Message, transferTokenWithRelayLayout, versionEnvelopeLayout, transferGasTokenWithRelayLayout, proxyConstructorLayout } from "./layouts.js";
 import { GovernanceCommand, GovernanceQuery } from "./governanceLayouts.js";
@@ -216,7 +216,7 @@ export class Tbrv3 {
     });
 
     const relayingFeesReturnListLayout = fixedLengthArrayLayout(args.length, relayingFeesReturnLayout);
-    return layout.deserializeLayout(relayingFeesReturnListLayout, ethers.getBytes(result));
+    return decodeQueryResponseLayout(relayingFeesReturnListLayout, ethers.getBytes(result));
   }
 
   async baseRelayingParams(...chains: SupportedChains[]): Promise<BaseRelayingParamsReturn> {
@@ -227,8 +227,9 @@ export class Tbrv3 {
       to: this.address,
     });
 
+
     const baseRelayingReturnListLayout = fixedLengthArrayLayout(chains.length, baseRelayingConfigReturnLayout);
-    return layout.deserializeLayout(baseRelayingReturnListLayout, ethers.getBytes(result));
+    return decodeQueryResponseLayout(baseRelayingReturnListLayout, ethers.getBytes(result));
   }
 
   addPeers(peers: { chain: SupportedChains, peer: UniversalAddress }[]): TbrPartialTx {
@@ -321,6 +322,24 @@ function fixedLengthArrayLayout<const T extends ProperLayout>(length: number, la
     length,
     layout,
   } as const satisfies FixedLengthArray;
+}
+
+function decodeQueryResponseLayout<const T extends Layout>(tbrLayout: T, value: Uint8Array) {
+  const responseHeaderLayout = {
+    binary: "bytes",
+    layout: [
+      // ptr must always point to the next "slot", i.e. 0x20
+      { name: "ptr", binary: "uint", size: 32, custom: 32n, omit: true },
+      // if the response claims to be longer than 2^32 bytes, something is wrong
+      { name: "mustBeZero", binary: "uint", size: 28, custom: 0n, omit: true },
+      // the actual length of the response
+      { name: "length", binary: "uint", size: 4 },
+    ] as const,
+  } as const satisfies LayoutItem;
+
+  const [header, offset] = layout.deserializeLayout(responseHeaderLayout, value, {consumeAll: false});
+  // TODO: do we want to perform any check on the length?
+  return layout.deserializeLayout(tbrLayout, value, {offset});
 }
 
 async function example() {
