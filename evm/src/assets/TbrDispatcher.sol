@@ -59,6 +59,7 @@ abstract contract TbrDispatcher is RawDispatcher, TbrGovernance, TbrUser {
     address payable feeRecipient = getFeeRecipient();
     transferEth(feeRecipient, fees);
     transferEth(msg.sender, senderRefund);
+    return new bytes(0);
   }
 
   function _get(bytes calldata data) internal view override returns (bytes memory) {
@@ -73,7 +74,7 @@ abstract contract TbrDispatcher is RawDispatcher, TbrGovernance, TbrUser {
     while (offset < data.length) {
       uint8 query;
       (query, offset) = data.asUint8Unchecked(offset);
-      
+
       bytes memory result;
       uint movedOffset;
       if (query == RELAY_FEE_ID) {

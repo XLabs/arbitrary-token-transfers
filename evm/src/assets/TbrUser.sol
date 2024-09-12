@@ -199,10 +199,7 @@ abstract contract TbrUser is TbrBase {
       gasToken.withdraw(tokenAmount);
 
       // Transfer full amount
-      // FIXME: we need to put an upper bound on the read bytes to ensure that the contract doesn't run out of gas.
-      // The error should be wrapped in our own error too.
-      (bool success, bytes memory result) = destination.call{value: gasDropoff + tokenAmount}("");
-      if (!success) forwardError(result);
+      deliverGasToken(destination, gasDropoff + tokenAmount);
       return (gasDropoff, offset);
     }
 
@@ -210,10 +207,7 @@ abstract contract TbrUser is TbrBase {
     // Otherwise, transfer tokens and perform gas dropoff
     SafeERC20.safeTransfer(token, destination, tokenAmount);
     // Transfer gas dropoff
-    // FIXME: we need to put an upper bound on the read bytes to ensure that the contract doesn't run out of gas.
-    // The error should be wrapped in our own error too.
-    (bool success, bytes memory result) = destination.call{value: gasDropoff}("");
-    if (!success) forwardError(result);
+    deliverGasToken(destination, gasDropoff);
   }
 
   function deriveToken(bytes memory vaa, uint256 bodyOffset) view internal returns (IERC20 token) {
@@ -222,6 +216,13 @@ abstract contract TbrUser is TbrBase {
     // The gas savings shouldn't be that big so it's low priority.
     token = IERC20(tokenBridge.wrappedAsset(canonicalChain, canonicalToken));
     if (address(token) == address(0)) revert TokenNotAttested(canonicalToken, canonicalChain);
+  }
+
+  function deliverGasToken(address destination, uint256 amount/*, uint256 commandIndex*/) internal {
+    // FIXME: we need to put an upper bound on the read bytes to ensure that the contract doesn't run out of gas.
+    // The error should be wrapped in our own error too.
+    (bool success, bytes memory result) = destination.call{value: amount}("");
+    if (!success) forwardError(result);
   }
 
 

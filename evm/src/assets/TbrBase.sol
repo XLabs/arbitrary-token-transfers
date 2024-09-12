@@ -6,10 +6,10 @@ import {IERC20} from "@openzeppelin/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import {IPermit2} from "wormhole-sdk/interfaces/token/IPermit2.sol";
 import {IWETH} from "wormhole-sdk/interfaces/token/IWETH.sol";
+import {ITokenBridge} from "wormhole-sdk/interfaces/ITokenBridge.sol";
 import {BytesParsing} from "wormhole-sdk/libraries/BytesParsing.sol";
 import {IPriceOracle} from "price-oracle/IPriceOracle.sol";
 import {PriceOracleIntegration} from "price-oracle/PriceOracleIntegration.sol";
-import {ITokenBridge} from "wormhole-sdk/interfaces/ITokenBridge.sol";
 
 /**
  * Decoding the command failed.
