@@ -1,5 +1,5 @@
-import { Chain, CustomConversion, Layout, ManualSizePureBytes, NamedLayoutItem, UintLayoutItem } from "@wormhole-foundation/sdk-base";
-import { layoutItems } from "@wormhole-foundation/sdk-definitions";
+import type { Chain, CustomConversion, Layout, ManualSizePureBytes, NamedLayoutItem, UintLayoutItem } from "@wormhole-foundation/sdk-base";
+import { layoutItems, type UniversalAddress } from "@wormhole-foundation/sdk-definitions";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
 
 // TODO: update supported chains to the actual chains supported
@@ -120,7 +120,7 @@ export interface BaseRelayingParamsReturnItem {
   /**
    * This is the TBRv3 peer address on the chosen chain.
    */
-  peer: Uint8Array;
+  peer: UniversalAddress;
   /**
    * If true, outbound transfers are rejected to this chain.
    */
