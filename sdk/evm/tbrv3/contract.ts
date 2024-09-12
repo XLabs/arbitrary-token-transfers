@@ -2,7 +2,7 @@ import { serialize, toNative, toUniversal, UniversalAddress, VAA } from "@wormho
 import { chainToPlatform, FixedLengthArray, Layout, layout, LayoutItem, LayoutToType, Network, ProperLayout } from "@wormhole-foundation/sdk-base";
 import { ethers } from "ethers";
 import { baseRelayingConfigReturnLayout, BaseRelayingParamsReturn, dispatcherLayout, gasDropoffUnit, relayFeeUnit, relayingFeesInputLayout, RelayingFeesReturn, RelayingFeesReturnItem, relayingFeesReturnLayout, SupportedChains, TBRv3Message, transferTokenWithRelayLayout, versionEnvelopeLayout, transferGasTokenWithRelayLayout, proxyConstructorLayout } from "./layouts.js";
-import { GovernanceCommand, GovernanceQuery } from "./governanceLayouts.js";
+import { GovernanceCommand, GovernanceQuery, ownerItem } from "./governanceLayouts.js";
 
 /**
  * Gives you a type that keeps the properties of `T1` while making both properties common to `T1` and `T2` and properties exclusive to `T2` optional.
@@ -263,7 +263,8 @@ export class Tbrv3 {
 
   async owner() {
     const result = await this.governanceQuery([{ query: "Owner" }]);
-    return ethers.hexlify(result);
+    
+    return decodeQueryResponseLayout(ownerItem, ethers.getBytes(result)); 
   }
 
   static encodeExecute(methods: Uint8Array): Uint8Array {

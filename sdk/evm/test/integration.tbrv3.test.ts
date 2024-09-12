@@ -21,7 +21,7 @@ describe('TbrV3 SDK Integration test', () => {
     expect(rpc).to.not.be.undefined;
     expect(ownerPk).to.not.be.undefined;
 
-    const address = config.TbrV3[0].address;
+    const address = config.TbrV3Proxies[0].address;
     tbrv3 = Tbrv3.fromRpcUrl(rpc!, "Testnet", address);    
     signer = new ethers.Wallet(ownerPk!, tbrv3.provider);
   });
