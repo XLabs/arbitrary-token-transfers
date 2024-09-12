@@ -42,7 +42,8 @@ abstract contract TbrDispatcher is RawDispatcher, TbrGovernance, TbrUser {
       } else if (command == TRANSFER_GAS_TOKEN_WITH_RELAY_ID) {
         //(movedOffset) = _wrapAndTransferEthWithRelay(data[offset:]);
       } else if (command == COMPLETE_TRANSFER_ID) {
-        //(movedOffset) = _complete(data[offset:]);
+        uint256 gasDropoffSpent;
+        (gasDropoffSpent, offset) = completeTransfer(data[offset:], senderRefund, commandIndex);
       }
       else if (command == GOVERNANCE_ID)
         movedOffset = batchGovernanceCommands(data[offset:]);
@@ -60,10 +61,14 @@ abstract contract TbrDispatcher is RawDispatcher, TbrGovernance, TbrUser {
     address payable feeRecipient = getFeeRecipient();
     // TODO: encapsulate these into a `pay` util?
     bool success = false;
-    (success,) = feeRecipient.call{value: fees}("");
-    if (!success) revert PaymentFailure(feeRecipient);
-    (success,) = msg.sender.call{value: senderRefund}("");
-    if (!success) revert PaymentFailure(msg.sender);
+    if (fees > 0) {
+      (success,) = feeRecipient.call{value: fees}("");
+      if (!success) revert PaymentFailure(feeRecipient);
+    }
+    if (senderRefund > 0) {
+      (success,) = msg.sender.call{value: senderRefund}("");
+      if (!success) revert PaymentFailure(msg.sender);
+    }
   }
 
   function _get(bytes calldata data) internal view override returns (bytes memory) {
