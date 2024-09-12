@@ -1,11 +1,10 @@
 import {
   ChainConfig,
- DependenciesConfig,
- evm,
- EvmChainInfo,
- getChainConfig,
- getDependencyAddress,
- writeDeployedContract
+  evm,
+  EvmChainInfo,
+  getChainConfig,
+  getDependencyAddress,
+  writeDeployedContract
 } from "../helpers";
 import { ethers } from "ethers";
 import { Tbr__factory, Proxy__factory } from "../ethers-contracts/index.js";
@@ -85,7 +84,7 @@ async function deployTbrV3Relayer(chain: EvmChainInfo, config: DeployConfig) {
 }
 
 async function deployRelayerImplementation(chain: EvmChainInfo, config: DeployConfig) {
-  console.log("deployPriceOracleImplementation " + chain.chainId);
+  console.log("deployRelayerImplementation " + chain.chainId);
   const signer = await getSigner(chain);
 
   const contractInterface = Tbr__factory.createInterface();
@@ -123,7 +122,7 @@ async function deployProxy(
   config: DeployConfig,
   implementationAddress: string,
 ) {
-  console.log("deployPriceOracleImplementation " + chain.chainId);
+  console.log("deployRelayerProxy " + chain.chainId);
   const signer = await getSigner(chain);
   const signerAddress = await signer.getAddress();
   const { Tbrv3 } = await import("@xlabs-xyz/evm-arbitrary-token-transfers");

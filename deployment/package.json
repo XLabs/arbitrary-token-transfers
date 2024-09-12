@@ -6,6 +6,7 @@
     "deploy:evm:localnet": "ENV=localnet tsx evm/deploy.ts",
     "deploy:evm:testnet": "ENV=testnet tsx evm/deploy.ts",
     "deploy:evm:mainnet": "ENV=mainnet tsx evm/deploy.ts",
+    "parse:evm": "tsx evm/parse.ts",
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check"
   },

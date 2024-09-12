@@ -110,8 +110,8 @@ export class Tbrv3 {
 
   readonly address: string;
 
-  constructor(public readonly provider: ethers.Provider, public readonly network: NetworkMain){
-    this.address = Tbrv3.addresses[network];
+  constructor(public readonly provider: ethers.Provider, public readonly network: NetworkMain, address: string = Tbrv3.addresses[network]) {
+    this.address = address;
   }
 
   static createEnvelopeWithSingleMethodKind<const M extends Method>(method: M, args: MakeOptional<MethodArgs<M>, { method: M }>[]): Uint8Array {
@@ -291,8 +291,8 @@ export class Tbrv3 {
     return layout.serializeLayout(proxyConstructorLayout, initConfig);
   }
 
-  static fromRpcUrl(rpc: string, network: NetworkMain): Tbrv3 {
-    return new Tbrv3(new ethers.JsonRpcProvider(rpc), network);
+  static fromRpcUrl(rpc: string, network: NetworkMain, address?: string): Tbrv3 {
+    return new Tbrv3(new ethers.JsonRpcProvider(rpc), network, address);
   }
 
 }
