@@ -9,7 +9,7 @@ resolution = true
 skip-lint = true
 
 [programs.localnet]
-solana = "46kv4wCpfEtLsHPDh4zm7jJb2pVdvke8Pj2ABYYJotFD"
+token_bridge_relayer = "46kv4wCpfEtLsHPDh4zm7jJb2pVdvke8Pj2ABYYJotFD"
 
 [registry]
 url = "https://api.apr.dev"
@@ -19,4 +19,4 @@ cluster = "Localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
-test = "yarn run tsc --build ./solana/tests/tsconfig.json && yarn run mocha -t 1000000 ts-build/solana-tests/*.js"
+test = "yarn run mocha -p ./solana/tests/tsconfig.json -t 1000000 solana/tests/token-bridge-relayer.ts"

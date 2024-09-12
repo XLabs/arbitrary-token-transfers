@@ -8,7 +8,6 @@ import {
   requestAirdrop,
 } from "./utils/helpers";
 import { ClientWrapper } from "./utils/client-wrapper";
-import { describe } from "mocha";
 
 describe("Token Bridge Relayer Program", () => {
   const clients = Array.from(

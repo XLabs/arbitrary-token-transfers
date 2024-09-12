@@ -47,15 +47,17 @@ const RAW_RUNTIME_STATE =
       [null, {\
         "packageLocation": "./",\
         "packageDependencies": [\
+          ["@types/bn.js", "npm:5.1.5"],\
           ["@types/chai", "npm:4.3.19"],\
           ["@types/mocha", "npm:10.0.7"],\
           ["@types/node", "npm:20.14.14"],\
           ["@yarnpkg/types", "npm:4.0.0"],\
+          ["bn.js", "npm:5.2.1"],\
           ["chai", "npm:5.1.1"],\
           ["mocha", "npm:10.7.3"],\
           ["prettier", "npm:3.3.3"],\
           ["ts-mocha", "virtual:33d4007d0290747430617a5c0eb2da58d74cdff8bc8263fdea6457aebe82a895aa6f9c4f9f07fab8e85221c695fc8a7b8d17e2e26cee5cd3bfae6b8271723910#npm:10.0.0"],\
-          ["tsx", "npm:4.16.5"],\
+          ["tsx", "npm:4.19.1"],\
           ["typescript", "patch:typescript@npm%3A5.5.4#optional!builtin<compat/typescript>::version=5.5.4&hash=379a07"]\
         ],\
         "linkType": "SOFT"\
@@ -1927,6 +1929,10 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-solana-core-npm-0.10.5-5c1169fa89-ef6439856a.zip/node_modules/@wormhole-foundation/sdk-solana-core/",\
         "packageDependencies": [\
           ["@wormhole-foundation/sdk-solana-core", "npm:0.10.5"],\
+          ["#bn.js", [\
+            "bn.js",\
+            "npm:5.2.1"\
+          ]],\
           ["@coral-xyz/anchor", "npm:0.29.0"],\
           ["@coral-xyz/borsh", "virtual:852da326f150408584798524fe58e9855b987bcc4f041389e1ca13248c23c659c3ffb4a9aa4176cc7542f503f2e1e6422a1f18f69e5e623ca255691d222a55ca#npm:0.29.0"],\
           ["@solana/web3.js", "npm:1.95.3"],\
@@ -2013,7 +2019,6 @@ const RAW_RUNTIME_STATE =
           ["@xlabs-xyz/solana-arbitrary-token-transfers", "workspace:sdk/solana"],\
           ["@coral-xyz/anchor", "npm:0.30.1"],\
           ["@solana/web3.js", "npm:1.95.3"],\
-          ["@types/bn.js", "npm:5.1.5"],\
           ["@wormhole-foundation/sdk-base", "npm:0.10.5"],\
           ["@wormhole-foundation/sdk-definitions", "npm:0.10.5"],\
           ["@wormhole-foundation/sdk-solana-tokenbridge", "npm:0.10.5"],\
@@ -5840,10 +5845,12 @@ const RAW_RUNTIME_STATE =
           ["tests-d38e88", "workspace:solana/tests"],\
           ["@coral-xyz/anchor", "npm:0.30.1"],\
           ["@solana/web3.js", "npm:1.95.3"],\
+          ["@types/bn.js", "npm:5.1.5"],\
           ["@types/chai", "npm:4.3.19"],\
           ["@types/mocha", "npm:8.2.3"],\
           ["@wormhole-foundation/sdk-base", "npm:0.10.5"],\
           ["@xlabs-xyz/solana-arbitrary-token-transfers", "workspace:sdk/solana"],\
+          ["bn.js", "npm:5.2.1"],\
           ["chai", "npm:5.1.1"],\
           ["mocha", "npm:8.4.0"],\
           ["ts-mocha", "virtual:7aa66fdbc20e57aa6d06279a3958492bff97c65f475e05ea838fc7a8974e896fbd614aa5cf1642bc0654d57e79bebc1e26cb6b8ee20924b3c2320d84af69e263#npm:8.0.0"],\
@@ -5905,15 +5912,17 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./",\
         "packageDependencies": [\
           ["token-bridge-relayer-root", "workspace:."],\
+          ["@types/bn.js", "npm:5.1.5"],\
           ["@types/chai", "npm:4.3.19"],\
           ["@types/mocha", "npm:10.0.7"],\
           ["@types/node", "npm:20.14.14"],\
           ["@yarnpkg/types", "npm:4.0.0"],\
+          ["bn.js", "npm:5.2.1"],\
           ["chai", "npm:5.1.1"],\
           ["mocha", "npm:10.7.3"],\
           ["prettier", "npm:3.3.3"],\
           ["ts-mocha", "virtual:33d4007d0290747430617a5c0eb2da58d74cdff8bc8263fdea6457aebe82a895aa6f9c4f9f07fab8e85221c695fc8a7b8d17e2e26cee5cd3bfae6b8271723910#npm:10.0.0"],\
-          ["tsx", "npm:4.16.5"],\
+          ["tsx", "npm:4.19.1"],\
           ["typescript", "patch:typescript@npm%3A5.5.4#optional!builtin<compat/typescript>::version=5.5.4&hash=379a07"]\
         ],\
         "linkType": "SOFT"\
@@ -6146,6 +6155,16 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["tsx", "npm:4.16.5"],\
           ["esbuild", "npm:0.21.5"],\
+          ["fsevents", "patch:fsevents@npm%3A2.3.3#optional!builtin<compat/fsevents>::version=2.3.3&hash=df0bf1"],\
+          ["get-tsconfig", "npm:4.8.0"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:4.19.1", {\
+        "packageLocation": "./.yarn/cache/tsx-npm-4.19.1-aace436c49-cbea9baf57.zip/node_modules/tsx/",\
+        "packageDependencies": [\
+          ["tsx", "npm:4.19.1"],\
+          ["esbuild", "npm:0.23.1"],\
           ["fsevents", "patch:fsevents@npm%3A2.3.3#optional!builtin<compat/fsevents>::version=2.3.3&hash=df0bf1"],\
           ["get-tsconfig", "npm:4.8.0"]\
         ],\
