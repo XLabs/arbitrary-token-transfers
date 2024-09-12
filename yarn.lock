@@ -1720,19 +1720,19 @@ __metadata:
     "@wormhole-foundation/sdk-base": "npm:^0.10.4"
     "@wormhole-foundation/sdk-definitions": "npm:^0.10.4"
     "@wormhole-foundation/sdk-solana-tokenbridge": "npm:^0.10.4"
-    "@xlabs/solana-price-oracle-sdk": "npm:0.0.2-alpha1"
+    "@xlabs/solana-price-oracle-sdk": "npm:0.0.3"
     typescript: "npm:^5.6.2"
   languageName: unknown
   linkType: soft
 
-"@xlabs/solana-price-oracle-sdk@npm:0.0.2-alpha1":
-  version: 0.0.2-alpha1
-  resolution: "@xlabs/solana-price-oracle-sdk@npm:0.0.2-alpha1::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40xlabs%2Fsolana-price-oracle-sdk%2F0.0.2-alpha1%2F1197464a18473e245d937e495bf6cb55c3a39bdc"
+"@xlabs/solana-price-oracle-sdk@npm:0.0.3":
+  version: 0.0.3
+  resolution: "@xlabs/solana-price-oracle-sdk@npm:0.0.3::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40xlabs%2Fsolana-price-oracle-sdk%2F0.0.3%2Fb1ddfdc81a27c89e38f504675363f543d10830d9"
   dependencies:
     "@coral-xyz/anchor": "npm:^0.30.1"
     "@solana/web3.js": "npm:^1.95.2"
     "@wormhole-foundation/sdk-base": "npm:^0.10.0"
-  checksum: 10c0/e8fea5951a88edc7b7cb939535d9ee179080118746561968405d72827c2d65fb72d8db2f7fdcc8ff5fed865beb196de5072bd95f5855c6644f4b32c9ae4a1db2
+  checksum: 10c0/1c26f86f9711f9098dc56fad712f2d2f74f3033fe296290b234e0fbfb309e57a1b50d6b80063f492f375b2c1eac90edfaa70e51a5d8028ee0065606f96509b11
   languageName: node
   linkType: hard
 
