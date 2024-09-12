@@ -3,6 +3,6 @@
   {
     "chainId": 10002,
     "oracleVersion": 0,
-    "initGasErc20TokenizationIsExplicit": false
+    "initGasErc20TokenizationIsExplicit": true
   }
 ]

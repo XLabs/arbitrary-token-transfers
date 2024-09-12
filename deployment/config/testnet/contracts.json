@@ -1,1 +1,11 @@
-{}
+{
+  "TbrV3": [
+    {
+      "chainId": 10002,
+      "address": "0xcfbEDC6B23EE8BA33619b33387595bB953393d25",
+      "constructorArgs": [
+        ""
+      ]
+    }
+  ]
+}

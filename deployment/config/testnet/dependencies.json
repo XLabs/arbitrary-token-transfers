@@ -2,7 +2,7 @@
   {
     "chainId": 10002,
     "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
-    "oracle": "0x000000000000000000000000000000000000000",
+    "oracle": "0x85aFc849a8df40096eF716CdAf2bA7230A2A93A6",
     "initGasToken": "0x7b79995e5f793a07bc00c21412e50ecae098e7f9"
   },
   {
