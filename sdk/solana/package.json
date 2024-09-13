@@ -3,13 +3,13 @@
   "version": "0.0.1-alpha3",
   "license": "ISC",
   "type": "module",
-  "module": "ts-build/sdk/solana/tbrv3/index.js",
-  "types": "ts-build/sdk/solana/tbrv3/index.d.ts",
+  "module": "ts-build/tbrv3/index.js",
+  "types": "ts-build/tbrv3/index.d.ts",
   "exports": {
     ".": {
-      "require": "./ts-build/sdk/solana/tbrv3/index.cjs",
-      "import": "./ts-build/sdk/solana/tbrv3/index.js",
-      "types": "./ts-build/sdk/solana/tbrv3/index.d.ts"
+      "require": "./ts-build/tbrv3/index.cjs",
+      "import": "./ts-build/tbrv3/index.js",
+      "types": "./ts-build/tbrv3/index.d.ts"
     }
   },
   "files": [

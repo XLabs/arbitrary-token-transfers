@@ -1426,7 +1426,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@wormhole-foundation/sdk-evm@npm:0.10.7":
+"@wormhole-foundation/sdk-evm@npm:0.10.7, @wormhole-foundation/sdk-evm@npm:^0.10.7":
   version: 0.10.7
   resolution: "@wormhole-foundation/sdk-evm@npm:0.10.7"
   dependencies:
@@ -2370,6 +2370,7 @@ __metadata:
     "@types/node": "npm:20.16.5"
     "@wormhole-foundation/sdk-base": "npm:^0.10.7"
     "@wormhole-foundation/sdk-definitions": "npm:^0.10.7"
+    "@wormhole-foundation/sdk-evm": "npm:^0.10.7"
     "@wormhole-foundation/sdk-solana": "npm:^0.10.7"
     "@xlabs-xyz/evm-arbitrary-token-transfers": "workspace:*"
     "@xlabs-xyz/ledger-signer": "npm:^0.0.4"
