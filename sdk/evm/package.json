@@ -1,10 +1,10 @@
 {
   "name": "@xlabs-xyz/evm-arbitrary-token-transfers",
-  "version": "0.0.1-alpha4",
+  "version": "0.0.1-alpha7",
   "description": "",
   "type": "module",
-  "module": "ts-build/sdk/evm/tbrv3/index.js",
-  "types": "ts-build/sdk/evm/tbrv3/index.d.ts",
+  "module": "ts-build/tbrv3/index.js",
+  "types": "ts-build/tbrv3/index.d.ts",
   "exports": {
     ".": {
       "require": "./ts-build/tbrv3/index.cjs",
@@ -19,8 +19,7 @@
     "test:deploy:integration": "yarn workspace deployment run deploy:evm:localnet && yarn test:integration"
   },
   "files": [
-    "build",
-    "!**/*.tsbuildinfo"
+    "ts-build"
   ],
   "repository": {
     "type": "git",

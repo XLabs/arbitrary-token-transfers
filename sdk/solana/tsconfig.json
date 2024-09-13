@@ -7,10 +7,6 @@
     "outDir": "ts-build",
     "rootDir": "../../"
   },
-  "files": [
-    "../../target/idl/token_bridge_relayer.json",
-    "../../target/types/token_bridge_relayer.ts"
-  ],
   "include": [
     "sdk/solana/tbrv3",
     "tbrv3/**/*.json"
