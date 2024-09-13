@@ -86,6 +86,14 @@ error GasTokenOnlyAcceptedViaWithdrawal();
  * The VAA does not contain a Token Bridge "Transfer with payload" message.
  */
 error UnexpectedMessage(uint8 payloadId, uint256 commandIndex);
+/**
+ * The token recipient cannot be the zero address.
+ */
+error InvalidTokenRecipient();
+/**
+ * The token amount cannot be zero.
+ */
+error InvalidTokenAmount();
 
 event TransferRequested(address sender, uint64 sequence, uint32 gasDropoff, uint256 fee);
 
@@ -111,22 +119,15 @@ abstract contract TbrUser is TbrBase {
     }
     uint16 destinationChain = TransferTokenWithRelay.decodeDestinationChain(transferCommand);
     (bytes32 peer, bool chainIsPaused, bool txCommitEthereum, uint32 maxGasDropoff) = getTargetChainData(destinationChain);
-    if (peer == bytes32(0)) {
-      revert DestinationChainIsNotSupported(destinationChain);
-    }
-    if (chainIsPaused) {
-      revert TransfersToChainArePaused(destinationChain);
-    }
     uint32 gasDropoff = TransferTokenWithRelay.decodeGasdropoff(transferCommand);
-    if (gasDropoff > maxGasDropoff) {
-      revert GasDropoffRequestedExceedsMaximum(maxGasDropoff, commandIndex);
-    }
+    bytes32 recipient = TransferTokenWithRelay.decodeRecipient(transferCommand);
+    uint256 tokenAmount = TransferTokenWithRelay.decodeTokenAmount(transferCommand);
+    commonTransferChecks(destinationChain, peer, recipient, tokenAmount, chainIsPaused, gasDropoff, maxGasDropoff, commandIndex);
     fee = quoteRelay(destinationChain, gasDropoff, txCommitEthereum);
     if (fee > unallocatedBalance) {
       revert FeesInsufficient(msg.value, commandIndex);
     }
 
-    uint256 tokenAmount = TransferTokenWithRelay.decodeTokenAmount(transferCommand);
     // Acquire tokens
     // FIXME?: here we assume that the token transfers the entire amount without any tax or reward acquisition.
     if (acquireMode == ACQUIRE_PREAPPROVED) {
@@ -180,7 +181,6 @@ abstract contract TbrUser is TbrBase {
       revert AcquireModeNotImplemented(acquireMode);
     }
 
-    bytes32 recipient = TransferTokenWithRelay.decodeRecipient(transferCommand);
     bool unwrapIntent = TransferTokenWithRelay.decodeUnwrapIntent(transferCommand);
     bytes memory tbrMessage = tbrv3Message(recipient, gasDropoff, unwrapIntent);
     // Perform call to token bridge.
@@ -189,6 +189,8 @@ abstract contract TbrUser is TbrBase {
 
     emit TransferRequested(msg.sender, sequence, gasDropoff, fee);
     // Return the fee that must be sent to the fee recipient.
+    // TODO: should we return the sequence to the caller too?
+    // We shouldn't do so until we can efficiently allocate the memory for the result though.
     return (fee, offset);
   }
 
@@ -212,15 +214,7 @@ abstract contract TbrUser is TbrBase {
 
     // Check transfer parameters
     (bytes32 peer, bool chainIsPaused, bool txCommitEthereum, uint32 maxGasDropoff) = getTargetChainData(destinationChain);
-    if (peer == bytes32(0)) {
-      revert DestinationChainIsNotSupported(destinationChain);
-    }
-    if (chainIsPaused) {
-      revert TransfersToChainArePaused(destinationChain);
-    }
-    if (gasDropoff > maxGasDropoff) {
-      revert GasDropoffRequestedExceedsMaximum(maxGasDropoff, commandIndex);
-    }
+    commonTransferChecks(destinationChain, peer, recipient, tokenAmount, chainIsPaused, gasDropoff, maxGasDropoff, commandIndex);
     fee = quoteRelay(destinationChain, gasDropoff, txCommitEthereum);
     if (fee + tokenAmount > unallocatedBalance) {
       revert FeesInsufficient(msg.value, commandIndex);
@@ -242,6 +236,33 @@ abstract contract TbrUser is TbrBase {
     return (fee, offset);
   }
 
+  function commonTransferChecks(
+    uint16 destinationChain,
+    bytes32 peer,
+    bytes32 recipient,
+    uint256 tokenAmount,
+    bool chainIsPaused,
+    uint32 gasDropoff,
+    uint32 maxGasDropoff,
+    uint256 commandIndex
+  ) internal pure {
+    if (peer == bytes32(0)) {
+      revert DestinationChainIsNotSupported(destinationChain);
+    }
+    if (chainIsPaused) {
+      revert TransfersToChainArePaused(destinationChain);
+    }
+    if (gasDropoff > maxGasDropoff) {
+      revert GasDropoffRequestedExceedsMaximum(maxGasDropoff, commandIndex);
+    }
+    if (recipient == bytes32(0)) {
+      revert InvalidTokenRecipient();
+    }
+    if (tokenAmount == 0) {
+      revert InvalidTokenAmount();
+    }
+  }
+
   function quoteRelay(uint16 destinationChain, uint32 gasDropoff, bool txCommitEthereum) view internal returns (uint256) {
     uint32 fee = getRelayFee();
     if (destinationChain == SOLANA_CHAIN) {
@@ -256,6 +277,7 @@ abstract contract TbrUser is TbrBase {
   }
 
   function tbrv3Message(bytes32 recipient, uint32 gasDropoff, bool unwrapIntent) internal pure returns (bytes memory) {
+    // From low byte offset to high byte offset:
     // 1 byte version
     // 32 byte recipient
     // 4 byte gas dropoff
