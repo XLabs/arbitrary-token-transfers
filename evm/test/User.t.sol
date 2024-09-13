@@ -85,7 +85,7 @@ contract UserTest is TbrTestBase {
     uint32 gasDropoff
   ) public {
     // Transaction arguments
-    gasDropoff = uint32(bound(gasDropoff, 1, MAX_GAS_DROPOFF));
+    gasDropoff = uint32(bound(gasDropoff, 1, MAX_GAS_DROPOFF_AMOUNT));
     bytes32 recipient = getFakeBytes32("recipient");
     bool unwrapIntent = false;
     uint msgValue = 1e6;
@@ -362,6 +362,60 @@ contract UserTest is TbrTestBase {
         acquireMode
       ),
       msgValue
+    );
+  }
+
+  function testRelayFee(uint32 gasDropoff) public {
+    gasDropoff = uint32(bound(gasDropoff, 1, MAX_GAS_DROPOFF_AMOUNT));
+    uint feeQuote = 1e6;
+    uint64 expectedFee = uint64(feeQuote) / 1e6;
+
+    // Mock the quote returned by the oracle
+    vm.mockCall(
+      address(oracle), 
+      abi.encodeWithSelector(IPriceOracle.get1959.selector), 
+      abi.encode(abi.encodePacked(uint256(feeQuote)))
+    );
+
+    bytes memory response = invokeTbr(
+      abi.encodePacked(
+        tbr.get1959.selector, 
+        DISPATCHER_PROTOCOL_VERSION0, 
+        RELAY_FEE_ID,
+        SOLANA_CHAIN_ID,
+        gasDropoff
+      )
+    );
+
+    uint offset;
+    bool isPaused;
+    uint64 fee;
+    (isPaused, offset) = response.asBoolUnchecked(offset);
+    (fee, offset) = response.asUint64Unchecked(offset);
+    assertEq(isPaused, false);
+    assertEq(fee, expectedFee);
+  }
+
+  function testRelayFee_GasDropoffExceedsMaximum() public {
+    uint32 gasDropoff = MAX_GAS_DROPOFF_AMOUNT + 1;
+    uint commandIndex = 0;
+
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        GasDropoffRequestedExceedsMaximum.selector, 
+        MAX_GAS_DROPOFF_AMOUNT, 
+        commandIndex
+      )
+    );
+
+    invokeTbr(
+      abi.encodePacked(
+        tbr.get1959.selector, 
+        DISPATCHER_PROTOCOL_VERSION0, 
+        RELAY_FEE_ID,
+        SOLANA_CHAIN_ID,
+        gasDropoff
+      )
     );
   }
 }
