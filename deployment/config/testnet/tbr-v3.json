@@ -1,6 +1,14 @@
 
 [
   {
+    "chainId": 1,
+    "feeRecipient": "hiUN9rS9VTPVGYc71Vf2d6iyFLvsQaSsqWhxydqdaZf",
+    "relayFee": 0,
+    "maxGasDropoff": "1",
+    "evmTransactionSize": "1000",
+    "evmTransactionGas": "1000"
+  },
+  {
     "chainId": 10002,
     "oracleVersion": 0,
     "initGasErc20TokenizationIsExplicit": true,
