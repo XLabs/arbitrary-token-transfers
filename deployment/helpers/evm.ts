@@ -84,3 +84,16 @@ export function getProvider(
   return provider;
 }
 
+export async function sendTx(
+  signer: ethers.Signer,
+  tx: ethers.TransactionRequest
+): Promise<{ error?: any, receipt: null | ethers.TransactionReceipt }> {
+  try {
+    const sentTx = await signer.sendTransaction(tx);
+    const receipt = await sentTx.wait();
+    return receipt?.status === 1 ? { receipt } : { receipt: null, error: "Transaction failed" };
+  } catch (error) {
+    console.error("Error sending transaction", error);
+    return { receipt: null, error }
+  }
+}

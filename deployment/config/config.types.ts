@@ -7,6 +7,6 @@ export type Tbrv3Config = ChainConfig & {
   oracleVersion: 0;
   initGasErc20TokenizationIsExplicit: boolean;
   relayFee: number;
-  maxGasDropoff: number;
+  maxGasDropoff: bigint;
   txSizeSensitive: boolean;
 };
