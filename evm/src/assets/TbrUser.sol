@@ -129,7 +129,7 @@ abstract contract TbrUser is TbrBase {
     }
 
     bytes32 recipient = TransferTokenWithRelay.decodeRecipient(transferCommand);
-    bool unwrapIntent = TransferTokenWithRelay.decodeUnrwapIntent(transferCommand);
+    bool unwrapIntent = TransferTokenWithRelay.decodeUnwrapIntent(transferCommand);
     bytes memory tbrMessage = tbrv3Message(recipient, gasDropoff, unwrapIntent);
     // Perform call to token bridge.
     SafeERC20.safeApprove(token, address(tokenBridge), tokenAmount);
@@ -271,9 +271,9 @@ library TransferTokenWithRelay {
   //   20 bytes token address
   uint256 constant private TOKEN_OFFSET = CHAIN_OFFSET + 2;
   //   32 bytes token amount
-  uint256 constant private TOKENAMOUNT_OFFSET = TOKEN_OFFSET + 20;
+  uint256 constant private TOKEN_AMOUNT_OFFSET = TOKEN_OFFSET + 20;
   //   4 bytes uint gasDropoff
-  uint256 constant private GAS_DROPOFF_OFFSET = TOKENAMOUNT_OFFSET + 32;
+  uint256 constant private GAS_DROPOFF_OFFSET = TOKEN_AMOUNT_OFFSET + 32;
   //   1 byte boolean unwrapIntent
   uint256 constant private UNWRAPINTENT_OFFSET = GAS_DROPOFF_OFFSET + 4;
   //   1 byte acquire mode discriminator:
@@ -336,7 +336,7 @@ library TransferTokenWithRelay {
   }
 
   function decodeTokenAmount(bytes memory transferCommand) internal pure returns (uint256) {
-    (uint256 tokenAmount,) = transferCommand.asUint256Unchecked(TOKENAMOUNT_OFFSET);
+    (uint256 tokenAmount,) = transferCommand.asUint256Unchecked(TOKEN_AMOUNT_OFFSET);
     return tokenAmount;
   }
 
@@ -345,10 +345,11 @@ library TransferTokenWithRelay {
     return tokenAmount;
   }
 
-  function decodeUnrwapIntent(bytes memory transferCommand) internal pure returns (bool) {
+  function decodeUnwrapIntent(bytes memory transferCommand) internal pure returns (bool) {
     (bool unwrapIntent,) = transferCommand.asBoolUnchecked(UNWRAPINTENT_OFFSET);
     return unwrapIntent;
   }
+}
 
 }
 
