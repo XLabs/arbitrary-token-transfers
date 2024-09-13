@@ -29,10 +29,12 @@ async function run() {
 
   try {
     const sourceChain = getEnv('SOURCE_CHAIN');
+    const inputToken = getEnv('INPUT_TOKEN');
 
     const chain = chains.find((chain) => chain.chainId === Number(sourceChain));
 
     console.log(`Operating chain: ${inspect(chain)}`);
+    console.log(`Input token: ${inputToken}`);
 
     if (!chain) {
       throw new Error(`Unsupported chainId: ${sourceChain}`);
@@ -48,6 +50,8 @@ async function run() {
         .filter((targetChain) => chain.chainId !== targetChain.chainId)
         .map(async (targetChain) => {
           try {
+            console.log(`Creating transfer for ${chain.name}->${targetChain.name}`);
+
             const address = await signer.getAddress();
 
             const isChainSupported = tbrv3.isChainSupported(targetChain.name as SupportedChains);
@@ -59,8 +63,6 @@ async function run() {
                 description: `Chain ${targetChain.name} is not supported`,
               });
               throw new Error(`Chain ${targetChain.name} is not supported`);
-            } else {
-              console.log(`Chain ${targetChain.name} is supported`);
             }
 
             const feeEstimation = (
@@ -82,7 +84,7 @@ async function run() {
                   chain: targetChain.name as Chain,
                   address: toUniversal(targetChain.name as Chain, address),
                 },
-                inputToken: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
+                inputToken,
                 unwrapIntent: false,
               },
               feeEstimation,
