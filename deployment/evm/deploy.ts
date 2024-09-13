@@ -5,7 +5,7 @@ import {
   getDependencyAddress,
   writeDeployedContract
 } from "../helpers";
-import { Tbrv3Config } from "./config.types";
+import { Tbrv3Config } from "../config/config.types";
 import { ethers } from "ethers";
 import { Tbr__factory, Proxy__factory } from "../ethers-contracts/index.js";
 import { getSigner } from "../helpers/evm";
