@@ -1,6 +1,6 @@
-import { AnchorProvider, BN } from "@coral-xyz/anchor";
-import { PublicKey, TransactionSignature } from "@solana/web3.js";
-import { Chain } from "@wormhole-foundation/sdk-base";
+import { AnchorProvider, BN } from '@coral-xyz/anchor';
+import { PublicKey, TransactionSignature } from '@solana/web3.js';
+import { Chain } from '@wormhole-foundation/sdk-base';
 import {
   TbrClient,
   ReadTbrAccounts,
@@ -14,6 +14,7 @@ import { sendAndConfirmIx } from "./helpers.js";
 export class ClientWrapper {
   private readonly client: TbrClient;
   readonly provider: AnchorProvider;
+  readonly logs: { [key: string]: string[] };
 
   constructor(
     provider: AnchorProvider,
@@ -21,6 +22,9 @@ export class ClientWrapper {
   ) {
     this.provider = provider;
     this.client = new TbrClient(provider.connection, params);
+    this.logs = {};
+
+    provider.connection.onLogs('all', (l) => (this.logs[l.signature] = l.logs));
   }
 
   get publicKey(): PublicKey {
@@ -29,6 +33,18 @@ export class ClientWrapper {
 
   get read(): ReadTbrAccounts {
     return this.client.read;
+  }
+
+  displayLogs(signature: string) {
+    //console.log('ALL', this._logs);
+    let lines = this.logs[signature];
+    if (lines === undefined) {
+      lines = ['<logs not found>'];
+    }
+    console.log(`Signature '${signature}':`);
+    for (const line of lines) {
+      console.log(`  > ${line}`);
+    }
   }
 
   async initialize(): Promise<TransactionSignature> {

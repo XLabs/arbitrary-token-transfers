@@ -12,9 +12,13 @@
     "@types/mocha": "8.*",
     "@wormhole-foundation/sdk-base": "^0.10.4",
     "@xlabs-xyz/solana-arbitrary-token-transfers": "workspace:^",
+    "bn.js": "^5.2.1",
     "chai": "^5.0",
     "mocha": "8.*",
     "ts-mocha": "8.*",
     "typescript": "^5.0"
+  },
+  "devDependencies": {
+    "@types/bn.js": "^5.1.0"
   }
 }

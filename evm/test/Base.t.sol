@@ -5,6 +5,7 @@ pragma solidity ^0.8.25;
 import { TbrTestBase } from "./utils/TbrTestBase.sol";
 import "./utils/TbrExposer.sol";
 import "tbr/assets/TbrBase.sol";
+import "./utils/Receiver.sol";
 
 contract BaseTest is TbrTestBase {
 
@@ -96,5 +97,23 @@ contract BaseTest is TbrTestBase {
     assertEq(txSensitive, txSizeSensitive);
     assertEq(maxGasDropoff, expectedMaxGasDropoff);
     assertEq(isPaused, paused);
+  }
+
+  function testTransferEthToAccount(uint256 amount) public {
+    address fakeAddress = makeAddr("fakeAddress");
+    vm.deal(address(tbrExposer), amount);
+
+    assertEq(address(fakeAddress).balance, 0);
+    tbrExposer.exposedTransferEth(fakeAddress, amount);
+    assertEq(address(fakeAddress).balance, amount);
+  }
+
+  function testTransferEthToContract(uint256 amount) public {
+    address fakeAddress = address(new Receiver());
+    vm.deal(address(tbrExposer), amount);
+
+    assertEq(address(fakeAddress).balance, 0);
+    tbrExposer.exposedTransferEth(fakeAddress, amount);
+    assertEq(address(fakeAddress).balance, amount);
   }
 }

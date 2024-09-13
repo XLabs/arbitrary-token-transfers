@@ -1,5 +1,5 @@
-import { Chain, CustomConversion, Layout, ManualSizePureBytes, NamedLayoutItem, UintLayoutItem } from "@wormhole-foundation/sdk-base";
-import { layoutItems } from "@wormhole-foundation/sdk-definitions";
+import type { Chain, CustomConversion, Layout, ManualSizePureBytes, NamedLayoutItem, UintLayoutItem } from "@wormhole-foundation/sdk-base";
+import { layoutItems, type UniversalAddress } from "@wormhole-foundation/sdk-definitions";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
 
 // TODO: update supported chains to the actual chains supported
@@ -118,6 +118,19 @@ export type RelayingFeesReturn = readonly RelayingFeesReturnItem[];
 export const maxGasDropoffLayout = { name: "targetChain", ...supportedChainItem } as const satisfies NamedLayoutItem;
 export interface BaseRelayingParamsReturnItem {
   /**
+   * This is the TBRv3 peer address on the chosen chain.
+   */
+  peer: UniversalAddress;
+  /**
+   * If true, outbound transfers are rejected to this chain.
+   */
+  paused: boolean;
+  /**
+   * If true, txs sent to this chain are later committed in the Ethereum chain.
+   * This is mostly informational as it only matters for quoting prices for relays.
+   */
+  txCommitEthereum: boolean;
+  /**
    * This is denominated in μETH or equivalent for EVM native tokens.
    * Equivalently, Twei, 10 ** 12 wei.
    */
@@ -137,6 +150,9 @@ export const baseRelayingConfigInputLayout = [
 ] as const satisfies Layout;
 
 export const baseRelayingConfigReturnLayout = [
+  { name: "peer", ...layoutItems.universalAddressItem },
+  { name: "paused", ...layoutItems.boolItem },
+  { name: "txCommitEthereum", ...layoutItems.boolItem },
   { name: "maxGasDropoff", binary: "uint", size: 4 },
   { name: "baseFee", binary: "uint", size: 4 },
 ] as const satisfies Layout;
@@ -150,7 +166,7 @@ export const dispatcherLayout = {
     //active user methods
     [[0, "TransferTokenWithRelay"], transferTokenWithRelayLayout],
     [[1, "TransferGasTokenWithRelay" ], transferGasTokenWithRelayLayout],
-    [[2, "Complete"], [{ name: "vaa", binary: "bytes" }]],
+    [[2, "CompleteTransfer"], [{ name: "vaa", binary: "bytes", lengthSize: 2 }]],
     //TODO governance methods
 
     // Queries

@@ -3,15 +3,27 @@
 pragma solidity ^0.8.25;
 
 import { Tbr } from "tbr/Tbr.sol";
+import {IPermit2} from "wormhole-sdk/interfaces/token/IPermit2.sol";
+import {ITokenBridge} from "wormhole-sdk/interfaces/ITokenBridge.sol";
+import {IWETH} from "wormhole-sdk/interfaces/token/IWETH.sol";
 
 contract TbrExposer is Tbr {
 
   constructor(
-    address _permit2, 
-    address _tokenBridge,
-    address _oracle, 
-    uint8 _oracleVersion
-  ) Tbr(_permit2, _tokenBridge, _oracle, _oracleVersion) {}
+    IPermit2 initPermit2,
+    ITokenBridge initTokenBridge,
+    address oracle,
+    uint8 oracleVersion,
+    IWETH initGasToken,
+    bool initGasErc20TokenizationIsExplicit
+  ) Tbr(
+    initPermit2, 
+    initTokenBridge, 
+    oracle, 
+    oracleVersion, 
+    initGasToken, 
+    initGasErc20TokenizationIsExplicit
+  ) {}
 
   function exposedAddPeer(uint16 chainId, bytes32 peer) public {
     addPeer(chainId, peer);
@@ -43,5 +55,9 @@ contract TbrExposer is Tbr {
 
   function exposedSetPause(uint16 chainId, bool paused) public {
     setPause(chainId, paused);
+  }
+
+  function exposedTransferEth(address to, uint256 amount) public {
+    transferEth(to, amount);
   }
 }

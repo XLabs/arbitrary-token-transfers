@@ -1226,6 +1226,7 @@ export type TokenBridgeRelayer = {
         },
         {
           "name": "chainConfig",
+          "writable": true,
           "pda": {
             "seeds": [
               {

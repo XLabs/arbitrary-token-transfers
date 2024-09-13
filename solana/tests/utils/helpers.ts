@@ -1,4 +1,4 @@
-import { AnchorProvider, BN, Wallet, Provider } from "@coral-xyz/anchor";
+import { AnchorProvider, BN, Wallet, Provider } from '@coral-xyz/anchor';
 import {
   PublicKey,
   Transaction,
@@ -9,10 +9,11 @@ import {
   Keypair,
   RpcResponseAndContext,
   SignatureResult,
-} from "@solana/web3.js";
-import { expect } from "chai";
+} from '@solana/web3.js';
+import { ChainConfigAccount } from '@xlabs-xyz/solana-arbitrary-token-transfers';
+import { expect } from 'chai';
 
-const LOCALHOST = "http://localhost:8899";
+const LOCALHOST = 'http://localhost:8899';
 
 export interface ErrorConstructor {
   new (...args: any[]): Error;
@@ -34,6 +35,15 @@ export async function assertResolveFailure(
   throw new Error(`Did not fail. Result: ${result}`);
 }
 
+export function assertEqChainConfigs(left: ChainConfigAccount, right: ChainConfigAccount) {
+  expect(Buffer.from(left.canonicalPeer).toString('hex')).equal(
+    Buffer.from(right.canonicalPeer).toString('hex'),
+  );
+  assertEqBns(left.maxGasDropoff, right.maxGasDropoff);
+  expect(left.pausedOutboundTransfers).equal(right.pausedOutboundTransfers);
+  assertEqBns(left.relayerFee, right.relayerFee);
+}
+
 export function assertEqKeys(left: PublicKey, right: PublicKey) {
   expect(left.toString()).equal(right.toString());
 }
@@ -52,7 +62,7 @@ export async function sendAndConfirmIx(
 }
 
 export function newProvider(): AnchorProvider {
-  const connection = new Connection(LOCALHOST, "processed");
+  const connection = new Connection(LOCALHOST, 'processed');
   const wallet = new Wallet(new Keypair());
 
   return new AnchorProvider(connection, wallet);
@@ -60,7 +70,7 @@ export function newProvider(): AnchorProvider {
 
 export async function requestAirdrop(provider: Provider) {
   if (provider.publicKey === undefined) {
-    throw new Error("The provider must have a public key to request airdrop");
+    throw new Error('The provider must have a public key to request airdrop');
   }
 
   await confirmTransaction(

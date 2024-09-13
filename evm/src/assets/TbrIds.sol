@@ -10,7 +10,7 @@ uint8 constant DISPATCHER_PROTOCOL_VERSION0 = 0;
 
 uint8 constant TRANSFER_TOKEN_WITH_RELAY_ID = 0;
 uint8 constant TRANSFER_GAS_TOKEN_WITH_RELAY_ID = 1;
-uint8 constant COMPLETE_ID = 2;
+uint8 constant COMPLETE_TRANSFER_ID = 2;
 uint8 constant GOVERNANCE_ID = 3;
 
 // Query commands
@@ -49,6 +49,10 @@ uint8 constant CANONICAL_PEER = 0x85;
 uint8 constant OWNER = 0x86;
 uint8 constant IS_CHAIN_SUPPORTED = 0x87;
 uint8 constant PENDING_OWNER = 0x88;
-uint8 constant ADMIN = 0x89;
+uint8 constant IS_ADMIN = 0x89;
 uint8 constant FEE_RECIPIENT = 0x8A;
 uint8 constant IMPLEMENTATION = 0x8B;
+
+// ----------- Token Bridge Ids ---------
+
+uint8 constant TB_TRANSFER_WITH_PAYLOAD = 3;
