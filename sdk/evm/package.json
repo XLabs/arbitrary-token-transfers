@@ -3,8 +3,8 @@
   "version": "0.0.1-alpha4",
   "description": "",
   "type": "module",
-  "module": "ts-build/tbrv3/index.js",
-  "types": "ts-build/tbrv3/index.d.ts",
+  "module": "ts-build/sdk/evm/tbrv3/index.js",
+  "types": "ts-build/sdk/evm/tbrv3/index.d.ts",
   "exports": {
     ".": {
       "require": "./ts-build/tbrv3/index.cjs",
