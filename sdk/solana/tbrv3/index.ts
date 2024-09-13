@@ -5,7 +5,7 @@ import { Chain, chainToChainId, encoding } from "@wormhole-foundation/sdk-base";
 import { SolanaPriceOracleClient } from "@xlabs/solana-price-oracle-sdk";
 
 import { TokenBridgeRelayer } from "./idl/token_bridge_relayer.js";
-import * as IDL from "./idl/token_bridge_relayer.json";
+import * as IDL from "./idl/token_bridge_relayer.json" with { type: "json" };
 import {
   getTransferNativeWithPayloadCpiAccounts,
   getTransferWrappedWithPayloadCpiAccounts,

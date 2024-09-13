@@ -1,17 +1,12 @@
-import type { Chain, CustomConversion, Layout, ManualSizePureBytes, NamedLayoutItem, UintLayoutItem } from "@wormhole-foundation/sdk-base";
+import { ManualSizePureBytes, UintLayoutItem, type Chain, type CustomConversion, type Layout, type LayoutToType, type NamedLayoutItem } from "@wormhole-foundation/sdk-base";
 import { layoutItems, type UniversalAddress } from "@wormhole-foundation/sdk-definitions";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
 
+
 // TODO: update supported chains to the actual chains supported
-export const supportedChains = ["Ethereum", "Solana"] as const satisfies readonly Chain[];
+export const supportedChains = ["Ethereum", "Solana", "Arbitrum", "Base", "Sepolia", "BaseSepolia", "OptimismSepolia"] as const satisfies readonly Chain[];
 export const supportedChainItem = layoutItems.chainItem({allowedChains: supportedChains});
-
 export type SupportedChains = typeof supportedChains[number];
-
-export const recipientLayout = [
-  { name: "address", ...layoutItems.universalAddressItem },
-  { name: "chain", ...supportedChainItem },
-] as const satisfies Layout;
 
 export const evmAddressItem = {
   binary: "bytes",
@@ -21,6 +16,34 @@ export const evmAddressItem = {
     from: (addr: string) => new EvmAddress(addr).toUint8Array(),
   } satisfies CustomConversion<Uint8Array, string>,
 } as const satisfies ManualSizePureBytes;
+
+export const gasDropoffItem = {
+  binary: "uint",
+  size: 4,
+  custom: {
+    to: (encoded: number): bigint => BigInt(encoded),
+    from: (dropoff: bigint): number => Number(dropoff),
+  } as const satisfies CustomConversion<number, bigint>,
+} as const satisfies UintLayoutItem;
+
+export const subArrayLayout = <const N extends string, const L extends Layout>(
+  name: N,
+  layout: L
+) =>
+  [
+    {
+      name,
+      binary: "array",
+      lengthSize: 1,
+      layout: layout,
+    },
+  ] as const;
+
+export const recipientLayout = [
+  { name: "address", ...layoutItems.universalAddressItem },
+  { name: "chain", ...supportedChainItem },
+] as const satisfies Layout;
+
 
 export const acquireModeItem = {
   name: "acquireMode",
@@ -60,14 +83,6 @@ export function gasDropoffUnit(chain: SupportedChains): bigint {
   throw new Error(`Unknown/unsupported chain ${chain}.`);
 }
 
-export const gasDropoffItem = {
-  binary: "uint",
-  size: 4,
-  custom: {
-    to: (encoded: number): bigint => BigInt(encoded),
-    from: (dropoff: bigint): number => Number(dropoff),
-  } as const satisfies CustomConversion<number, bigint>,
-} as const satisfies UintLayoutItem;
 
 export const transferTokenWithRelayLayout = [
   { name: "recipient", binary: "bytes", layout: recipientLayout },
@@ -157,6 +172,129 @@ export const baseRelayingConfigReturnLayout = [
   { name: "baseFee", binary: "uint", size: 4 },
 ] as const satisfies Layout;
 
+export const tokenItem = {
+  name: "token",
+  ...evmAddressItem
+} as const satisfies NamedLayoutItem;
+
+export const amountItem = {
+  name: "amount",
+  ...layoutItems.amountItem
+} as const satisfies NamedLayoutItem;
+
+export const maxGasDropoffItem = {
+  name: "maxGasDropoff",
+  ...gasDropoffItem
+} as const satisfies NamedLayoutItem;
+
+export const recipientItem = {
+  name: "recipient",
+  ...evmAddressItem
+} as const satisfies NamedLayoutItem;
+
+export const feeItem = {
+  name: "fee",
+  binary: "uint",
+  size: 4
+} as const satisfies NamedLayoutItem;
+
+export const isPausedItem = {
+  name: "isPaused",
+  ...layoutItems.boolItem
+} as const satisfies NamedLayoutItem;
+
+export const targetChainItem = {
+  name: "targetChain",
+  ...supportedChainItem
+} as const satisfies NamedLayoutItem;
+
+export const peerItem = {
+  name: "peer",
+  binary: "bytes",
+  size: 32
+} as const satisfies NamedLayoutItem;
+
+export const adminItem = {
+  name: "admin",
+  ...evmAddressItem
+} as const satisfies NamedLayoutItem;
+
+export const txSizeSensitiveItem = {
+  name: "txSizeSensitive",
+  ...evmAddressItem
+} as const satisfies NamedLayoutItem;
+
+export const contractItem = {
+  name: "contract",
+  ...evmAddressItem
+} as const satisfies NamedLayoutItem;
+
+export const ownerItem = { 
+  name: "owner", 
+  ...evmAddressItem 
+} as const satisfies NamedLayoutItem;
+
+
+const peerChainItem = {
+  name: "chain", ...layoutItems.chainItem({ allowedChains: supportedChains }) 
+} as const satisfies NamedLayoutItem;
+
+const governanceCommandRawLayout = 
+  { 
+    binary: "switch",
+    idSize: 1,
+    idTag: "command",
+    layouts: [
+      [[0, "AddPeer"], [peerChainItem, peerItem]],
+      [[1, "SweepTokens"], [tokenItem, amountItem]],
+      [[2, "UpdateMaxGasDropoff"], [peerChainItem, maxGasDropoffItem]],
+      [[3, "UpdateFeeRecipient"], [recipientItem]],
+      [[4, "UpdateRelayFee"], [feeItem]],
+      [[5, "PauseOutboundTransfers"], [peerChainItem, isPausedItem]],
+      [[6, "UpdateTxSizeSensitive"], [peerChainItem, txSizeSensitiveItem]],
+      [[7, "UpdateAdmin"], [{ ...layoutItems.boolItem, name: "isAdmin" }, adminItem]],
+      [[8, "UpdateCanonicalPeer"], [peerChainItem, peerItem]],
+      [[9, "UpgradeContract"], [contractItem]],
+      [[10, "ProposeOwnershipTransfer"], [ownerItem]],
+      [[11, "RelinquishOwnership"], []],
+    ]
+  } as const satisfies Layout;
+
+export type GovernanceCommandRaw = LayoutToType<typeof governanceCommandRawLayout>;
+type ExcludedCommands = {
+  readonly name: "AddPeer";
+  readonly peer: Uint8Array;
+} | {
+  readonly name: "UpdateCanonicalPeer";
+  readonly peer: Uint8Array;
+};
+export type GovernanceCommand = 
+    { readonly name: "AddPeer", peer: UniversalAddress } |
+    { readonly name: "UpdateCanonicalPeer", peer: UniversalAddress } |
+    Exclude<GovernanceCommandRaw['command'], ExcludedCommands>
+
+
+export const governanceQueryLayout = {
+  binary: "switch",
+  idSize: 1,
+  idTag: "query",
+  layouts: [
+    [[0x80, "RelayFee"], []],
+    [[0x81, "MaxGasDropoff"], [{ ...targetChainItem, name: "chain" }]],
+    [[0x82, "IsChainPaused"], [{ ...targetChainItem, name: "chain" }]],
+    [[0x83, "IsPeer"], [{ ...targetChainItem, name: "chain" }, { ...peerItem, name: "peer" }]],
+    [[0x84, "IsTxSizeSensitive"], [{ ...targetChainItem, name: "chain" }]],
+    [[0x85, "CanonicalPeer"], [targetChainItem]],
+    [[0x86, "Owner"], []],
+    [[0x87, "IsChainSupported"], [{ ...targetChainItem, name: "chain" }]],
+    [[0x88, "PendingOwner"], []],
+    [[0x89, "IsAdmin"], [{ ...evmAddressItem, name: "address" }]],
+    [[0x8A, "FeeRecipient"], []],
+    [[0x8B, "Implementation"], []],
+  ],
+} as const satisfies Layout;
+export type GovernanceQuery = LayoutToType<typeof governanceQueryLayout>;
+
 export const dispatcherLayout = {
   name: "dispatcher",
   binary: "switch",
@@ -167,11 +305,14 @@ export const dispatcherLayout = {
     [[0, "TransferTokenWithRelay"], transferTokenWithRelayLayout],
     [[1, "TransferGasTokenWithRelay" ], transferGasTokenWithRelayLayout],
     [[2, "CompleteTransfer"], [{ name: "vaa", binary: "bytes", lengthSize: 2 }]],
-    //TODO governance methods
+    // Governance
+    [[3, "GovernanceCommand"], subArrayLayout("commands", governanceCommandRawLayout)],
 
     // Queries
     [[0x80, "RelayFee"], relayingFeesInputLayout],
     [[0x81, "BaseRelayingConfig"], baseRelayingConfigInputLayout],
+    // Governance
+    [[0x82, "GovernanceQuery"], subArrayLayout("queries", governanceQueryLayout)],
   ]
 } as const satisfies NamedLayoutItem;
 
@@ -208,3 +349,9 @@ export const versionedTbrMessageLayout = {
     }]],
   ]
 } as const satisfies NamedLayoutItem;
+
+export const proxyConstructorLayout = [
+  { name: "owner", ...evmAddressItem },
+  { name: "admin", ...evmAddressItem },
+  { name: "feeRecipient", ...evmAddressItem },
+] as const satisfies Layout;

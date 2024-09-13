@@ -70,7 +70,7 @@ export async function getChainConfig<T extends ChainConfig>(filename: string, wh
   const chainConfig = scriptConfig.find((x) => x.chainId == whChainId);
 
   if (!chainConfig) {
-    throw Error(`Failed to find chain config for chain ${whChainId}`);
+    throw Error(`Failed to find ${filename} config for chain ${whChainId}`);
   }
 
   return chainConfig;
@@ -117,9 +117,6 @@ export function getDependencyAddress(dependencyName: keyof Dependencies, chain: 
     tokenBridge,
   } = connectDependencies;
 
-  const symbol = "USDC";
-  const nativeUSDC = (t: Token) => t.symbol === symbol && t.original === undefined
-  const token = getTokensBySymbol(chain.network, toChain(chain.chainId), symbol)?.find(nativeUSDC)?.address;
 
   const dependencies = {
     wormhole: coreBridge.get(chain.network, toChain(chain.chainId)),
@@ -181,7 +178,7 @@ export function writeDeployedContract(whChainId: ChainId, contractName: string, 
   
   fs.writeFileSync(
     `./config/${env}/contracts.json`,
-    JSON.stringify(contracts),
+    JSON.stringify(contracts, null, 2),
     { flag: "w" }
   );
 }

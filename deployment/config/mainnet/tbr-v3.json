@@ -1,0 +1,11 @@
+
+[
+  {
+    "chainId": 2,
+    "owner": "",
+    "admin": "",
+    "feeRecipient": "",
+    "oracleVersion": 0,
+    "initGasErc20TokenizationIsExplicit": false
+  }
+]

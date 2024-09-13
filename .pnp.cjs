@@ -1706,6 +1706,16 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@wormhole-foundation/sdk-definitions", [\
+      ["npm:0.10.5", {\
+        "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-definitions-npm-0.10.5-17e99026f8-8face24197.zip/node_modules/@wormhole-foundation/sdk-definitions/",\
+        "packageDependencies": [\
+          ["@wormhole-foundation/sdk-definitions", "npm:0.10.5"],\
+          ["@noble/curves", "npm:1.6.0"],\
+          ["@noble/hashes", "npm:1.5.0"],\
+          ["@wormhole-foundation/sdk-base", "npm:0.10.5"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
       ["npm:0.10.6", {\
         "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-definitions-npm-0.10.6-67d3e991d5-93d2b116d6.zip/node_modules/@wormhole-foundation/sdk-definitions/",\
         "packageDependencies": [\
@@ -1752,8 +1762,7 @@ const RAW_RUNTIME_STATE =
           ["@coral-xyz/borsh", "virtual:852da326f150408584798524fe58e9855b987bcc4f041389e1ca13248c23c659c3ffb4a9aa4176cc7542f503f2e1e6422a1f18f69e5e623ca255691d222a55ca#npm:0.29.0"],\
           ["@solana/web3.js", "npm:1.95.3"],\
           ["@wormhole-foundation/sdk-connect", "npm:0.10.6"],\
-          ["@wormhole-foundation/sdk-solana", "npm:0.10.6"],\
-          ["bn.js", "npm:5.2.1"]\
+          ["@wormhole-foundation/sdk-solana", "npm:0.10.6"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -1768,8 +1777,7 @@ const RAW_RUNTIME_STATE =
           ["@solana/web3.js", "npm:1.95.3"],\
           ["@wormhole-foundation/sdk-connect", "npm:0.10.6"],\
           ["@wormhole-foundation/sdk-solana", "npm:0.10.6"],\
-          ["@wormhole-foundation/sdk-solana-core", "npm:0.10.6"],\
-          ["bn.js", "npm:5.2.1"]\
+          ["@wormhole-foundation/sdk-solana-core", "npm:0.10.6"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -1779,11 +1787,15 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./sdk/evm/",\
         "packageDependencies": [\
           ["@xlabs-xyz/evm-arbitrary-token-transfers", "workspace:sdk/evm"],\
+          ["@types/chai", "npm:4.3.19"],\
+          ["@types/mocha", "npm:10.0.7"],\
           ["@types/node", "npm:20.16.5"],\
           ["@wormhole-foundation/sdk-base", "npm:0.10.6"],\
           ["@wormhole-foundation/sdk-definitions", "npm:0.10.6"],\
           ["@wormhole-foundation/sdk-evm", "npm:0.10.6"],\
+          ["chai", "npm:5.1.1"],\
           ["ethers", "npm:6.13.2"],\
+          ["mocha", "npm:10.7.3"],\
           ["tsup", "virtual:056deaaa1268de825ebb7f2126e3a2787838e2876e69eb46bc3ce4857072f92cede74aabe3915aa2d505c2a087a7d59d9170f4e7cc6428f30bd09123b7267c8f#npm:8.2.4"],\
           ["tsx", "npm:4.19.1"],\
           ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=8c6c40"]\
@@ -2807,16 +2819,21 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./deployment/",\
         "packageDependencies": [\
           ["deployment", "workspace:deployment"],\
+          ["@coral-xyz/anchor", "npm:0.30.1"],\
           ["@solana/web3.js", "npm:1.95.3"],\
           ["@typechain/ethers-v6", "virtual:5449dbfbc8f715fdbd2c737c0a09a82e4cd2ffe644d99dd1bc0581b0889f04b69068ed991ce11b47be2adc46d31415f8c245c393d61c33529fcc22e453281945#npm:0.5.1"],\
           ["@types/node", "npm:20.16.5"],\
           ["@wormhole-foundation/sdk-base", "npm:0.10.6"],\
+          ["@wormhole-foundation/sdk-definitions", "npm:0.10.5"],\
           ["@xlabs-xyz/evm-arbitrary-token-transfers", "workspace:sdk/evm"],\
           ["@xlabs-xyz/ledger-signer", "npm:0.0.4"],\
           ["@xlabs-xyz/ledger-signer-ethers-v6", "npm:0.0.1"],\
           ["@xlabs-xyz/ledger-signer-solana", "npm:0.0.1"],\
+          ["@xlabs-xyz/solana-arbitrary-token-transfers", "workspace:sdk/solana"],\
           ["chalk", "npm:5.3.0"],\
+          ["dotenv", "npm:16.4.5"],\
           ["ethers", "npm:6.13.2"],\
+          ["tsx", "npm:4.19.0"],\
           ["typechain", "virtual:5449dbfbc8f715fdbd2c737c0a09a82e4cd2ffe644d99dd1bc0581b0889f04b69068ed991ce11b47be2adc46d31415f8c245c393d61c33529fcc22e453281945#npm:8.3.2"],\
           ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=8c6c40"]\
         ],\
@@ -2872,6 +2889,15 @@ const RAW_RUNTIME_STATE =
           ["dot-case", "npm:3.0.4"],\
           ["no-case", "npm:3.0.4"],\
           ["tslib", "npm:2.7.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["dotenv", [\
+      ["npm:16.4.5", {\
+        "packageLocation": "./.yarn/cache/dotenv-npm-16.4.5-bcb20eb95d-48d9287007.zip/node_modules/dotenv/",\
+        "packageDependencies": [\
+          ["dotenv", "npm:16.4.5"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -5942,6 +5968,16 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["tsx", [\
+      ["npm:4.19.0", {\
+        "packageLocation": "./.yarn/cache/tsx-npm-4.19.0-912efa055b-d14463a780.zip/node_modules/tsx/",\
+        "packageDependencies": [\
+          ["tsx", "npm:4.19.0"],\
+          ["esbuild", "npm:0.23.1"],\
+          ["fsevents", "patch:fsevents@npm%3A2.3.3#optional!builtin<compat/fsevents>::version=2.3.3&hash=df0bf1"],\
+          ["get-tsconfig", "npm:4.8.0"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
       ["npm:4.19.1", {\
         "packageLocation": "./.yarn/cache/tsx-npm-4.19.1-aace436c49-cbea9baf57.zip/node_modules/tsx/",\
         "packageDependencies": [\
