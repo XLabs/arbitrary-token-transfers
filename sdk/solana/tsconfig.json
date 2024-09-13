@@ -2,11 +2,9 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "lib": [
-      "ES2023"
+      "es2023"
     ],
-    "module": "CommonJS",
-    "moduleResolution": "Node",
-    "outDir": "ts-build",
+    "outDir": "ts-build"
   },
   "include": [
     "tbrv3",
