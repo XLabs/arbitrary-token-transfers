@@ -14,8 +14,8 @@ contract BaseRelayingConfigTest is Test {
   function parseBaseRelayingConfigArgs(
     bytes calldata data, 
     uint256 commandIndex
-  ) external pure returns (uint16 chainId, uint256 offset) {
-    (chainId, offset) = BaseRelayingConfig.parseBaseRelayingConfigArgs(data, commandIndex);
+  ) external pure returns (uint16 chainId, uint256 consumedBytes) {
+    (chainId, consumedBytes) = BaseRelayingConfig.parseBaseRelayingConfigArgs(data, commandIndex);
   }
 
   function testParseBaseRelayingConfigArgs(uint16 chainId) public view {
