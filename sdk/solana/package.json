@@ -1,6 +1,6 @@
 {
   "name": "@xlabs-xyz/solana-arbitrary-token-transfers",
-  "version": "0.0.1-alpha1",
+  "version": "0.0.1-alpha2",
   "license": "ISC",
   "type": "module",
   "module": "ts-build/tbrv3/index.js",
@@ -12,6 +12,10 @@
       "types": "./ts-build/tbrv3/index.d.ts"
     }
   },
+  "files": [
+    "ts-build/tbrv3",
+    "!**/*.tsbuildinfo"
+  ],
   "scripts": {
     "build": "tsc --noEmit -p ./tsconfig.json && tsup",
     "prettier": "prettier --write ."
