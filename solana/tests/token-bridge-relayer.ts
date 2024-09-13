@@ -7,6 +7,7 @@ import {
   assertEqBns,
   newProvider,
   requestAirdrop,
+  assertEqChainConfigs,
 } from "./utils/helpers.js";
 import { ClientWrapper } from "./utils/client-wrapper.js";
 import { describe } from "mocha";
