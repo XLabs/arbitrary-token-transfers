@@ -3,6 +3,33 @@
   {
     "chainId": 10002,
     "oracleVersion": 0,
-    "initGasErc20TokenizationIsExplicit": true
+    "initGasErc20TokenizationIsExplicit": true,
+    "relayFee": 1,
+    "maxGasDropoff": 1,
+    "txSizeSensitive": false
+  },
+  {
+    "chainId": 10003,
+    "oracleVersion": 0,
+    "initGasErc20TokenizationIsExplicit": true,
+    "relayFee": 1000,
+    "maxGasDropoff": 1,
+    "txSizeSensitive": false
+  },
+  {
+    "chainId": 10004,
+    "oracleVersion": 0,
+    "initGasErc20TokenizationIsExplicit": true,
+    "relayFee": 1000,
+    "maxGasDropoff": 1,
+    "txSizeSensitive": false
+  },
+  {
+    "chainId": 10005,
+    "oracleVersion": 0,
+    "initGasErc20TokenizationIsExplicit": true,
+    "relayFee": 1000,
+    "maxGasDropoff": 1,
+    "txSizeSensitive": false
   }
 ]

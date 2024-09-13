@@ -1,7 +1,8 @@
-import { serialize, toNative, toUniversal, UniversalAddress, VAA } from "@wormhole-foundation/sdk-definitions";
+import { serialize, toNative, toUniversal, UniversalAddress, VAA, layoutItems } from "@wormhole-foundation/sdk-definitions";
 import { chainToPlatform, FixedLengthArray, Layout, layout, LayoutItem, LayoutToType, Network, ProperLayout } from "@wormhole-foundation/sdk-base";
 import { ethers } from "ethers";
-import { baseRelayingConfigReturnLayout, BaseRelayingParamsReturn, dispatcherLayout, gasDropoffUnit, relayFeeUnit, relayingFeesInputLayout, RelayingFeesReturn, RelayingFeesReturnItem, relayingFeesReturnLayout, SupportedChains, TBRv3Message, transferTokenWithRelayLayout, versionEnvelopeLayout, transferGasTokenWithRelayLayout, proxyConstructorLayout, ownerItem, GovernanceQuery, GovernanceCommand } from "./layouts.js";
+import { baseRelayingConfigReturnLayout, BaseRelayingParamsReturn, dispatcherLayout, gasDropoffUnit, relayFeeUnit, relayingFeesInputLayout, RelayingFeesReturn, RelayingFeesReturnItem, relayingFeesReturnLayout, SupportedChains, TBRv3Message, transferTokenWithRelayLayout, versionEnvelopeLayout, transferGasTokenWithRelayLayout, proxyConstructorLayout, ownerItem, GovernanceQuery, GovernanceCommand, peerItem, GovernanceCommandRaw, feeItem, amountItem } from "./layouts.js";
+import { EvmAddress } from "@wormhole-foundation/sdk-evm";
 
 /**
  * Gives you a type that keeps the properties of `T1` while making both properties common to `T1` and `T2` and properties exclusive to `T2` optional.
@@ -231,14 +232,8 @@ export class Tbrv3 {
     return decodeQueryResponseLayout(baseRelayingReturnListLayout, ethers.getBytes(result));
   }
 
-  addPeers(peers: { chain: SupportedChains, peer: UniversalAddress }[]): TbrPartialTx {
-    return this.governanceTx(peers.map(
-      (peer) => ({ chain: peer.chain, command: { name: "AddPeer", value: peer.peer } })
-    ));
-  }
-
-  governanceTx<const C extends GovernanceCommand[]>(commands: C): TbrPartialTx {
-    const methods = Tbrv3.createEnvelope([{ method: "GovernanceCommand", commands: [commands] }]);
+  governanceTx<const C extends GovernanceCommandRaw[]>(commands: C): TbrPartialTx {
+    const methods = Tbrv3.createEnvelope([{ method: "GovernanceCommand", commands }]);
     const data = Tbrv3.encodeExecute(methods);
 
     return {
@@ -246,6 +241,32 @@ export class Tbrv3 {
       data,
       value: 0n,
     };
+  }
+
+  updateMaxGasDroppoffs(dropoffs: Map<SupportedChains, bigint>): TbrPartialTx {
+    return this.governanceTx(Array.from(dropoffs).map(
+      ([chain, maxDropoff]) => ({ command: "UpdateMaxGasDropoff", maxGasDropoff: maxDropoff, chain: chain as SupportedChains })
+    ));
+  }
+
+  updateRelayFee(fee: number): TbrPartialTx {
+    return this.governanceTx([{ command: "UpdateRelayFee", fee }]);
+  }
+
+  updateAdmin(authorized: boolean, admin: EvmAddress): TbrPartialTx {
+    return this.governanceTx([{ command: "UpdateAdmin", admin: admin.toString(), isAdmin: authorized }]);
+  }
+
+  updateCanonicalPeers(canonicalPeers: Map<SupportedChains, UniversalAddress>): TbrPartialTx {
+    return this.governanceTx(Array.from(canonicalPeers).map(
+      ([chain, peer]) => ({ command: "UpdateCanonicalPeer", peer: peer.toUint8Array(), chain: chain as SupportedChains })
+    ));
+  }
+
+  addPeers(peers: { chain: SupportedChains, peer: UniversalAddress }[]): TbrPartialTx {
+    return this.governanceTx(peers.map(
+      (peer) => ({command: "AddPeer", peer: peer.peer.toUint8Array(), chain: peer.chain })
+    ));
   }
 
   async governanceQuery<const C extends GovernanceQuery[]>(queries: C): Promise<string> {
@@ -260,8 +281,62 @@ export class Tbrv3 {
     return result;
   }
 
+  async relayFee() {
+    const result = await this.governanceQuery([{ query: "RelayFee" }]);
+    
+    return decodeQueryResponseLayout(feeItem, ethers.getBytes(result)); 
+  }
+
+  async maxGasDropoff(chain: SupportedChains) {
+    const result = await this.governanceQuery([{ query: "MaxGasDropoff", chain }]);
+
+    return BigInt(decodeQueryResponseLayout(feeItem, ethers.getBytes(result)));
+  }
+
+  async isChainPaused(chain: SupportedChains) {
+    const result = await this.governanceQuery([{ query: "IsChainPaused", chain }]);
+
+    return decodeQueryResponseLayout(layoutItems.boolItem, ethers.getBytes(result));
+  }
+
+  async isPeer(chain: SupportedChains, peer: UniversalAddress): Promise<boolean> {
+    const result = await this.governanceQuery([{ query: "IsPeer", peer: peer.address, chain }]);
+
+    return decodeQueryResponseLayout(layoutItems.boolItem, ethers.getBytes(result));
+  }
+
+  async isTxSizeSensitive(chain: SupportedChains) {
+    const result = await this.governanceQuery([{ query: "IsTxSizeSensitive", chain }]);
+
+    return decodeQueryResponseLayout(layoutItems.boolItem, ethers.getBytes(result));
+  }
+
+  async canonicalPeer(chain: SupportedChains): Promise<UniversalAddress> {
+    const result = await this.governanceQuery([{ query: "CanonicalPeer", targetChain: chain }]);
+
+    return toUniversal(chain, decodeQueryResponseLayout(peerItem, ethers.getBytes(result)));
+  }
+
   async owner() {
     const result = await this.governanceQuery([{ query: "Owner" }]);
+    
+    return decodeQueryResponseLayout(ownerItem, ethers.getBytes(result)); 
+  }
+
+  async isChainSupported(chain: SupportedChains): Promise<boolean> {
+    const result = await this.governanceQuery([{ query: "IsChainSupported", chain }]);
+
+    return decodeQueryResponseLayout(layoutItems.boolItem, ethers.getBytes(result));
+  }
+
+  async isAdmin(address: EvmAddress): Promise<boolean> {
+    const result = await this.governanceQuery([{ query: "IsAdmin", address: address.toString() }]);
+    
+    return decodeQueryResponseLayout(layoutItems.boolItem, ethers.getBytes(result)); 
+  }
+
+  async feeRecipient() {
+    const result = await this.governanceQuery([{ query: "FeeRecipient" }]);
     
     return decodeQueryResponseLayout(ownerItem, ethers.getBytes(result)); 
   }

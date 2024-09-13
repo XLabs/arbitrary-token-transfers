@@ -1,10 +1,10 @@
-import { chainToPlatform, ManualSizePureBytes, UintLayoutItem, type Chain, type CustomConversion, type Layout, type LayoutToType, type NamedLayoutItem } from "@wormhole-foundation/sdk-base";
-import { layoutItems, toUniversal, type UniversalAddress } from "@wormhole-foundation/sdk-definitions";
+import { ManualSizePureBytes, UintLayoutItem, type Chain, type CustomConversion, type Layout, type LayoutToType, type NamedLayoutItem } from "@wormhole-foundation/sdk-base";
+import { layoutItems, type UniversalAddress } from "@wormhole-foundation/sdk-definitions";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
 
 
 // TODO: update supported chains to the actual chains supported
-export const supportedChains = ["Ethereum", "Solana"] as const satisfies readonly Chain[];
+export const supportedChains = ["Ethereum", "Solana", "Arbitrum", "Base", "Sepolia", "BaseSepolia", "OptimismSepolia"] as const satisfies readonly Chain[];
 export const supportedChainItem = layoutItems.chainItem({allowedChains: supportedChains});
 export type SupportedChains = typeof supportedChains[number];
 
@@ -172,7 +172,6 @@ export const baseRelayingConfigReturnLayout = [
   { name: "baseFee", binary: "uint", size: 4 },
 ] as const satisfies Layout;
 
-
 export const tokenItem = {
   name: "token",
   ...evmAddressItem
@@ -235,112 +234,45 @@ export const ownerItem = {
   ...evmAddressItem 
 } as const satisfies NamedLayoutItem;
 
-const addressSubItem = [
-  { name: "address", ...evmAddressItem },
-] as const satisfies Layout;
 
-const updateAdminLayout = [
-  { name: "isAdmin", ...layoutItems.boolItem },
-  ...addressSubItem,
-] as const satisfies Layout;
+const peerChainItem = {
+  name: "chain", ...layoutItems.chainItem({ allowedChains: supportedChains }) 
+} as const satisfies NamedLayoutItem;
 
-
-const governanceCommandRawLayout = [
-  { name: "chain", ...layoutItems.chainItem({ allowedChains: supportedChains }) },
-  { name: "command",
+const governanceCommandRawLayout = 
+  { 
     binary: "switch",
     idSize: 1,
-    idTag: "name",
+    idTag: "command",
     layouts: [
-      [[0, "AddPeer"], [{ ...peerItem, name: "value" }]],
-      [[1, "SweepTokens"], [{ ...tokenItem, name: "value" }, { ...amountItem, name: "value" }]],
-      [[2, "UpdateMaxGasDropoff"], [{ ...maxGasDropoffItem, name: "value" }]],
-      [[3, "UpdateFeeRecipient"], [{ ...recipientItem, name: "value" }]],
-      [[4, "UpdateRelayFee"], [{ ...feeItem, name: "value" }]],
-      [[5, "PauseOutboundTransfers"], [{ ...isPausedItem, name: "value" }]],
-      [[6, "UpdateTxSizeSensitive"], [{ ...txSizeSensitiveItem, name: "value" }]],
-      [[7, "UpdateAdmin"], [{ ...adminItem, name: "value" }]],
-      [[8, "UpdateCanonicalPeer"], [{ ...peerItem, name: "value" }]],
-      [[9, "UpgradeContract"], [{ ...contractItem, name: "value" }]],
-      [[10, "ProposeOwnershipTransfer"], [{ ...ownerItem, name: "value" }]],
+      [[0, "AddPeer"], [peerChainItem, peerItem]],
+      [[1, "SweepTokens"], [tokenItem, amountItem]],
+      [[2, "UpdateMaxGasDropoff"], [peerChainItem, maxGasDropoffItem]],
+      [[3, "UpdateFeeRecipient"], [recipientItem]],
+      [[4, "UpdateRelayFee"], [feeItem]],
+      [[5, "PauseOutboundTransfers"], [peerChainItem, isPausedItem]],
+      [[6, "UpdateTxSizeSensitive"], [peerChainItem, txSizeSensitiveItem]],
+      [[7, "UpdateAdmin"], [{ ...layoutItems.boolItem, name: "isAdmin" }, adminItem]],
+      [[8, "UpdateCanonicalPeer"], [peerChainItem, peerItem]],
+      [[9, "UpgradeContract"], [contractItem]],
+      [[10, "ProposeOwnershipTransfer"], [ownerItem]],
       [[11, "RelinquishOwnership"], []],
     ]
-  }
-] as const satisfies Layout;
+  } as const satisfies Layout;
 
-type GovernanceCommandRaw = LayoutToType<typeof governanceCommandRawLayout>;
+export type GovernanceCommandRaw = LayoutToType<typeof governanceCommandRawLayout>;
 type ExcludedCommands = {
   readonly name: "AddPeer";
-  readonly value: Uint8Array;
+  readonly peer: Uint8Array;
 } | {
   readonly name: "UpdateCanonicalPeer";
-  readonly value: Uint8Array;
+  readonly peer: Uint8Array;
 };
-export type GovernanceCommand = {
-  readonly chain: (typeof supportedChains[number]);
-  readonly command:
-    { readonly name: "AddPeer", value: UniversalAddress } |
-    { readonly name: "UpdateCanonicalPeer", value: UniversalAddress } |
+export type GovernanceCommand = 
+    { readonly name: "AddPeer", peer: UniversalAddress } |
+    { readonly name: "UpdateCanonicalPeer", peer: UniversalAddress } |
     Exclude<GovernanceCommandRaw['command'], ExcludedCommands>
-  };
 
-const validNames = governanceCommandRawLayout[1].layouts.map((data) => data[0][1]);
-export const governanceLayout = {
-  binary: "array",
-  lengthSize: 1,
-  layout: {
-    binary: "bytes",
-    layout: governanceCommandRawLayout,
-    custom: {
-      to: (raw: GovernanceCommandRaw): GovernanceCommand => {
-        const platform = chainToPlatform(raw.chain);
-        if (raw.command.name === "AddPeer")
-          return {
-            chain: raw.chain,
-            command: {
-              name: "AddPeer",
-              value: toUniversal(raw.chain, raw.command.value)
-            }
-          } as GovernanceCommand;
-        else if (raw.command.name === "UpdateCanonicalPeer")
-          return {
-            chain: raw.chain,
-            command: {
-              name: "UpdateCanonicalPeer",
-              value: toUniversal(raw.chain, raw.command.value)
-            }
-          } as GovernanceCommand;
-        
-        if(!validNames.includes(raw.command.name))
-          throw new Error(`Invalid command ${raw.command.name} for ${platform}`);
-
-        return raw as GovernanceCommand;
-      },
-      from: (governanceCmd: GovernanceCommand): GovernanceCommandRaw => {
-        if (governanceCmd.command.name === "AddPeer")
-          return {
-            chain: governanceCmd.chain,
-            command: {
-              name: "AddPeer",
-              value: governanceCmd.command.value.toUint8Array()
-            }
-          } as GovernanceCommandRaw;
-        else if (governanceCmd.command.name === "UpdateCanonicalPeer")
-          return {
-            chain: governanceCmd.chain,
-            command: {
-              name: "UpdateCanonicalPeer",
-              value: governanceCmd.command.value.toUint8Array()
-            }
-          } as GovernanceCommandRaw;
-
-        return governanceCmd as GovernanceCommandRaw;
-      }
-    } satisfies CustomConversion<GovernanceCommandRaw, GovernanceCommand>
-  }
-} as const satisfies Layout;
-
-export type GovernaceCommandsLayout = LayoutToType<typeof governanceLayout>;
 
 export const governanceQueryLayout = {
   binary: "switch",
@@ -348,18 +280,17 @@ export const governanceQueryLayout = {
   idTag: "query",
   layouts: [
     [[0x80, "RelayFee"], []],
-    [[0x81, "MaxGasDropoff"], []],
-    [[0x82, "IsChainPaused"], []],
-    [[0x83, "IsPeer"], []],
-    [[0x84, "IsTxSixeSensitive"], []],
-    [[0x85, "CanonicalPeer"], []],
+    [[0x81, "MaxGasDropoff"], [{ ...targetChainItem, name: "chain" }]],
+    [[0x82, "IsChainPaused"], [{ ...targetChainItem, name: "chain" }]],
+    [[0x83, "IsPeer"], [{ ...targetChainItem, name: "chain" }, { ...peerItem, name: "peer" }]],
+    [[0x84, "IsTxSizeSensitive"], [{ ...targetChainItem, name: "chain" }]],
+    [[0x85, "CanonicalPeer"], [targetChainItem]],
     [[0x86, "Owner"], []],
-    [[0x87, "IsChainSupported"], []],
+    [[0x87, "IsChainSupported"], [{ ...targetChainItem, name: "chain" }]],
     [[0x88, "PendingOwner"], []],
-    [[0x89, "IsAdmin"], addressSubItem],
+    [[0x89, "IsAdmin"], [{ ...evmAddressItem, name: "address" }]],
     [[0x8A, "FeeRecipient"], []],
     [[0x8B, "Implementation"], []],
-
   ],
 } as const satisfies Layout;
 export type GovernanceQuery = LayoutToType<typeof governanceQueryLayout>;
@@ -375,7 +306,7 @@ export const dispatcherLayout = {
     [[1, "TransferGasTokenWithRelay" ], transferGasTokenWithRelayLayout],
     [[2, "CompleteTransfer"], [{ name: "vaa", binary: "bytes", lengthSize: 2 }]],
     // Governance
-    [[3, "GovernanceCommand"], subArrayLayout("commands", governanceLayout)],
+    [[3, "GovernanceCommand"], subArrayLayout("commands", governanceCommandRawLayout)],
 
     // Queries
     [[0x80, "RelayFee"], relayingFeesInputLayout],

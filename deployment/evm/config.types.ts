@@ -9,5 +9,4 @@ export type Tbrv3Config = ChainConfig & {
   relayFee: number;
   maxGasDropoff: number;
   txSizeSensitive: boolean;
-  canonicalPeer: string;
 };

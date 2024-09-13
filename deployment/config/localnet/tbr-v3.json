@@ -6,7 +6,6 @@
     "initGasErc20TokenizationIsExplicit": false,
     "relayFee": 1,
     "maxGasDropoff": 1,
-    "txSizeSensitive": 1000000000000000000,
-    "canonicalPeer": "0x0000000000000000000000000000000000000000"
+    "txSizeSensitive": false
   }
 ]

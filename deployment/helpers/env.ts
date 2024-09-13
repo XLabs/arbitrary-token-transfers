@@ -117,9 +117,6 @@ export function getDependencyAddress(dependencyName: keyof Dependencies, chain: 
     tokenBridge,
   } = connectDependencies;
 
-  const symbol = "USDC";
-  const nativeUSDC = (t: Token) => t.symbol === symbol && t.original === undefined
-  const token = getTokensBySymbol(chain.network, toChain(chain.chainId), symbol)?.find(nativeUSDC)?.address;
 
   const dependencies = {
     wormhole: coreBridge.get(chain.network, toChain(chain.chainId)),
