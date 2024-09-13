@@ -1,0 +1,22 @@
+[toolchain]
+
+[workspace]
+members = ["solana/programs/*"]
+types = "sdk/solana/tbrv3/idl"
+
+[features]
+resolution = true
+skip-lint = true
+
+[programs.localnet]
+token_bridge_relayer = "46kv4wCpfEtLsHPDh4zm7jJb2pVdvke8Pj2ABYYJotFD"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "Localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "yarn run mocha -p ./solana/tests/tsconfig.json -t 1000000 solana/tests/*.ts"

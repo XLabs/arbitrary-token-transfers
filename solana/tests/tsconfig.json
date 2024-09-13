@@ -1,18 +1,17 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "types": [
+      "mocha",
+      "chai"
+    ],
     "lib": [
       "ES2023"
     ],
     "target": "es6",
     "module": "CommonJS",
     "moduleResolution": "Node",
-    "outDir": "ts-build",
+    "outDir": "../../ts-build/solana-tests"
   },
-  "files": [
-    "../../target/idl/token_bridge_relayer.json"
-  ],
-  "include": [
-    "tbrv3"
-  ]
+  "include": ["."]
 }

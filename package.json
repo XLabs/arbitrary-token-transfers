@@ -10,15 +10,31 @@
   "keywords": [],
   "author": "",
   "license": "Apache 2",
+  "prettier": {
+    "trailingComma": "all",
+    "printWidth": 100,
+    "singleQuote": true
+  },
+  "dependencies": {
+    "@yarnpkg/types": "^4.0.0",
+    "bn.js": "^5.2.1"
+  },
   "devDependencies": {
+    "@types/bn.js": "^5.1.0",
+    "@types/chai": "^4.3.0",
+    "@types/mocha": "^10",
     "@types/node": "20.14.14",
+    "chai": "^5",
+    "mocha": "^10",
     "prettier": "^3.3.3",
-    "tsx": "4.16.5",
+    "ts-mocha": "^10",
+    "tsx": "^4.19.1",
     "typescript": "5.5.4"
   },
   "workspaces": [
     "sdk/evm",
     "sdk/solana",
+    "solana/tests",
     "deployment"
   ],
   "packageManager": "yarn@4.4.0"
