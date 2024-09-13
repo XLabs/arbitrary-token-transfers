@@ -1463,21 +1463,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@wormhole-foundation/sdk-solana@npm:0.10.7":
-  version: 0.10.7
-  resolution: "@wormhole-foundation/sdk-solana@npm:0.10.7"
-  dependencies:
-    "@coral-xyz/anchor": "npm:0.29.0"
-    "@coral-xyz/borsh": "npm:0.29.0"
-    "@solana/spl-token": "npm:0.3.9"
-    "@solana/web3.js": "npm:^1.95.2"
-    "@wormhole-foundation/sdk-connect": "npm:0.10.7"
-    rpc-websockets: "npm:^7.10.0"
-  checksum: 10c0/9a6a347ea6201d3ff903672aeade15bff11667ad4b1c74331541d7fb1101434be7288250ee12d76adf946e7f605e2c393318e990b1b42e8250b8fb3531dd989b
-  languageName: node
-  linkType: hard
-
-"@wormhole-foundation/sdk-solana@npm:^0.10.5":
+"@wormhole-foundation/sdk-solana@npm:0.10.7, @wormhole-foundation/sdk-solana@npm:^0.10.7":
   version: 0.10.7
   resolution: "@wormhole-foundation/sdk-solana@npm:0.10.7"
   dependencies:
@@ -2384,6 +2370,7 @@ __metadata:
     "@types/node": "npm:20.16.5"
     "@wormhole-foundation/sdk-base": "npm:^0.10.7"
     "@wormhole-foundation/sdk-definitions": "npm:^0.10.7"
+    "@wormhole-foundation/sdk-solana": "npm:^0.10.7"
     "@xlabs-xyz/evm-arbitrary-token-transfers": "workspace:*"
     "@xlabs-xyz/ledger-signer": "npm:^0.0.4"
     "@xlabs-xyz/ledger-signer-ethers-v6": "npm:^0.0.1"
