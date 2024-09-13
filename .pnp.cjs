@@ -50,7 +50,7 @@ const RAW_RUNTIME_STATE =
           ["@types/bn.js", "npm:5.1.5"],\
           ["@types/chai", "npm:4.3.19"],\
           ["@types/mocha", "npm:10.0.7"],\
-          ["@types/node", "npm:22.5.4"],\
+          ["@types/node", "npm:20.14.14"],\
           ["@yarnpkg/types", "npm:4.0.0"],\
           ["bn.js", "npm:5.2.1"],\
           ["chai", "npm:5.1.1"],\
@@ -58,7 +58,7 @@ const RAW_RUNTIME_STATE =
           ["prettier", "npm:3.3.3"],\
           ["ts-mocha", "virtual:33d4007d0290747430617a5c0eb2da58d74cdff8bc8263fdea6457aebe82a895aa6f9c4f9f07fab8e85221c695fc8a7b8d17e2e26cee5cd3bfae6b8271723910#npm:10.0.0"],\
           ["tsx", "npm:4.19.1"],\
-          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=74658d"]\
+          ["typescript", "patch:typescript@npm%3A5.5.4#optional!builtin<compat/typescript>::version=5.5.4&hash=379a07"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -2026,13 +2026,14 @@ const RAW_RUNTIME_STATE =
           ["@coral-xyz/anchor", "npm:0.30.1"],\
           ["@solana/web3.js", "npm:1.95.3"],\
           ["@types/bn.js", "npm:5.1.5"],\
-          ["@types/node", "npm:22.5.4"],\
+          ["@types/node", "npm:20.14.14"],\
           ["@wormhole-foundation/sdk-base", "npm:0.10.6"],\
           ["@wormhole-foundation/sdk-definitions", "npm:0.10.6"],\
           ["@wormhole-foundation/sdk-solana-tokenbridge", "npm:0.10.6"],\
           ["@xlabs/solana-price-oracle-sdk", "npm:0.0.3::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40xlabs%2Fsolana-price-oracle-sdk%2F0.0.3%2Fb1ddfdc81a27c89e38f504675363f543d10830d9"],\
-          ["tsup", "virtual:6f2483ac784c41cab463da71887863a83b7aa4862c2a18272cbafb46b02451cd5342c3a97418eaa9816a54d6aae60a957dfa730193d9f71fe528fcf5887818bb#npm:8.2.4"],\
-          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=74658d"]\
+          ["tsup", "virtual:056deaaa1268de825ebb7f2126e3a2787838e2876e69eb46bc3ce4857072f92cede74aabe3915aa2d505c2a087a7d59d9170f4e7cc6428f30bd09123b7267c8f#npm:8.2.4"],\
+          ["tsx", "npm:4.16.5"],\
+          ["typescript", "patch:typescript@npm%3A5.5.4#optional!builtin<compat/typescript>::version=5.5.4&hash=379a07"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -5925,7 +5926,7 @@ const RAW_RUNTIME_STATE =
           ["@types/bn.js", "npm:5.1.5"],\
           ["@types/chai", "npm:4.3.19"],\
           ["@types/mocha", "npm:10.0.7"],\
-          ["@types/node", "npm:22.5.4"],\
+          ["@types/node", "npm:20.14.14"],\
           ["@yarnpkg/types", "npm:4.0.0"],\
           ["bn.js", "npm:5.2.1"],\
           ["chai", "npm:5.1.1"],\
@@ -5933,7 +5934,7 @@ const RAW_RUNTIME_STATE =
           ["prettier", "npm:3.3.3"],\
           ["ts-mocha", "virtual:33d4007d0290747430617a5c0eb2da58d74cdff8bc8263fdea6457aebe82a895aa6f9c4f9f07fab8e85221c695fc8a7b8d17e2e26cee5cd3bfae6b8271723910#npm:10.0.0"],\
           ["tsx", "npm:4.19.1"],\
-          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=74658d"]\
+          ["typescript", "patch:typescript@npm%3A5.5.4#optional!builtin<compat/typescript>::version=5.5.4&hash=379a07"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -6145,47 +6146,6 @@ const RAW_RUNTIME_STATE =
           ["sucrase", "npm:3.35.0"],\
           ["tree-kill", "npm:1.2.2"],\
           ["typescript", "patch:typescript@npm%3A5.5.4#optional!builtin<compat/typescript>::version=5.5.4&hash=379a07"]\
-        ],\
-        "packagePeers": [\
-          "@microsoft/api-extractor",\
-          "@swc/core",\
-          "@types/microsoft__api-extractor",\
-          "@types/postcss",\
-          "@types/swc__core",\
-          "@types/typescript",\
-          "postcss",\
-          "typescript"\
-        ],\
-        "linkType": "HARD"\
-      }],\
-      ["virtual:6f2483ac784c41cab463da71887863a83b7aa4862c2a18272cbafb46b02451cd5342c3a97418eaa9816a54d6aae60a957dfa730193d9f71fe528fcf5887818bb#npm:8.2.4", {\
-        "packageLocation": "./.yarn/__virtual__/tsup-virtual-5c97bfd009/0/cache/tsup-npm-8.2.4-8d7bbabf3e-0fa967ae0f.zip/node_modules/tsup/",\
-        "packageDependencies": [\
-          ["tsup", "virtual:6f2483ac784c41cab463da71887863a83b7aa4862c2a18272cbafb46b02451cd5342c3a97418eaa9816a54d6aae60a957dfa730193d9f71fe528fcf5887818bb#npm:8.2.4"],\
-          ["@microsoft/api-extractor", null],\
-          ["@swc/core", null],\
-          ["@types/microsoft__api-extractor", null],\
-          ["@types/postcss", null],\
-          ["@types/swc__core", null],\
-          ["@types/typescript", null],\
-          ["bundle-require", "virtual:0ce7e360917b61ea5817b94f79ca027af491b449821eaf191848ce7fda85d7354852432d2e64f9f14eb925ab204e590276f98258d0bed4e3a688d48351f0deb9#npm:5.0.0"],\
-          ["cac", "npm:6.7.14"],\
-          ["chokidar", "npm:3.6.0"],\
-          ["consola", "npm:3.2.3"],\
-          ["debug", "virtual:c9e1a4b59e37cb479517edede3bf2093b28c0ca1a9d0e517f3c345075bd1e468980b94b4957e389116607ee7155441dfd7d09e19a4229d5d09bcf06244401590#npm:4.3.7"],\
-          ["esbuild", "npm:0.23.1"],\
-          ["execa", "npm:5.1.1"],\
-          ["globby", "npm:11.1.0"],\
-          ["joycon", "npm:3.1.1"],\
-          ["picocolors", "npm:1.1.0"],\
-          ["postcss", null],\
-          ["postcss-load-config", "virtual:0ce7e360917b61ea5817b94f79ca027af491b449821eaf191848ce7fda85d7354852432d2e64f9f14eb925ab204e590276f98258d0bed4e3a688d48351f0deb9#npm:6.0.1"],\
-          ["resolve-from", "npm:5.0.0"],\
-          ["rollup", "npm:4.21.2"],\
-          ["source-map", "npm:0.8.0-beta.0"],\
-          ["sucrase", "npm:3.35.0"],\
-          ["tree-kill", "npm:1.2.2"],\
-          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=74658d"]\
         ],\
         "packagePeers": [\
           "@microsoft/api-extractor",\
