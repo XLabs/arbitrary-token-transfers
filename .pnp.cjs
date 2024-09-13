@@ -1674,7 +1674,7 @@ const RAW_RUNTIME_STATE =
           ["lodash", "npm:4.17.21"],\
           ["ts-essentials", "virtual:9d9d59e77a154ace80a497ad65534b0250a59b20d99ddfadb59d3a17148b62b6dde403d40350cd4b485786b726d24b1825a8256e1ccf2bf4789c79f483de843f#npm:7.0.3"],\
           ["typechain", "virtual:5449dbfbc8f715fdbd2c737c0a09a82e4cd2ffe644d99dd1bc0581b0889f04b69068ed991ce11b47be2adc46d31415f8c245c393d61c33529fcc22e453281945#npm:8.3.2"],\
-          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=74658d"]\
+          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=8c6c40"]\
         ],\
         "packagePeers": [\
           "@types/ethers",\
@@ -3007,7 +3007,7 @@ const RAW_RUNTIME_STATE =
           ["chalk", "npm:5.3.0"],\
           ["ethers", "npm:6.13.2"],\
           ["typechain", "virtual:5449dbfbc8f715fdbd2c737c0a09a82e4cd2ffe644d99dd1bc0581b0889f04b69068ed991ce11b47be2adc46d31415f8c245c393d61c33529fcc22e453281945#npm:8.3.2"],\
-          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=74658d"]\
+          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=8c6c40"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -5595,7 +5595,7 @@ const RAW_RUNTIME_STATE =
           ["chai", "npm:5.1.1"],\
           ["mocha", "npm:8.4.0"],\
           ["ts-mocha", "virtual:feacd3953c0ec0fcf02793cfe4fcf9fb8116306fb019d1298605cc1440750514b75e066c4c97baf4e017440a1937d0d0b54c353fbd9dec5e6083446f6108536b#npm:8.0.0"],\
-          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=74658d"]\
+          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=8c6c40"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -6000,7 +6000,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["ts-essentials", "virtual:9d9d59e77a154ace80a497ad65534b0250a59b20d99ddfadb59d3a17148b62b6dde403d40350cd4b485786b726d24b1825a8256e1ccf2bf4789c79f483de843f#npm:7.0.3"],\
           ["@types/typescript", null],\
-          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=74658d"]\
+          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=8c6c40"]\
         ],\
         "packagePeers": [\
           "@types/typescript",\
@@ -6215,7 +6215,7 @@ const RAW_RUNTIME_STATE =
           ["prettier", "npm:2.8.8"],\
           ["ts-command-line-args", "npm:2.5.1"],\
           ["ts-essentials", "virtual:9d9d59e77a154ace80a497ad65534b0250a59b20d99ddfadb59d3a17148b62b6dde403d40350cd4b485786b726d24b1825a8256e1ccf2bf4789c79f483de843f#npm:7.0.3"],\
-          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=74658d"]\
+          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=8c6c40"]\
         ],\
         "packagePeers": [\
           "@types/typescript",\
@@ -6232,10 +6232,10 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "HARD"\
       }],\
-      ["patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=74658d", {\
-        "packageLocation": "./.yarn/cache/typescript-patch-6efbe7a12c-e6c1662e48.zip/node_modules/typescript/",\
+      ["patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=8c6c40", {\
+        "packageLocation": "./.yarn/cache/typescript-patch-9bf73ea0aa-94eb47e130.zip/node_modules/typescript/",\
         "packageDependencies": [\
-          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=74658d"]\
+          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=8c6c40"]\
         ],\
         "linkType": "HARD"\
       }]\
