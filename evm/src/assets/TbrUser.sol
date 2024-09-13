@@ -88,56 +88,6 @@ error UnexpectedMessage(uint8 payloadId, uint256 commandIndex);
 event TransferRequested(address sender, uint64 sequence, uint32 gasDropoff, uint256 fee);
 
 abstract contract TbrUser is TbrBase {
-  function transferGasTokenWithRelay(
-    bytes calldata data,
-    uint256 unallocatedBalance,
-    uint256 commandIndex
-  ) internal returns (uint256 fee, uint256 offset) {
-    if (address(gasToken) == address(0)) revert GasTokenNotSupported();
-
-    // The bounds of the command are determined by the `acquireMode` field.
-    // So we take the opportunity to keep it from that check.
-    (
-      bytes32 recipient,
-      uint16 destinationChain,
-      uint256 tokenAmount,
-      uint32 gasDropoff,
-      uint256 size
-    ) = TransferGasTokenWithRelay.parseTransferGasToken(data, commandIndex);
-    offset = size;
-
-    // Check transfer parameters
-    (bytes32 peer, bool chainIsPaused, bool txCommitEthereum, uint32 maxGasDropoff) = getTargetChainData(destinationChain);
-    if (peer == bytes32(0)) {
-      revert DestinationChainIsNotSupported(destinationChain);
-    }
-    if (chainIsPaused) {
-      revert TransfersToChainArePaused(destinationChain);
-    }
-    if (gasDropoff > maxGasDropoff) {
-      revert GasDropoffRequestedExceedsMaximum(maxGasDropoff, commandIndex);
-    }
-    fee = quoteRelay(destinationChain, gasDropoff, txCommitEthereum);
-    if (fee + tokenAmount > unallocatedBalance) {
-      revert FeesInsufficient(msg.value, commandIndex);
-    }
-
-    // Tokenize
-    // Celo provides an ERC20 interface for its native token that doesn't require retokenization.
-    if (gasErc20TokenizationIsExplicit) {
-      gasToken.deposit{value: tokenAmount}();
-    }
-
-    bytes memory tbrMessage = tbrv3Message(recipient, gasDropoff, false);
-    // Perform call to token bridge.
-    SafeERC20.safeApprove(gasToken, address(tokenBridge), tokenAmount);
-    uint64 sequence = tokenBridge.transferTokensWithPayload(address(gasToken), tokenAmount, destinationChain, peer, 0, tbrMessage);
-
-    emit TransferRequested(msg.sender, sequence, gasDropoff, fee);
-    // Return the fee that must be sent to the fee recipient.
-    return (fee, offset);
-  }
-
   function transferTokenWithRelay(
     bytes calldata data,
     uint256 unallocatedBalance,
@@ -189,6 +139,56 @@ abstract contract TbrUser is TbrBase {
     // Perform call to token bridge.
     SafeERC20.safeApprove(token, address(tokenBridge), tokenAmount);
     uint64 sequence = tokenBridge.transferTokensWithPayload(address(token), tokenAmount, destinationChain, peer, 0, tbrMessage);
+
+    emit TransferRequested(msg.sender, sequence, gasDropoff, fee);
+    // Return the fee that must be sent to the fee recipient.
+    return (fee, offset);
+  }
+
+  function transferGasTokenWithRelay(
+    bytes calldata data,
+    uint256 unallocatedBalance,
+    uint256 commandIndex
+  ) internal returns (uint256 fee, uint256 offset) {
+    if (address(gasToken) == address(0)) revert GasTokenNotSupported();
+
+    // The bounds of the command are determined by the `acquireMode` field.
+    // So we take the opportunity to keep it from that check.
+    (
+      bytes32 recipient,
+      uint16 destinationChain,
+      uint256 tokenAmount,
+      uint32 gasDropoff,
+      uint256 size
+    ) = TransferGasTokenWithRelay.parseTransferGasToken(data, commandIndex);
+    offset = size;
+
+    // Check transfer parameters
+    (bytes32 peer, bool chainIsPaused, bool txCommitEthereum, uint32 maxGasDropoff) = getTargetChainData(destinationChain);
+    if (peer == bytes32(0)) {
+      revert DestinationChainIsNotSupported(destinationChain);
+    }
+    if (chainIsPaused) {
+      revert TransfersToChainArePaused(destinationChain);
+    }
+    if (gasDropoff > maxGasDropoff) {
+      revert GasDropoffRequestedExceedsMaximum(maxGasDropoff, commandIndex);
+    }
+    fee = quoteRelay(destinationChain, gasDropoff, txCommitEthereum);
+    if (fee + tokenAmount > unallocatedBalance) {
+      revert FeesInsufficient(msg.value, commandIndex);
+    }
+
+    // Tokenize
+    // Celo provides an ERC20 interface for its native token that doesn't require retokenization.
+    if (gasErc20TokenizationIsExplicit) {
+      gasToken.deposit{value: tokenAmount}();
+    }
+
+    bytes memory tbrMessage = tbrv3Message(recipient, gasDropoff, false);
+    // Perform call to token bridge.
+    SafeERC20.safeApprove(gasToken, address(tokenBridge), tokenAmount);
+    uint64 sequence = tokenBridge.transferTokensWithPayload(address(gasToken), tokenAmount, destinationChain, peer, 0, tbrMessage);
 
     emit TransferRequested(msg.sender, sequence, gasDropoff, fee);
     // Return the fee that must be sent to the fee recipient.
