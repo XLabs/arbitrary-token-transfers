@@ -114,25 +114,19 @@ async function run() {
 
     const { to, value, data } = tbrv3.transferWithRelay(...transfers);
 
-    console.log({
+    const { receipt, error } = await sendTx(signer, {
       to,
-      value,
+      value: (value * 110n) / 100n,
       data: ethers.hexlify(data),
     });
 
-    // const { receipt, error } = await sendTx(signer, {
-    //   to,
-    //   value: (value * 110n) / 100n,
-    //   data: ethers.hexlify(data),
-    // });
+    if (error) {
+      console.error(`Error: ${error}`);
+    }
 
-    // if (error) {
-    //   console.error(`Error: ${error}`);
-    // }
-
-    // if (receipt) {
-    //   console.log(`Receipt: ${inspect(receipt)}`);
-    // }
+    if (receipt) {
+      console.log(`Receipt: ${inspect(receipt)}`);
+    }
   } catch (err) {
     console.error(`Error running ${processName}: ${err}`);
   }
