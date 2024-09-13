@@ -418,4 +418,55 @@ contract UserTest is TbrTestBase {
       )
     );
   }
+
+  function testBaseRelayingConfig() public {
+    bytes memory response = invokeTbr(
+      abi.encodePacked(
+        tbr.get1959.selector, 
+        DISPATCHER_PROTOCOL_VERSION0, 
+        BASE_RELAYING_CONFIG_ID,
+        SOLANA_CHAIN_ID
+      )
+    );
+
+    uint offset;
+    bytes32 peer;
+    bool chainIsPaused;
+    bool txCommitEthereum;
+    uint32 maxGasDropoff;
+    uint32 baseFee;
+    (peer, offset) = response.asBytes32Unchecked(offset);
+    (chainIsPaused, offset) = response.asBoolUnchecked(offset);
+    (txCommitEthereum, offset) = response.asBoolUnchecked(offset);
+    (maxGasDropoff, offset) = response.asUint32Unchecked(offset);
+    (baseFee, offset) = response.asUint32Unchecked(offset);
+
+    assertEq(peer, SOLANA_CANONICAL_PEER);
+    assertEq(chainIsPaused, false);
+    assertEq(txCommitEthereum, false);
+    assertEq(maxGasDropoff, MAX_GAS_DROPOFF_AMOUNT);
+    assertEq(baseFee, RELAY_FEE_AMOUNT);
+
+    response = invokeTbr(
+      abi.encodePacked(
+        tbr.get1959.selector, 
+        DISPATCHER_PROTOCOL_VERSION0, 
+        BASE_RELAYING_CONFIG_ID,
+        EVM_CHAIN_ID
+      )
+    );
+
+    offset = 0;
+    (peer, offset) = response.asBytes32Unchecked(offset);
+    (chainIsPaused, offset) = response.asBoolUnchecked(offset);
+    (txCommitEthereum, offset) = response.asBoolUnchecked(offset);
+    (maxGasDropoff, offset) = response.asUint32Unchecked(offset);
+    (baseFee, offset) = response.asUint32Unchecked(offset);
+
+    assertEq(peer, EVM_CANONICAL_PEER);
+    assertEq(chainIsPaused, false);
+    assertEq(txCommitEthereum, true);
+    assertEq(maxGasDropoff, MAX_GAS_DROPOFF_AMOUNT);
+    assertEq(baseFee, RELAY_FEE_AMOUNT);
+  }
 }
