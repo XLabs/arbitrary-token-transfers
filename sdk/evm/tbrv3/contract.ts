@@ -263,6 +263,10 @@ export class Tbrv3 {
     ));
   }
 
+  upgradeContract(newImplementationAddress: EvmAddress): TbrPartialTx {
+    return this.governanceTx([{command: "UpgradeContract", contract: newImplementationAddress.toString() }]);
+  }
+
   addPeers(peers: { chain: SupportedChains, peer: UniversalAddress }[]): TbrPartialTx {
     return this.governanceTx(peers.map(
       (peer) => ({command: "AddPeer", peer: peer.peer.toUint8Array(), chain: peer.chain })
