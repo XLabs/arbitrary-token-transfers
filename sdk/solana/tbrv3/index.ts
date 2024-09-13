@@ -1,14 +1,11 @@
 import * as anchor from '@coral-xyz/anchor';
-import { Program, web3 } from "@coral-xyz/anchor";
+import { BN, Program, web3 } from "@coral-xyz/anchor";
 import { PublicKey, Connection, SystemProgram } from "@solana/web3.js";
-
-import bn from "@coral-xyz/anchor";
-const BN = bn.BN
 
 import { Chain, chainToChainId, encoding } from '@wormhole-foundation/sdk-base';
 import { SolanaPriceOracleClient } from '@xlabs/solana-price-oracle-sdk';
 
-import { TokenBridgeRelayer } from "../../../target/types/token_bridge_relayer.js";
+import { TokenBridgeRelayer } from "../../../target/types/token_bridge_relayer";
 import IDL from "../../../target/idl/token_bridge_relayer.json";
 import {
   getTransferNativeWithPayloadCpiAccounts,

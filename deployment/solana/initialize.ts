@@ -6,7 +6,9 @@ import { SolanaChainInfo, LoggerFn } from "../helpers/interfaces.js";
 import { dependencies } from '../helpers/env.js';
 import { PublicKey } from '@solana/web3.js';
 
-await runOnSolana("initialize-tbr", initializeSolanaTbr);
+runOnSolana("initialize-tbr", initializeSolanaTbr).catch((e) => {
+  console.error("Error executing script: ", e);
+});
 
 async function initializeSolanaTbr(
   chain: SolanaChainInfo,

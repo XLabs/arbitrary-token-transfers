@@ -6,10 +6,16 @@
     ],
     "module": "commonjs",
     "moduleResolution": "node",
-    "outDir": "ts-build"
+    "outDir": "ts-build",
+    "rootDir": "../"
   },
+  "files": [
+    "../target/idl/token_bridge_relayer.json",
+    "../target/types/token_bridge_relayer.ts"
+  ],
   "include": ["evm", "helpers", "config", "ethers-contracts", "solana"],
   "references": [
-    { "path": "../sdk/evm/tsconfig.json" }
+    { "path": "../sdk/evm/tsconfig.json" },
+    { "path": "../sdk/solana/tsconfig.json" }
   ]
 }

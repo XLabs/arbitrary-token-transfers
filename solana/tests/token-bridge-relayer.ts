@@ -1,4 +1,5 @@
-import { BN, AnchorError, web3 } from '@coral-xyz/anchor';
+import { AnchorError, web3 } from '@coral-xyz/anchor';
+import * as bn from "@coral-xyz/anchor";
 import { PublicKey, SendTransactionError } from '@solana/web3.js';
 import { Chain } from '@wormhole-foundation/sdk-base';
 import {
@@ -10,6 +11,8 @@ import {
   assertEqChainConfigs,
 } from './utils/helpers';
 import { ClientWrapper } from './utils/client-wrapper';
+
+const BN = bn.BN
 
 const ETHEREUM = 'Ethereum';
 const OASIS = 'Oasis';

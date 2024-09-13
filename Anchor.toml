@@ -9,7 +9,7 @@ resolution = true
 skip-lint = true
 
 [programs.localnet]
-token_bridge_relayer = "46kv4wCpfEtLsHPDh4zm7jJb2pVdvke8Pj2ABYYJotFD"
+token_bridge_relayer = "AtTpCxEYQiPswfGz493qcbiK1eE13W3YZutvxBdANDeR"
 
 [registry]
 url = "https://api.apr.dev"

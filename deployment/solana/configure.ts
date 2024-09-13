@@ -7,7 +7,9 @@ import { dependencies } from '../helpers/env.js';
 import { PublicKey } from '@solana/web3.js';
 import { getChainConfig, getChainInfo } from '../helpers/env';
 
-await runOnSolana("initialize-tbr", initializeSolanaTbr);
+runOnSolana("initialize-tbr", initializeSolanaTbr).catch((error) => {
+  console.error("Error executing script: ", error);
+})
 
 async function initializeSolanaTbr(
   chain: SolanaChainInfo,
@@ -33,5 +35,5 @@ async function initializeSolanaTbr(
   // updateMaxGasDropoff(signer, chain, maxGasDropoff: Bn): TransactionInstruction
   // registerPeer(signer, chain, peerAddress: UniversalAddress): TransactionInstruction
 
-  await ledgerSignAndSend(connection, [initializeIx], []);
+  // await ledgerSignAndSend(connection, [initializeIx], []);
 }
