@@ -54,7 +54,7 @@ async function run() {
 
             const address = await signer.getAddress();
 
-            const isChainSupported = tbrv3.isChainSupported(targetChain.name as SupportedChains);
+            const isChainSupported = await tbrv3.isChainSupported(targetChain.name as SupportedChains);
 
             if (!isChainSupported) {
               console.error(`Chain ${targetChain.name} is not supported`);
@@ -65,6 +65,8 @@ async function run() {
               throw new Error(`Chain ${targetChain.name} is not supported`);
             }
 
+
+            console.log("executing");
             const feeEstimation = (
               await tbrv3.relayingFee({
                 targetChain: targetChain.name as SupportedChains,
@@ -72,6 +74,7 @@ async function run() {
               })
             )[0];
 
+            console.log("executed");
             console.log(`Fee estimation: ${inspect(feeEstimation)}`);
 
             return {
