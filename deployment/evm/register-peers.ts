@@ -14,7 +14,7 @@ import { ethers } from "ethers";
  *  - Add all other Tbrv3 contracts as peers
  *  
  */
-evm.runOnEvms("configure-peers", async (chain, signer, log) => {
+evm.runOnEvms("register-peers", async (chain, signer, log) => {
   const tbrv3ProxyAddress = getContractAddress("Tbrv3Proxies", chain.chainId);
   const tbrv3 = new Tbrv3(signer.provider!, chain.network, tbrv3ProxyAddress);
   const deployedTbrv3s = contracts["Tbrv3Proxies"].filter((tbr) => tbr.chainId !== chain.chainId);
