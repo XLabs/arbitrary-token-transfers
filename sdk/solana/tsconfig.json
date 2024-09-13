@@ -2,19 +2,12 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "lib": [
-      "ES2023"
+      "es2023"
     ],
-    "target": "es6",
-    "module": "CommonJS",
-    "moduleResolution": "Node",
-    "outDir": "ts-build",
-    "rootDir": "../../"
+    "outDir": "ts-build"
   },
-  "files": [
-    "../../target/idl/token_bridge_relayer.json",
-    "../../target/types/token_bridge_relayer.ts"
-  ],
   "include": [
-    "sdk/solana/tbrv3"
+    "tbrv3",
+    "tbrv3/**/*.json"
   ]
 }

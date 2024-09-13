@@ -1,12 +1,11 @@
-import * as anchor from '@coral-xyz/anchor';
-import { BN, Program, web3 } from "@coral-xyz/anchor";
+import * as anchor from "@coral-xyz/anchor";
+import { Program, web3 } from "@coral-xyz/anchor";
 import { PublicKey, Connection, SystemProgram } from "@solana/web3.js";
+import { Chain, chainToChainId, encoding } from "@wormhole-foundation/sdk-base";
+import { SolanaPriceOracleClient } from "@xlabs/solana-price-oracle-sdk";
 
-import { Chain, chainToChainId, encoding } from '@wormhole-foundation/sdk-base';
-import { SolanaPriceOracleClient } from '@xlabs/solana-price-oracle-sdk';
-
-import { TokenBridgeRelayer } from "../../../target/types/token_bridge_relayer";
-import IDL from "../../../target/idl/token_bridge_relayer.json";
+import { TokenBridgeRelayer } from "./idl/token_bridge_relayer.js";
+import * as IDL from "./idl/token_bridge_relayer.json" with { type: "json" };
 import {
   getTransferNativeWithPayloadCpiAccounts,
   getTransferWrappedWithPayloadCpiAccounts,
@@ -14,6 +13,10 @@ import {
   getCompleteTransferWrappedWithPayloadCpiAccounts,
 } from "@wormhole-foundation/sdk-solana-tokenbridge";
 import { VAA } from "@wormhole-foundation/sdk-definitions";
+
+// Export IDL
+export * from "./idl/token_bridge_relayer.js";
+export const idl = IDL;
 
 /**
  * 32 bytes.
@@ -26,18 +29,18 @@ export interface TransferNativeParameters {
   recipientAddress: UniversalAddress;
   mint: PublicKey;
   tokenAccount: PublicKey;
-  transferredAmount: BN;
-  gasDropoffAmount: BN;
-  maxFeeSol: BN;
+  transferredAmount: anchor.BN;
+  gasDropoffAmount: anchor.BN;
+  maxFeeSol: anchor.BN;
 }
 
 export interface TransferWrappedParameters {
   recipientChain: Chain;
   recipientAddress: UniversalAddress;
   userTokenAccount: PublicKey;
-  transferredAmount: BN;
-  gasDropoffAmount: BN;
-  maxFeeSol: BN;
+  transferredAmount: anchor.BN;
+  gasDropoffAmount: anchor.BN;
+  maxFeeSol: anchor.BN;
 }
 
 export type TbrConfigAccount = anchor.IdlAccounts<TokenBridgeRelayer>['tbrConfigState'];
@@ -212,7 +215,7 @@ export class TbrClient {
   async updateMaxGasDropoff(
     signer: PublicKey,
     chain: Chain,
-    maxGasDropoff: BN,
+    maxGasDropoff: anchor.BN,
   ): Promise<web3.TransactionInstruction> {
     return this.program.methods
       .updateMaxGasDropoff(chainToChainId(chain), maxGasDropoff)
@@ -227,7 +230,7 @@ export class TbrClient {
   async updateRelayerFee(
     signer: PublicKey,
     chain: Chain,
-    relayerFee: BN,
+    relayerFee: anchor.BN,
   ): Promise<web3.TransactionInstruction> {
     return this.program.methods
       .updateRelayerFee(chainToChainId(chain), relayerFee)
@@ -255,8 +258,8 @@ export class TbrClient {
 
   async updateEvmTransactionConfig(
     signer: PublicKey,
-    evmTransactionGas: BN,
-    evmTransactionSize: BN,
+    evmTransactionGas: anchor.BN,
+    evmTransactionSize: anchor.BN,
   ): Promise<web3.TransactionInstruction> {
     return this.program.methods
       .updateEvmTransactionConfig(evmTransactionGas, evmTransactionSize)
@@ -283,7 +286,7 @@ export class TbrClient {
     } = params;
 
     const { feeRecipient } = await this.read.config();
-    let payerSequenceNumber = new BN(0);
+    let payerSequenceNumber = new anchor.BN(0);
     try {
       payerSequenceNumber = (await this.read.signerSequence(signer)).value;
     } catch {}
@@ -337,7 +340,7 @@ export class TbrClient {
     const chainId = chainToChainId(recipientChain);
 
     const { feeRecipient } = await this.read.config();
-    let payerSequenceNumber = new BN(0);
+    let payerSequenceNumber = new anchor.BN(0);
     try {
       payerSequenceNumber = (await this.read.signerSequence(signer)).value;
     } catch {}
@@ -473,7 +476,7 @@ const pda = {
     return PublicKey.findProgramAddressSync([Buffer.from('PostedVAA'), vaaHash], programId)[0];
   },
 
-  wormholeMessage: (programId: PublicKey, payer: PublicKey, payerSequence: BN): PublicKey => {
+  wormholeMessage: (programId: PublicKey, payer: PublicKey, payerSequence: anchor.BN): PublicKey => {
     return PublicKey.findProgramAddressSync(
       [Buffer.from('bridged'), payer.toBuffer(), payerSequence.toBuffer()],
       programId,

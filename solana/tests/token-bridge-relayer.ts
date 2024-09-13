@@ -9,8 +9,9 @@ import {
   newProvider,
   requestAirdrop,
   assertEqChainConfigs,
-} from './utils/helpers';
-import { ClientWrapper } from './utils/client-wrapper';
+} from "./utils/helpers.js";
+import { ClientWrapper } from "./utils/client-wrapper.js";
+import { describe } from "mocha";
 
 const BN = bn.BN
 
