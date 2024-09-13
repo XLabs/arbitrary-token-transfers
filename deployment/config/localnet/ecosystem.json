@@ -1,0 +1,23 @@
+{
+  "evm": {
+    "networks": [
+      {
+      "name": "Sepolia",
+      "externalId": 31337,
+      "chainId": 10002,
+      "network": "Testnet",
+      "rpc": "http://localhost:8545"
+      }
+    ]
+  },
+  "solana": {
+    "networks": [
+      {
+        "name": "Solana",
+        "network": "Testnet",
+        "chainId": 1,
+        "rpc": "http://localhost:8899"
+      }
+    ]
+  }
+}

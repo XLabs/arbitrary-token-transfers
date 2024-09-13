@@ -3,8 +3,8 @@ import { ChainId, Network } from "@wormhole-foundation/sdk-base";
 import { SolanaLedgerSigner } from "@xlabs-xyz/ledger-signer-solana";
 import { ethers } from "ethers";
 
-export type EvmScriptCb = (chain: ChainInfo, signer: ethers.Signer, logFn: LoggerFn) => Promise<void>;
-export type SolanaScriptCb = (chain: ChainInfo, signer: SolanaLedgerSigner, logFn: LoggerFn) => Promise<void>;
+export type EvmScriptCb = (chain: EvmChainInfo, signer: ethers.Signer, logFn: LoggerFn) => Promise<void>;
+export type SolanaScriptCb = (chain: SolanaChainInfo, signer: SolanaLedgerSigner, logFn: LoggerFn) => Promise<void>;
 
 export type LoggerFn = (...args: any[]) => void;
 
@@ -23,14 +23,14 @@ export type ChainInfo = {
   name: string;
   chainId: ChainId; // wormhole chain id
   rpc: string;
-  network: Network;
+  network: "Mainnet" | "Testnet";
 };
 
 export type Deployment = {
   /**
    * Wormhole ChainId
    */
-  chainId: number;
+  chainId: ChainId;
   address: string;
   constructorArgs: UncheckedConstructorArgs;
 };
@@ -57,6 +57,9 @@ export interface ChainConfig {
 export interface Dependencies {
     wormhole: string;
     tokenBridge: string;
+    permit2: string;
+    oracle: string;
+    initGasToken: string;
 };
 
 export interface DependenciesConfig extends ChainConfig, Dependencies {};

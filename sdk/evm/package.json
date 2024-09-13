@@ -1,6 +1,6 @@
 {
   "name": "@xlabs-xyz/evm-arbitrary-token-transfers",
-  "version": "0.0.1-alpha3",
+  "version": "0.0.1-alpha4",
   "description": "",
   "type": "module",
   "module": "ts-build/tbrv3/index.js",
@@ -14,7 +14,9 @@
   },
   "scripts": {
     "build": "tsc --noEmit -p ./tsconfig.json && tsup",
-    "prettier": "prettier --write ."
+    "prettier": "prettier --write .",
+    "test:integration": "tsc -p ./test/tsconfig.json && mocha build-test/test/integration.tbrv3.test.js",
+    "test:deploy:integration": "yarn workspace deployment run deploy:evm:localnet && yarn test:integration"
   },
   "files": [
     "build",
@@ -28,13 +30,17 @@
   "author": "",
   "license": "Apache 2",
   "dependencies": {
-    "@wormhole-foundation/sdk-base": "0.9.1",
-    "@wormhole-foundation/sdk-definitions": "0.9.1",
-    "@wormhole-foundation/sdk-evm": "0.9.1",
+    "@wormhole-foundation/sdk-base": "0.10.5",
+    "@wormhole-foundation/sdk-definitions": "0.10.5",
+    "@wormhole-foundation/sdk-evm": "0.10.5",
     "ethers": "^6.13.2"
   },
   "devDependencies": {
+    "@types/chai": "^4.3.19",
+    "@types/mocha": "^10",
     "@types/node": "20.14.14",
+    "chai": "^5.1.1",
+    "mocha": "^10.7.3",
     "tsup": "^8.2.4",
     "tsx": "4.16.5",
     "typescript": "5.5.4"
