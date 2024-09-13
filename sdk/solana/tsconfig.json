@@ -4,10 +4,15 @@
     "lib": [
       "es2023"
     ],
-    "outDir": "ts-build"
+    "outDir": "ts-build",
+    "rootDir": "../../"
   },
+  "files": [
+    "../../target/idl/token_bridge_relayer.json",
+    "../../target/types/token_bridge_relayer.ts"
+  ],
   "include": [
-    "tbrv3",
+    "sdk/solana/tbrv3",
     "tbrv3/**/*.json"
   ]
 }
