@@ -80,7 +80,7 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
       },
       this.network,
       this.chain,
-      'TokenBridgeRelayerV3.transferWithRelay',
+      'TokenBridgeRelayerV3.transfer',
       false
     );
   }

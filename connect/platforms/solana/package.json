@@ -1,5 +1,5 @@
 {
-  "name": "@xlabs-xyz/arbitrary-token-transfer-route",
+  "name": "@xlabs-xyz/arbitrary-token-transfer-solana-route",
   "version": "0.0.1-alpha1",
   "description": "",
   "type": "module",
@@ -29,14 +29,13 @@
   "author": "",
   "license": "Apache 2",
   "dependencies": {
+    "@solana/spl-token": "0.3.9",
+    "@solana/web3.js": "^1.95.3",
     "@wormhole-foundation/sdk-base": "0.10.5",
-    "@wormhole-foundation/sdk-connect": "0.10.5",
     "@wormhole-foundation/sdk-definitions": "0.10.5",
-    "@wormhole-foundation/sdk-evm": "0.10.5",
-    "@xlabs-xyz/arbitrary-token-transfer-evm-route": "workspace:^0.0.1-alpha1",
-    "@xlabs-xyz/arbitrary-token-transfer-solana-route": "workspace:^0.0.1-alpha1",
+    "@wormhole-foundation/sdk-solana": "0.10.5",
     "@xlabs-xyz/arbitrary-token-transfers-definitions": "workspace:^0.0.1-alpha1",
-    "ethers": "^6.13.2"
+    "@xlabs-xyz/solana-arbitrary-token-transfers": "workspace:^3.0.0"
   },
   "devDependencies": {
     "@types/node": "20.14.14",

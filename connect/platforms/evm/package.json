@@ -15,7 +15,7 @@
   "scripts": {
     "build": "tsc --noEmit -p ./tsconfig.json && tsup",
     "prettier": "prettier --write .",
-    "clean": "rm -r ts-build"
+    "clean": "rm -r ts-build build"
   },
   "files": [
     "ts-build",
@@ -29,9 +29,9 @@
   "author": "",
   "license": "Apache 2",
   "dependencies": {
-    "@wormhole-foundation/sdk-base": "0.10.3",
-    "@wormhole-foundation/sdk-definitions": "0.10.3",
-    "@wormhole-foundation/sdk-evm": "0.10.3",
+    "@wormhole-foundation/sdk-base": "0.10.5",
+    "@wormhole-foundation/sdk-definitions": "0.10.5",
+    "@wormhole-foundation/sdk-evm": "0.10.5",
     "@xlabs-xyz/arbitrary-token-transfers-definitions": "workspace:^0.0.1-alpha1",
     "@xlabs-xyz/evm-arbitrary-token-transfers": "workspace:^0.0.1-alpha1",
     "ethers": "^6.13.2"

@@ -1,5 +1,5 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": "../../../tsconfig.json",
   "compilerOptions": {
     "baseUrl": ".",
     "experimentalDecorators": true,
@@ -11,8 +11,7 @@
   "include": ["src"],
   "exclude": ["ts-build"],
   "references": [
-    { "path": "../definitions" },
-    { "path": "../platforms/evm" },
-    { "path": "../platforms/solana" }
+    { "path": "../../../sdk/tbrv3/solana" },
+    { "path": "../../definitions" },
   ]
 }

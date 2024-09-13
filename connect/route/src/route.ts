@@ -9,12 +9,14 @@ import {
   signAndSendWait,
   Signer,
   TokenId,
+  TokenTransfer,
   TransferReceipt,
   TransferState,
+  Wormhole,
 } from "@wormhole-foundation/sdk-connect";
 import { toNative } from "@wormhole-foundation/sdk-definitions";
 import "@xlabs-xyz/arbitrary-token-transfers-definitions";
-import { AcquireMode, relayFeeUnit, supportedChains } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
+import { AcquireMode, relayFeeUnit, tokenBridgeRelayerV3Chains } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
 
 interface TransferOptions {
   gasDropoff: bigint;
@@ -23,9 +25,9 @@ interface TransferOptions {
 
 type Receipt = TransferReceipt<AttestationReceipt<"AutomaticTokenBridgeV3">>;
 
-export class AutomaticTokenBridgeRoute<N extends Network>
+export class AutomaticTokenBridgeRouteV3<N extends Network>
   extends routes.AutomaticRoute<N, any, any, any>
-  implements routes.StaticRouteMethods<typeof AutomaticTokenBridgeRoute>
+  implements routes.StaticRouteMethods<typeof AutomaticTokenBridgeRouteV3>
 {
   static NATIVE_GAS_DROPOFF_SUPPORTED = true;
   static IS_AUTOMATIC = true;
@@ -36,16 +38,18 @@ export class AutomaticTokenBridgeRoute<N extends Network>
   static supportedNetworks(): Network[] {
     return ["Mainnet", "Testnet"];
   }
-  // get the list of chains this route supports
+
   static supportedChains(network: Network): Chain[] {
-    // if (network === 'Devnet') return [];
-    // return Tbrv3.addresses[network] || [];
-    return [...supportedChains];
+    const chains = tokenBridgeRelayerV3Chains.get(network);
+    return [...(chains || [])];
   }
 
   // get the list of source tokens that are possible to send
   static async supportedSourceTokens(fromChain: ChainContext<Network>): Promise<TokenId[]> {
-    return [];
+    // TODO: verify if there's any restriction as to which tokens can be sent
+    return Object.values(fromChain.config.tokenMap!).map((td) =>
+      Wormhole.tokenId(td.chain, td.address),
+    );
   }
 
   // get the list of destination tokens that may be received on the destination chain
@@ -54,7 +58,12 @@ export class AutomaticTokenBridgeRoute<N extends Network>
     fromChain: ChainContext<N>,
     toChain: ChainContext<N>,
   ): Promise<TokenId[]> {
-    return [];
+    try {
+      return [await TokenTransfer.lookupDestinationToken(fromChain, toChain, sourceToken)];
+    } catch (e) {
+      console.error(`Failed to get destination token: ${e}`);
+      return [];
+    }
   }
 
   static isProtocolSupported<N extends Network>(chain: ChainContext<N>): boolean {
@@ -62,8 +71,14 @@ export class AutomaticTokenBridgeRoute<N extends Network>
   }
 
   async isAvailable(request: routes.RouteTransferRequest<N>): Promise<boolean> {
-    // TODO: check there's a TBRv3 contract address for the source and destination chains
-    return false;
+    const tbr = await request.fromChain.getProtocol('AutomaticTokenBridgeV3');
+
+    const { isPaused } = await tbr.relayingFee({
+      targetChain: request.toChain.chain as any,
+      gasDropoff: 0n
+    });
+
+    return !isPaused;
   }
 
   async validate(
@@ -165,7 +180,7 @@ export class AutomaticTokenBridgeRoute<N extends Network>
         chain: to.chain
       },
       sender: toNative(request.fromChain.chain, signer.address()),
-      token: request.source.id.address,
+      token: request.source.id,
       gasDropOff: quote.params.options.gasDropoff,
     });
 
