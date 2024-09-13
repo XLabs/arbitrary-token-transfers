@@ -4,8 +4,8 @@ import { PublicKey, Connection, SystemProgram } from "@solana/web3.js";
 import { Chain, chainToChainId, encoding } from "@wormhole-foundation/sdk-base";
 import { SolanaPriceOracleClient } from "@xlabs/solana-price-oracle-sdk";
 
-import { TokenBridgeRelayer } from "./idl/token_bridge_relayer.js";
-import * as IDL from "./idl/token_bridge_relayer.json" with { type: "json" };
+import { TokenBridgeRelayer } from "../../target/idl/token_bridge_relayer.js";
+import * as IDL from "../../target/idl/token_bridge_relayer.json" with { type: "json" };
 import {
   getTransferNativeWithPayloadCpiAccounts,
   getTransferWrappedWithPayloadCpiAccounts,
@@ -15,7 +15,7 @@ import {
 import { VAA } from "@wormhole-foundation/sdk-definitions";
 
 // Export IDL
-export * from "./idl/token_bridge_relayer.js";
+export * from "../../../target/idl/token_bridge_relayer.js";
 export const idl = IDL;
 
 /**
