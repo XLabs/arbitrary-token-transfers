@@ -21,6 +21,7 @@
     "@typechain/ethers-v6": "^0.5.1",
     "@wormhole-foundation/sdk-base": "^0.10.5",
     "@wormhole-foundation/sdk-definitions": "^0.10.5",
+    "@wormhole-foundation/sdk-solana": "^0.10.5",
     "@xlabs-xyz/evm-arbitrary-token-transfers": "workspace:*",
     "@xlabs-xyz/ledger-signer": "^0.0.4",
     "@xlabs-xyz/ledger-signer-ethers-v6": "^0.0.1",
