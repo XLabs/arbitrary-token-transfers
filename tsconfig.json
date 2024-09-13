@@ -20,6 +20,7 @@
     "downlevelIteration": true,
     "isolatedModules": true
   },
+  "include": ["target"],
   "references": [
     {
       "path": "./sdk/evm/tsconfig.json"

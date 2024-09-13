@@ -70,7 +70,7 @@ export async function getChainConfig<T extends ChainConfig>(filename: string, wh
   const chainConfig = scriptConfig.find((x) => x.chainId == whChainId);
 
   if (!chainConfig) {
-    throw Error(`Failed to find chain config for chain ${whChainId}`);
+    throw Error(`Failed to find ${filename} config for chain ${whChainId}`);
   }
 
   return chainConfig;

@@ -10,7 +10,7 @@ import "@openzeppelin/token/ERC20/IERC20.sol";
 import "wormhole-sdk/interfaces/ITokenBridge.sol";
 import {IPermit2} from "wormhole-sdk/interfaces/token/IPermit2.sol";
 import {IWETH} from "wormhole-sdk/interfaces/token/IWETH.sol";
-import { Tbr } from "tbr/Tbr.sol";
+import {Tbr} from "tbr/Tbr.sol";
 import "./TbrExposer.sol";
 
 contract TbrTestBase is Test {

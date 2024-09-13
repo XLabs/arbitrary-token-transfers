@@ -37,3 +37,7 @@ tmp/
 
 # Ignore cache files
 cache/
+
+# Solana
+target/
+.anchor/
