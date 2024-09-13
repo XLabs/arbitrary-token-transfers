@@ -2029,6 +2029,7 @@ const RAW_RUNTIME_STATE =
           ["@xlabs-xyz/solana-arbitrary-token-transfers", "workspace:sdk/solana"],\
           ["@coral-xyz/anchor", "npm:0.30.1"],\
           ["@solana/web3.js", "npm:1.95.3"],\
+          ["@types/bn.js", "npm:5.1.5"],\
           ["@wormhole-foundation/sdk-base", "npm:0.10.5"],\
           ["@wormhole-foundation/sdk-definitions", "npm:0.10.5"],\
           ["@wormhole-foundation/sdk-solana-tokenbridge", "npm:0.10.5"],\
@@ -6201,10 +6202,10 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "HARD"\
       }],\
-      ["npm:4.19.0", {\
-        "packageLocation": "./.yarn/cache/tsx-npm-4.19.0-912efa055b-d14463a780.zip/node_modules/tsx/",\
+      ["npm:4.19.1", {\
+        "packageLocation": "./.yarn/cache/tsx-npm-4.19.1-aace436c49-cbea9baf57.zip/node_modules/tsx/",\
         "packageDependencies": [\
-          ["tsx", "npm:4.19.0"],\
+          ["tsx", "npm:4.19.1"],\
           ["esbuild", "npm:0.23.1"],\
           ["fsevents", "patch:fsevents@npm%3A2.3.3#optional!builtin<compat/fsevents>::version=2.3.3&hash=df0bf1"],\
           ["get-tsconfig", "npm:4.7.6"]\
