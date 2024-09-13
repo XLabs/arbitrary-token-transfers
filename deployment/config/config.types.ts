@@ -5,7 +5,7 @@ export type BaseTbrV3Config = ChainConfig & {
   admin?: string;
   feeRecipient?: string;
   relayFee: number;
-  maxGasDropoff: bigint;  
+  maxGasDropoff: string;  
 }
 
 // TODO: in reality this should limit ChainConfig to only containing evm chain ids..
@@ -17,6 +17,6 @@ export type EvmTbrV3Config = BaseTbrV3Config & {
 
 // TODO: in reality this should limit ChainConfig to only containing solana chain ids..
 export type SolanaTbrV3Config = BaseTbrV3Config & {
-  evmTransactionGas: bigint;
-  evmTransactionSize: bigint;
+  evmTransactionGas: string;
+  evmTransactionSize: string;
 };

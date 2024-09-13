@@ -1,5 +1,6 @@
-import { AnchorError } from '@coral-xyz/anchor';
-import { assertResolveFailure } from './utils/helpers';
+import { AnchorError } from "@coral-xyz/anchor";
+import { assertResolveFailure } from "./utils/helpers.js";
+import { describe } from "mocha";
 
 describe('promise failure helper', () => {
   it('Fails when promise resolves', (done) => {

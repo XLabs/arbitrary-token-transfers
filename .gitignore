@@ -39,5 +39,7 @@ tmp/
 cache/
 
 # Solana
-target/
+target/*
+!target/idl/
+!target/types/
 .anchor/
