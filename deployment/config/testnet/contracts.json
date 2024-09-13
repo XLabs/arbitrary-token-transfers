@@ -14,6 +14,11 @@
       "chainId": 10004,
       "address": "0x57e682E31e4029c3E43a274e5680f2108Af53A3E",
       "constructorArgs": []
+    },
+    {
+      "chainId": 1,
+      "address": "AtTpCxEYQiPswfGz493qcbiK1eE13W3YZutvxBdANDeR",
+      "constructorArgs": []
     }
   ],
   "TbrV3Proxies": [
