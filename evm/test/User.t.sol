@@ -342,8 +342,10 @@ contract UserTest is TbrTestBase {
       abi.encode(abi.encodePacked(uint256(feeQuote)))
     );
 
-    // TODO: add the rest of the acquire modes when implemented
     vm.assume(acquireMode != ACQUIRE_PREAPPROVED);
+    vm.assume(acquireMode != ACQUIRE_PERMIT);
+    vm.assume(acquireMode != ACQUIRE_PERMIT2TRANSFER);
+    vm.assume(acquireMode != ACQUIRE_PERMITE2PERMIT);
     vm.expectRevert(
       abi.encodeWithSelector(AcquireModeNotImplemented.selector, acquireMode)
     );

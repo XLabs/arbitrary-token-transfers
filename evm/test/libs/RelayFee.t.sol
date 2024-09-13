@@ -2,10 +2,9 @@
 
 pragma solidity ^0.8.25;
 
-import {InvalidCommand} from "tbr/assets/TbrUser.sol";
+import {InvalidCommand, RelayFee} from "tbr/assets/TbrUser.sol";
 import {RELAY_FEE_ID} from "tbr/assets/TbrIds.sol";
 import "wormhole-sdk/libraries/BytesParsing.sol";
-import {RelayFee} from "tbr/assets/TbrUser.sol";
 import "forge-std/Test.sol";
 
 contract RelayFeeTest is Test {

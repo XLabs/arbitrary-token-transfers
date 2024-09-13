@@ -2,9 +2,8 @@
 
 pragma solidity ^0.8.25;
 
+import {BaseRelayingConfig, InvalidCommand} from "tbr/assets/TbrUser.sol";
 import {BASE_RELAYING_CONFIG_ID} from "tbr/assets/TbrIds.sol";
-import {BaseRelayingConfig} from "tbr/assets/TbrUser.sol";
-import {InvalidCommand} from "tbr/assets/TbrUser.sol";
 import "wormhole-sdk/libraries/BytesParsing.sol";
 import "forge-std/Test.sol";
 
