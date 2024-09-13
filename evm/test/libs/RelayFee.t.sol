@@ -31,8 +31,8 @@ contract RelayFeeTest is Test {
     assertEq(offset, data.length);
   }
 
-  function testParseRelayFeeArgs_InvalidCommand(uint8 chainId, uint32 gasDropoff) public {
-    bytes memory data = abi.encodePacked(chainId, gasDropoff);
+  function testParseRelayFeeArgs_InvalidCommand(uint16 chainId, uint32 gasDropoff) public {
+    bytes memory data = abi.encodePacked(uint8(chainId), gasDropoff);
     uint commandIndex = 0;
 
     vm.expectRevert(

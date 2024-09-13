@@ -29,9 +29,9 @@ contract BaseRelayingConfigTest is Test {
     assertEq(offset, data.length);
   }
 
-  function testParseBaseRelayingConfigArgs_InvalidCommand(uint8 chainId) public {
+  function testParseBaseRelayingConfigArgs_InvalidCommand(uint16 chainId) public {
     uint commandIndex = 0;
-    bytes memory data = abi.encodePacked(chainId);
+    bytes memory data = abi.encodePacked(uint8(chainId));
 
     vm.expectRevert(
       abi.encodeWithSelector(
@@ -41,5 +41,4 @@ contract BaseRelayingConfigTest is Test {
 
     this.parseBaseRelayingConfigArgs(data, commandIndex);
   }
-
 }
