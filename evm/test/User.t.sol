@@ -83,7 +83,7 @@ contract UserTest is TbrTestBase {
     uint msgValue = 1e6;
 
     // Test setup
-    uint initialFeeRecipientBalance = address(eoaFeeRecipient).balance;
+    uint initialFeeRecipientBalance = address(feeRecipient).balance;
     uint initialCallerBalance = address(this).balance;
 
     deal(address(usdt), address(this), tokenAmount);
@@ -163,7 +163,7 @@ contract UserTest is TbrTestBase {
     /// Asserts
 
     assertEq(address(this).balance, initialCallerBalance - feeQuote);
-    assertEq(address(eoaFeeRecipient).balance, initialFeeRecipientBalance + feeQuote);
+    assertEq(address(feeRecipient).balance, initialFeeRecipientBalance + feeQuote);
     
   }
 }

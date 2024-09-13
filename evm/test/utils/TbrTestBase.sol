@@ -10,7 +10,6 @@ import "@openzeppelin/token/ERC20/IERC20.sol";
 import "wormhole-sdk/interfaces/ITokenBridge.sol";
 import {IPermit2} from "wormhole-sdk/interfaces/token/IPermit2.sol";
 import {IWETH} from "wormhole-sdk/interfaces/token/IWETH.sol";
-import {FeeRecipient} from "./FeeRecipient.sol";
 import {Tbr} from "tbr/Tbr.sol";
 import "./TbrExposer.sol";
 
@@ -19,7 +18,7 @@ contract TbrTestBase is Test {
 
   address      immutable owner;
   address      immutable admin;
-  address      immutable eoaFeeRecipient;
+  address      immutable feeRecipient;
 
   uint8        immutable oracleVersion;
   IPermit2     immutable permit2;
@@ -33,12 +32,11 @@ contract TbrTestBase is Test {
   address tbrImplementation;
   Tbr tbr;
   TbrExposer tbrExposer;
-  FeeRecipient contractFeeRecipient;
 
   constructor() {
     owner         = makeAddr("owner");
     admin         = makeAddr("admin");
-    eoaFeeRecipient  = makeAddr("feeRecipient");
+    feeRecipient  = makeAddr("feeRecipient");
 
     permit2       = IPermit2(makeAddr("permit2"));
     oracle        = makeAddr("oracle");
@@ -53,8 +51,6 @@ contract TbrTestBase is Test {
   function _setUp1() internal virtual { }
 
   function setUp() public {
-    contractFeeRecipient = new FeeRecipient();
-
     tbrImplementation = address(new Tbr(
       permit2,
       tokenBridge,
@@ -69,7 +65,7 @@ contract TbrTestBase is Test {
       abi.encodePacked(
         owner,
         admin,
-        eoaFeeRecipient
+        feeRecipient
       )
     )));
 

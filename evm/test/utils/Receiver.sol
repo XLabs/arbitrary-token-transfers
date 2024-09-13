@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.25;
 
-contract FeeRecipient {
+contract Receiver {
   uint private receivedBalance;
 
   fallback() external payable {

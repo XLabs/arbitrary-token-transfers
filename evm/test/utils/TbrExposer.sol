@@ -56,4 +56,8 @@ contract TbrExposer is Tbr {
   function exposedSetPause(uint16 chainId, bool paused) public {
     setPause(chainId, paused);
   }
+
+  function exposedTransferEth(address to, uint256 amount) public {
+    transferEth(to, amount);
+  }
 }
