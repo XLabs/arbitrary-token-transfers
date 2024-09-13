@@ -133,7 +133,7 @@ abstract contract TbrUser is TbrBase {
     bytes memory tbrMessage = tbrv3Message(recipient, gasDropoff, unwrapIntent);
     // Perform call to token bridge.
     SafeERC20.safeApprove(token, address(tokenBridge), tokenAmount);
-    uint64 sequence = tokenBridge.transferTokensWithPayload(address(token), tokenAmount, destinationChain, recipient, 0, tbrMessage);
+    uint64 sequence = tokenBridge.transferTokensWithPayload(address(token), tokenAmount, destinationChain, peer, 0, tbrMessage);
 
     emit TransferRequested(msg.sender, sequence, gasDropoff, fee);
     // Return the fee that must be sent to the fee recipient.
