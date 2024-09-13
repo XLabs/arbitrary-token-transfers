@@ -5,7 +5,7 @@ import {
   getDependencyAddress,
   writeDeployedContract
 } from "../helpers";
-import { Tbrv3Config } from "../config/config.types";
+import { EvmTbrV3Config } from "../config/config.types";
 import { ethers } from "ethers";
 import { Tbr__factory, Proxy__factory } from "../ethers-contracts/index.js";
 import { getSigner } from "../helpers/evm";
@@ -21,7 +21,7 @@ async function run() {
   const results = await Promise.all(
     chains.map(async (chain) => {
       console.log(`Deploy starting for chain ${chain.chainId}...`);
-      const config = await getChainConfig<Tbrv3Config>("tbr-v3", chain.chainId);
+      const config = await getChainConfig<EvmTbrV3Config>("tbr-v3", chain.chainId);
       const result = await deployTbrV3Relayer(chain, config);
       console.log(`Deploy finished for chain ${chain.chainId}...`);
 
@@ -44,7 +44,7 @@ async function run() {
 
 }
 
-async function deployTbrV3Relayer(chain: EvmChainInfo, config: Tbrv3Config) {
+async function deployTbrV3Relayer(chain: EvmChainInfo, config: EvmTbrV3Config) {
   let implementation, proxy;
 
   try {
@@ -72,7 +72,7 @@ async function deployTbrV3Relayer(chain: EvmChainInfo, config: Tbrv3Config) {
   };
 }
 
-async function deployRelayerImplementation(chain: EvmChainInfo, config: Tbrv3Config) {
+async function deployRelayerImplementation(chain: EvmChainInfo, config: EvmTbrV3Config) {
   console.log("deployRelayerImplementation " + chain.chainId);
   const signer = await getSigner(chain);
 
@@ -108,7 +108,7 @@ async function deployRelayerImplementation(chain: EvmChainInfo, config: Tbrv3Con
 
 async function deployProxy(
   chain: EvmChainInfo,
-  config: Tbrv3Config,
+  config: EvmTbrV3Config,
   implementationAddress: string,
 ) {
   console.log("deployRelayerProxy " + chain.chainId);

@@ -19,3 +19,8 @@ yarn deployment build:evm
 cd deployment
 . .env.testnet && yarn tsx ./evm/deploy.ts
 ```
+6. peers:
+```
+cd deployment
+. .env.testnet && yarn tsx ./evm/register-peers.ts
+```

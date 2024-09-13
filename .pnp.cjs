@@ -2815,6 +2815,7 @@ const RAW_RUNTIME_STATE =
           ["@types/node", "npm:20.16.5"],\
           ["@wormhole-foundation/sdk-base", "npm:0.10.7"],\
           ["@wormhole-foundation/sdk-definitions", "npm:0.10.7"],\
+          ["@wormhole-foundation/sdk-solana", "npm:0.10.7"],\
           ["@xlabs-xyz/evm-arbitrary-token-transfers", "workspace:sdk/evm"],\
           ["@xlabs-xyz/ledger-signer", "npm:0.0.4"],\
           ["@xlabs-xyz/ledger-signer-ethers-v6", "npm:0.0.1"],\
