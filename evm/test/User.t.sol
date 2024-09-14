@@ -13,15 +13,13 @@ import "tbr/assets/TbrUser.sol";
 import "tbr/assets/TbrIds.sol";
 
 import {TbrTestBase} from "./utils/TbrTestBase.sol";
-import {getFakeBytes32} from "./utils/utils.sol";
+import {makeBytes32} from "./utils/utils.sol";
 
 contract UserTest is TbrTestBase {
   using BytesParsing for bytes;
   
-  uint16  SOLANA_CHAIN_ID        = 1;
-  bytes32 SOLANA_CANONICAL_PEER  = getFakeBytes32("SOLANA_CANONICAL_PEER");
-  uint16  EVM_CHAIN_ID           = 3;
-  bytes32 EVM_CANONICAL_PEER     = getFakeBytes32("EVM_CANONICAL_PEER");
+  bytes32 SOLANA_CANONICAL_PEER  = makeBytes32("SOLANA_CANONICAL_PEER");
+  bytes32 EVM_CANONICAL_PEER     = makeBytes32("EVM_CANONICAL_PEER");
   uint32  MAX_GAS_DROPOFF_AMOUNT = 10000;
   uint32  RELAY_FEE_AMOUNT       = 1000;
 
@@ -44,7 +42,7 @@ contract UserTest is TbrTestBase {
 
   function _setUp1() internal override {
     // Mock the bridge contract address on destination chain returned
-    bytes32 targetTokenBridge = getFakeBytes32("targetTokenBridge");
+    bytes32 targetTokenBridge = makeBytes32("targetTokenBridge");
     vm.mockCall(
       address(tokenBridge), 
       abi.encodeWithSelector(ITokenBridge.bridgeContracts.selector), 
@@ -82,11 +80,14 @@ contract UserTest is TbrTestBase {
 
   function testTransferTokenWithRelay_PREAPPROVED (
     uint256 tokenAmount, 
-    uint32 gasDropoff
+    uint32 gasDropoff,
+    bytes32 recipient
   ) public {
+    vm.assume(tokenAmount > 0);
+    vm.assume(recipient != bytes32(0));
+
     // Transaction arguments
     gasDropoff = uint32(bound(gasDropoff, 1, MAX_GAS_DROPOFF_AMOUNT));
-    bytes32 recipient = getFakeBytes32("recipient");
     bool unwrapIntent = false;
     uint msgValue = 1e6;
 
@@ -167,7 +168,7 @@ contract UserTest is TbrTestBase {
   }
 
   function testTransferTokenWithRelay_TokenDoesNotExist () public {
-    bytes32 recipient = getFakeBytes32("recipient");
+    bytes32 recipient = makeBytes32("recipient");
     address fakeToken = address(0);
     bool unwrapIntent = false;
     uint256 tokenAmount = 1e6;
@@ -196,7 +197,7 @@ contract UserTest is TbrTestBase {
   }
 
   function testTransferTokenWithRelay_DestinationChainNotSupported (uint16 fakeChainId) public {
-    bytes32 recipient = getFakeBytes32("recipient");
+    bytes32 recipient = makeBytes32("recipient");
     bool unwrapIntent = false;
     uint256 tokenAmount = 1e6;
     uint32 gasDropoff = 100;
@@ -226,7 +227,7 @@ contract UserTest is TbrTestBase {
   }
 
   function testTransferTokenWithRelay_TransfersToChainArePaused () public {
-    bytes32 recipient = getFakeBytes32("recipient");
+    bytes32 recipient = makeBytes32("recipient");
     bool unwrapIntent = false;
     uint256 tokenAmount = 1e6;
     uint32 gasDropoff = 100;
@@ -258,7 +259,7 @@ contract UserTest is TbrTestBase {
   }
 
   function testTransferTokenWithRelay_GasDropoffExceedsMaximum () public {
-    bytes32 recipient = getFakeBytes32("recipient");
+    bytes32 recipient = makeBytes32("recipient");
     uint32 gasDropoff = MAX_GAS_DROPOFF_AMOUNT + 1;
     bool unwrapIntent = false;
     uint256 tokenAmount = 1e6;
@@ -291,7 +292,7 @@ contract UserTest is TbrTestBase {
   }
 
   function testTransferTokenWithRelay_FeesInsufficient () public {
-    bytes32 recipient = getFakeBytes32("recipient");
+    bytes32 recipient = makeBytes32("recipient");
     uint32 gasDropoff = 1000;
     bool unwrapIntent = false;
     uint256 tokenAmount = 1e6;
@@ -328,7 +329,7 @@ contract UserTest is TbrTestBase {
   }
 
   function testTransferTokenWithRelay_AcquireModeNotImplemented (uint8 acquireMode) public {
-    bytes32 recipient = getFakeBytes32("recipient");
+    bytes32 recipient = makeBytes32("recipient");
     uint32 gasDropoff = 1000;
     bool unwrapIntent = false;
     uint256 tokenAmount = 1e6;
@@ -369,7 +370,7 @@ contract UserTest is TbrTestBase {
 
   function testRelayFee(uint32 gasDropoff) public {
     gasDropoff = uint32(bound(gasDropoff, 1, MAX_GAS_DROPOFF_AMOUNT));
-    uint feeQuote = 1e6;
+    uint256 feeQuote = 1e6;
     uint64 expectedFee = uint64(feeQuote) / 1e6;
 
     // Mock the quote returned by the oracle

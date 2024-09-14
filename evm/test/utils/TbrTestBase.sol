@@ -12,9 +12,16 @@ import {IPermit2} from "wormhole-sdk/interfaces/token/IPermit2.sol";
 import {IWETH} from "wormhole-sdk/interfaces/token/IWETH.sol";
 import {Tbr} from "tbr/Tbr.sol";
 import "./TbrExposer.sol";
+import "price-oracle/PriceOracle.sol";
+import "price-oracle/assets/types/EvmFeeParams.sol";
+import "price-oracle/assets/types/SolanaFeeParams.sol";
+import "price-oracle/assets/types/ParamLibs.sol";
 
 contract TbrTestBase is Test {
   using BytesParsing for bytes;
+
+  uint16 SOLANA_CHAIN_ID = 1;
+  uint16 EVM_CHAIN_ID    = 3;
 
   address      immutable owner;
   address      immutable admin;
@@ -29,9 +36,10 @@ contract TbrTestBase is Test {
   
   IERC20       immutable usdt;
 
-  address tbrImplementation;
   Tbr tbr;
+  PriceOracle priceOracle;
   TbrExposer tbrExposer;
+  address tbrImplementation;
 
   constructor() {
     owner         = makeAddr("owner");
@@ -78,6 +86,7 @@ contract TbrTestBase is Test {
       initGasErc20TokenizationIsExplicit
     );
 
+    setUpOracle();
     _setUp1();
   }
 
@@ -97,5 +106,31 @@ contract TbrTestBase is Test {
     }
     (uint length,) = result.asUint256Unchecked(32);
     (data,) = result.sliceUnchecked(64, length);
+  }
+
+  function setUpOracle() internal {
+    address assistant = makeAddr("assistant");
+    EvmFeeParams evmFeeParams;
+    evmFeeParams = evmFeeParams.pricePerByte(PricePerByte.wrap(1e6));
+    evmFeeParams = evmFeeParams.gasPrice(GasPrice.wrap(1e6));
+    evmFeeParams = evmFeeParams.gasTokenPrice(GasTokenPrice.wrap(1e12));
+
+    SolanaFeeParams solanaFeeParams;
+    solanaFeeParams = solanaFeeParams.accountOverhead(AccountOverhead.wrap(1e9)); 
+    solanaFeeParams = solanaFeeParams.accountSizeCost(AccountSizeCost.wrap(1e9));
+    solanaFeeParams = solanaFeeParams.gasTokenPrice(GasTokenPrice.wrap(1e12));
+
+    priceOracle = PriceOracle(address(new Proxy(
+      address(new PriceOracle(EVM_CHAIN_ID)),
+      abi.encodePacked(
+        owner,
+        admin,
+        assistant,
+        EVM_CHAIN_ID,
+        evmFeeParams,
+        SOLANA_CHAIN_ID,
+        solanaFeeParams
+      )
+    )));
   }
 }
