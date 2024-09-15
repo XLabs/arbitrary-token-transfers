@@ -45,19 +45,47 @@ contract TbrExposer is Tbr {
     return getTargetChainData(destinationChain);
   }
 
-  function exposedSetTxSizeSensitive(uint16 chainId, bool txSizeSensitive) public {
+  function exposedSetChainTxSizeSensitive(uint16 chainId, bool txSizeSensitive) public {
     setChainTxSizeSensitive(chainId, txSizeSensitive);
+  }
+
+  function exposedIsChainTxSizeSensitive(uint16 chainId) public view returns (bool) {
+    return isChainTxSizeSensitive(chainId);
   }
 
   function exposedSetMaxGasDropoff(uint16 chainId, uint32 maxGasDropoff) public {
     setMaxGasDropoff(chainId, maxGasDropoff);
   }
 
+  function exposedGetMaxGasDropoff(uint16 destinationChain) public view returns (uint32) {
+    return getMaxGasDropoff(destinationChain);
+  }
+
   function exposedSetPause(uint16 chainId, bool paused) public {
     setPause(chainId, paused);
+  }
+  
+  function exposedIsPaused(uint16 destinationChain) public view returns (bool) {
+    return isPaused(destinationChain);
   }
 
   function exposedTransferEth(address to, uint256 amount) public {
     transferEth(to, amount);
+  }
+
+  function exposedQuoteRelay(uint16 chainId, uint32 gasDropoff, bool txCommitEthereum) public view returns (uint256) {
+    return quoteRelay(chainId, gasDropoff, txCommitEthereum);
+  }
+
+  function exposedSetRelayFee(uint32 fee) public {
+    setRelayFee(fee);
+  }
+
+  function exposedGetRelayFee() public view returns (uint32) {
+    return getRelayFee();
+  }
+
+  function exposedIsChainSupported(uint16 destinationChain) public view returns (bool) {
+    return isChainSupported(destinationChain);
   }
 }

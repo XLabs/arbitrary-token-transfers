@@ -5,9 +5,11 @@ pragma solidity ^0.8.25;
 import {BytesParsing} from "wormhole-sdk/libraries/BytesParsing.sol";
 import {fromUniversalAddress, forwardError} from "wormhole-sdk/Utils.sol";
 import {IWETH} from "wormhole-sdk/interfaces/token/IWETH.sol";
+import {ISignatureTransfer, IAllowanceTransfer} from "wormhole-sdk/interfaces/token/IPermit2.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {TRANSFER_TOKEN_WITH_RELAY_ID, COMPLETE_TRANSFER_ID, TB_TRANSFER_WITH_PAYLOAD, RELAY_FEE_ID, BASE_RELAYING_CONFIG_ID} from "./TbrIds.sol";
+import {IERC20Permit} from "@openzeppelin/token/ERC20/extensions/IERC20Permit.sol";
+import {TRANSFER_TOKEN_WITH_RELAY_ID, TRANSFER_GAS_TOKEN_WITH_RELAY_ID, COMPLETE_TRANSFER_ID, TB_TRANSFER_WITH_PAYLOAD, RELAY_FEE_ID, BASE_RELAYING_CONFIG_ID} from "./TbrIds.sol";
 import {TbrBase, InvalidCommand} from "./TbrBase.sol";
 
 uint8 constant ACQUIRE_PREAPPROVED = 0;
@@ -84,11 +86,23 @@ error GasTokenOnlyAcceptedViaWithdrawal();
  * The VAA does not contain a Token Bridge "Transfer with payload" message.
  */
 error UnexpectedMessage(uint8 payloadId, uint256 commandIndex);
+/**
+ * The token recipient cannot be the zero address.
+ */
+error InvalidTokenRecipient();
+/**
+ * The token amount cannot be zero.
+ */
+error InvalidTokenAmount();
 
 event TransferRequested(address sender, uint64 sequence, uint32 gasDropoff, uint256 fee);
 
 abstract contract TbrUser is TbrBase {
-  function transferTokenWithRelay(bytes calldata data, uint256 unallocatedBalance, uint256 commandIndex) internal returns (uint256 fee, uint256 offset) {
+  function transferTokenWithRelay(
+    bytes calldata data,
+    uint256 unallocatedBalance,
+    uint256 commandIndex
+  ) internal returns (uint256 fee, uint256 offset) {
     // The bounds of the command are determined by the `acquireMode` field.
     // So we take the opportunity to keep it from that check.
     (uint8 acquireMode, uint256 size) = TransferTokenWithRelay.checkTransferTokenBounds(data, commandIndex);
@@ -105,39 +119,148 @@ abstract contract TbrUser is TbrBase {
     }
     uint16 destinationChain = TransferTokenWithRelay.decodeDestinationChain(transferCommand);
     (bytes32 peer, bool chainIsPaused, bool txCommitEthereum, uint32 maxGasDropoff) = getTargetChainData(destinationChain);
+    uint32 gasDropoff = TransferTokenWithRelay.decodeGasdropoff(transferCommand);
+    bytes32 recipient = TransferTokenWithRelay.decodeRecipient(transferCommand);
+    uint256 tokenAmount = TransferTokenWithRelay.decodeTokenAmount(transferCommand);
+    commonTransferChecks(destinationChain, peer, recipient, tokenAmount, chainIsPaused, gasDropoff, maxGasDropoff, commandIndex);
+    fee = quoteRelay(destinationChain, gasDropoff, txCommitEthereum);
+    if (fee > unallocatedBalance) {
+      revert FeesInsufficient(msg.value, commandIndex);
+    }
+
+    // Acquire tokens
+    // FIXME?: here we assume that the token transfers the entire amount without any tax or reward acquisition.
+    if (acquireMode == ACQUIRE_PREAPPROVED) {
+      SafeERC20.safeTransferFrom(token, msg.sender, address(this), tokenAmount);
+    } else if (acquireMode == ACQUIRE_PERMIT) {
+      uint256 value; uint256 deadline; bytes32 r; bytes32 s; uint8 v;
+      (value, deadline, r, s, v) = TransferTokenWithRelay.decodePermit(transferCommand, commandIndex);
+      //allow failure to prevent front-running griefing attacks
+      //  (i.e. getting permit from mempool and submitting it to the token contract directly)
+      try
+        IERC20Permit(address(token)).permit(msg.sender, address(this), value, deadline, v, r, s) {}
+      catch {}
+      SafeERC20.safeTransferFrom(token, msg.sender, address(this), tokenAmount);
+    } else if (acquireMode == ACQUIRE_PERMIT2TRANSFER) {
+      uint256 amount; uint256 nonce; uint256 sigDeadline; bytes memory signature;
+      (amount, nonce, sigDeadline, signature) = TransferTokenWithRelay.decodePermit2Transfer(transferCommand, commandIndex);
+
+      permit2.permitTransferFrom(
+        ISignatureTransfer.PermitTransferFrom({
+          permitted: ISignatureTransfer.TokenPermissions(address(token), amount),
+          nonce: nonce,
+          deadline: sigDeadline
+        }),
+        ISignatureTransfer.SignatureTransferDetails(address(this), tokenAmount),
+        msg.sender,
+        signature
+      );
+    } else if (acquireMode == ACQUIRE_PERMITE2PERMIT) {
+      uint160 amount; uint48 expiration; uint48 nonce; uint256 sigDeadline; bytes memory signature;
+      (amount, expiration, nonce, sigDeadline, signature) =
+        TransferTokenWithRelay.decodePermit2Permit(transferCommand, commandIndex);
+      //allow failure to prevent front-running griefing attacks
+      try
+        permit2.permit(
+          msg.sender,
+          IAllowanceTransfer.PermitSingle({
+            details: IAllowanceTransfer.PermitDetails(
+              address(token),
+              amount,
+              expiration,
+              nonce
+            ),
+            spender: address(this),
+            sigDeadline: sigDeadline
+          }),
+          signature
+        ) {}
+      catch {}
+      permit2.transferFrom(msg.sender, address(this), uint160(tokenAmount), address(token));
+    } else {
+      revert AcquireModeNotImplemented(acquireMode);
+    }
+
+    bool unwrapIntent = TransferTokenWithRelay.decodeUnwrapIntent(transferCommand);
+    bytes memory tbrMessage = tbrv3Message(recipient, gasDropoff, unwrapIntent);
+    // Perform call to token bridge.
+    SafeERC20.safeApprove(token, address(tokenBridge), tokenAmount);
+    uint64 sequence = tokenBridge.transferTokensWithPayload(address(token), tokenAmount, destinationChain, peer, 0, tbrMessage);
+
+    emit TransferRequested(msg.sender, sequence, gasDropoff, fee);
+    // Return the fee that must be sent to the fee recipient.
+    // TODO: should we return the sequence to the caller too?
+    // We shouldn't do so until we can efficiently allocate the memory for the result though.
+    return (fee, offset);
+  }
+
+  function transferGasTokenWithRelay(
+    bytes calldata data,
+    uint256 unallocatedBalance,
+    uint256 commandIndex
+  ) internal returns (uint256 fee, uint256 offset) {
+    if (address(gasToken) == address(0)) revert GasTokenNotSupported();
+
+    // The bounds of the command are determined by the `acquireMode` field.
+    // So we take the opportunity to keep it from that check.
+    (
+      bytes32 recipient,
+      uint16 destinationChain,
+      uint256 tokenAmount,
+      uint32 gasDropoff,
+      uint256 size
+    ) = TransferGasTokenWithRelay.parseTransferGasToken(data, commandIndex);
+    offset = size;
+
+    // Check transfer parameters
+    (bytes32 peer, bool chainIsPaused, bool txCommitEthereum, uint32 maxGasDropoff) = getTargetChainData(destinationChain);
+    commonTransferChecks(destinationChain, peer, recipient, tokenAmount, chainIsPaused, gasDropoff, maxGasDropoff, commandIndex);
+    fee = quoteRelay(destinationChain, gasDropoff, txCommitEthereum);
+    if (fee + tokenAmount > unallocatedBalance) {
+      revert FeesInsufficient(msg.value, commandIndex);
+    }
+
+    // Tokenize
+    // Celo provides an ERC20 interface for its native token that doesn't require retokenization.
+    if (gasErc20TokenizationIsExplicit) {
+      gasToken.deposit{value: tokenAmount}();
+    }
+
+    bytes memory tbrMessage = tbrv3Message(recipient, gasDropoff, false);
+    // Perform call to token bridge.
+    SafeERC20.safeApprove(gasToken, address(tokenBridge), tokenAmount);
+    uint64 sequence = tokenBridge.transferTokensWithPayload(address(gasToken), tokenAmount, destinationChain, peer, 0, tbrMessage);
+
+    emit TransferRequested(msg.sender, sequence, gasDropoff, fee);
+    // Return the fee that must be sent to the fee recipient.
+    return (fee, offset);
+  }
+
+  function commonTransferChecks(
+    uint16 destinationChain,
+    bytes32 peer,
+    bytes32 recipient,
+    uint256 tokenAmount,
+    bool chainIsPaused,
+    uint32 gasDropoff,
+    uint32 maxGasDropoff,
+    uint256 commandIndex
+  ) internal pure {
     if (peer == bytes32(0)) {
       revert DestinationChainIsNotSupported(destinationChain);
     }
     if (chainIsPaused) {
       revert TransfersToChainArePaused(destinationChain);
     }
-    uint32 gasDropoff = TransferTokenWithRelay.decodeGasdropoff(transferCommand);
     if (gasDropoff > maxGasDropoff) {
       revert GasDropoffRequestedExceedsMaximum(maxGasDropoff, commandIndex);
     }
-    fee = quoteRelay(destinationChain, gasDropoff, txCommitEthereum);
-    if (fee > unallocatedBalance) {
-      revert FeesInsufficient(msg.value, commandIndex);
+    if (recipient == bytes32(0)) {
+      revert InvalidTokenRecipient();
     }
-
-    uint256 tokenAmount = TransferTokenWithRelay.decodeTokenAmount(transferCommand);
-    // Acquire tokens
-    if (acquireMode == ACQUIRE_PREAPPROVED) {
-      SafeERC20.safeTransferFrom(token, msg.sender, address(this), tokenAmount);
-    } else {
-      revert AcquireModeNotImplemented(acquireMode);
+    if (tokenAmount == 0) {
+      revert InvalidTokenAmount();
     }
-
-    bytes32 recipient = TransferTokenWithRelay.decodeRecipient(transferCommand);
-    bool unwrapIntent = TransferTokenWithRelay.decodeUnrwapIntent(transferCommand);
-    bytes memory tbrMessage = tbrv3Message(recipient, gasDropoff, unwrapIntent);
-    // Perform call to token bridge.
-    SafeERC20.safeApprove(token, address(tokenBridge), tokenAmount);
-    uint64 sequence = tokenBridge.transferTokensWithPayload(address(token), tokenAmount, destinationChain, recipient, 0, tbrMessage);
-
-    emit TransferRequested(msg.sender, sequence, gasDropoff, fee);
-    // Return the fee that must be sent to the fee recipient.
-    return (fee, offset);
   }
 
   function quoteRelay(uint16 destinationChain, uint32 gasDropoff, bool txCommitEthereum) view internal returns (uint256) {
@@ -154,6 +277,7 @@ abstract contract TbrUser is TbrBase {
   }
 
   function tbrv3Message(bytes32 recipient, uint32 gasDropoff, bool unwrapIntent) internal pure returns (bytes memory) {
+    // From low byte offset to high byte offset:
     // 1 byte version
     // 32 byte recipient
     // 4 byte gas dropoff
@@ -271,30 +395,47 @@ library TransferTokenWithRelay {
   //   20 bytes token address
   uint256 constant private TOKEN_OFFSET = CHAIN_OFFSET + 2;
   //   32 bytes token amount
-  uint256 constant private TOKENAMOUNT_OFFSET = TOKEN_OFFSET + 20;
+  uint256 constant private TOKEN_AMOUNT_OFFSET = TOKEN_OFFSET + 20;
   //   4 bytes uint gasDropoff
-  uint256 constant private GAS_DROPOFF_OFFSET = TOKENAMOUNT_OFFSET + 32;
+  uint256 constant private GAS_DROPOFF_OFFSET = TOKEN_AMOUNT_OFFSET + 32;
   //   1 byte boolean unwrapIntent
   uint256 constant private UNWRAPINTENT_OFFSET = GAS_DROPOFF_OFFSET + 4;
   //   1 byte acquire mode discriminator:
-  uint256 constant private ACQUIREMODE_OFFSET = UNWRAPINTENT_OFFSET + 1;
-  uint256 constant private MINIMUM_SIZE = ACQUIREMODE_OFFSET + 1;
+  uint256 constant private ACQUIRE_MODE_OFFSET = UNWRAPINTENT_OFFSET + 1;
+  uint256 constant private MINIMUM_SIZE = ACQUIRE_MODE_OFFSET + 1;
   //     - 0, "Preapproved"
   //     - 1, "Permit"
   //        32 bytes uint value
+  uint256 constant private PERMIT_VALUE_OFFSET = ACQUIRE_MODE_OFFSET + 1;
   //        32 bytes uint deadline
+  uint256 constant private PERMIT_DEADLINE_OFFSET = PERMIT_VALUE_OFFSET + 32;
   //        65 bytes signature
+  uint256 constant private PERMIT_SIGNATURE_OFFSET = PERMIT_VALUE_OFFSET + 32;
+  uint256 constant private TRANSFER_WITH_PERMIT_SIZE = PERMIT_SIGNATURE_OFFSET + 65;
   //     - 2, "Permit2Transfer"
   //        32 bytes uint amount
+  uint256 constant private PERMIT2_TRANSFER_AMOUNT_OFFSET = ACQUIRE_MODE_OFFSET + 1;
   //        32 bytes uint nonce
+  uint256 constant private PERMIT2_TRANSFER_NONCE_OFFSET = PERMIT2_TRANSFER_AMOUNT_OFFSET + 32;
   //        32 bytes uint sigDeadline
+  uint256 constant private PERMIT2_TRANSFER_SIGDEADLINE_OFFSET = PERMIT2_TRANSFER_NONCE_OFFSET + 32;
   //        65 bytes signature
+  uint256 constant private PERMIT2_TRANSFER_SIGNATURE_OFFSET = PERMIT2_TRANSFER_SIGDEADLINE_OFFSET + 32;
+  uint256 constant private TRANSFER_WITH_PERMIT2_TRANSFER_SIZE = PERMIT2_TRANSFER_SIGNATURE_OFFSET + 65;
   //     - 3, "Permit2Permit"
   //        20 bytes uint amount
+  uint256 constant private PERMIT2_PERMIT_AMOUNT_OFFSET = ACQUIRE_MODE_OFFSET + 1;
   //        6 bytes uint expiration
+  uint256 constant private PERMIT2_PERMIT_EXPIRATION_OFFSET = PERMIT2_PERMIT_AMOUNT_OFFSET + 20;
   //        6 bytes uint nonce
+  uint256 constant private PERMIT2_PERMIT_NONCE_OFFSET = PERMIT2_PERMIT_EXPIRATION_OFFSET + 6;
   //        32 bytes uint sigDeadline
+  uint256 constant private PERMIT2_PERMIT_SIGDEADLINE_OFFSET = PERMIT2_PERMIT_NONCE_OFFSET + 6;
   //        65 bytes signature
+  uint256 constant private PERMIT2_PERMIT_SIGNATURE_OFFSET = PERMIT2_PERMIT_SIGDEADLINE_OFFSET + 32;
+  uint256 constant private TRANSFER_WITH_PERMIT2_PERMIT_SIZE = PERMIT2_PERMIT_SIGNATURE_OFFSET + 65;
+
+  uint256 constant private SIGNATURE_SIZE = 65;
 
   /**
    * Checks bounds for Transfer Token command and reads the acquire mode.
@@ -307,11 +448,21 @@ library TransferTokenWithRelay {
       revert InvalidCommand(TRANSFER_TOKEN_WITH_RELAY_ID, commandIndex);
     }
 
-    acquireMode = uint8(data[ACQUIREMODE_OFFSET]);
+    acquireMode = uint8(data[ACQUIRE_MODE_OFFSET]);
     if (acquireMode == ACQUIRE_PREAPPROVED) {
       size = MINIMUM_SIZE;
+    } else if (acquireMode == ACQUIRE_PERMIT) {
+      size = TRANSFER_WITH_PERMIT_SIZE;
+    } else if (acquireMode == ACQUIRE_PERMIT2TRANSFER) {
+      size = TRANSFER_WITH_PERMIT2_TRANSFER_SIZE;
+    } else if (acquireMode == ACQUIRE_PERMIT2TRANSFER) {
+      size = TRANSFER_WITH_PERMIT2_PERMIT_SIZE;
     } else {
       revert AcquireModeNotImplemented(acquireMode);
+    }
+
+    if (data.length < size) {
+      revert InvalidCommand(TRANSFER_TOKEN_WITH_RELAY_ID, commandIndex);
     }
   }
 
@@ -336,7 +487,7 @@ library TransferTokenWithRelay {
   }
 
   function decodeTokenAmount(bytes memory transferCommand) internal pure returns (uint256) {
-    (uint256 tokenAmount,) = transferCommand.asUint256Unchecked(TOKENAMOUNT_OFFSET);
+    (uint256 tokenAmount,) = transferCommand.asUint256Unchecked(TOKEN_AMOUNT_OFFSET);
     return tokenAmount;
   }
 
@@ -345,11 +496,88 @@ library TransferTokenWithRelay {
     return tokenAmount;
   }
 
-  function decodeUnrwapIntent(bytes memory transferCommand) internal pure returns (bool) {
+  function decodeUnwrapIntent(bytes memory transferCommand) internal pure returns (bool) {
     (bool unwrapIntent,) = transferCommand.asBoolUnchecked(UNWRAPINTENT_OFFSET);
     return unwrapIntent;
   }
 
+  function decodePermit(bytes memory transferCommand, uint256 commandIndex) internal pure returns (
+    uint256 value,
+    uint256 deadline,
+    bytes32 r,
+    bytes32 s,
+    uint8 v
+  ) {
+    uint256 offset = PERMIT_VALUE_OFFSET;
+    (value, offset) = transferCommand.asUint256Unchecked(PERMIT_VALUE_OFFSET);
+    (deadline, offset) = transferCommand.asUint256Unchecked(offset);
+    (r, offset) = transferCommand.asBytes32Unchecked(offset);
+    (s, offset) = transferCommand.asBytes32Unchecked(offset);
+    (v,) = transferCommand.asUint8Unchecked(offset);
+  }
+
+  function decodePermit2Transfer(bytes memory transferCommand, uint256 commandIndex) internal pure returns (
+    uint256 amount,
+    uint256 nonce,
+    uint256 sigDeadline,
+    bytes memory signature
+  ) {
+    uint256 offset = PERMIT2_TRANSFER_AMOUNT_OFFSET;
+    (amount, offset) = transferCommand.asUint256Unchecked(offset);
+    (nonce, offset) = transferCommand.asUint256Unchecked(offset);
+    (sigDeadline, offset) = transferCommand.asUint256Unchecked(offset);
+    (signature,) = transferCommand.sliceUnchecked(offset, SIGNATURE_SIZE);
+  }
+
+  function decodePermit2Permit(bytes memory transferCommand, uint256 commandIndex) internal pure returns (
+    uint160 amount,
+    uint48 expiration,
+    uint48 nonce,
+    uint256 sigDeadline,
+    bytes memory signature
+  ) {
+    uint256 offset = PERMIT2_PERMIT_AMOUNT_OFFSET;
+    (amount, offset) = transferCommand.asUint160Unchecked(offset);
+    (expiration, offset) = transferCommand.asUint48Unchecked(offset);
+    (nonce, offset) = transferCommand.asUint48Unchecked(offset);
+    (sigDeadline, offset) = transferCommand.asUint256Unchecked(offset);
+    (signature,) = transferCommand.sliceUnchecked(offset, SIGNATURE_SIZE);
+  }
+}
+
+library TransferGasTokenWithRelay {
+  using BytesParsing for bytes;
+  //   32 bytes recipient address
+  uint256 constant private RECIPIENT_OFFSET = 0;
+  //   2 bytes uint chain id
+  uint256 constant private CHAIN_OFFSET = RECIPIENT_OFFSET + 32;
+  //   32 bytes uint gas token amount
+  uint256 constant private TOKEN_AMOUNT_OFFSET = CHAIN_OFFSET + 2;
+  //   4 bytes uint gasDropoff
+  uint256 constant private GAS_DROPOFF_OFFSET = TOKEN_AMOUNT_OFFSET + 32;
+  uint256 constant private TRANSFER_GAS_TOKEN_SIZE = GAS_DROPOFF_OFFSET + 4;
+
+  /**
+   * Checks bounds for Transfer Gas Token command and parses all arguments.
+   */
+  function parseTransferGasToken(bytes calldata data, uint256 commandIndex) pure internal returns (
+    bytes32 recipient,
+    uint16 chainId,
+    uint256 tokenAmount,
+    uint32 gasDropoff,
+    uint256 size
+  ) {
+    size = TRANSFER_GAS_TOKEN_SIZE;
+    if (data.length < size) {
+      revert InvalidCommand(TRANSFER_GAS_TOKEN_WITH_RELAY_ID, commandIndex);
+    }
+
+    bytes memory transferCommand = data[:size];
+    (recipient,) = transferCommand.asBytes32Unchecked(RECIPIENT_OFFSET);
+    (chainId,) = transferCommand.asUint16Unchecked(CHAIN_OFFSET);
+    (tokenAmount,) = transferCommand.asUint256Unchecked(TOKEN_AMOUNT_OFFSET);
+    (gasDropoff,) = transferCommand.asUint32Unchecked(GAS_DROPOFF_OFFSET);
+  }
 }
 
 library CompleteTransfer {
