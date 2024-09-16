@@ -83,7 +83,6 @@ export function gasDropoffUnit(chain: SupportedChains): bigint {
   throw new Error(`Unknown/unsupported chain ${chain}.`);
 }
 
-
 export const transferTokenWithRelayLayout = [
   { name: "recipient", binary: "bytes", layout: recipientLayout },
   { name: "inputToken", ...evmAddressItem },
@@ -203,11 +202,6 @@ export const isPausedItem = {
   ...layoutItems.boolItem
 } as const satisfies NamedLayoutItem;
 
-export const targetChainItem = {
-  name: "targetChain",
-  ...supportedChainItem
-} as const satisfies NamedLayoutItem;
-
 export const peerItem = {
   name: "peer",
   binary: "bytes",
@@ -249,7 +243,7 @@ const governanceCommandRawLayout =
       [[1, "SweepTokens"], [tokenItem, amountItem]],
       [[2, "UpdateMaxGasDropoff"], [peerChainItem, maxGasDropoffItem]],
       [[3, "UpdateFeeRecipient"], [recipientItem]],
-      [[4, "UpdateRelayFee"], [feeItem]],
+      [[4, "UpdateRelayFee"], [peerChainItem, feeItem]],
       [[5, "PauseOutboundTransfers"], [peerChainItem, isPausedItem]],
       [[6, "UpdateTxSizeSensitive"], [peerChainItem, txSizeSensitiveItem]],
       [[7, "UpdateAdmin"], [{ ...layoutItems.boolItem, name: "isAdmin" }, adminItem]],
@@ -279,16 +273,16 @@ export const governanceQueryLayout = {
   idSize: 1,
   idTag: "query",
   layouts: [
-    [[0x80, "RelayFee"], []],
-    [[0x81, "MaxGasDropoff"], [{ ...targetChainItem, name: "chain" }]],
-    [[0x82, "IsChainPaused"], [{ ...targetChainItem, name: "chain" }]],
-    [[0x83, "IsPeer"], [{ ...targetChainItem, name: "chain" }, { ...peerItem, name: "peer" }]],
-    [[0x84, "IsTxSizeSensitive"], [{ ...targetChainItem, name: "chain" }]],
-    [[0x85, "CanonicalPeer"], [targetChainItem]],
+    [[0x80, "RelayFee"], [{ name: "chain", ...supportedChainItem }]],
+    [[0x81, "MaxGasDropoff"], [{ name: "chain", ...supportedChainItem }]],
+    [[0x82, "IsChainPaused"], [{ name: "chain", ...supportedChainItem }]],
+    [[0x83, "IsPeer"], [{ name: "chain", ...supportedChainItem }, { ...peerItem, name: "peer" }]],
+    [[0x84, "IsTxSizeSensitive"], [{ name: "chain", ...supportedChainItem }]],
+    [[0x85, "CanonicalPeer"], [{ name: "chain", ...supportedChainItem }]],
     [[0x86, "Owner"], []],
-    [[0x87, "IsChainSupported"], [{ ...targetChainItem, name: "chain" }]],
+    [[0x87, "IsChainSupported"], [{ name: "chain", ...supportedChainItem }]],
     [[0x88, "PendingOwner"], []],
-    [[0x89, "IsAdmin"], [{ ...evmAddressItem, name: "address" }]],
+    [[0x89, "IsAdmin"], [{ name: "address", ...evmAddressItem }]],
     [[0x8A, "FeeRecipient"], []],
     [[0x8B, "Implementation"], []],
   ],
