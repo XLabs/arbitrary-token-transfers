@@ -1,7 +1,7 @@
-import { serialize, toNative, toUniversal, UniversalAddress, VAA, layoutItems } from "@wormhole-foundation/sdk-definitions";
+import { serialize, toUniversal, UniversalAddress, VAA, layoutItems } from "@wormhole-foundation/sdk-definitions";
 import { chainToPlatform, FixedLengthArray, Layout, layout, LayoutItem, LayoutToType, Network, ProperLayout } from "@wormhole-foundation/sdk-base";
 import { ethers } from "ethers";
-import { baseRelayingConfigReturnLayout, BaseRelayingParamsReturn, dispatcherLayout, gasDropoffUnit, relayFeeUnit, relayingFeesInputLayout, RelayingFeesReturn, RelayingFeesReturnItem, relayingFeesReturnLayout, SupportedChains, TBRv3Message, transferTokenWithRelayLayout, versionEnvelopeLayout, transferGasTokenWithRelayLayout, proxyConstructorLayout, ownerItem, GovernanceQuery, GovernanceCommand, peerItem, GovernanceCommandRaw, feeItem, amountItem } from "./layouts.js";
+import { baseRelayingConfigReturnLayout, BaseRelayingParamsReturn, dispatcherLayout, gasDropoffUnit, relayFeeUnit, relayingFeesInputLayout, RelayingFeesReturn, RelayingFeesReturnItem, relayingFeesReturnLayout, SupportedChains, TBRv3Message, transferTokenWithRelayLayout, versionEnvelopeLayout, transferGasTokenWithRelayLayout, proxyConstructorLayout, ownerItem, GovernanceQuery, GovernanceCommand, peerItem, GovernanceCommandRaw, feeItem, amountItem, versionedTbrMessageLayout } from "./layouts.js";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
 
 /**
@@ -171,9 +171,9 @@ export class Tbrv3 {
     }
 
     if (vaas.some(({payload}) => {
-      const destinationAddress = payload.to.address.toNative(payload.to.chain);
+      const destinationAddress = new EvmAddress(payload.to.address);
       // TODO: actually check that this is part of the supported EVM chains
-      return chainToPlatform(payload.to.chain) !== "Evm" || !destinationAddress.equals(toNative("Ethereum", this.address));
+      return chainToPlatform(payload.to.chain) !== "Evm" || !destinationAddress.equals(new EvmAddress(this.address));
     })) {
       // TODO: point out which one; do a search instead.
       throw new Error("At least one of the VAAs points to an unexpected contract.");
@@ -181,10 +181,10 @@ export class Tbrv3 {
 
     let value: bigint = 0n;
     for (const vaa of vaas) {
-      const tbrv3Message = layout.deserializeLayout(TBRv3Message, vaa.payload.payload);
+      const tbrv3Message = layout.deserializeLayout(versionedTbrMessageLayout, vaa.payload.payload);
       // We use the unit of an EVM chain
       // TODO: source chain from the VAA?
-      value += tbrv3Message.gasDropoff * gasDropoffUnit("Ethereum");
+      value += tbrv3Message.message.gasDropoff * gasDropoffUnit("Ethereum");
     }
 
     const args = vaas.map((vaa) => ({vaa: serialize(vaa)}));
