@@ -1,1 +1,9 @@
-[]
+{
+  "10002": { 
+    "etherscan": "<key>", 
+    "blockscout": {
+        "key": "<key>", 
+        "apiUrl": "https://<chain>.blockscout.com/api"
+      }
+  }
+}

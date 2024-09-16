@@ -37,8 +37,8 @@ async function run() {
     } else {
       console.log(`Successfully deployed to chain ${result.chainId}`);
 
-      writeDeployedContract(result.chainId, "TbrV3", result.implementation?.address ?? "", []);
-      writeDeployedContract(result.chainId, "TbrV3Proxies", result.proxy?.address ?? "", []);
+      writeDeployedContract(result.chainId, "TbrV3", result.implementation?.address ?? "", result.implementation?.constructorArgs ?? []);
+      writeDeployedContract(result.chainId, "TbrV3Proxies", result.proxy?.address ?? "", result.proxy?.constructorArgs ?? []);
     }
   }
 
@@ -103,7 +103,7 @@ async function deployRelayerImplementation(chain: EvmChainInfo, config: EvmTbrV3
   
   const address = await contract.getAddress();
   console.log("Successfully deployed implementation at " + address);
-  return { address, chainId: chain.chainId };
+  return { address, chainId: chain.chainId, constructorArgs: [ permit2, tokenBridge, oracle, initGasToken, config.initGasErc20TokenizationIsExplicit ] };
 }
 
 async function deployProxy(
@@ -144,7 +144,7 @@ async function deployProxy(
   }
   const address = await contract.getAddress();
   console.log("Successfully deployed proxy at " + address);
-  return { address, chainId: chain.chainId, proxyConstructorArgs };
+  return { address, chainId: chain.chainId, constructorArgs: [implementationAddress, proxyConstructorArgs] };
 }
 
 
