@@ -5,7 +5,7 @@ import { Chain, chainToChainId, encoding } from "@wormhole-foundation/sdk-base";
 import { SolanaPriceOracleClient } from "@xlabs/solana-price-oracle-sdk";
 
 import { TokenBridgeRelayer } from "./idl/token_bridge_relayer.js";
-import * as IDL from "./idl/token_bridge_relayer.json" with { type: "json" };
+import IDL from "./idl/token_bridge_relayer.json" with { type: "json" };
 import {
   getTransferNativeWithPayloadCpiAccounts,
   getTransferWrappedWithPayloadCpiAccounts,
@@ -65,7 +65,7 @@ export interface ReadTbrAccounts {
 export class TbrClient {
   private _connection: Connection;
   private readonly program: anchor.Program<TokenBridgeRelayer>;
-  private priceOracleClient: SolanaPriceOracleClient;
+  public priceOracleClient: SolanaPriceOracleClient;
   private tokenBridgeProgramId: PublicKey;
   private wormholeProgramId: PublicKey;
 
