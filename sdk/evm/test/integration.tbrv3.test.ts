@@ -74,13 +74,13 @@ describe('TbrV3 SDK Integration test', () => {
 
   it("should update relay fee", async () => {
     const expectedFee = Math.round(Math.random() * 1000);
-    const udpatedRelayerFeePartialTx = tbrv3.updateRelayFee(expectedFee);
+    const udpatedRelayerFeePartialTx = tbrv3.updateRelayFee("Arbitrum", expectedFee);
 
     const result = await awaitTx(udpatedRelayerFeePartialTx);
 
     expect(result!.status).to.equal(1);
 
-    const fee = await tbrv3.relayFee();
+    const fee = await tbrv3.relayFee("Arbitrum");
     expect(fee).to.equal(expectedFee);
   }).timeout(timeout);
 
