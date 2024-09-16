@@ -1,20 +1,13 @@
 import {
   evm,
-  EvmChainInfo,
-  getChainConfig,
   getContractAddress,
-  getDependencyAddress,
-  writeDeployedContract,
-  ecosystemChains,
   getEnv,
 } from '../helpers';
-import { EvmTbrV3Config } from '../config/config.types';
 import { ethers } from 'ethers';
-import { Tbr__factory, Proxy__factory } from '../ethers-contracts/index.js';
 import { getProvider, getSigner, sendTx } from '../helpers/evm';
 import { SupportedChains, Tbrv3, Transfer } from '@xlabs-xyz/evm-arbitrary-token-transfers';
 import { toUniversal } from '@wormhole-foundation/sdk-definitions';
-import { Chain, zip } from '@wormhole-foundation/sdk-base';
+import { Chain } from '@wormhole-foundation/sdk-base';
 import { inspect } from 'util';
 import { solanaOperatingChains } from '../helpers/solana';
 
@@ -81,7 +74,7 @@ async function run() {
               args: {
                 method: 'TransferTokenWithRelay',
                 acquireMode: { mode: 'Preapproved' },
-                inputAmount: 1000n,
+                inputAmount: 1000n, 
                 gasDropoff: 0n,
                 recipient: {
                   chain: targetChain.name as Chain,

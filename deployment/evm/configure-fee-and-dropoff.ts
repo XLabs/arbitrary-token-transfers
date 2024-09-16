@@ -19,10 +19,10 @@ evm.runOnEvms("configure-fee-and-dropoff", async (chain, signer, log) => {
   const deployedTbrv3s = contracts["TbrV3Proxies"].filter((tbr) => tbr.chainId !== chain.chainId);
   const desiredRelayFee = Number(config.relayFee);
 
-  const currentRelayFee = await tbrv3.relayFee();
+  const currentRelayFee = await tbrv3.relayFee(chain.name as SupportedChains);
   if (currentRelayFee !== desiredRelayFee) {
     log(`Updating relay fee: ${desiredRelayFee}`);
-    const partialTx = await tbrv3.updateRelayFee(desiredRelayFee);
+    const partialTx = await tbrv3.updateRelayFee(chain.name as SupportedChains, desiredRelayFee);
     const { error, receipt } = await evm.sendTx(signer, { ...partialTx, data: ethers.hexlify(partialTx.data) });
     if (error) {
       log("Error updating relay fee: ", error);

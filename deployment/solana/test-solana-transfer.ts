@@ -44,7 +44,7 @@ async function sendTestTransaction(
 
       const params = {
         recipientChain: targetChain.name as Chain,
-        recipientAddress: toUniversal(targetChain.name as Chain, evmAddress),
+        recipientAddress: toUniversal(targetChain.name as Chain, evmAddress).toUint8Array(),
         mint: new PublicKey('4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU'), // Is this ok?
         tokenAccount: new PublicKey('Cu7gE34M8nckaC17zkbmWSrqGyCBYd5GjT6LdYLX8YfJ'), // TODO: find a token account
         transferredAmount: new BN(1000),
