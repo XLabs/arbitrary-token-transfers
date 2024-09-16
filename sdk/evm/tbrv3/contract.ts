@@ -249,8 +249,8 @@ export class Tbrv3 {
     ));
   }
 
-  updateRelayFee(fee: number): TbrPartialTx {
-    return this.governanceTx([{ command: "UpdateRelayFee", fee }]);
+  updateRelayFee(chain: SupportedChains, fee: number): TbrPartialTx {
+    return this.governanceTx([{ command: "UpdateRelayFee", chain, fee }]);
   }
 
   updateAdmin(authorized: boolean, admin: EvmAddress): TbrPartialTx {
@@ -285,8 +285,8 @@ export class Tbrv3 {
     return result;
   }
 
-  async relayFee() {
-    const result = await this.governanceQuery([{ query: "RelayFee" }]);
+  async relayFee(chain: SupportedChains) {
+    const result = await this.governanceQuery([{ query: "RelayFee", chain }]);
     
     return decodeQueryResponseLayout(feeItem, ethers.getBytes(result)); 
   }
@@ -316,7 +316,7 @@ export class Tbrv3 {
   }
 
   async canonicalPeer(chain: SupportedChains): Promise<UniversalAddress> {
-    const result = await this.governanceQuery([{ query: "CanonicalPeer", targetChain: chain }]);
+    const result = await this.governanceQuery([{ query: "CanonicalPeer", chain }]);
 
     return toUniversal(chain, decodeQueryResponseLayout(peerItem, ethers.getBytes(result)));
   }
