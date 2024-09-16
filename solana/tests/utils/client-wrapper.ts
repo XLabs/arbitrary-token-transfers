@@ -8,8 +8,8 @@ import {
   TransferWrappedParameters,
   UniversalAddress,
   VaaMessage,
-} from "@xlabs-xyz/solana-arbitrary-token-transfers";
-import { sendAndConfirmIx } from "./helpers.js";
+} from '@xlabs-xyz/solana-arbitrary-token-transfers';
+import { sendAndConfirmIx } from './helpers.js';
 
 export class ClientWrapper {
   private readonly client: TbrClient;
@@ -19,9 +19,14 @@ export class ClientWrapper {
   constructor(
     provider: AnchorProvider,
     params: { tokenBridgeProgramId: PublicKey; wormholeProgramId: PublicKey },
+    createClientWithFullProvider: boolean = false,
   ) {
     this.provider = provider;
-    this.client = new TbrClient(provider.connection, params);
+    if (createClientWithFullProvider) {
+      this.client = new TbrClient(provider, params);
+    } else {
+      this.client = new TbrClient({ connection: provider.connection }, params);
+    }
     this.logs = {};
 
     provider.connection.onLogs('all', (l) => (this.logs[l.signature] = l.logs));
@@ -69,8 +74,12 @@ export class ClientWrapper {
     return sendAndConfirmIx(this.client.cancelOwnerTransferRequest(this.publicKey), this.provider);
   }
 
-  async updateAdmin(newAdmin: PublicKey): Promise<TransactionSignature> {
-    return sendAndConfirmIx(this.client.updateAdmin(this.publicKey, newAdmin), this.provider);
+  async addAdmin(newAdmin: PublicKey): Promise<TransactionSignature> {
+    return sendAndConfirmIx(this.client.addAdmin(this.publicKey, newAdmin), this.provider);
+  }
+
+  async removeAdmin(admin: PublicKey): Promise<TransactionSignature> {
+    return sendAndConfirmIx(this.client.removeAdmin(this.publicKey, admin), this.provider);
   }
 
   async registerPeer(chain: Chain, peerAddress: UniversalAddress): Promise<TransactionSignature> {
@@ -162,5 +171,9 @@ export class ClientWrapper {
       this.client.completeWrappedTransfer(this.publicKey, vaa, recipientTokenAccount, recipient),
       this.provider,
     );
+  }
+
+  async relayingFee(chain: Chain, dropoffAmount: BN): Promise<BN> {
+    return this.client.relayingFee(this.publicKey, chain, dropoffAmount);
   }
 }
