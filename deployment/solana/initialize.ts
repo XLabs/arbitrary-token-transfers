@@ -21,7 +21,7 @@ async function initializeSolanaTbr(
   if (solanaDependencies === undefined ) {
     throw new Error(`No dependencies found for chain ${chain.chainId}`);
   }
-  const tbr = new TbrClient(connection, {
+  const tbr = new TbrClient({ connection }, {
     tokenBridgeProgramId: new PublicKey(solanaDependencies.tokenBridge),
     wormholeProgramId: new PublicKey(solanaDependencies.wormhole),
   });

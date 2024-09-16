@@ -58,7 +58,7 @@ pub fn update_fee_recipient(
     Ok(())
 }
 
-pub fn update_evm_transaction_size(
+pub fn update_evm_transaction_config(
     ctx: Context<UpdateTbrConfig>,
     evm_transaction_gas: u64,
     evm_transaction_size: u64,

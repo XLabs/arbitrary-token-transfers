@@ -4,11 +4,10 @@
     "lib": [
       "es2023"
     ],
-    "outDir": "ts-build",
-    "rootDir": "../../"
+    "outDir": "ts-build"
   },
   "include": [
-    "sdk/solana/tbrv3",
+    "tbrv3",
     "tbrv3/**/*.json"
   ]
 }
