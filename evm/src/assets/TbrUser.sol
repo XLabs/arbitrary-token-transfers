@@ -191,8 +191,6 @@ abstract contract TbrUser is TbrBase {
     if (address(gasToken) == address(0))
       revert GasTokenNotSupported();
 
-    // The bounds of the command are determined by the `acquireMode` field.
-    // So we take the opportunity to keep it from that check.
     (
       bytes32 recipient,
       uint16 targetChain,
