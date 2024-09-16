@@ -2,7 +2,7 @@
 solc_version = "0.8.25"
 optimizer = true
 optimizer_runs = 200
-via_ir = false
+via_ir = true
 src = "src"
 test = "test"
 evm_version = "paris"
@@ -12,11 +12,12 @@ out = 'build-forge'
 libs = ['lib', 'node_modules']
 remappings = [
     'forge-std/=lib/forge-std/src/',
-    "wormhole-sdk/=lib/wormhole-solidity-sdk/src/",
+    "wormhole-sdk/=lib/wormhole-solidity-sdk/src/", #install via forge install wormhole-foundation/wormhole-solidity-sdk@b86c6fb --no-git --no-commit
     "tbr/=src/",
     "price-oracle/=lib/relayer-infra-contracts/apps/price-oracle/evm/src/",
     "@openzeppelin/=lib/openzeppelin-contracts/contracts/",
     "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+    "permit2/=lib/permit2/src/interfaces/", #install via forge install https://github.com/Uniswap/permit2 --no-git --no-commit
 ]
 
 [fmt]

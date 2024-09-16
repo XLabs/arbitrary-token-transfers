@@ -5,25 +5,31 @@ pragma solidity ^0.8.25;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {TRANSFER_TOKEN_WITH_RELAY_ID} from "tbr/assets/TbrIds.sol";
 import "wormhole-sdk/libraries/BytesParsing.sol";
+import { TransferTokenWithRelayTestWrapper } from "./TbrUserTestWrappers.sol";
 import {
-  TransferTokenWithRelay, 
   ACQUIRE_PREAPPROVED,
   ACQUIRE_PERMIT,
   ACQUIRE_PERMIT2TRANSFER,
   ACQUIRE_PERMITE2PERMIT,
   InvalidCommand, 
-  AcquireModeNotImplemented
+  InvalidAcquireMode
 } from "tbr/assets/TbrUser.sol";
 import "forge-std/Test.sol";
 
 contract TransferTokenWithRelayTest is Test {
   using BytesParsing for bytes;
 
+  TransferTokenWithRelayTestWrapper wrapper;
+
+  function setUp() public {
+    wrapper = new TransferTokenWithRelayTestWrapper();
+  }
+
   function checkTransferTokenBounds(
     bytes calldata data, 
     uint256 commandIndex
-  ) external pure returns (uint8 acquireMode, uint256 size) {
-    (acquireMode, size) = TransferTokenWithRelay.checkTransferTokenBounds(data, commandIndex);
+  ) external view returns (uint8 acquireMode, uint256 size) {
+    (acquireMode, size) = wrapper.checkTransferTokenBounds(data, commandIndex);
   }
 
   function testCheckTransferTokenBounds(
@@ -81,7 +87,7 @@ contract TransferTokenWithRelayTest is Test {
     this.checkTransferTokenBounds(data, commandIndex);
   }
 
-  function testCheckTransferTokenBounds_AcquireModeNotImplemented(
+  function testCheckTransferTokenBounds_InvalidAcquireMode(
     bytes32 recipient, 
     uint16 chainId, 
     address tokenAddress,
@@ -107,7 +113,7 @@ contract TransferTokenWithRelayTest is Test {
 
     vm.expectRevert(
       abi.encodeWithSelector(
-        AcquireModeNotImplemented.selector, acquireMode
+        InvalidAcquireMode.selector, acquireMode
       )
     );
 
@@ -121,7 +127,7 @@ contract TransferTokenWithRelayTest is Test {
     uint256 tokenAmount,
     uint32 gasDropoff,
     bool unwrapIntent
-  ) public pure {
+  ) public view {
     bytes memory data = abi.encodePacked(
       recipient,
       chainId,
@@ -132,7 +138,7 @@ contract TransferTokenWithRelayTest is Test {
       ACQUIRE_PREAPPROVED
     );
 
-    IERC20 token = TransferTokenWithRelay.decodeToken(data);
+    IERC20 token = wrapper.decodeToken(data);
     assertEq(address(token), tokenAddress);
   }
 
@@ -143,7 +149,7 @@ contract TransferTokenWithRelayTest is Test {
     uint256 tokenAmount,
     uint32 gasDropoff,
     bool unwrapIntent
-  ) public pure {
+  ) public view {
     bytes memory data = abi.encodePacked(
       recipient,
       chainId,
@@ -154,18 +160,18 @@ contract TransferTokenWithRelayTest is Test {
       ACQUIRE_PREAPPROVED
     );
 
-    uint32 gasDropoff_ = TransferTokenWithRelay.decodeGasdropoff(data);
+    uint32 gasDropoff_ = wrapper.decodeGasdropoff(data);
     assertEq(gasDropoff_, gasDropoff);
   }
 
-  function testDecodeDecodeDestinationChain(
+  function testDecodeDecodeTargetChain(
     bytes32 recipient, 
     uint16 chainId, 
     address tokenAddress,
     uint256 tokenAmount,
     uint32 gasDropoff,
     bool unwrapIntent
-  ) public pure {
+  ) public view {
     bytes memory data = abi.encodePacked(
       recipient,
       chainId,
@@ -176,7 +182,7 @@ contract TransferTokenWithRelayTest is Test {
       ACQUIRE_PREAPPROVED
     );
 
-    uint16 chainId_ = TransferTokenWithRelay.decodeDestinationChain(data);
+    uint16 chainId_ = wrapper.decodeTargetChain(data);
     assertEq(chainId_, chainId);
   }
 
@@ -187,7 +193,7 @@ contract TransferTokenWithRelayTest is Test {
     uint256 tokenAmount,
     uint32 gasDropoff,
     bool unwrapIntent
-  ) public pure {
+  ) public view {
     bytes memory data = abi.encodePacked(
       recipient,
       chainId,
@@ -198,7 +204,7 @@ contract TransferTokenWithRelayTest is Test {
       ACQUIRE_PREAPPROVED
     );
 
-    uint256 tokenAmount_ = TransferTokenWithRelay.decodeTokenAmount(data);
+    uint256 tokenAmount_ = wrapper.decodeTokenAmount(data);
     assertEq(tokenAmount_, tokenAmount);
   }
 
@@ -209,7 +215,7 @@ contract TransferTokenWithRelayTest is Test {
     uint256 tokenAmount,
     uint32 gasDropoff,
     bool unwrapIntent
-  ) public pure {
+  ) public view {
     bytes memory data = abi.encodePacked(
       recipient,
       chainId,
@@ -220,7 +226,7 @@ contract TransferTokenWithRelayTest is Test {
       ACQUIRE_PREAPPROVED
     );
 
-    bytes32 recipient_ = TransferTokenWithRelay.decodeRecipient(data);
+    bytes32 recipient_ = wrapper.decodeRecipient(data);
     assertEq(recipient_, recipient);
   }
 
@@ -231,7 +237,7 @@ contract TransferTokenWithRelayTest is Test {
     uint256 tokenAmount,
     uint32 gasDropoff,
     bool unwrapIntent
-  ) public pure {
+  ) public view {
     bytes memory data = abi.encodePacked(
       recipient,
       chainId,
@@ -242,7 +248,7 @@ contract TransferTokenWithRelayTest is Test {
       ACQUIRE_PREAPPROVED
     );
 
-    bool unwrapIntent_ = TransferTokenWithRelay.decodeUnwrapIntent(data);
+    bool unwrapIntent_ = wrapper.decodeUnwrapIntent(data);
     assertEq(unwrapIntent_, unwrapIntent);
   }
 }
