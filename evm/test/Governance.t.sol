@@ -289,7 +289,7 @@ contract GovernanceTest is TbrTestBase {
       )
     );
 
-    (bool isPeer, ) = invokeTbr(
+    (bool _isPeer, ) = invokeTbr(
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
@@ -301,7 +301,7 @@ contract GovernanceTest is TbrTestBase {
       )
     ).asBoolUnchecked(0);
 
-    assertEq(isPeer, true);
+    assertEq(_isPeer, true);
   }
 
   function testUpdateMaxGasDropoff() public {
