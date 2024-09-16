@@ -27,7 +27,6 @@ contract TbrTestBase is Test {
   address      immutable admin;
   address      immutable feeRecipient;
 
-  uint8        immutable oracleVersion;
   IPermit2     immutable permit2;
   address      immutable oracle;
   ITokenBridge immutable tokenBridge;
@@ -48,7 +47,6 @@ contract TbrTestBase is Test {
 
     permit2       = IPermit2(makeAddr("permit2"));
     oracle        = makeAddr("oracle");
-    oracleVersion = 0;
     tokenBridge   = ITokenBridge(vm.envAddress("TEST_TOKEN_BRIDGE_ADDRESS"));
     initGasToken  = IWETH(vm.envAddress("TEST_WETH_ADDRESS"));
     initGasErc20TokenizationIsExplicit = false;
@@ -63,7 +61,6 @@ contract TbrTestBase is Test {
       permit2,
       tokenBridge,
       oracle,
-      oracleVersion,
       initGasToken,
       initGasErc20TokenizationIsExplicit
     ));
@@ -81,7 +78,6 @@ contract TbrTestBase is Test {
       permit2,
       tokenBridge,
       oracle,
-      oracleVersion,
       initGasToken,
       initGasErc20TokenizationIsExplicit
     );

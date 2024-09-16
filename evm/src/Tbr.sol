@@ -16,14 +16,12 @@ contract Tbr is TbrDispatcher {
     IPermit2 initPermit2,
     ITokenBridge initTokenBridge,
     address oracle,
-    uint8 oracleVersion,
     IWETH initGasToken,
     bool initGasErc20TokenizationIsExplicit
   ) TbrBase(
     initPermit2,
     initTokenBridge,
     oracle,
-    oracleVersion,
     initGasToken,
     initGasErc20TokenizationIsExplicit
   ) {}

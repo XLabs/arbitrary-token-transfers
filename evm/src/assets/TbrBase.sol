@@ -88,10 +88,9 @@ abstract contract TbrBase is PriceOracleIntegration {
     IPermit2 initPermit2,
     ITokenBridge initTokenBridge,
     address oracle,
-    uint8 oracleVersion,
     IWETH initGasToken,
     bool initGasErc20TokenizationIsExplicit
-  ) PriceOracleIntegration(oracle, oracleVersion) {
+  ) PriceOracleIntegration(oracle) {
     permit2 = initPermit2;
     whChainId = _oracleChainId();
     tokenBridge = initTokenBridge;
