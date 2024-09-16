@@ -8,6 +8,10 @@ export const supportedChains = ["Ethereum", "Solana", "Arbitrum", "Base", "Sepol
 export const supportedChainItem = layoutItems.chainItem({allowedChains: supportedChains});
 export type SupportedChains = typeof supportedChains[number];
 
+export const peerChainItem = {
+  name: "chain", ...layoutItems.chainItem({ allowedChains: supportedChains }) 
+} as const satisfies NamedLayoutItem;
+
 export const evmAddressItem = {
   binary: "bytes",
   size: 20,
@@ -41,7 +45,7 @@ export const subArrayLayout = <const N extends string, const L extends Layout>(
 
 export const recipientLayout = [
   { name: "address", ...layoutItems.universalAddressItem },
-  { name: "chain", ...supportedChainItem },
+  peerChainItem
 ] as const satisfies Layout;
 
 
@@ -82,7 +86,6 @@ export function gasDropoffUnit(chain: SupportedChains): bigint {
   if (chain === "Solana") return BigInt(1e3);
   throw new Error(`Unknown/unsupported chain ${chain}.`);
 }
-
 
 export const transferTokenWithRelayLayout = [
   { name: "recipient", binary: "bytes", layout: recipientLayout },
@@ -130,7 +133,6 @@ export interface RelayingFeesReturnItem {
 
 export type RelayingFeesReturn = readonly RelayingFeesReturnItem[];
 
-export const maxGasDropoffLayout = { name: "targetChain", ...supportedChainItem } as const satisfies NamedLayoutItem;
 export interface BaseRelayingParamsReturnItem {
   /**
    * This is the TBRv3 peer address on the chosen chain.
@@ -203,11 +205,6 @@ export const isPausedItem = {
   ...layoutItems.boolItem
 } as const satisfies NamedLayoutItem;
 
-export const targetChainItem = {
-  name: "targetChain",
-  ...supportedChainItem
-} as const satisfies NamedLayoutItem;
-
 export const peerItem = {
   name: "peer",
   binary: "bytes",
@@ -234,11 +231,6 @@ export const ownerItem = {
   ...evmAddressItem 
 } as const satisfies NamedLayoutItem;
 
-
-const peerChainItem = {
-  name: "chain", ...layoutItems.chainItem({ allowedChains: supportedChains }) 
-} as const satisfies NamedLayoutItem;
-
 const governanceCommandRawLayout = 
   { 
     binary: "switch",
@@ -249,7 +241,7 @@ const governanceCommandRawLayout =
       [[1, "SweepTokens"], [tokenItem, amountItem]],
       [[2, "UpdateMaxGasDropoff"], [peerChainItem, maxGasDropoffItem]],
       [[3, "UpdateFeeRecipient"], [recipientItem]],
-      [[4, "UpdateRelayFee"], [feeItem]],
+      [[4, "UpdateRelayFee"], [peerChainItem, feeItem]],
       [[5, "PauseOutboundTransfers"], [peerChainItem, isPausedItem]],
       [[6, "UpdateTxSizeSensitive"], [peerChainItem, txSizeSensitiveItem]],
       [[7, "UpdateAdmin"], [{ ...layoutItems.boolItem, name: "isAdmin" }, adminItem]],
@@ -279,16 +271,16 @@ export const governanceQueryLayout = {
   idSize: 1,
   idTag: "query",
   layouts: [
-    [[0x80, "RelayFee"], []],
-    [[0x81, "MaxGasDropoff"], [{ ...targetChainItem, name: "chain" }]],
-    [[0x82, "IsChainPaused"], [{ ...targetChainItem, name: "chain" }]],
-    [[0x83, "IsPeer"], [{ ...targetChainItem, name: "chain" }, { ...peerItem, name: "peer" }]],
-    [[0x84, "IsTxSizeSensitive"], [{ ...targetChainItem, name: "chain" }]],
-    [[0x85, "CanonicalPeer"], [targetChainItem]],
+    [[0x80, "RelayFee"], [peerChainItem]],
+    [[0x81, "MaxGasDropoff"], [peerChainItem]],
+    [[0x82, "IsChainPaused"], [peerChainItem]],
+    [[0x83, "IsPeer"], [peerChainItem, { ...peerItem, name: "peer" }]],
+    [[0x84, "IsTxSizeSensitive"], [peerChainItem]],
+    [[0x85, "CanonicalPeer"], [peerChainItem]],
     [[0x86, "Owner"], []],
-    [[0x87, "IsChainSupported"], [{ ...targetChainItem, name: "chain" }]],
+    [[0x87, "IsChainSupported"], [peerChainItem]],
     [[0x88, "PendingOwner"], []],
-    [[0x89, "IsAdmin"], [{ ...evmAddressItem, name: "address" }]],
+    [[0x89, "IsAdmin"], [{ name: "address", ...evmAddressItem }]],
     [[0x8A, "FeeRecipient"], []],
     [[0x8B, "Implementation"], []],
   ],
