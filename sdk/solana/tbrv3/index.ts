@@ -23,6 +23,7 @@ import * as IDL from './idl/token_bridge_relayer.json' with { type: 'json' };
 // Export IDL
 export * from './idl/token_bridge_relayer.js';
 export const idl = IDL;
+export { SolanaPriceOracleClient } from '@xlabs/solana-price-oracle-sdk';
 
 /**
  * 32 bytes.

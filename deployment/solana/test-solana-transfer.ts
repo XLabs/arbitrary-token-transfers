@@ -35,7 +35,7 @@ async function sendTestTransaction(
       const tokenBridgeProgramId = new PublicKey(solanaDependencies.tokenBridge);
       const wormholeProgramId = new PublicKey(solanaDependencies.wormhole);
 
-      const tbr = new TbrClient(connection, {
+      const tbr = new TbrClient({ connection }, {
         tokenBridgeProgramId,
         wormholeProgramId,
       });
@@ -50,6 +50,7 @@ async function sendTestTransaction(
         transferredAmount: new BN(1000),
         gasDropoffAmount: new BN(0),
         maxFeeSol: new BN(5000), // TODO: where does this come from?
+        unwrapIntent: false,
       };
 
       const transferIx = await tbr.transferNativeTokens(signerKey, params);
