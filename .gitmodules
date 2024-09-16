@@ -4,3 +4,6 @@
 [submodule "evm/lib/openzeppelin-contracts"]
 	path = evm/lib/openzeppelin-contracts
 	url = https://github.com/openzeppelin/openzeppelin-contracts
+[submodule "evm/lib/relayer-infra-contracts"]
+	path = evm/lib/relayer-infra-contracts
+	url = git@github.com:XLabs/relayer-infra-contracts.git
