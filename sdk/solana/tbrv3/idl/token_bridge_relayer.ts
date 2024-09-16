@@ -14,6 +14,63 @@ export type TokenBridgeRelayer = {
   },
   "instructions": [
     {
+      "name": "addAdmin",
+      "docs": [
+        "Adds a new admin account."
+      ],
+      "discriminator": [
+        177,
+        236,
+        33,
+        205,
+        124,
+        152,
+        55,
+        186
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "docs": [
+            "The signer may be the owner, pending owner or admin, depending on the operation."
+          ],
+          "signer": true
+        },
+        {
+          "name": "tbrConfig",
+          "docs": [
+            "Program Config account. This program requires that the [`signer`] specified",
+            "in the context equals a pubkey specified in this account. Mutable,",
+            "because we will update roles depending on the operation."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  100,
+                  101,
+                  101,
+                  109,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "newAdmin",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
       "name": "cancelOwnerTransferRequest",
       "docs": [
         "The owner role transfer is cancelled by the current one."
@@ -629,6 +686,194 @@ export type TokenBridgeRelayer = {
       ]
     },
     {
+      "name": "relayingFee",
+      "docs": [
+        "Returns a quote for a transfer."
+      ],
+      "discriminator": [
+        140,
+        90,
+        50,
+        203,
+        107,
+        172,
+        183,
+        250
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "tbrConfig",
+          "docs": [
+            "This program's config."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  100,
+                  101,
+                  101,
+                  109,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "chainConfig",
+          "docs": [
+            "The peer config. We need to verify that the transfer is sent to the",
+            "canonical peer."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  104,
+                  97,
+                  105,
+                  110,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "chainId"
+              }
+            ]
+          }
+        },
+        {
+          "name": "oracleConfig",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "oracleEvmPrices",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  118,
+                  109,
+                  112,
+                  114,
+                  105,
+                  99,
+                  101,
+                  115
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "chainId"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "chainId",
+          "type": "u16"
+        },
+        {
+          "name": "dropoffAmount",
+          "type": "u64"
+        }
+      ],
+      "returns": "u64"
+    },
+    {
+      "name": "removeAdmin",
+      "docs": [
+        "Removes a previously added admin account."
+      ],
+      "discriminator": [
+        74,
+        202,
+        71,
+        106,
+        252,
+        31,
+        72,
+        183
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "docs": [
+            "The signer may be the owner, pending owner or admin, depending on the operation."
+          ],
+          "signer": true
+        },
+        {
+          "name": "tbrConfig",
+          "docs": [
+            "Program Config account. This program requires that the [`signer`] specified",
+            "in the context equals a pubkey specified in this account. Mutable,",
+            "because we will update roles depending on the operation."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  100,
+                  101,
+                  101,
+                  109,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "newAdmin",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
       "name": "setPauseForOutboundTransfers",
       "docs": [
         "Forbids or allows any outbound transfer, *i.e.* from this chain.",
@@ -1079,69 +1324,16 @@ export type TokenBridgeRelayer = {
           "type": "u64"
         },
         {
+          "name": "unwrapIntent",
+          "type": "bool"
+        },
+        {
           "name": "gasDropoffAmount",
           "type": "u64"
         },
         {
           "name": "maxFeeKlam",
           "type": "u64"
-        }
-      ]
-    },
-    {
-      "name": "updateAdmin",
-      "docs": [
-        "Updates the admin account."
-      ],
-      "discriminator": [
-        161,
-        176,
-        40,
-        213,
-        60,
-        184,
-        179,
-        228
-      ],
-      "accounts": [
-        {
-          "name": "signer",
-          "docs": [
-            "The signer may be the owner, pending owner or admin, depending on the operation."
-          ],
-          "signer": true
-        },
-        {
-          "name": "tbrConfig",
-          "docs": [
-            "Program Config account. This program requires that the [`signer`] specified",
-            "in the context equals a pubkey specified in this account. Mutable,",
-            "because we will update roles depending on the operation."
-          ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
-                ]
-              }
-            ]
-          }
-        }
-      ],
-      "args": [
-        {
-          "name": "newAdmin",
-          "type": "pubkey"
         }
       ]
     },
@@ -1760,16 +1952,11 @@ export type TokenBridgeRelayer = {
     },
     {
       "code": 6018,
-      "name": "solPriceNotSet",
-      "msg": "solPriceNotSet"
-    },
-    {
-      "code": 6019,
       "name": "evmChainPriceNotSet",
       "msg": "evmChainPriceNotSet"
     },
     {
-      "code": 6020,
+      "code": 6019,
       "name": "pausedTransfers",
       "msg": "pausedTransfers"
     }

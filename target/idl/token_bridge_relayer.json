@@ -8,6 +8,63 @@
   },
   "instructions": [
     {
+      "name": "add_admin",
+      "docs": [
+        "Adds a new admin account."
+      ],
+      "discriminator": [
+        177,
+        236,
+        33,
+        205,
+        124,
+        152,
+        55,
+        186
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "docs": [
+            "The signer may be the owner, pending owner or admin, depending on the operation."
+          ],
+          "signer": true
+        },
+        {
+          "name": "tbr_config",
+          "docs": [
+            "Program Config account. This program requires that the [`signer`] specified",
+            "in the context equals a pubkey specified in this account. Mutable,",
+            "because we will update roles depending on the operation."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  100,
+                  101,
+                  101,
+                  109,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "new_admin",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
       "name": "cancel_owner_transfer_request",
       "docs": [
         "The owner role transfer is cancelled by the current one."
@@ -623,6 +680,194 @@
       ]
     },
     {
+      "name": "relaying_fee",
+      "docs": [
+        "Returns a quote for a transfer."
+      ],
+      "discriminator": [
+        140,
+        90,
+        50,
+        203,
+        107,
+        172,
+        183,
+        250
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "tbr_config",
+          "docs": [
+            "This program's config."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  100,
+                  101,
+                  101,
+                  109,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "chain_config",
+          "docs": [
+            "The peer config. We need to verify that the transfer is sent to the",
+            "canonical peer."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  104,
+                  97,
+                  105,
+                  110,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "chain_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "oracle_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "oracle_evm_prices",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  118,
+                  109,
+                  112,
+                  114,
+                  105,
+                  99,
+                  101,
+                  115
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "chain_id"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "_chain_id",
+          "type": "u16"
+        },
+        {
+          "name": "dropoff_amount",
+          "type": "u64"
+        }
+      ],
+      "returns": "u64"
+    },
+    {
+      "name": "remove_admin",
+      "docs": [
+        "Removes a previously added admin account."
+      ],
+      "discriminator": [
+        74,
+        202,
+        71,
+        106,
+        252,
+        31,
+        72,
+        183
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "docs": [
+            "The signer may be the owner, pending owner or admin, depending on the operation."
+          ],
+          "signer": true
+        },
+        {
+          "name": "tbr_config",
+          "docs": [
+            "Program Config account. This program requires that the [`signer`] specified",
+            "in the context equals a pubkey specified in this account. Mutable,",
+            "because we will update roles depending on the operation."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  100,
+                  101,
+                  101,
+                  109,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "new_admin",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
       "name": "set_pause_for_outbound_transfers",
       "docs": [
         "Forbids or allows any outbound transfer, *i.e.* from this chain.",
@@ -1073,69 +1318,16 @@
           "type": "u64"
         },
         {
+          "name": "unwrap_intent",
+          "type": "bool"
+        },
+        {
           "name": "gas_dropoff_amount",
           "type": "u64"
         },
         {
           "name": "max_fee_klam",
           "type": "u64"
-        }
-      ]
-    },
-    {
-      "name": "update_admin",
-      "docs": [
-        "Updates the admin account."
-      ],
-      "discriminator": [
-        161,
-        176,
-        40,
-        213,
-        60,
-        184,
-        179,
-        228
-      ],
-      "accounts": [
-        {
-          "name": "signer",
-          "docs": [
-            "The signer may be the owner, pending owner or admin, depending on the operation."
-          ],
-          "signer": true
-        },
-        {
-          "name": "tbr_config",
-          "docs": [
-            "Program Config account. This program requires that the [`signer`] specified",
-            "in the context equals a pubkey specified in this account. Mutable,",
-            "because we will update roles depending on the operation."
-          ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
-                ]
-              }
-            ]
-          }
-        }
-      ],
-      "args": [
-        {
-          "name": "new_admin",
-          "type": "pubkey"
         }
       ]
     },
@@ -1754,16 +1946,11 @@
     },
     {
       "code": 6018,
-      "name": "SolPriceNotSet",
-      "msg": "SolPriceNotSet"
-    },
-    {
-      "code": 6019,
       "name": "EvmChainPriceNotSet",
       "msg": "EvmChainPriceNotSet"
     },
     {
-      "code": 6020,
+      "code": 6019,
       "name": "PausedTransfers",
       "msg": "PausedTransfers"
     }

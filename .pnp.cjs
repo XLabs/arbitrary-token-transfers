@@ -1843,7 +1843,8 @@ const RAW_RUNTIME_STATE =
           ["@wormhole-foundation/sdk-base", "npm:0.10.7"],\
           ["@wormhole-foundation/sdk-definitions", "npm:0.10.7"],\
           ["@wormhole-foundation/sdk-solana-tokenbridge", "npm:0.10.7"],\
-          ["@xlabs/solana-price-oracle-sdk", "npm:0.0.3::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40xlabs%2Fsolana-price-oracle-sdk%2F0.0.3%2Fb1ddfdc81a27c89e38f504675363f543d10830d9"],\
+          ["@xlabs/solana-price-oracle-sdk", "npm:0.0.4::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40xlabs%2Fsolana-price-oracle-sdk%2F0.0.4%2F43985689b6a3edb240963b2fbebfb7268d340542"],\
+          ["borsh", "npm:2.0.0"],\
           ["tsup", "virtual:056deaaa1268de825ebb7f2126e3a2787838e2876e69eb46bc3ce4857072f92cede74aabe3915aa2d505c2a087a7d59d9170f4e7cc6428f30bd09123b7267c8f#npm:8.2.4"],\
           ["tsx", "npm:4.19.1"],\
           ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=8c6c40"]\
@@ -1852,10 +1853,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@xlabs/solana-price-oracle-sdk", [\
-      ["npm:0.0.3::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40xlabs%2Fsolana-price-oracle-sdk%2F0.0.3%2Fb1ddfdc81a27c89e38f504675363f543d10830d9", {\
-        "packageLocation": "./.yarn/cache/@xlabs-solana-price-oracle-sdk-npm-0.0.3-b2413649ad-1c26f86f97.zip/node_modules/@xlabs/solana-price-oracle-sdk/",\
+      ["npm:0.0.4::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40xlabs%2Fsolana-price-oracle-sdk%2F0.0.4%2F43985689b6a3edb240963b2fbebfb7268d340542", {\
+        "packageLocation": "./.yarn/cache/@xlabs-solana-price-oracle-sdk-npm-0.0.4-5fa749d58d-bd817c5b6b.zip/node_modules/@xlabs/solana-price-oracle-sdk/",\
         "packageDependencies": [\
-          ["@xlabs/solana-price-oracle-sdk", "npm:0.0.3::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40xlabs%2Fsolana-price-oracle-sdk%2F0.0.3%2Fb1ddfdc81a27c89e38f504675363f543d10830d9"],\
+          ["@xlabs/solana-price-oracle-sdk", "npm:0.0.4::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40xlabs%2Fsolana-price-oracle-sdk%2F0.0.4%2F43985689b6a3edb240963b2fbebfb7268d340542"],\
           ["@coral-xyz/anchor", "npm:0.30.1"],\
           ["@solana/web3.js", "npm:1.95.3"],\
           ["@wormhole-foundation/sdk-base", "npm:0.10.5"]\
@@ -2218,6 +2219,13 @@ const RAW_RUNTIME_STATE =
           ["bn.js", "npm:5.2.1"],\
           ["bs58", "npm:4.0.1"],\
           ["text-encoding-utf-8", "npm:1.0.2"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:2.0.0", {\
+        "packageLocation": "./.yarn/cache/borsh-npm-2.0.0-69f1235e8b-59a96dd9c7.zip/node_modules/borsh/",\
+        "packageDependencies": [\
+          ["borsh", "npm:2.0.0"]\
         ],\
         "linkType": "HARD"\
       }]\

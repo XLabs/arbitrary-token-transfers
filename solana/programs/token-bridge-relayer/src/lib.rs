@@ -2,6 +2,7 @@ mod error;
 mod message;
 mod processor;
 mod state;
+mod utils;
 
 use anchor_lang::prelude::*;
 use processor::*;
@@ -60,9 +61,14 @@ pub mod token_bridge_relayer {
         processor::cancel_owner_transfer_request(ctx)
     }
 
-    /// Updates the admin account.
-    pub fn update_admin(ctx: Context<UpdateTbrConfig>, new_admin: Pubkey) -> Result<()> {
-        processor::update_admin(ctx, new_admin)
+    /// Adds a new admin account.
+    pub fn add_admin(ctx: Context<UpdateTbrConfig>, new_admin: Pubkey) -> Result<()> {
+        processor::add_admin(ctx, new_admin)
+    }
+
+    /// Removes a previously added admin account.
+    pub fn remove_admin(ctx: Context<UpdateTbrConfig>, new_admin: Pubkey) -> Result<()> {
+        processor::remove_admin(ctx, new_admin)
     }
 
     /* Peer management */
@@ -159,7 +165,7 @@ pub mod token_bridge_relayer {
         evm_transaction_gas: u64,
         evm_transaction_size: u64,
     ) -> Result<()> {
-        processor::update_evm_transaction_size(ctx, evm_transaction_gas, evm_transaction_size)
+        processor::update_evm_transaction_config(ctx, evm_transaction_gas, evm_transaction_size)
     }
 
     /* Transfers */
@@ -169,6 +175,7 @@ pub mod token_bridge_relayer {
         recipient_chain: u16,
         recipient_address: [u8; 32],
         transferred_amount: u64,
+        unwrap_intent: bool,
         gas_dropoff_amount: TargetChainGas,
         max_fee_klam: KiloLamports,
     ) -> Result<()> {
@@ -176,6 +183,7 @@ pub mod token_bridge_relayer {
             ctx,
             recipient_chain,
             transferred_amount,
+            unwrap_intent,
             gas_dropoff_amount,
             max_fee_klam,
             recipient_address,
@@ -185,5 +193,16 @@ pub mod token_bridge_relayer {
     /// Complete a transfer initiated from another chain.
     pub fn complete_transfer(ctx: Context<CompleteTransfer>, _vaa_hash: [u8; 32]) -> Result<()> {
         processor::complete_transfer(ctx)
+    }
+
+    /* Helpers */
+
+    /// Returns a quote for a transfer.
+    pub fn relaying_fee(
+        ctx: Context<QuoteQuery>,
+        _chain_id: u16,
+        dropoff_amount: u64,
+    ) -> Result<u64> {
+        processor::relaying_fee(ctx, dropoff_amount)
     }
 }

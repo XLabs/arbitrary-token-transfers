@@ -81,10 +81,6 @@ pub(crate) enum TokenBridgeRelayerError {
     #[msg("AlreadyRedeemed")]
     AlreadyRedeemed,
 
-    /// The SOL price is zero.
-    #[msg("SolPriceNotSet")]
-    SolPriceNotSet,
-
     /// The EVM token price is zero.
     #[msg("EvmChainPriceNotSet")]
     EvmChainPriceNotSet,

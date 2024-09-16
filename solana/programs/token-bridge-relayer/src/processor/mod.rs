@@ -16,5 +16,8 @@ pub use outbound::*;
 mod peers;
 pub use peers::*;
 
+mod queries;
+pub use queries::*;
+
 mod roles;
 pub use roles::*;
