@@ -10,3 +10,6 @@
 [submodule "evm/lib/permit2"]
 	path = evm/lib/permit2
 	url = https://github.com/Uniswap/permit2
+[submodule "evm/lib/wormhole-solidity-sdk"]
+	path = evm/lib/wormhole-solidity-sdk
+	url = https://github.com/wormhole-foundation/wormhole-solidity-sdk
