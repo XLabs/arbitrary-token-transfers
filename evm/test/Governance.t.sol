@@ -6,6 +6,7 @@ import "wormhole-sdk/libraries/BytesParsing.sol";
 
 import { IdempotentUpgrade } from "wormhole-sdk/proxy/ProxyBase.sol";
 import { TbrTestBase } from "./utils/TbrTestBase.sol";
+import {makeBytes32} from "./utils/utils.sol";
 import "./utils/UpgradeTester.sol";
 
 import "tbr/assets/TbrDispatcher.sol";
@@ -259,7 +260,7 @@ contract GovernanceTest is TbrTestBase {
 
   function testAddPeer() public {
     uint16 peerChain = 1;
-    bytes32 newPeer = 0x1234567890123456789012345678901234567890123456789012345678901234;
+    bytes32 newPeer = makeBytes32("peer");
     uint8 commandCount = 1;
 
     vm.expectRevert(NotAuthorized.selector);
@@ -476,7 +477,7 @@ contract GovernanceTest is TbrTestBase {
   }
 
   function testUpdateCanonicalPeer() public {
-    bytes32 newCanonicalPeer = 0x1234567890123456789012345678901234567890123456789012345678901234;
+    bytes32 newCanonicalPeer = makeBytes32("canonicalPeer");
     uint16 peerChain = 1;
     uint8 commandCount = 1;
 
@@ -550,7 +551,7 @@ contract GovernanceTest is TbrTestBase {
   function testIsChainSupported() public {
     uint16 chainId = 1;
     uint8 commandCount = 1;
-    bytes32 fakePeer = 0x1234567890123456789012345678901234567890123456789012345678901234;
+    bytes32 fakePeer = makeBytes32("peer");
 
     (bool isSupported, ) = invokeTbr(
       abi.encodePacked(
