@@ -1,0 +1,54 @@
+name: Run tests
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  pre-commit:
+    name: Run Solana SDK tests
+    runs-on: ubuntu-latest
+    env:
+      NODE_OPTIONS: "--max-old-space-size=2500"
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20.17.0"
+          registry-url: "https://npm.pkg.github.com"
+          cache: "yarn"
+          cache-dependency-path: |
+            ./yarn.lock
+
+      # Taken from https://github.com/metaDAOproject/setup-anchor/blob/main/action.yml#L25-L40
+      - name: Cache Solana CLI tools
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/solana/
+            ~/.local/share/solana/
+          key: solana-cli-${{ runner.os }}-build-1.28.23
+      - name: Install Solana CLI tools
+        run: sh -c "$(curl -sSfL https://release.solana.com/v1.28.23/install)"
+        shell: bash
+      - name: Update PATH
+        run: echo "/home/runner/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+        shell: bash
+      - name: Install Anchor
+        run: npm i -g @coral-xyz/anchor-cli@0.30.1
+        shell: bash
+
+      - name: Setup private package access
+        run: |
+          yarn config set npmScopes.xlabs.npmAlwaysAuth true
+          yarn config set npmScopes.xlabs.npmAuthToken ${{ secrets.GITHUB_TOKEN }}
+      - name: Install dependencies
+        run: yarn install --immutable --immutable-cache
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run Solana SDK tests
+        run: anchor test
