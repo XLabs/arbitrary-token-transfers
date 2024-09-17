@@ -32,8 +32,9 @@ solana program -k usb://ledger?key=$ledger_cli_derivation_path upgrade \
  $upgrade_buffer_account.json \
  $program_address
 
-anchor idl init --provider.cluster=$solana_rpc_url \
-  --provider.wallet "./$buffer_creator_account.json" \
-   --filepath ../target/idl/token_bridge_relayer.json $program_address
+anchor idl upgrade \
+  --provider.cluster=$solana_rpc_url \
+  --provider.wallet "./deployment/$buffer_creator_account.json" \
+   --filepath "./target/idl/token_bridge_relayer.json" $program_address
 
 ```

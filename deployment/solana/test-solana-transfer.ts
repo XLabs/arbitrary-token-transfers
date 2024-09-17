@@ -45,11 +45,11 @@ async function sendTestTransaction(
       const params = {
         recipientChain: targetChain.name as Chain,
         recipientAddress: toUniversal(targetChain.name as Chain, evmAddress).toUint8Array(),
-        mint: new PublicKey('4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU'), // Is this ok?
-        tokenAccount: new PublicKey('Cu7gE34M8nckaC17zkbmWSrqGyCBYd5GjT6LdYLX8YfJ'), // TODO: find a token account
+        mint: new PublicKey(getEnv("TRANSFER_MINT")),
+        tokenAccount: new PublicKey(getEnv("TRANSFER_TOKEN_ACCOUNT")),
         transferredAmount: new BN(1000),
         gasDropoffAmount: new BN(0),
-        maxFeeSol: new BN(5000), // TODO: where does this come from?
+        maxFeeSol: new BN(5000),
         unwrapIntent: false,
       };
 
