@@ -16,6 +16,10 @@ cp ./target/idl/token_bridge_relayer.json ./sdk/solana/tbrv3/idl
 
 yarn ./sdk/solana build
 
+cd deployment
+
+. .env.testnet
+
 solana program -k "$buffer_creator_account.json" \
   --url $solana_rpc_url \
   write-buffer \
@@ -27,9 +31,9 @@ solana program set-buffer-authority $buffer_account \
   -k $buffer_creator_account.json --new-buffer-authority $deployer_account \
   --url $solana_rpc_url
 
-solana program show $program_address --url $solana_rpc_url
-
-solana program extend $program_address 100000 --url $solana_rpc_url -k usb://ledger?key=$ledger_cli_derivation_path
+# If extending the program memory is required:
+# solana program show $program_address --url $solana_rpc_url
+# solana program extend $program_address 100000 --url $solana_rpc_url -k usb://ledger?key=$ledger_cli_derivation_path
 
 solana program -k usb://ledger?key=$ledger_cli_derivation_path deploy \
  --url $solana_rpc_url \
@@ -39,9 +43,6 @@ solana program -k usb://ledger?key=$ledger_cli_derivation_path deploy \
 anchor idl init --provider.cluster=$solana_rpc_url \
   --provider.wallet "./deployment/$buffer_creator_account.json" \
    --filepath ./target/idl/token_bridge_relayer.json $program_address
-
-
-cd deployment 
 
 yarn tsx ./solana/initialize.ts
 
