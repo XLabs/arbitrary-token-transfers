@@ -4,7 +4,7 @@
 solana-keygen grind --ignore-case --starts-with att:1
 solana-keygen grind --ignore-case --starts-with atb:1
 
-#!! set the buffer account address on your env
+#!! set the buffer account address on your env and on lib.rs, anchor.toml and contracts.json
 
 rm -rf target/idl target/types
 
@@ -42,5 +42,9 @@ anchor idl init --provider.cluster=$solana_rpc_url \
 cd deployment 
 
 yarn tsx ./solana/initialize.ts
+
+yarn tsx ./solana/configure.ts
+
+yarn tsx ./solana/register-peers.ts
 
 ```
