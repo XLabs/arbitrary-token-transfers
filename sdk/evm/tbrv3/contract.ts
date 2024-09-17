@@ -313,10 +313,13 @@ export class Tbrv3 {
     return decodeQueryResponseLayout(relayingFeesReturnLayout, ethers.getBytes(result)); 
   }
 
+  /**
+   * @returns Maximum gas dropoff in gas token units, e.g. ETH for Ethereum.
+   */
   async maxGasDropoff(chain: SupportedChains) {
     const result = await this.governanceQuery([{ query: "MaxGasDropoff", chain }]);
 
-    return BigInt(decodeQueryResponseLayout(gasDropoffItem, ethers.getBytes(result)));
+    return decodeQueryResponseLayout(gasDropoffItem, ethers.getBytes(result));
   }
 
   async isChainPaused(chain: SupportedChains) {
