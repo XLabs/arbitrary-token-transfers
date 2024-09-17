@@ -2,7 +2,7 @@ import { chainToPlatform, FixedLengthArray, Layout, layout, LayoutItem, LayoutTo
 import { layoutItems, serialize, toNative, toUniversal, UniversalAddress, VAA } from "@wormhole-foundation/sdk-definitions";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
 import { ethers } from "ethers";
-import { baseRelayingConfigReturnLayout, commandCategoryLayout, execParamsLayout, GovernanceCommand, GovernanceQuery, proxyConstructorLayout, queryCategoryLayout, queryParamsLayout, relayingFeesInputLayout, RelayingFeesReturn, relayingFeesReturnLayout, SupportedChains, TBRv3Message, transferGasTokenWithRelayLayout, transferTokenWithRelayLayout } from "./layouts.js";
+import { baseRelayingConfigReturnLayout, commandCategoryLayout, evmAddressItem, execParamsLayout, gasDropoffItem, GovernanceCommand, GovernanceQuery, proxyConstructorLayout, queryCategoryLayout, queryParamsLayout, relayingFeesInputLayout, relayingFeesReturnLayout, SupportedChains, TBRv3Message, transferGasTokenWithRelayLayout, transferTokenWithRelayLayout } from "./layouts.js";
 
 type RelayingFeesReturn = LayoutToType<typeof relayingFeesReturnLayout>;
 type BaseRelayingParamsReturn = LayoutToType<typeof baseRelayingConfigReturnLayout>;
@@ -253,33 +253,33 @@ export class Tbrv3 {
     };
   }
 
-  updateMaxGasDroppoffs(dropoffs: Map<SupportedChains, bigint>): TbrPartialTx {
+  updateMaxGasDroppoffs(dropoffs: Map<SupportedChains, number>): TbrPartialTx {
     return this.governanceTx(Array.from(dropoffs).map(
-      ([chain, maxDropoff]) => ({ command: "UpdateMaxGasDropoff", maxGasDropoff: maxDropoff, chain: chain as SupportedChains })
+      ([chain, maxDropoff]) => ({ command: "UpdateMaxGasDropoff", value: maxDropoff, chain: chain as SupportedChains })
     ));
   }
 
   updateRelayFee(chain: SupportedChains, fee: number): TbrPartialTx {
-    return this.governanceTx([{ command: "UpdateRelayFee", chain, fee }]);
+    return this.governanceTx([{ command: "UpdateBaseFee", chain, value: fee }]);
   }
 
   updateAdmin(authorized: boolean, admin: EvmAddress): TbrPartialTx {
-    return this.governanceTx([{ command: "UpdateAdmin", admin: admin.toString(), isAdmin: authorized }]);
+    return this.governanceTx([{ command: "UpdateAdmin", address: admin.toString(), isAdmin: authorized }]);
   }
 
   updateCanonicalPeers(canonicalPeers: Map<SupportedChains, UniversalAddress>): TbrPartialTx {
     return this.governanceTx(Array.from(canonicalPeers).map(
-      ([chain, peer]) => ({ command: "UpdateCanonicalPeer", peer: peer.toUint8Array(), chain: chain as SupportedChains })
+      ([chain, peer]) => ({ command: "UpdateCanonicalPeer", address: peer, chain: chain as SupportedChains })
     ));
   }
 
   upgradeContract(newImplementationAddress: EvmAddress): TbrPartialTx {
-    return this.governanceTx([{command: "UpgradeContract", contract: newImplementationAddress.toString() }]);
+    return this.governanceTx([{command: "UpgradeContract", address: newImplementationAddress.toString() }]);
   }
 
   addPeers(peers: { chain: SupportedChains, peer: UniversalAddress }[]): TbrPartialTx {
     return this.governanceTx(peers.map(
-      (peer) => ({command: "AddPeer", peer: peer.peer.toUint8Array(), chain: peer.chain })
+      (peer) => ({command: "AddPeer", address: peer.peer, chain: peer.chain })
     ));
   }
 
@@ -306,13 +306,13 @@ export class Tbrv3 {
   async relayFee(chain: SupportedChains) {
     const result = await this.governanceQuery([{ query: "BaseFee", chain }]);
     
-    return decodeQueryResponseLayout(feeItem, ethers.getBytes(result)); 
+    return decodeQueryResponseLayout(relayingFeesReturnLayout, ethers.getBytes(result)); 
   }
 
   async maxGasDropoff(chain: SupportedChains) {
     const result = await this.governanceQuery([{ query: "MaxGasDropoff", chain }]);
 
-    return BigInt(decodeQueryResponseLayout(feeItem, ethers.getBytes(result)));
+    return BigInt(decodeQueryResponseLayout(gasDropoffItem, ethers.getBytes(result)));
   }
 
   async isChainPaused(chain: SupportedChains) {
@@ -336,13 +336,13 @@ export class Tbrv3 {
   async canonicalPeer(chain: SupportedChains): Promise<UniversalAddress> {
     const result = await this.governanceQuery([{ query: "CanonicalPeer", chain }]);
 
-    return toUniversal(chain, decodeQueryResponseLayout(peerItem, ethers.getBytes(result)));
+    return decodeQueryResponseLayout(layoutItems.universalAddressItem, ethers.getBytes(result));
   }
 
   async owner() {
     const result = await this.governanceQuery([{ query: "Owner" }]);
     
-    return decodeQueryResponseLayout(ownerItem, ethers.getBytes(result)); 
+    return decodeQueryResponseLayout(evmAddressItem, ethers.getBytes(result)); 
   }
 
   async isChainSupported(chain: SupportedChains): Promise<boolean> {
@@ -360,7 +360,7 @@ export class Tbrv3 {
   async feeRecipient() {
     const result = await this.governanceQuery([{ query: "FeeRecipient" }]);
     
-    return decodeQueryResponseLayout(ownerItem, ethers.getBytes(result)); 
+    return decodeQueryResponseLayout(evmAddressItem, ethers.getBytes(result)); 
   }
 
   static encodeExecute(methods: Uint8Array): Uint8Array {
@@ -443,25 +443,3 @@ function decodeQueryResponseLayout<const T extends Layout>(tbrLayout: T, value: 
   return response;
 }
 
-async function example() {
-  const exampleTransferArgs = {
-    method: "TransferTokenWithRelay",
-    acquireMode: {mode: "Preapproved"},
-    inputAmount: 1000n,
-    gasDropoff: 10n,
-    recipient: { chain: "Ethereum", address: toUniversal("Ethereum" ,"0xabababababa")},
-    inputToken: "0xabababababa",
-    unwrapIntent: false,
-  } as const;
-  
-  const test = await (new Tbrv3(undefined as any, "Mainnet")).relayingFee({
-    gasDropoff: exampleTransferArgs.gasDropoff,
-    targetChain: exampleTransferArgs.recipient.chain,
-  });
-  
-  (new Tbrv3(undefined as any, "Mainnet")).transferWithRelay({
-    feeEstimation: test[0],
-    args: exampleTransferArgs,
-  });
-  
-}
