@@ -2,22 +2,11 @@ import { chainToPlatform, FixedLengthArray, Layout, layout, LayoutItem, LayoutTo
 import { layoutItems, serialize, toNative, toUniversal, UniversalAddress, VAA } from "@wormhole-foundation/sdk-definitions";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
 import { ethers } from "ethers";
-import { baseRelayingConfigReturnLayout, BaseRelayingParamsReturn, commandCategoryLayout, dispatcherLayout, execParamsLayout, feeItem, gasDropoffUnit, GovernanceCommandRaw, GovernanceQuery, ownerItem, peerItem, proxyConstructorLayout, queryCategoryLayout, queryParamsLayout, relayingFeesInputLayout, RelayingFeesReturn, relayingFeesReturnLayout, SupportedChains, TBRv3Message, transferGasTokenWithRelayLayout, transferTokenWithRelayLayout } from "./layouts.js";
+import { baseRelayingConfigReturnLayout, commandCategoryLayout, execParamsLayout, GovernanceCommand, GovernanceQuery, proxyConstructorLayout, queryCategoryLayout, queryParamsLayout, relayingFeesInputLayout, RelayingFeesReturn, relayingFeesReturnLayout, SupportedChains, TBRv3Message, transferGasTokenWithRelayLayout, transferTokenWithRelayLayout } from "./layouts.js";
 
 type RelayingFeesReturn = LayoutToType<typeof relayingFeesReturnLayout>;
+type BaseRelayingParamsReturn = LayoutToType<typeof baseRelayingConfigReturnLayout>;
 
-/**
- * Gives you a type that keeps the properties of `T1` while making both properties common to `T1` and `T2` and properties exclusive to `T2` optional.
- * This is the intersection of these three:
- * T1 ∖ T2
- * Partial(T1 ∖ (T1 ∖ T2))
- * Partial(T2 ∖ T1)
- */
-type MakeOptional<T1, T2> = Omit<T1, keyof T2> & Partial<Omit<T1, keyof Omit<T1, keyof T2>>> & Partial<Omit<T2, keyof T1>>;
-
-type Method = LayoutToType<typeof dispatcherLayout>["method"];
-type MethodCall = LayoutToType<typeof dispatcherLayout>;
-type MethodArgs<M extends Method> = Extract<MethodCall, { method: M }>;
 
 type FixedArray<T extends Layout> = {
     binary: "array",
@@ -143,11 +132,15 @@ export class Tbrv3 {
 
       methodCalls.push(transfer.args);
     }
-    // const methods = Tbrv3.createEnvelope(methodCalls);
+
     const methods = layout.serializeLayout(execParamsLayout, {
       version: 0,
-      commandCategories: [...methodCalls]
-    })
+      commandCategories: methodCalls.map((call): LayoutToType<typeof commandCategoryLayout> => {
+        return call.method === 'TransferTokenWithRelay'
+          ? { commandCategory: 'TransferTokenWithRelay', ...call }
+          : { commandCategory: 'TransferGasTokenWithRelay', ...call };
+      })
+    });
     const data = Tbrv3.encodeExecute(methods);
 
     return {
@@ -176,11 +169,17 @@ export class Tbrv3 {
       const tbrv3Message = layout.deserializeLayout(TBRv3Message, vaa.payload.payload);
       // We use the unit of an EVM chain
       // TODO: source chain from the VAA?
-      value += tbrv3Message.gasDropoff * gasDropoffUnit("Ethereum");
+      value += BigInt(tbrv3Message.gasDropoff);
     }
 
-    const args = vaas.map((vaa) => ({vaa: serialize(vaa)}));
-    const methods = Tbrv3.createEnvelopeWithSingleMethodKind("CompleteTransfer", args);
+    const methods = layout.serializeLayout(execParamsLayout, {
+      version: 0,
+      commandCategories: vaas.map((vaa) => ({
+        commandCategory: "CompleteTransfer",
+        vaa: serialize(vaa)
+      }) satisfies LayoutToType<typeof commandCategoryLayout>)
+    });
+
     const data = Tbrv3.encodeExecute(methods);
 
     return {
@@ -196,7 +195,7 @@ export class Tbrv3 {
    * Each relay needs to be passed in as a separate argument.
    * The result is a list of quotes for the relays in the same order as they were passed in.
    */
-  async relayingFee(...args: RelayingFeesInput[]): Promise<RelayingFeesReturn> {
+  async relayingFee(...args: RelayingFeesInput[]): Promise<readonly RelayingFeesReturn[]> {
     if (args.length === 0) {
       throw new Error("At least one relay fee query should be specified.");
     }
@@ -221,7 +220,7 @@ export class Tbrv3 {
     return decodeQueryResponseLayout(relayingFeesReturnListLayout, ethers.getBytes(result));
   }
 
-  async baseRelayingParams(...chains: SupportedChains[]): Promise<BaseRelayingParamsReturn> {
+  async baseRelayingParams(...chains: SupportedChains[]): Promise<readonly BaseRelayingParamsReturn[]> {
     const queries = layout.serializeLayout(queryParamsLayout, {
       version: 0,
       queryCategories: chains.map((targetChain) => ({
@@ -240,7 +239,7 @@ export class Tbrv3 {
     return decodeQueryResponseLayout(baseRelayingReturnListLayout, ethers.getBytes(result));
   }
 
-  governanceTx<const C extends GovernanceCommandRaw[]>(commands: C): TbrPartialTx {
+  governanceTx<const C extends GovernanceCommand[]>(commands: C): TbrPartialTx {
     const methods = layout.serializeLayout(commandCategoryLayout, {
       commandCategory: 'GovernanceCommands',
       commands
