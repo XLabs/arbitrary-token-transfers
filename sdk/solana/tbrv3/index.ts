@@ -18,7 +18,7 @@ import {
 import { SolanaPriceOracleClient } from '@xlabs/solana-price-oracle-sdk';
 
 import { TokenBridgeRelayer } from './idl/token_bridge_relayer.js';
-import * as IDL from './idl/token_bridge_relayer.json' with { type: 'json' };
+import IDL from './idl/token_bridge_relayer.json' with { type: 'json' };
 
 // Export IDL
 export * from './idl/token_bridge_relayer.js';
@@ -28,6 +28,7 @@ export { SolanaPriceOracleClient } from '@xlabs/solana-price-oracle-sdk';
 /**
  * 32 bytes.
  */
+// TODO: is this intentional?
 export type UniversalAddress = number[] | Uint8Array | Buffer;
 export type VaaMessage = VAA<'TokenBridge:TransferWithPayload'>;
 
