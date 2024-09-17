@@ -1527,7 +1527,7 @@ export type TokenBridgeRelayer = {
           "type": "bool"
         },
         {
-          "name": "gasDropoffAmount",
+          "name": "gasDropoffAmountMwei",
           "type": "u64"
         },
         {
@@ -1953,7 +1953,7 @@ export type TokenBridgeRelayer = {
           "type": "u16"
         },
         {
-          "name": "maxGasDropoff",
+          "name": "maxGasDropoffMwei",
           "type": "u64"
         }
       ]

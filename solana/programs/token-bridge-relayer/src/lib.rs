@@ -7,9 +7,6 @@ mod utils;
 use anchor_lang::prelude::*;
 use processor::*;
 
-type TargetChainGas = u64;
-type KiloLamports = u64;
-
 cfg_if::cfg_if! {
     if #[cfg(feature = "mainnet")] {
         declare_id!("AtTpCxEYQiPswfGz493qcbiK1eE13W3YZutvxBdANDeR");
@@ -122,9 +119,9 @@ pub mod token_bridge_relayer {
     pub fn update_max_gas_dropoff(
         ctx: Context<UpdateChainConfig>,
         _chain_id: u16,
-        max_gas_dropoff: TargetChainGas,
+        max_gas_dropoff_mwei: u64,
     ) -> Result<()> {
-        processor::update_max_gas_dropoff(ctx, max_gas_dropoff)
+        processor::update_max_gas_dropoff(ctx, max_gas_dropoff_mwei)
     }
 
     /// Updates the value of the relayer fee, *i.e.* the flat USD amount
@@ -176,15 +173,15 @@ pub mod token_bridge_relayer {
         recipient_address: [u8; 32],
         transferred_amount: u64,
         unwrap_intent: bool,
-        gas_dropoff_amount: TargetChainGas,
-        max_fee_klam: KiloLamports,
+        gas_dropoff_amount_mwei: u64,
+        max_fee_klam: u64,
     ) -> Result<()> {
         processor::transfer_tokens(
             ctx,
             recipient_chain,
             transferred_amount,
             unwrap_intent,
-            gas_dropoff_amount,
+            gas_dropoff_amount_mwei,
             max_fee_klam,
             recipient_address,
         )
