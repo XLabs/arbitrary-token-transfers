@@ -18,7 +18,7 @@ import {
 import { SolanaPriceOracleClient } from '@xlabs/solana-price-oracle-sdk';
 
 import { TokenBridgeRelayer } from './idl/token_bridge_relayer.js';
-import * as IDL from '../../../target/idl/token_bridge_relayer.json' with { type: 'json' };
+import IDL from '../../../target/idl/token_bridge_relayer.json' with { type: 'json' };
 
 // Export IDL
 export * from './idl/token_bridge_relayer.js';
@@ -112,7 +112,14 @@ export class TbrClient {
 
   get read(): ReadTbrAccounts {
     return {
-      config: () => this.program.account.tbrConfigState.fetch(this.address.config()),
+      config: async () => {
+        console.log("config", this.address.config());
+
+        const conf = await this.program.account.tbrConfigState.fetch(this.address.config());
+
+        console.log("CONFG", conf);
+        return conf;
+      },
       chainConfig: (chain: Chain) =>
         this.program.account.chainConfigState.fetch(this.address.chainConfig(chain)),
       peer: (chain: Chain, peerAddress: UniversalAddress) =>
@@ -345,11 +352,17 @@ export class TbrClient {
       unwrapIntent,
     } = params;
 
-    const { feeRecipient } = await this.read.config();
+    console.log("BEFORE READ");
+    // const { feeRecipient } = await this.read.config();
+    const feeRecipient = new PublicKey("hiUN9rS9VTPVGYc71Vf2d6iyFLvsQaSsqWhxydqdaZf");
     let payerSequenceNumber = new anchor.BN(0);
+
+    console.log("BEFORE TRY");
     try {
       payerSequenceNumber = (await this.read.signerSequence(signer)).value;
     } catch {}
+
+    console.log("BEFORE TRANSFER");
     const tokenBridgeAccounts = transferNativeTokenBridgeAccounts({
       programId: this.program.programId,
       tokenBridgeProgramId: this.tokenBridgeProgramId,
@@ -357,6 +370,7 @@ export class TbrClient {
       mint,
     });
 
+    console.log("BEFORE REturn");
     return this.program.methods
       .transferTokens(
         chainToChainId(recipientChain),
