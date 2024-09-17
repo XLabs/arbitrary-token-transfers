@@ -1,7 +1,7 @@
 import { SolanaLedgerSigner } from '@xlabs-xyz/ledger-signer-solana';
 import { TbrClient } from '@xlabs-xyz/solana-arbitrary-token-transfers';
 import { dependencies, evm, getEnv, LoggerFn, solana, SolanaChainInfo } from '../helpers';
-import { getConnection, ledgerSignAndSend, runOnSolana } from '../helpers/solana';
+import { getConnection, ledgerSignAndSend, runOnSolana, SolanaSigner } from '../helpers/solana';
 import { PublicKey } from '@solana/web3.js';
 import { toUniversal } from '@wormhole-foundation/sdk-definitions';
 import { Chain } from '@wormhole-foundation/sdk-base';
@@ -19,7 +19,7 @@ async function run() {
 
 async function sendTestTransaction(
   chain: SolanaChainInfo,
-  signer: SolanaLedgerSigner,
+  signer: SolanaSigner,
   log: LoggerFn,
 ): Promise<void> {
   await Promise.all(
