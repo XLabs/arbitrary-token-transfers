@@ -1,8 +1,10 @@
 import { chainToPlatform, FixedLengthArray, Layout, layout, LayoutItem, LayoutToType, Network, ProperLayout } from "@wormhole-foundation/sdk-base";
-import { layoutItems, serialize, toNative, toUniversal, UniversalAddress, VAA } from "@wormhole-foundation/sdk-definitions";
+import { layoutItems, serialize, toNative, UniversalAddress, VAA } from "@wormhole-foundation/sdk-definitions";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
 import { ethers } from "ethers";
 import { baseRelayingConfigReturnLayout, commandCategoryLayout, evmAddressItem, execParamsLayout, gasDropoffItem, GovernanceCommand, GovernanceQuery, proxyConstructorLayout, queryCategoryLayout, queryParamsLayout, relayingFeesInputLayout, relayingFeesReturnLayout, SupportedChains, TBRv3Message, transferGasTokenWithRelayLayout, transferTokenWithRelayLayout } from "./layouts.js";
+
+const WHOLE_EVM_GAS_TOKEN_UNITS = 10 ** 18;
 
 type RelayingFeesReturn = LayoutToType<typeof relayingFeesReturnLayout>;
 type BaseRelayingParamsReturn = LayoutToType<typeof baseRelayingConfigReturnLayout>;
@@ -124,7 +126,7 @@ export class Tbrv3 {
       if (transfer.feeEstimation.isPaused) {
         throw new Error(`Relays to chain ${transfer.args.recipient.chain} are paused. Found in transfer ${i + 1}.`);
       }
-      value += BigInt(transfer.feeEstimation.fee);
+      value += BigInt(transfer.feeEstimation.fee * WHOLE_EVM_GAS_TOKEN_UNITS);
 
       if (transfer.args.method === "TransferGasTokenWithRelay") {
         value += transfer.args.inputAmountInAtomic;
