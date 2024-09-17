@@ -36,7 +36,7 @@ jobs:
         run: sh -c "$(curl -sSfL https://release.solana.com/v1.28.23/install)"
         shell: bash
       - name: Update PATH
-        run: echo "/home/runner/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+        run: echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
         shell: bash
       - name: Install Anchor
         run: npm i -g @coral-xyz/anchor-cli@0.30.1
