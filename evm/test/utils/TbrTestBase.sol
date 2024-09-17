@@ -57,6 +57,12 @@ contract TbrTestBase is Test {
   function _setUp1() internal virtual { }
 
   function setUp() public {
+    vm.mockCall(
+      oracle, 
+      abi.encodeWithSelector(priceOracle.get1959.selector), 
+      abi.encode(EVM_CHAIN_ID)
+    );
+
     tbrImplementation = address(new Tbr(
       permit2,
       tokenBridge,
