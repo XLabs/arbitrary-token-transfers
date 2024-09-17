@@ -1,10 +1,20 @@
-use crate::{error::TokenBridgeRelayerError, state::TbrConfigState};
+use crate::{
+    error::TokenBridgeRelayerError,
+    state::{AdminState, TbrConfigState},
+};
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
 pub struct UpdateTbrConfig<'info> {
     /// The signer may be the owner, pending owner or admin, depending on the operation.
     pub signer: Signer<'info>,
+
+    /// If the signer is an admin, prove it with this PDA.
+    #[account(
+        seeds = [AdminState::SEED_PREFIX, signer.key.to_bytes().as_ref()],
+        bump
+    )]
+    pub admin_badge: Option<Account<'info, AdminState>>,
 
     /// Program Config account. This program requires that the [`signer`] specified
     /// in the context equals a pubkey specified in this account. Mutable,
@@ -38,7 +48,7 @@ impl<'info> UpdateTbrConfig<'info> {
 
     pub fn only_owner_or_admin(&self) -> Result<()> {
         require!(
-            self.tbr_config.is_owner_or_admin(self.signer.key),
+            self.admin_badge.is_some() || self.tbr_config.is_owner(self.signer.key),
             TokenBridgeRelayerError::OwnerOrAdminOnly
         );
 

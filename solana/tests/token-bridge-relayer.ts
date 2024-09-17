@@ -9,26 +9,24 @@ import {
   assertEqChainConfigs,
 } from './utils/helpers.js';
 import { ClientWrapper } from './utils/client-wrapper.js';
-
 import { SolanaPriceOracleClient } from '@xlabs-xyz/solana-arbitrary-token-transfers';
 
 const ETHEREUM = 'Ethereum';
 const OASIS = 'Oasis';
 
 describe('Token Bridge Relayer Program', () => {
-  const clients = Array.from(
-    { length: 4 },
-    (_, index) =>
+  const clients = (['owner', 'owner', 'admin', 'admin', 'regular'] as const).map(
+    (typeAccount) =>
       new ClientWrapper(
         newProvider(),
         {
           tokenBridgeProgramId: PublicKey.default,
           wormholeProgramId: PublicKey.default,
         },
-        index == 3,
+        typeAccount,
       ),
   );
-  const [ownerClient, newOwnerClient, adminClient, unauthorizedClient] = clients;
+  const [ownerClient, newOwnerClient, adminClient1, adminClient2, unauthorizedClient] = clients;
 
   const oracleOwner = newProvider();
   const oracleOwnerClient = new SolanaPriceOracleClient(oracleOwner.connection);
@@ -102,28 +100,36 @@ describe('Token Bridge Relayer Program', () => {
       await assertResolveFailure(ownerClient.confirmOwnerTransferRequest(), SendTransactionError);
     });
 
-    it('Transfers the admin role', async () => {
-      let config = await unauthorizedClient.read.config();
-      assertEqKeys(config.admin, ownerClient.publicKey);
+    it('Only the owner can add an admin', async () => {
+      // At first, the admin doesn't exist:
+      await assertResolveFailure(unauthorizedClient.read.admin(adminClient1.publicKey));
 
-      // The owner can transfer the admin role:
+      // After being added, it exists:
+      await newOwnerClient.addAdmin(adminClient1.publicKey);
+      await unauthorizedClient.read.admin(adminClient1.publicKey);
 
-      //await newOwnerClient.updateAdmin(unauthorizedClient.publicKey);
+      // An admin cannot add another one:
+      await assertResolveFailure(
+        adminClient1.addAdmin(adminClient2.publicKey),
+        SendTransactionError,
+      );
 
-      config = await unauthorizedClient.read.config();
-      assertEqKeys(config.admin, unauthorizedClient.publicKey);
+      // The owner can:
+      await newOwnerClient.addAdmin(adminClient2.publicKey);
+      await unauthorizedClient.read.admin(adminClient2.publicKey);
 
-      // The admin can transfer its own role:
-
-      //await unauthorizedClient.updateAdmin(adminClient.publicKey);
-
-      config = await unauthorizedClient.read.config();
-      assertEqKeys(config.admin, adminClient.publicKey);
+      // On the contrary, an admin can remove another one:
+      await adminClient1.removeAdmin(adminClient2.publicKey);
+      await assertResolveFailure(unauthorizedClient.read.admin(adminClient2.publicKey));
     });
 
-    it('Unauthorized cannot transfer the admin role', async () => {
+    it('Unauthorized cannot add or remove an admin', async () => {
       await assertResolveFailure(
-        unauthorizedClient.addAdmin(unauthorizedClient.publicKey),
+        unauthorizedClient.addAdmin(adminClient2.publicKey),
+        SendTransactionError,
+      );
+      await assertResolveFailure(
+        unauthorizedClient.removeAdmin(adminClient1.publicKey),
         SendTransactionError,
       );
     });
@@ -139,7 +145,7 @@ describe('Token Bridge Relayer Program', () => {
         relayerFee: new anchor.BN(0),
       });
 
-      await adminClient.registerPeer(ETHEREUM, ethereumPeer2);
+      await adminClient1.registerPeer(ETHEREUM, ethereumPeer2);
       assertEqChainConfigs(await unauthorizedClient.read.chainConfig(ETHEREUM), {
         canonicalPeer: Array.from(ethereumPeer1),
         maxGasDropoff: new anchor.BN(0),
@@ -147,7 +153,7 @@ describe('Token Bridge Relayer Program', () => {
         relayerFee: new anchor.BN(0),
       });
 
-      await adminClient.registerPeer(OASIS, oasisPeer);
+      await adminClient1.registerPeer(OASIS, oasisPeer);
       assertEqChainConfigs(await unauthorizedClient.read.chainConfig(OASIS), {
         canonicalPeer: Array.from(oasisPeer),
         maxGasDropoff: new anchor.BN(0),
@@ -196,7 +202,7 @@ describe('Token Bridge Relayer Program', () => {
 
       // Admin cannot make another peer canonical:
       await assertResolveFailure(
-        adminClient.updateCanonicalPeer(ETHEREUM, ethereumPeer1),
+        adminClient1.updateCanonicalPeer(ETHEREUM, ethereumPeer1),
         SendTransactionError,
       );
     });
@@ -207,9 +213,9 @@ describe('Token Bridge Relayer Program', () => {
       const maxGasDropoff = new anchor.BN('10000000000000'); // ETH10 maximum
       const relayerFee = new anchor.BN(900_000); // $0.9
       await Promise.all([
-        adminClient.setPauseForOutboundTransfers(ETHEREUM, false),
-        adminClient.updateMaxGasDropoff(ETHEREUM, maxGasDropoff),
-        adminClient.updateRelayerFee(ETHEREUM, relayerFee),
+        adminClient1.setPauseForOutboundTransfers(ETHEREUM, false),
+        adminClient1.updateMaxGasDropoff(ETHEREUM, maxGasDropoff),
+        adminClient1.updateRelayerFee(ETHEREUM, relayerFee),
       ]);
 
       assertEqChainConfigs(await unauthorizedClient.read.chainConfig(ETHEREUM), {
@@ -239,8 +245,8 @@ describe('Token Bridge Relayer Program', () => {
   describe('Main Config', () => {
     it('Values are updated', async () => {
       await Promise.all([
-        adminClient.updateFeeRecipient(feeRecipient),
-        adminClient.updateEvmTransactionConfig(evmTransactionGas, evmTransactionSize),
+        adminClient1.updateFeeRecipient(feeRecipient),
+        adminClient1.updateEvmTransactionConfig(evmTransactionGas, evmTransactionSize),
       ]);
 
       const config = await unauthorizedClient.read.config();

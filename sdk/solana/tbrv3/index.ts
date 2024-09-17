@@ -30,6 +30,7 @@ export { SolanaPriceOracleClient } from '@xlabs/solana-price-oracle-sdk';
  */
 export type UniversalAddress = number[] | Uint8Array | Buffer;
 export type VaaMessage = VAA<'TokenBridge:TransferWithPayload'>;
+export type OwnerOrAdmin = { owner: PublicKey } | { admin: PublicKey };
 
 export interface TransferNativeParameters {
   recipientChain: Chain;
@@ -56,12 +57,14 @@ export type TbrConfigAccount = anchor.IdlAccounts<TokenBridgeRelayer>['tbrConfig
 export type ChainConfigAccount = anchor.IdlAccounts<TokenBridgeRelayer>['chainConfigState'];
 export type PeerAccount = anchor.IdlAccounts<TokenBridgeRelayer>['peerState'];
 export type SignerSequenceAccount = anchor.IdlAccounts<TokenBridgeRelayer>['signerSequenceState'];
+export type AdminAccount = anchor.IdlAccounts<TokenBridgeRelayer>['adminState'];
 
 export interface TbrAddresses {
   config(): PublicKey;
   chainConfig(chain: Chain): PublicKey;
   peer(chain: Chain, peerAddress: UniversalAddress): PublicKey;
   signerSequence(signer: PublicKey): PublicKey;
+  admin(signer: PublicKey): PublicKey;
 }
 
 export interface ReadTbrAccounts {
@@ -69,6 +72,7 @@ export interface ReadTbrAccounts {
   chainConfig(chain: Chain): Promise<ChainConfigAccount>;
   peer(chain: Chain, peerAddress: UniversalAddress): Promise<PeerAccount>;
   signerSequence(signer: PublicKey): Promise<SignerSequenceAccount>;
+  admin(signer: PublicKey): Promise<AdminAccount>;
 }
 
 export class TbrClient {
@@ -101,6 +105,7 @@ export class TbrClient {
       peer: (chain: Chain, peerAddress: UniversalAddress) =>
         pda.peer(this.program.programId, chain, peerAddress),
       signerSequence: (signer: PublicKey) => pda.signerSequence(this.program.programId, signer),
+      admin: (admin: PublicKey) => pda.admin(this.program.programId, admin),
     };
   }
 
@@ -113,7 +118,19 @@ export class TbrClient {
         this.program.account.peerState.fetch(this.address.peer(chain, peerAddress)),
       signerSequence: (signer: PublicKey) =>
         this.program.account.signerSequenceState.fetch(this.address.signerSequence(signer)),
+      admin: (admin: PublicKey) =>
+        this.program.account.adminState.fetch(this.address.signerSequence(admin)),
     };
+  }
+
+  private getSignerAndAdmin(ownerOrAdmin: OwnerOrAdmin): {
+    signer: PublicKey;
+    adminBadge: PublicKey | null;
+  } {
+    let adminBadge = 'admin' in ownerOrAdmin ? this.address.admin(ownerOrAdmin.admin) : null;
+    let signer = 'admin' in ownerOrAdmin ? ownerOrAdmin.admin : ownerOrAdmin.owner;
+
+    return { signer, adminBadge };
   }
 
   /* Initialize */
@@ -159,25 +176,49 @@ export class TbrClient {
       .instruction();
   }
 
-  async addAdmin(signer: PublicKey, newAdmin: PublicKey): Promise<web3.TransactionInstruction> {
-    throw new Error("doesn't work rn");
+  async addAdmin(owner: PublicKey, newAdmin: PublicKey): Promise<web3.TransactionInstruction> {
+    return this.program.methods
+      .addAdmin(newAdmin)
+      .accountsStrict({
+        owner,
+        tbrConfig: this.address.config(),
+        adminBadge: this.address.admin(newAdmin),
+        systemProgram: SystemProgram.programId,
+      })
+      .instruction();
   }
 
-  async removeAdmin(signer: PublicKey, newAdmin: PublicKey): Promise<web3.TransactionInstruction> {
-    throw new Error("doesn't work rn");
+  async removeAdmin(
+    ownerOrAdmin: OwnerOrAdmin,
+    adminToRemove: PublicKey,
+  ): Promise<web3.TransactionInstruction> {
+    let { signer, adminBadge } = this.getSignerAndAdmin(ownerOrAdmin);
+
+    return this.program.methods
+      .removeAdmin(adminToRemove)
+      .accountsStrict({
+        signer,
+        adminBadge,
+        tbrConfig: this.address.config(),
+        adminBadgeToBeRemoved: this.address.admin(adminToRemove),
+      })
+      .instruction();
   }
 
   /* Peer management */
 
   async registerPeer(
-    signer: PublicKey,
+    ownerOrAdmin: OwnerOrAdmin,
     chain: Chain,
     peerAddress: UniversalAddress,
   ): Promise<web3.TransactionInstruction> {
+    let { signer, adminBadge } = this.getSignerAndAdmin(ownerOrAdmin);
+
     return this.program.methods
       .registerPeer(chainToChainId(chain), Array.from(peerAddress))
       .accountsStrict({
         signer,
+        adminBadge,
         tbrConfig: this.address.config(),
         peer: this.address.peer(chain, peerAddress),
         chainConfig: this.address.chainConfig(chain),
@@ -206,14 +247,17 @@ export class TbrClient {
   /* Chain config update */
 
   async setPauseForOutboundTransfers(
-    signer: PublicKey,
+    ownerOrAdmin: OwnerOrAdmin,
     chain: Chain,
     paused: boolean,
   ): Promise<web3.TransactionInstruction> {
+    let { signer, adminBadge } = this.getSignerAndAdmin(ownerOrAdmin);
+
     return this.program.methods
       .setPauseForOutboundTransfers(chainToChainId(chain), paused)
       .accountsStrict({
         signer,
+        adminBadge,
         chainConfig: this.address.chainConfig(chain),
         tbrConfig: this.address.config(),
       })
@@ -221,14 +265,17 @@ export class TbrClient {
   }
 
   async updateMaxGasDropoff(
-    signer: PublicKey,
+    ownerOrAdmin: OwnerOrAdmin,
     chain: Chain,
     maxGasDropoff: anchor.BN,
   ): Promise<web3.TransactionInstruction> {
+    let { signer, adminBadge } = this.getSignerAndAdmin(ownerOrAdmin);
+
     return this.program.methods
       .updateMaxGasDropoff(chainToChainId(chain), maxGasDropoff)
       .accountsStrict({
         signer,
+        adminBadge,
         chainConfig: this.address.chainConfig(chain),
         tbrConfig: this.address.config(),
       })
@@ -236,14 +283,17 @@ export class TbrClient {
   }
 
   async updateRelayerFee(
-    signer: PublicKey,
+    ownerOrAdmin: OwnerOrAdmin,
     chain: Chain,
     relayerFee: anchor.BN,
   ): Promise<web3.TransactionInstruction> {
+    let { signer, adminBadge } = this.getSignerAndAdmin(ownerOrAdmin);
+
     return this.program.methods
       .updateRelayerFee(chainToChainId(chain), relayerFee)
       .accountsStrict({
         signer,
+        adminBadge,
         chainConfig: this.address.chainConfig(chain),
         tbrConfig: this.address.config(),
       })
@@ -501,6 +551,10 @@ const pda = {
 
   signerSequence: (programId: PublicKey, signer: PublicKey): PublicKey => {
     return PublicKey.findProgramAddressSync([Buffer.from('seq'), signer.toBuffer()], programId)[0];
+  },
+
+  admin: (programId: PublicKey, admin: PublicKey): PublicKey => {
+    return PublicKey.findProgramAddressSync([Buffer.from('admin'), admin.toBuffer()], programId)[0];
   },
 
   // Internal:

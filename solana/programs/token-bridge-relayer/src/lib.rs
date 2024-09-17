@@ -62,13 +62,13 @@ pub mod token_bridge_relayer {
     }
 
     /// Adds a new admin account.
-    pub fn add_admin(ctx: Context<UpdateTbrConfig>, new_admin: Pubkey) -> Result<()> {
+    pub fn add_admin(ctx: Context<AddAdmin>, new_admin: Pubkey) -> Result<()> {
         processor::add_admin(ctx, new_admin)
     }
 
     /// Removes a previously added admin account.
-    pub fn remove_admin(ctx: Context<UpdateTbrConfig>, new_admin: Pubkey) -> Result<()> {
-        processor::remove_admin(ctx, new_admin)
+    pub fn remove_admin(ctx: Context<RemoveAdmin>, _admin_to_be_removed: Pubkey) -> Result<()> {
+        processor::remove_admin(ctx)
     }
 
     /* Peer management */

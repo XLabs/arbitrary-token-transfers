@@ -24,20 +24,22 @@
       ],
       "accounts": [
         {
-          "name": "signer",
+          "name": "owner",
           "docs": [
-            "The signer may be the owner, pending owner or admin, depending on the operation."
+            "The signer must be the owner."
           ],
-          "signer": true
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "tbr_config"
+          ]
         },
         {
           "name": "tbr_config",
           "docs": [
-            "Program Config account. This program requires that the [`signer`] specified",
-            "in the context equals a pubkey specified in this account. Mutable,",
-            "because we will update roles depending on the operation."
+            "Program Config account. This program requires that the [`owner`] specified",
+            "in the context equals the owner role stored in the config."
           ],
-          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -55,6 +57,32 @@
               }
             ]
           }
+        },
+        {
+          "name": "admin_badge",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  100,
+                  109,
+                  105,
+                  110
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "new_admin"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
@@ -86,6 +114,31 @@
             "The signer may be the owner, pending owner or admin, depending on the operation."
           ],
           "signer": true
+        },
+        {
+          "name": "admin_badge",
+          "docs": [
+            "If the signer is an admin, prove it with this PDA."
+          ],
+          "optional": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  100,
+                  109,
+                  105,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
         },
         {
           "name": "tbr_config",
@@ -472,6 +525,31 @@
           "signer": true
         },
         {
+          "name": "admin_badge",
+          "docs": [
+            "If the signer is an admin, prove it with this PDA."
+          ],
+          "optional": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  100,
+                  109,
+                  105,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
+        },
+        {
           "name": "tbr_config",
           "docs": [
             "Program Config account. This program requires that the [`signer`] specified",
@@ -580,6 +658,31 @@
           ],
           "writable": true,
           "signer": true
+        },
+        {
+          "name": "admin_badge",
+          "docs": [
+            "If the signer is an admin, prove it with this PDA."
+          ],
+          "optional": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  100,
+                  109,
+                  105,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
         },
         {
           "name": "tbr_config",
@@ -829,18 +932,42 @@
         {
           "name": "signer",
           "docs": [
-            "The signer may be the owner, pending owner or admin, depending on the operation."
+            "The signer can be the owner or an admin."
           ],
+          "writable": true,
           "signer": true
+        },
+        {
+          "name": "admin_badge",
+          "docs": [
+            "If the signer is an admin, prove it with this PDA."
+          ],
+          "optional": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  100,
+                  109,
+                  105,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
         },
         {
           "name": "tbr_config",
           "docs": [
-            "Program Config account. This program requires that the [`signer`] specified",
-            "in the context equals a pubkey specified in this account. Mutable,",
-            "because we will update roles depending on the operation."
+            "Program Config account. This program requires that the [`owner`] specified",
+            "in the context equals the owner role stored in the config."
           ],
-          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -858,11 +985,33 @@
               }
             ]
           }
+        },
+        {
+          "name": "admin_badge_to_be_removed",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  100,
+                  109,
+                  105,
+                  110
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "admin_to_be_removed"
+              }
+            ]
+          }
         }
       ],
       "args": [
         {
-          "name": "new_admin",
+          "name": "_admin_to_be_removed",
           "type": "pubkey"
         }
       ]
@@ -890,10 +1039,35 @@
         {
           "name": "signer",
           "docs": [
-            "Owner or  of the program as set in the [`TbrConfig`] account."
+            "Owner as set in the [`TbrConfig`] account, or an admin."
           ],
           "writable": true,
           "signer": true
+        },
+        {
+          "name": "admin_badge",
+          "docs": [
+            "If the signer is an admin, prove it with this PDA."
+          ],
+          "optional": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  100,
+                  109,
+                  105,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
         },
         {
           "name": "chain_config",
@@ -982,6 +1156,31 @@
             "The signer may be the owner, pending owner or admin, depending on the operation."
           ],
           "signer": true
+        },
+        {
+          "name": "admin_badge",
+          "docs": [
+            "If the signer is an admin, prove it with this PDA."
+          ],
+          "optional": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  100,
+                  109,
+                  105,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
         },
         {
           "name": "tbr_config",
@@ -1487,6 +1686,31 @@
           "signer": true
         },
         {
+          "name": "admin_badge",
+          "docs": [
+            "If the signer is an admin, prove it with this PDA."
+          ],
+          "optional": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  100,
+                  109,
+                  105,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
+        },
+        {
           "name": "tbr_config",
           "docs": [
             "Program Config account. This program requires that the [`signer`] specified",
@@ -1552,6 +1776,31 @@
           "signer": true
         },
         {
+          "name": "admin_badge",
+          "docs": [
+            "If the signer is an admin, prove it with this PDA."
+          ],
+          "optional": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  100,
+                  109,
+                  105,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
+        },
+        {
           "name": "tbr_config",
           "docs": [
             "Program Config account. This program requires that the [`signer`] specified",
@@ -1608,10 +1857,35 @@
         {
           "name": "signer",
           "docs": [
-            "Owner or  of the program as set in the [`TbrConfig`] account."
+            "Owner as set in the [`TbrConfig`] account, or an admin."
           ],
           "writable": true,
           "signer": true
+        },
+        {
+          "name": "admin_badge",
+          "docs": [
+            "If the signer is an admin, prove it with this PDA."
+          ],
+          "optional": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  100,
+                  109,
+                  105,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
         },
         {
           "name": "chain_config",
@@ -1702,10 +1976,35 @@
         {
           "name": "signer",
           "docs": [
-            "Owner or  of the program as set in the [`TbrConfig`] account."
+            "Owner as set in the [`TbrConfig`] account, or an admin."
           ],
           "writable": true,
           "signer": true
+        },
+        {
+          "name": "admin_badge",
+          "docs": [
+            "If the signer is an admin, prove it with this PDA."
+          ],
+          "optional": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  100,
+                  109,
+                  105,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
         },
         {
           "name": "chain_config",
@@ -1774,6 +2073,19 @@
     }
   ],
   "accounts": [
+    {
+      "name": "AdminState",
+      "discriminator": [
+        190,
+        42,
+        124,
+        96,
+        242,
+        52,
+        141,
+        28
+      ]
+    },
     {
       "name": "ChainConfigState",
       "discriminator": [
@@ -1876,86 +2188,91 @@
     },
     {
       "code": 6004,
-      "name": "AlreadyTheAdmin",
-      "msg": "AlreadyTheAdmin"
-    },
-    {
-      "code": 6005,
       "name": "AlreadyTheCanonicalPeer",
       "msg": "AlreadyTheCanonicalPeer"
     },
     {
-      "code": 6006,
+      "code": 6005,
       "name": "ZeroBridgeAmount",
       "msg": "ZeroBridgeAmount"
     },
     {
-      "code": 6007,
+      "code": 6006,
       "name": "FeeExceedingMaximum",
       "msg": "FeeExceedingMaximum"
     },
     {
-      "code": 6008,
+      "code": 6007,
       "name": "InvalidToNativeAmount",
       "msg": "InvalidToNativeAmount"
     },
     {
-      "code": 6009,
+      "code": 6008,
       "name": "InvalidTransferToAddress",
       "msg": "InvalidTransferToAddress"
     },
     {
-      "code": 6010,
+      "code": 6009,
       "name": "InvalidTransferToChain",
       "msg": "InvalidTransferToChain"
     },
     {
-      "code": 6011,
+      "code": 6010,
       "name": "InvalidTransferTokenChain",
       "msg": "InvalidTransferTokenChain"
     },
     {
-      "code": 6012,
+      "code": 6011,
       "name": "WrongFeeRecipient",
       "msg": "WrongFeeRecipient"
     },
     {
-      "code": 6013,
+      "code": 6012,
       "name": "Overflow",
       "msg": "Overflow"
     },
     {
-      "code": 6014,
+      "code": 6013,
       "name": "WronglySetOptionalAccounts",
       "msg": "WronglySetOptionalAccounts"
     },
     {
-      "code": 6015,
+      "code": 6014,
       "name": "WrongMintAuthority",
       "msg": "WrongMintAuthority"
     },
     {
-      "code": 6016,
+      "code": 6015,
       "name": "InvalidRecipient",
       "msg": "InvalidRecipient"
     },
     {
-      "code": 6017,
+      "code": 6016,
       "name": "AlreadyRedeemed",
       "msg": "AlreadyRedeemed"
     },
     {
-      "code": 6018,
+      "code": 6017,
       "name": "EvmChainPriceNotSet",
       "msg": "EvmChainPriceNotSet"
     },
     {
-      "code": 6019,
+      "code": 6018,
       "name": "PausedTransfers",
       "msg": "PausedTransfers"
     }
   ],
   "types": [
+    {
+      "name": "AdminState",
+      "docs": [
+        "A peer chain. Nothing is stored in it for now."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": []
+      }
+    },
     {
       "name": "ChainConfigState",
       "docs": [
@@ -2109,13 +2426,6 @@
             "name": "owner",
             "docs": [
               "Program's owner."
-            ],
-            "type": "pubkey"
-          },
-          {
-            "name": "admin",
-            "docs": [
-              "Program's admin. Can be used to update the quotes or appoint a new price updater."
             ],
             "type": "pubkey"
           },

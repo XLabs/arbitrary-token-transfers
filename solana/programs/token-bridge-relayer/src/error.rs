@@ -20,10 +20,6 @@ pub(crate) enum TokenBridgeRelayerError {
     #[msg("AlreadyTheOwner")]
     AlreadyTheOwner,
 
-    /// Specified key is already the program's admin.
-    #[msg("AlreadyTheAdmin")]
-    AlreadyTheAdmin,
-
     /// Specified peer is already canonical.
     #[msg("AlreadyTheCanonicalPeer")]
     AlreadyTheCanonicalPeer,

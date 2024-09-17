@@ -1,15 +1,22 @@
 use crate::{
     error::TokenBridgeRelayerError,
-    state::{ChainConfigState, TbrConfigState},
+    state::{AdminState, ChainConfigState, TbrConfigState},
 };
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
 #[instruction(chain_id: u16)]
 pub struct UpdateChainConfig<'info> {
-    /// Owner or  of the program as set in the [`TbrConfig`] account.
+    /// Owner as set in the [`TbrConfig`] account, or an admin.
     #[account(mut)]
     pub signer: Signer<'info>,
+
+    /// If the signer is an admin, prove it with this PDA.
+    #[account(
+        seeds = [AdminState::SEED_PREFIX, signer.key.to_bytes().as_ref()],
+        bump
+    )]
+    pub admin_badge: Option<Account<'info, AdminState>>,
 
     #[account(
         mut,
@@ -34,7 +41,7 @@ pub struct UpdateChainConfig<'info> {
 impl<'info> UpdateChainConfig<'info> {
     pub fn only_owner_or_admin(&self) -> Result<()> {
         require!(
-            self.tbr_config.is_owner_or_admin(self.signer.key),
+            self.admin_badge.is_some() || self.tbr_config.is_owner(self.signer.key),
             TokenBridgeRelayerError::OwnerOrAdminOnly
         );
 
