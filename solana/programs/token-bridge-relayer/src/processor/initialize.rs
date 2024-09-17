@@ -26,7 +26,6 @@ pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
     let tbr_config = &mut ctx.accounts.tbr_config;
 
     tbr_config.owner = owner;
-    tbr_config.admin = owner;
     tbr_config.pending_owner = None;
     tbr_config.fee_recipient = owner;
     tbr_config.evm_transaction_size = 0;

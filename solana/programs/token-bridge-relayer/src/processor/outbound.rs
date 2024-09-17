@@ -2,10 +2,10 @@ use crate::{
     constant::{SEED_PREFIX_BRIDGED, SEED_PREFIX_TEMPORARY},
     error::{TokenBridgeRelayerError, TokenBridgeRelayerResult},
     message::RelayerMessage,
-    state::{calculate_total_fee, ChainConfigState, SignerSequenceState, TbrConfigState},
-    KiloLamports, TargetChainGas,
+    state::{ChainConfigState, SignerSequenceState, TbrConfigState},
+    utils::{calculate_total_fee, create_native_check},
 };
-use anchor_lang::{prelude::*, solana_program::program_option::COption};
+use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use solana_price_oracle::{
     state::{EvmPricesAccount, PriceOracleConfigAccount},
@@ -182,12 +182,12 @@ pub fn transfer_tokens(
     mut ctx: Context<OutboundTransfer>,
     recipient_chain: u16,
     transferred_amount: u64,
-    gas_dropoff_amount: TargetChainGas,
-    max_fee_klam: KiloLamports,
+    unwrap_intent: bool,
+    gas_dropoff_amount_mwei: u64,
+    max_fee_klam: u64,
     recipient_address: [u8; 32],
 ) -> Result<()> {
     ctx.accounts.chain_config.transfer_allowed()?;
-    check_prices_are_set(&ctx.accounts.oracle_config, &ctx.accounts.oracle_evm_prices)?;
 
     // Seeds:
     let config_seed = &[
@@ -195,16 +195,19 @@ pub fn transfer_tokens(
         &[ctx.bumps.tbr_config],
     ];
 
-    let (transferred_amount, gas_dropoff_amount) =
-        normalize_amounts(&ctx.accounts.mint, transferred_amount, gas_dropoff_amount)?;
+    let (transferred_amount, gas_dropoff_amount) = normalize_amounts(
+        &ctx.accounts.mint,
+        transferred_amount,
+        gas_dropoff_amount_mwei,
+    )?;
 
     let total_fees_klam = calculate_total_fee(
         &ctx.accounts.tbr_config,
+        &ctx.accounts.chain_config,
         &ctx.accounts.oracle_evm_prices,
         &ctx.accounts.oracle_config,
-        ctx.accounts.chain_config.relayer_fee,
-        gas_dropoff_amount,
-    );
+        gas_dropoff_amount.into(),
+    )?;
     require!(
         total_fees_klam <= max_fee_klam,
         TokenBridgeRelayerError::FeeExceedingMaximum
@@ -249,7 +252,7 @@ pub fn transfer_tokens(
         transferred_amount,
     )?;
 
-    let relayer_message = RelayerMessage::new(recipient_address, gas_dropoff_amount);
+    let relayer_message = RelayerMessage::new(recipient_address, gas_dropoff_amount, unwrap_intent);
 
     if is_native(&ctx)? {
         token_bridge_transfer_native(
@@ -430,61 +433,19 @@ fn token_bridge_transfer_wrapped(
     )
 }
 
-/// This is a basic security against a wrong manip, to be sure that the prices
-/// have been set correctly.
-fn check_prices_are_set(
-    oracle_config: &PriceOracleConfigAccount,
-    evm_prices: &EvmPricesAccount,
-) -> Result<()> {
-    require_neq!(
-        oracle_config.sol_price,
-        0,
-        TokenBridgeRelayerError::SolPriceNotSet
-    );
-    require_neq!(
-        evm_prices.gas_price,
-        0,
-        TokenBridgeRelayerError::EvmChainPriceNotSet
-    );
-    require_neq!(
-        evm_prices.gas_token_price,
-        0,
-        TokenBridgeRelayerError::EvmChainPriceNotSet
-    );
-
-    Ok(())
-}
-
 fn is_native(ctx: &Context<OutboundTransfer>) -> TokenBridgeRelayerResult<bool> {
-    fn is_native(ctx: &Context<OutboundTransfer>) -> TokenBridgeRelayerResult<bool> {
-        match (
-            &ctx.accounts.token_bridge_wrapped_meta,
-            &ctx.accounts.token_bridge_custody,
-            &ctx.accounts.token_bridge_custody_signer,
-        ) {
-            (None, Some(_), Some(_)) => {
-                if ctx.accounts.mint.mint_authority != COption::Some(crate::WORMHOLE_MINT_AUTHORITY)
-                {
-                    Ok(true)
-                } else {
-                    Err(TokenBridgeRelayerError::WrongMintAuthority)
-                }
-            }
+    let check_native = create_native_check(ctx.accounts.mint.mint_authority);
 
-            (Some(_), None, None) => {
-                if ctx.accounts.mint.mint_authority == COption::Some(crate::WORMHOLE_MINT_AUTHORITY)
-                {
-                    Ok(false)
-                } else {
-                    Err(TokenBridgeRelayerError::WrongMintAuthority)
-                }
-            }
-
-            _otherwise => Err(TokenBridgeRelayerError::WronglySetOptionalAccounts),
-        }
+    match (
+        &ctx.accounts.token_bridge_wrapped_meta,
+        &ctx.accounts.token_bridge_custody,
+        &ctx.accounts.token_bridge_custody_signer,
+    ) {
+        (None, Some(_), Some(_)) => check_native(true),
+        (Some(_), None, None) => check_native(false),
+        _ => Err(TokenBridgeRelayerError::WronglySetOptionalAccounts),
     }
-
-    is_native(ctx).map_err(|e| {
+    .map_err(|e| {
         msg!("Could not determine whether it is a native or wrapped transfer");
         e
     })

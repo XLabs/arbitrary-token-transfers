@@ -8,21 +8,30 @@ import {
   TransferWrappedParameters,
   UniversalAddress,
   VaaMessage,
-} from "@xlabs-xyz/solana-arbitrary-token-transfers";
-import { sendAndConfirmIx } from "./helpers.js";
+  OwnerOrAdmin,
+} from '@xlabs-xyz/solana-arbitrary-token-transfers';
+import { sendAndConfirmIx } from './helpers.js';
 
 export class ClientWrapper {
   private readonly client: TbrClient;
   readonly provider: AnchorProvider;
   readonly logs: { [key: string]: string[] };
+  readonly ownerOrAdmin: OwnerOrAdmin;
 
   constructor(
     provider: AnchorProvider,
     params: { tokenBridgeProgramId: PublicKey; wormholeProgramId: PublicKey },
+    accountType: 'owner' | 'admin' | 'regular',
   ) {
     this.provider = provider;
-    this.client = new TbrClient(provider.connection, params);
+    if (accountType === 'regular') {
+      this.client = new TbrClient(provider, params);
+    } else {
+      this.client = new TbrClient({ connection: provider.connection }, params);
+    }
     this.logs = {};
+    this.ownerOrAdmin =
+      accountType === 'owner' ? { owner: this.publicKey } : { admin: this.publicKey };
 
     provider.connection.onLogs('all', (l) => (this.logs[l.signature] = l.logs));
   }
@@ -69,13 +78,20 @@ export class ClientWrapper {
     return sendAndConfirmIx(this.client.cancelOwnerTransferRequest(this.publicKey), this.provider);
   }
 
-  async updateAdmin(newAdmin: PublicKey): Promise<TransactionSignature> {
-    return sendAndConfirmIx(this.client.updateAdmin(this.publicKey, newAdmin), this.provider);
+  async addAdmin(newAdmin: PublicKey): Promise<TransactionSignature> {
+    return sendAndConfirmIx(this.client.addAdmin(this.publicKey, newAdmin), this.provider);
+  }
+
+  async removeAdmin(adminToRemove: PublicKey): Promise<TransactionSignature> {
+    return sendAndConfirmIx(
+      this.client.removeAdmin(this.ownerOrAdmin, adminToRemove),
+      this.provider,
+    );
   }
 
   async registerPeer(chain: Chain, peerAddress: UniversalAddress): Promise<TransactionSignature> {
     return sendAndConfirmIx(
-      this.client.registerPeer(this.publicKey, chain, peerAddress),
+      this.client.registerPeer(this.ownerOrAdmin, chain, peerAddress),
       this.provider,
     );
   }
@@ -92,21 +108,21 @@ export class ClientWrapper {
 
   async setPauseForOutboundTransfers(chain: Chain, paused: boolean): Promise<TransactionSignature> {
     return sendAndConfirmIx(
-      this.client.setPauseForOutboundTransfers(this.publicKey, chain, paused),
+      this.client.setPauseForOutboundTransfers(this.ownerOrAdmin, chain, paused),
       this.provider,
     );
   }
 
   async updateMaxGasDropoff(chain: Chain, maxGasDropoff: BN): Promise<TransactionSignature> {
     return sendAndConfirmIx(
-      this.client.updateMaxGasDropoff(this.publicKey, chain, maxGasDropoff),
+      this.client.updateMaxGasDropoff(this.ownerOrAdmin, chain, maxGasDropoff),
       this.provider,
     );
   }
 
   async updateRelayerFee(chain: Chain, relayerFee: BN): Promise<TransactionSignature> {
     return sendAndConfirmIx(
-      this.client.updateRelayerFee(this.publicKey, chain, relayerFee),
+      this.client.updateRelayerFee(this.ownerOrAdmin, chain, relayerFee),
       this.provider,
     );
   }
@@ -162,5 +178,9 @@ export class ClientWrapper {
       this.client.completeWrappedTransfer(this.publicKey, vaa, recipientTokenAccount, recipient),
       this.provider,
     );
+  }
+
+  async relayingFee(chain: Chain, dropoffAmount: BN): Promise<BN> {
+    return this.client.relayingFee(this.publicKey, chain, dropoffAmount);
   }
 }

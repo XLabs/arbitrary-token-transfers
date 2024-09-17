@@ -20,10 +20,6 @@ pub(crate) enum TokenBridgeRelayerError {
     #[msg("AlreadyTheOwner")]
     AlreadyTheOwner,
 
-    /// Specified key is already the program's admin.
-    #[msg("AlreadyTheAdmin")]
-    AlreadyTheAdmin,
-
     /// Specified peer is already canonical.
     #[msg("AlreadyTheCanonicalPeer")]
     AlreadyTheCanonicalPeer,
@@ -80,10 +76,6 @@ pub(crate) enum TokenBridgeRelayerError {
     /// Token Bridge program's transfer is already redeemed.
     #[msg("AlreadyRedeemed")]
     AlreadyRedeemed,
-
-    /// The SOL price is zero.
-    #[msg("SolPriceNotSet")]
-    SolPriceNotSet,
 
     /// The EVM token price is zero.
     #[msg("EvmChainPriceNotSet")]

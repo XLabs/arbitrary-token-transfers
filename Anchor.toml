@@ -11,6 +11,10 @@ skip-lint = true
 [programs.localnet]
 token_bridge_relayer = "AtTpCxEYQiPswfGz493qcbiK1eE13W3YZutvxBdANDeR"
 
+[[test.genesis]]
+address = "ATqjh2vkjogyVUUNmXQssQZNSFGgSA7Tm6P1UzEUg85s" # Mainnet in lib.rs
+program = "solana/tests/solana_price_oracle.so"
+
 [registry]
 url = "https://api.apr.dev"
 
@@ -19,4 +23,5 @@ cluster = "Localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
-test = "yarn run mocha -p ./solana/tests/tsconfig.json -t 1000000 solana/tests/*.ts"
+test = "yarn run mocha -p ./solana/tsconfig.json -t 1000000 solana/tests/token-bridge-relayer.ts"
+#test = "yarn run ts-mocha -p ./solana/tsconfig.json -t 1000000 solana/tests/*.ts"

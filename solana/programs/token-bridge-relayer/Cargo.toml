@@ -27,14 +27,16 @@ tilt-devnet = ["solana-price-oracle/tilt-devnet"]
 
 [dependencies]
 cfg-if = "1"
-anchor-lang = { version = "0.30.1", git = "https://github.com/coral-xyz/anchor/", rev = "06527e57c3e59683c36eb0a5c69ee669100b42e5", features = [
+anchor-lang = { version = "0.30.1", git = "https://github.com/coral-xyz/anchor/", rev = "8d52c1c", features = [
     "init-if-needed",
 ] }
-anchor-spl = { version = "0.30.1", git = "https://github.com/coral-xyz/anchor/", rev = "06527e57c3e59683c36eb0a5c69ee669100b42e5" }
+anchor-spl = { version = "0.30.1", git = "https://github.com/coral-xyz/anchor/", rev = "8d52c1c" }
 
-solana-price-oracle = { git = "ssh://git@github.com/XLabs/relayer-infra-contracts", branch = "solana-program" }
+solana-price-oracle = { git = "ssh://git@github.com/XLabs/relayer-infra-contracts/", branch = "bump-anchor" }
+#solana-price-oracle = { path = "../../../../relayer-infra-contracts/src/solana/programs/price-oracle" }
 
-wormhole-anchor-sdk = { git = "https://github.com/wormhole-foundation/wormhole-scaffolding.git", rev = "1acd10e3cbeea0df06976b606bd24da2e8e849e1", features = [
+#wormhole-anchor-sdk = { git = "https://github.com/wormhole-foundation/wormhole-scaffolding.git", rev = "1acd10e3cbeea0df06976b606bd24da2e8e849e1", features = ["token-bridge"] }
+wormhole-anchor-sdk = { git = "https://github.com/real-felix/wormhole-scaffolding.git", branch = "bump-anchor", features = [
     "token-bridge",
 ] }
 #wormhole-anchor-sdk = { path = "../../../../wormhole-scaffolding/solana/modules/wormhole-anchor-sdk/", features = ["token-bridge"] }

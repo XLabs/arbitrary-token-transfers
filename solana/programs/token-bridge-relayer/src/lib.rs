@@ -2,12 +2,10 @@ mod error;
 mod message;
 mod processor;
 mod state;
+mod utils;
 
 use anchor_lang::prelude::*;
 use processor::*;
-
-type TargetChainGas = u64;
-type KiloLamports = u64;
 
 cfg_if::cfg_if! {
     if #[cfg(feature = "mainnet")] {
@@ -60,9 +58,14 @@ pub mod token_bridge_relayer {
         processor::cancel_owner_transfer_request(ctx)
     }
 
-    /// Updates the admin account.
-    pub fn update_admin(ctx: Context<UpdateTbrConfig>, new_admin: Pubkey) -> Result<()> {
-        processor::update_admin(ctx, new_admin)
+    /// Adds a new admin account.
+    pub fn add_admin(ctx: Context<AddAdmin>, new_admin: Pubkey) -> Result<()> {
+        processor::add_admin(ctx, new_admin)
+    }
+
+    /// Removes a previously added admin account.
+    pub fn remove_admin(ctx: Context<RemoveAdmin>, _admin_to_be_removed: Pubkey) -> Result<()> {
+        processor::remove_admin(ctx)
     }
 
     /* Peer management */
@@ -116,9 +119,9 @@ pub mod token_bridge_relayer {
     pub fn update_max_gas_dropoff(
         ctx: Context<UpdateChainConfig>,
         _chain_id: u16,
-        max_gas_dropoff: TargetChainGas,
+        max_gas_dropoff_mwei: u64,
     ) -> Result<()> {
-        processor::update_max_gas_dropoff(ctx, max_gas_dropoff)
+        processor::update_max_gas_dropoff(ctx, max_gas_dropoff_mwei)
     }
 
     /// Updates the value of the relayer fee, *i.e.* the flat USD amount
@@ -159,7 +162,7 @@ pub mod token_bridge_relayer {
         evm_transaction_gas: u64,
         evm_transaction_size: u64,
     ) -> Result<()> {
-        processor::update_evm_transaction_size(ctx, evm_transaction_gas, evm_transaction_size)
+        processor::update_evm_transaction_config(ctx, evm_transaction_gas, evm_transaction_size)
     }
 
     /* Transfers */
@@ -169,14 +172,16 @@ pub mod token_bridge_relayer {
         recipient_chain: u16,
         recipient_address: [u8; 32],
         transferred_amount: u64,
-        gas_dropoff_amount: TargetChainGas,
-        max_fee_klam: KiloLamports,
+        unwrap_intent: bool,
+        gas_dropoff_amount_mwei: u64,
+        max_fee_klam: u64,
     ) -> Result<()> {
         processor::transfer_tokens(
             ctx,
             recipient_chain,
             transferred_amount,
-            gas_dropoff_amount,
+            unwrap_intent,
+            gas_dropoff_amount_mwei,
             max_fee_klam,
             recipient_address,
         )
@@ -185,5 +190,16 @@ pub mod token_bridge_relayer {
     /// Complete a transfer initiated from another chain.
     pub fn complete_transfer(ctx: Context<CompleteTransfer>, _vaa_hash: [u8; 32]) -> Result<()> {
         processor::complete_transfer(ctx)
+    }
+
+    /* Helpers */
+
+    /// Returns a quote for a transfer.
+    pub fn relaying_fee(
+        ctx: Context<QuoteQuery>,
+        _chain_id: u16,
+        dropoff_amount: u64,
+    ) -> Result<u64> {
+        processor::relaying_fee(ctx, dropoff_amount)
     }
 }

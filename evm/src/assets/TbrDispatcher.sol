@@ -3,7 +3,7 @@
 pragma solidity ^0.8.25;
 
 import {BytesParsing} from "wormhole-sdk/libraries/BytesParsing.sol";
-import {RawDispatcher} from "wormhole-sdk/dispatcher/RawDispatcher.sol";
+import {RawDispatcher} from "wormhole-sdk/RawDispatcher.sol";
 import {TbrGovernance} from "./TbrGovernance.sol";
 import {InvalidCommand} from "./TbrBase.sol";
 import {TbrUser} from "./TbrUser.sol";
@@ -17,82 +17,81 @@ error UnsupportedVersion(uint8 version);
 abstract contract TbrDispatcher is RawDispatcher, TbrGovernance, TbrUser {
   using BytesParsing for bytes;
 
-  function _exec(bytes calldata data) internal override returns (bytes memory) {
+  function _exec(bytes calldata data) internal override returns (bytes memory) { unchecked {
+    //nothing here can overflow or underflow - in particular, underflows are checked in the
+    //  associated transfer functions
     uint offset = 0;
     uint8 version;
-    (version, offset) = data.asUint8Unchecked(offset);
+    (version, offset) = data.asUint8CdUnchecked(offset);
 
-    if (version != DISPATCHER_PROTOCOL_VERSION0) revert UnsupportedVersion(version);
+    if (version != DISPATCHER_PROTOCOL_VERSION0)
+      revert UnsupportedVersion(version);
 
     uint256 senderRefund = msg.value;
     uint256 fees = 0;
     uint256 commandIndex = 0;
     while (offset < data.length) {
       uint8 command;
-      (command, offset) = data.asUint8Unchecked(offset);
+      (command, offset) = data.asUint8CdUnchecked(offset);
 
-      uint movedOffset;
       if (command == TRANSFER_TOKEN_WITH_RELAY_ID) {
         uint256 fee;
-        (fee, movedOffset) = transferTokenWithRelay(data[offset:], senderRefund, commandIndex);
+        (fee, offset) = _transferTokenWithRelay(data, offset, senderRefund, commandIndex);
         fees += fee;
         senderRefund -= fee;
       } else if (command == TRANSFER_GAS_TOKEN_WITH_RELAY_ID) {
         uint256 fee;
-        (fee, movedOffset) = transferGasTokenWithRelay(data[offset:], senderRefund, commandIndex);
+        (fee, offset) = _transferGasTokenWithRelay(data, offset, senderRefund, commandIndex);
         fees += fee;
         senderRefund -= fee;
       } else if (command == COMPLETE_TRANSFER_ID) {
         uint256 gasDropoffSpent;
-        (gasDropoffSpent, movedOffset) = completeTransfer(data[offset:], senderRefund, commandIndex);
+        (gasDropoffSpent, offset) = _completeTransfer(data, offset, senderRefund, commandIndex);
         senderRefund -= gasDropoffSpent;
       }
       else if (command == GOVERNANCE_ID)
-        movedOffset = batchGovernanceCommands(data[offset:]);
+        offset = _batchGovernanceCommands(data, offset);
       else
         revert InvalidCommand(command, commandIndex);
 
-      offset += movedOffset;
-      commandIndex += 1;
+      ++commandIndex;
     }
 
-    // We should have consumed all bytes at this point.
-    data.checkLength(offset);
+    data.checkLengthCd(offset);
 
-    address payable feeRecipient = getFeeRecipient();
-    transferEth(feeRecipient, fees);
-    transferEth(msg.sender, senderRefund);
+    _transferEth(_getFeeRecipient(), fees);
+    _transferEth(msg.sender, senderRefund);
     return new bytes(0);
-  }
+  }}
 
-  function _get(bytes calldata data) internal view override returns (bytes memory) {
+  function _get(bytes calldata data) internal view override returns (bytes memory) { unchecked {
     bytes memory ret;
     uint offset = 0;
     uint8 version;
-    (version, offset) = data.asUint8Unchecked(offset);
+    (version, offset) = data.asUint8CdUnchecked(offset);
 
-    if (version != DISPATCHER_PROTOCOL_VERSION0) revert UnsupportedVersion(version);
+    if (version != DISPATCHER_PROTOCOL_VERSION0)
+      revert UnsupportedVersion(version);
 
-    uint256 queryIndex = 0;
+    uint queryIndex = 0;
     while (offset < data.length) {
       uint8 query;
-      (query, offset) = data.asUint8Unchecked(offset);
+      (query, offset) = data.asUint8CdUnchecked(offset);
 
       bytes memory result;
-      uint movedOffset;
-      if (query == RELAY_FEE_ID) {
-        (result, movedOffset) = relayFee(data[offset:], queryIndex);
-      } else if (query == BASE_RELAYING_CONFIG_ID) {
-        (result, movedOffset) = baseRelayingConfig(data[offset:], queryIndex);
-      } else if (query == GOVERNANCE_QUERIES_ID) {
-        (result, movedOffset) = batchGovernanceQueries(data[offset:]);
-      } else revert InvalidCommand(query, queryIndex);
+      if (query == RELAY_FEE_ID)
+        (result, offset) = _relayFee(data, offset, queryIndex);
+      else if (query == BASE_RELAYING_CONFIG_ID)
+        (result, offset) = _baseRelayingConfig(data, offset, queryIndex);
+      else if (query == GOVERNANCE_QUERIES_ID)
+        (result, offset) = _batchGovernanceQueries(data, offset);
+      else
+        revert InvalidCommand(query, queryIndex);
 
       ret = abi.encodePacked(ret, result);
-      offset += movedOffset;
-      queryIndex += 1;
+      ++queryIndex;
     }
-    data.checkLength(offset);
+    data.checkLengthCd(offset);
     return ret;
-  }
+  }}
 }

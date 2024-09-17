@@ -40,19 +40,3 @@ pub fn cancel_owner_transfer_request(ctx: Context<UpdateTbrConfig>) -> Result<()
 
     Ok(())
 }
-
-pub fn update_admin(ctx: Context<UpdateTbrConfig>, new_admin: Pubkey) -> Result<()> {
-    ctx.accounts.only_owner_or_admin()?;
-
-    // Verify we're not updating to the same account:
-    require_keys_neq!(
-        new_admin,
-        ctx.accounts.tbr_config.admin,
-        TokenBridgeRelayerError::AlreadyTheAdmin
-    );
-
-    let tbr_config = &mut ctx.accounts.tbr_config;
-    tbr_config.admin = new_admin;
-
-    Ok(())
-}

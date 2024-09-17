@@ -3,8 +3,9 @@ use crate::{
     error::{TokenBridgeRelayerError, TokenBridgeRelayerResult},
     message::RelayerMessage,
     state::{PeerState, TbrConfigState},
+    utils::create_native_check,
 };
-use anchor_lang::{prelude::*, solana_program::program_option::COption};
+use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use wormhole_anchor_sdk::{
     token_bridge::{self, program::TokenBridge},
@@ -160,6 +161,7 @@ pub fn complete_transfer(ctx: Context<CompleteTransfer>) -> Result<()> {
     let RelayerMessage::V0 {
         gas_dropoff_amount,
         recipient,
+        unwrap_intent,
     } = *ctx.accounts.vaa.message().data();
 
     // The intended recipient must agree with the recipient account:
@@ -292,36 +294,19 @@ fn token_bridge_complete_wrapped(ctx: &Context<CompleteTransfer>) -> Result<()> 
 }
 
 fn is_native(ctx: &Context<CompleteTransfer>) -> TokenBridgeRelayerResult<bool> {
-    fn is_native(ctx: &Context<CompleteTransfer>) -> TokenBridgeRelayerResult<bool> {
-        match (
-            &ctx.accounts.token_bridge_mint_authority,
-            &ctx.accounts.token_bridge_wrapped_meta,
-            &ctx.accounts.token_bridge_custody,
-            &ctx.accounts.token_bridge_custody_signer,
-        ) {
-            (None, None, Some(_), Some(_)) => {
-                if ctx.accounts.mint.mint_authority != COption::Some(crate::WORMHOLE_MINT_AUTHORITY)
-                {
-                    Ok(true)
-                } else {
-                    Err(TokenBridgeRelayerError::WrongMintAuthority)
-                }
-            }
+    let check_native = create_native_check(ctx.accounts.mint.mint_authority);
 
-            (Some(_), Some(_), None, None) => {
-                if ctx.accounts.mint.mint_authority == COption::Some(crate::WORMHOLE_MINT_AUTHORITY)
-                {
-                    Ok(false)
-                } else {
-                    Err(TokenBridgeRelayerError::WrongMintAuthority)
-                }
-            }
-
-            _otherwise => Err(TokenBridgeRelayerError::WronglySetOptionalAccounts),
-        }
+    match (
+        &ctx.accounts.token_bridge_mint_authority,
+        &ctx.accounts.token_bridge_wrapped_meta,
+        &ctx.accounts.token_bridge_custody,
+        &ctx.accounts.token_bridge_custody_signer,
+    ) {
+        (None, None, Some(_), Some(_)) => check_native(true),
+        (Some(_), Some(_), None, None) => check_native(false),
+        _ => Err(TokenBridgeRelayerError::WronglySetOptionalAccounts),
     }
-
-    is_native(ctx).map_err(|e| {
+    .map_err(|e| {
         msg!("Could not determine whether it is a native or wrapped transfer");
         e
     })

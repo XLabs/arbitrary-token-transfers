@@ -1,28 +1,36 @@
-import * as anchor from "@coral-xyz/anchor";
-import { Program, web3 } from "@coral-xyz/anchor";
-import { PublicKey, Connection, SystemProgram } from "@solana/web3.js";
-import { Chain, chainToChainId, encoding } from "@wormhole-foundation/sdk-base";
-import { SolanaPriceOracleClient } from "@xlabs/solana-price-oracle-sdk";
-
-import { TokenBridgeRelayer } from "./idl/token_bridge_relayer.js";
-import * as IDL from "./idl/token_bridge_relayer.json" with { type: "json" };
+import * as anchor from '@coral-xyz/anchor';
+import { Program, web3 } from '@coral-xyz/anchor';
+import {
+  PublicKey,
+  Connection,
+  SystemProgram,
+  VersionedTransactionResponse,
+} from '@solana/web3.js';
+import * as borsh from 'borsh';
+import { Chain, chainToChainId, encoding } from '@wormhole-foundation/sdk-base';
+import { VAA } from '@wormhole-foundation/sdk-definitions';
 import {
   getTransferNativeWithPayloadCpiAccounts,
   getTransferWrappedWithPayloadCpiAccounts,
   getCompleteTransferNativeWithPayloadCpiAccounts,
   getCompleteTransferWrappedWithPayloadCpiAccounts,
-} from "@wormhole-foundation/sdk-solana-tokenbridge";
-import { VAA } from "@wormhole-foundation/sdk-definitions";
+} from '@wormhole-foundation/sdk-solana-tokenbridge';
+import { SolanaPriceOracleClient } from '@xlabs/solana-price-oracle-sdk';
+
+import { TokenBridgeRelayer } from './idl/token_bridge_relayer.js';
+import * as IDL from '../../../target/idl/token_bridge_relayer.json' with { type: 'json' };
 
 // Export IDL
-export * from "./idl/token_bridge_relayer.js";
+export * from './idl/token_bridge_relayer.js';
 export const idl = IDL;
+export { SolanaPriceOracleClient } from '@xlabs/solana-price-oracle-sdk';
 
 /**
  * 32 bytes.
  */
 export type UniversalAddress = number[] | Uint8Array | Buffer;
 export type VaaMessage = VAA<'TokenBridge:TransferWithPayload'>;
+export type OwnerOrAdmin = { owner: PublicKey } | { admin: PublicKey };
 
 export interface TransferNativeParameters {
   recipientChain: Chain;
@@ -32,6 +40,7 @@ export interface TransferNativeParameters {
   transferredAmount: anchor.BN;
   gasDropoffAmount: anchor.BN;
   maxFeeSol: anchor.BN;
+  unwrapIntent: boolean;
 }
 
 export interface TransferWrappedParameters {
@@ -41,18 +50,21 @@ export interface TransferWrappedParameters {
   transferredAmount: anchor.BN;
   gasDropoffAmount: anchor.BN;
   maxFeeSol: anchor.BN;
+  unwrapIntent: boolean;
 }
 
 export type TbrConfigAccount = anchor.IdlAccounts<TokenBridgeRelayer>['tbrConfigState'];
 export type ChainConfigAccount = anchor.IdlAccounts<TokenBridgeRelayer>['chainConfigState'];
 export type PeerAccount = anchor.IdlAccounts<TokenBridgeRelayer>['peerState'];
 export type SignerSequenceAccount = anchor.IdlAccounts<TokenBridgeRelayer>['signerSequenceState'];
+export type AdminAccount = anchor.IdlAccounts<TokenBridgeRelayer>['adminState'];
 
 export interface TbrAddresses {
   config(): PublicKey;
   chainConfig(chain: Chain): PublicKey;
   peer(chain: Chain, peerAddress: UniversalAddress): PublicKey;
   signerSequence(signer: PublicKey): PublicKey;
+  admin(signer: PublicKey): PublicKey;
 }
 
 export interface ReadTbrAccounts {
@@ -60,31 +72,30 @@ export interface ReadTbrAccounts {
   chainConfig(chain: Chain): Promise<ChainConfigAccount>;
   peer(chain: Chain, peerAddress: UniversalAddress): Promise<PeerAccount>;
   signerSequence(signer: PublicKey): Promise<SignerSequenceAccount>;
+  admin(signer: PublicKey): Promise<AdminAccount>;
 }
 
 export class TbrClient {
-  private _connection: Connection;
-  private readonly program: anchor.Program<TokenBridgeRelayer>;
-  private priceOracleClient: SolanaPriceOracleClient;
-  private tokenBridgeProgramId: PublicKey;
-  private wormholeProgramId: PublicKey;
+  public readonly program: anchor.Program<TokenBridgeRelayer>;
+  private readonly priceOracleClient: SolanaPriceOracleClient;
+  private readonly tokenBridgeProgramId: PublicKey;
+  private readonly wormholeProgramId: PublicKey;
 
   constructor(
-    connection: Connection,
+    provider: anchor.Provider,
     {
       tokenBridgeProgramId,
       wormholeProgramId,
     }: { tokenBridgeProgramId: PublicKey; wormholeProgramId: PublicKey },
   ) {
-    this._connection = connection;
-    this.program = new Program<TokenBridgeRelayer>(IDL as any, { connection });
-    this.priceOracleClient = new SolanaPriceOracleClient(connection);
+    this.program = new Program<TokenBridgeRelayer>(IDL as any, provider);
+    this.priceOracleClient = new SolanaPriceOracleClient(provider.connection);
     this.tokenBridgeProgramId = tokenBridgeProgramId;
     this.wormholeProgramId = wormholeProgramId;
   }
 
   get connection(): Connection {
-    return this._connection;
+    return this.program.provider.connection;
   }
 
   get address(): TbrAddresses {
@@ -94,6 +105,7 @@ export class TbrClient {
       peer: (chain: Chain, peerAddress: UniversalAddress) =>
         pda.peer(this.program.programId, chain, peerAddress),
       signerSequence: (signer: PublicKey) => pda.signerSequence(this.program.programId, signer),
+      admin: (admin: PublicKey) => pda.admin(this.program.programId, admin),
     };
   }
 
@@ -106,8 +118,22 @@ export class TbrClient {
         this.program.account.peerState.fetch(this.address.peer(chain, peerAddress)),
       signerSequence: (signer: PublicKey) =>
         this.program.account.signerSequenceState.fetch(this.address.signerSequence(signer)),
+      admin: (admin: PublicKey) =>
+        this.program.account.adminState.fetch(this.address.signerSequence(admin)),
     };
   }
+
+  private getSignerAndAdmin(ownerOrAdmin: OwnerOrAdmin): {
+    signer: PublicKey;
+    adminBadge: PublicKey | null;
+  } {
+    let adminBadge = 'admin' in ownerOrAdmin ? this.address.admin(ownerOrAdmin.admin) : null;
+    let signer = 'admin' in ownerOrAdmin ? ownerOrAdmin.admin : ownerOrAdmin.owner;
+
+    return { signer, adminBadge };
+  }
+
+  /* Initialize */
 
   async initialize(owner: PublicKey): Promise<web3.TransactionInstruction> {
     return this.program.methods
@@ -150,11 +176,31 @@ export class TbrClient {
       .instruction();
   }
 
-  async updateAdmin(signer: PublicKey, newAdmin: PublicKey): Promise<web3.TransactionInstruction> {
+  async addAdmin(owner: PublicKey, newAdmin: PublicKey): Promise<web3.TransactionInstruction> {
     return this.program.methods
-      .updateAdmin(newAdmin)
-      .accounts({
+      .addAdmin(newAdmin)
+      .accountsStrict({
+        owner,
+        tbrConfig: this.address.config(),
+        adminBadge: this.address.admin(newAdmin),
+        systemProgram: SystemProgram.programId,
+      })
+      .instruction();
+  }
+
+  async removeAdmin(
+    ownerOrAdmin: OwnerOrAdmin,
+    adminToRemove: PublicKey,
+  ): Promise<web3.TransactionInstruction> {
+    let { signer, adminBadge } = this.getSignerAndAdmin(ownerOrAdmin);
+
+    return this.program.methods
+      .removeAdmin(adminToRemove)
+      .accountsStrict({
         signer,
+        adminBadge,
+        tbrConfig: this.address.config(),
+        adminBadgeToBeRemoved: this.address.admin(adminToRemove),
       })
       .instruction();
   }
@@ -162,14 +208,17 @@ export class TbrClient {
   /* Peer management */
 
   async registerPeer(
-    signer: PublicKey,
+    ownerOrAdmin: OwnerOrAdmin,
     chain: Chain,
     peerAddress: UniversalAddress,
   ): Promise<web3.TransactionInstruction> {
+    let { signer, adminBadge } = this.getSignerAndAdmin(ownerOrAdmin);
+
     return this.program.methods
       .registerPeer(chainToChainId(chain), Array.from(peerAddress))
       .accountsStrict({
         signer,
+        adminBadge,
         tbrConfig: this.address.config(),
         peer: this.address.peer(chain, peerAddress),
         chainConfig: this.address.chainConfig(chain),
@@ -198,14 +247,17 @@ export class TbrClient {
   /* Chain config update */
 
   async setPauseForOutboundTransfers(
-    signer: PublicKey,
+    ownerOrAdmin: OwnerOrAdmin,
     chain: Chain,
     paused: boolean,
   ): Promise<web3.TransactionInstruction> {
+    let { signer, adminBadge } = this.getSignerAndAdmin(ownerOrAdmin);
+
     return this.program.methods
       .setPauseForOutboundTransfers(chainToChainId(chain), paused)
       .accountsStrict({
         signer,
+        adminBadge,
         chainConfig: this.address.chainConfig(chain),
         tbrConfig: this.address.config(),
       })
@@ -213,14 +265,17 @@ export class TbrClient {
   }
 
   async updateMaxGasDropoff(
-    signer: PublicKey,
+    ownerOrAdmin: OwnerOrAdmin,
     chain: Chain,
     maxGasDropoff: anchor.BN,
   ): Promise<web3.TransactionInstruction> {
+    let { signer, adminBadge } = this.getSignerAndAdmin(ownerOrAdmin);
+
     return this.program.methods
       .updateMaxGasDropoff(chainToChainId(chain), maxGasDropoff)
       .accountsStrict({
         signer,
+        adminBadge,
         chainConfig: this.address.chainConfig(chain),
         tbrConfig: this.address.config(),
       })
@@ -228,14 +283,17 @@ export class TbrClient {
   }
 
   async updateRelayerFee(
-    signer: PublicKey,
+    ownerOrAdmin: OwnerOrAdmin,
     chain: Chain,
     relayerFee: anchor.BN,
   ): Promise<web3.TransactionInstruction> {
+    let { signer, adminBadge } = this.getSignerAndAdmin(ownerOrAdmin);
+
     return this.program.methods
       .updateRelayerFee(chainToChainId(chain), relayerFee)
       .accountsStrict({
         signer,
+        adminBadge,
         chainConfig: this.address.chainConfig(chain),
         tbrConfig: this.address.config(),
       })
@@ -283,6 +341,7 @@ export class TbrClient {
       transferredAmount,
       gasDropoffAmount,
       maxFeeSol,
+      unwrapIntent,
     } = params;
 
     const { feeRecipient } = await this.read.config();
@@ -302,6 +361,7 @@ export class TbrClient {
         chainToChainId(recipientChain),
         Array.from(recipientAddress),
         transferredAmount,
+        unwrapIntent,
         gasDropoffAmount,
         maxFeeSol,
       )
@@ -335,6 +395,7 @@ export class TbrClient {
       transferredAmount,
       gasDropoffAmount,
       maxFeeSol,
+      unwrapIntent,
     } = params;
 
     const chainId = chainToChainId(recipientChain);
@@ -357,6 +418,7 @@ export class TbrClient {
         chainId,
         Array.from(recipientAddress),
         transferredAmount,
+        unwrapIntent,
         gasDropoffAmount,
         maxFeeSol,
       )
@@ -440,6 +502,31 @@ export class TbrClient {
       })
       .instruction();
   }
+
+  /* Queries */
+
+  async relayingFee(signer: PublicKey, chain: Chain, dropoffAmount: anchor.BN): Promise<anchor.BN> {
+    assertProvider(this.program.provider);
+
+    const tx = await this.program.methods
+      .relayingFee(chainToChainId(chain), dropoffAmount)
+      .accountsStrict({
+        payer: signer,
+        tbrConfig: this.address.config(),
+        chainConfig: this.address.chainConfig(chain),
+        oracleConfig: this.priceOracleClient.address.config(),
+        oracleEvmPrices: this.priceOracleClient.address.evmPrices(chain),
+      })
+      .rpc({ commitment: 'confirmed' });
+    const txResponse = await this.connection.getTransaction(tx, {
+      commitment: 'confirmed',
+      maxSupportedTransactionVersion: undefined,
+    });
+
+    const result = returnedDataFromTransaction<bigint>('u64', txResponse);
+
+    return new anchor.BN(result.toString());
+  }
 }
 
 const chainSeed = (chain: Chain) => encoding.bignum.toBytes(chainToChainId(chain), 2);
@@ -466,6 +553,10 @@ const pda = {
     return PublicKey.findProgramAddressSync([Buffer.from('seq'), signer.toBuffer()], programId)[0];
   },
 
+  admin: (programId: PublicKey, admin: PublicKey): PublicKey => {
+    return PublicKey.findProgramAddressSync([Buffer.from('admin'), admin.toBuffer()], programId)[0];
+  },
+
   // Internal:
 
   temporary: (programId: PublicKey, mint: PublicKey): PublicKey => {
@@ -476,13 +567,38 @@ const pda = {
     return PublicKey.findProgramAddressSync([Buffer.from('PostedVAA'), vaaHash], programId)[0];
   },
 
-  wormholeMessage: (programId: PublicKey, payer: PublicKey, payerSequence: anchor.BN): PublicKey => {
+  wormholeMessage: (
+    programId: PublicKey,
+    payer: PublicKey,
+    payerSequence: anchor.BN,
+  ): PublicKey => {
     return PublicKey.findProgramAddressSync(
       [Buffer.from('bridged'), payer.toBuffer(), payerSequence.toBuffer()],
       programId,
     )[0];
   },
 };
+
+function assertProvider(provider: anchor.Provider) {
+  if (provider.sendAndConfirm === undefined) {
+    throw new Error('The client must be created with a full provider to use this method');
+  }
+}
+
+export function returnedDataFromTransaction<T>(
+  schema: borsh.Schema,
+  confirmedTransaction: VersionedTransactionResponse | null,
+) {
+  const prefix = 'Program return: ';
+  const log = confirmedTransaction?.meta?.logMessages?.find((log) => log.startsWith(prefix));
+  if (log === undefined) {
+    throw new Error('Internal error: The transaction did not return any value');
+  }
+  // The line looks like 'Program return: <Public Key> <base64 encoded value>':
+  const [, data] = log.slice(prefix.length).split(' ', 2);
+
+  return borsh.deserialize(schema, Buffer.from(data, 'base64')) as T;
+}
 
 function transferNativeTokenBridgeAccounts(params: {
   programId: PublicKey;

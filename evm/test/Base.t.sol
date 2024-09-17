@@ -39,8 +39,8 @@ contract BaseTest is TbrTestBase {
     );
     tbrExposer.exposedAddPeer(chainId, peer);
 
-    bool isPeer = tbrExposer.exposedIsPeer(chainId, peer);
-    assertEq(isPeer, true);
+    bool _isPeer = tbrExposer.exposedIsPeer(chainId, peer);
+    assertEq(_isPeer, true);
   }
 
   function testSetCanonicalPeer(bytes32 peer, bytes32 anotherPeer) public {
@@ -76,7 +76,8 @@ contract BaseTest is TbrTestBase {
   }
 
   function testGetTargetChainData(
-    bytes32 peer, 
+    bytes32 peer,
+    uint32 expectedBaseFee,
     uint32 expectedMaxGasDropoff,
     bool txSizeSensitive,
     bool paused
@@ -85,20 +86,23 @@ contract BaseTest is TbrTestBase {
     uint16 chainId = SOLANA_CHAIN_ID;
 
     tbrExposer.exposedSetCanonicalPeer(chainId, peer);
-    tbrExposer.exposedSetChainTxSizeSensitive(chainId, txSizeSensitive);
+    tbrExposer.exposedSetBaseFee(chainId, expectedBaseFee);
     tbrExposer.exposedSetMaxGasDropoff(chainId, expectedMaxGasDropoff);
     tbrExposer.exposedSetPause(chainId, paused);
+    tbrExposer.exposedSetChainTxSizeSensitive(chainId, txSizeSensitive);
 
     (
-      bytes32 canonicalPeer, 
-      bool isPaused, 
-      bool txSensitive, 
-      uint32 maxGasDropoff
+      bytes32 canonicalPeer,
+      uint32 baseFee,
+      uint32 maxGasDropoff,
+      bool isPaused,
+      bool isTxSizeSensitive
     ) = tbrExposer.exposedGetTargetChainData(chainId);
     assertEq(canonicalPeer, peer);
-    assertEq(txSensitive, txSizeSensitive);
+    assertEq(baseFee, expectedBaseFee);
     assertEq(maxGasDropoff, expectedMaxGasDropoff);
     assertEq(isPaused, paused);
+    assertEq(isTxSizeSensitive, txSizeSensitive);
   }
 
   function testTransferEthToAccount(uint256 amount) public {
@@ -119,9 +123,9 @@ contract BaseTest is TbrTestBase {
     assertEq(address(fakeAddress).balance, amount);
   }
 
-  function testSetRelayFee(uint32 fee) public {
-    tbrExposer.exposedSetRelayFee(fee);
-    uint32 relayFee = tbrExposer.exposedGetRelayFee();
+  function testSetBaseFee(uint16 chainId, uint32 fee) public {
+    tbrExposer.exposedSetBaseFee(chainId, fee);
+    uint32 relayFee = tbrExposer.exposedGetBaseFee(chainId);
     assertEq(relayFee, fee);
   }
 
@@ -136,8 +140,8 @@ contract BaseTest is TbrTestBase {
     uint16 chainId = SOLANA_CHAIN_ID;
 
     tbrExposer.exposedSetCanonicalPeer(chainId, peer);
-    bool isChainSupported = tbrExposer.exposedIsChainSupported(chainId);
-    assertEq(isChainSupported, true);
+    bool _isChainSupported = tbrExposer.exposedIsChainSupported(chainId);
+    assertEq(_isChainSupported, true);
   }
 
   function testSetMaxGasDropoff(uint16 chainId, uint32 maxGasDropoff) public {

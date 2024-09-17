@@ -401,7 +401,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_ID, 
         commandCount, 
-        UPDATE_RELAY_FEE, 
+        UPDATE_BASE_FEE, 
         newRelayFee
       )
     );
@@ -413,7 +413,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_ID, 
         commandCount, 
-        UPDATE_RELAY_FEE, 
+        UPDATE_BASE_FEE, 
         newRelayFee
       )
     );
@@ -424,7 +424,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_QUERIES_ID, 
         commandCount, 
-        RELAY_FEE
+        BASE_FEE
       )
     ).asUint32Unchecked(0);
 

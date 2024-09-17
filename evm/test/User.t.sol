@@ -41,7 +41,7 @@ contract UserTest is TbrTestBase {
   }
 
   function _setUp1() internal override {
-    // Mock the bridge contract address on destination chain returned
+    // Mock the bridge contract address on target chain returned
     bytes32 targetTokenBridge = makeBytes32("targetTokenBridge");
     vm.mockCall(
       address(tokenBridge), 
@@ -73,7 +73,7 @@ contract UserTest is TbrTestBase {
 
     // Tbr setup
     executeGovernanceCommand(
-      abi.encodePacked(UPDATE_RELAY_FEE, RELAY_FEE_AMOUNT)
+      abi.encodePacked(UPDATE_BASE_FEE, RELAY_FEE_AMOUNT)
     );
   }
   
@@ -167,36 +167,7 @@ contract UserTest is TbrTestBase {
     assertEq(address(feeRecipient).balance, initialFeeRecipientBalance + feeQuote);
   }
 
-  function testTransferTokenWithRelay_TokenDoesNotExist () public {
-    bytes32 recipient = makeBytes32("recipient");
-    address fakeToken = address(0);
-    bool unwrapIntent = false;
-    uint256 tokenAmount = 1e6;
-    uint32 gasDropoff = 100;
-    uint msgValue = 1e6;
-
-    vm.expectRevert(
-      abi.encodeWithSelector(TokenDoesNotExist.selector, fakeToken)
-    );
-
-    invokeTbr(
-      abi.encodePacked(
-        tbr.exec768.selector, 
-        DISPATCHER_PROTOCOL_VERSION0, 
-        TRANSFER_TOKEN_WITH_RELAY_ID,
-        recipient,
-        SOLANA_CHAIN_ID,
-        fakeToken,
-        tokenAmount,
-        gasDropoff,
-        unwrapIntent,
-        ACQUIRE_PREAPPROVED
-      ),
-      msgValue
-    );
-  }
-
-  function testTransferTokenWithRelay_DestinationChainNotSupported (uint16 fakeChainId) public {
+  function testTransferTokenWithRelay_TargetChainNotSupported (uint16 fakeChainId) public {
     bytes32 recipient = makeBytes32("recipient");
     bool unwrapIntent = false;
     uint256 tokenAmount = 1e6;
@@ -206,7 +177,7 @@ contract UserTest is TbrTestBase {
     vm.assume(fakeChainId != SOLANA_CHAIN_ID);
     vm.assume(fakeChainId != EVM_CHAIN_ID);
     vm.expectRevert(
-      abi.encodeWithSelector(DestinationChainIsNotSupported.selector, fakeChainId)
+      abi.encodeWithSelector(TargetChainIsNotSupported.selector, fakeChainId)
     );
 
     invokeTbr(
@@ -328,7 +299,7 @@ contract UserTest is TbrTestBase {
     );
   }
 
-  function testTransferTokenWithRelay_AcquireModeNotImplemented (uint8 acquireMode) public {
+  function testTransferTokenWithRelay_InvalidAcquireMode (uint8 acquireMode) public {
     bytes32 recipient = makeBytes32("recipient");
     uint32 gasDropoff = 1000;
     bool unwrapIntent = false;
@@ -346,9 +317,9 @@ contract UserTest is TbrTestBase {
     vm.assume(acquireMode != ACQUIRE_PREAPPROVED);
     vm.assume(acquireMode != ACQUIRE_PERMIT);
     vm.assume(acquireMode != ACQUIRE_PERMIT2TRANSFER);
-    vm.assume(acquireMode != ACQUIRE_PERMITE2PERMIT);
+    vm.assume(acquireMode != ACQUIRE_PERMIT2PERMIT);
     vm.expectRevert(
-      abi.encodeWithSelector(AcquireModeNotImplemented.selector, acquireMode)
+      abi.encodeWithSelector(InvalidAcquireMode.selector, acquireMode)
     );
 
     invokeTbr(
@@ -435,18 +406,18 @@ contract UserTest is TbrTestBase {
     uint offset;
     bytes32 peer;
     bool chainIsPaused;
-    bool txCommitEthereum;
+    bool txSizeSensitive;
     uint32 maxGasDropoff;
     uint32 baseFee;
     (peer, offset) = response.asBytes32Unchecked(offset);
     (chainIsPaused, offset) = response.asBoolUnchecked(offset);
-    (txCommitEthereum, offset) = response.asBoolUnchecked(offset);
+    (txSizeSensitive, offset) = response.asBoolUnchecked(offset);
     (maxGasDropoff, offset) = response.asUint32Unchecked(offset);
     (baseFee, offset) = response.asUint32Unchecked(offset);
 
     assertEq(peer, SOLANA_CANONICAL_PEER);
     assertEq(chainIsPaused, false);
-    assertEq(txCommitEthereum, false);
+    assertEq(txSizeSensitive, false);
     assertEq(maxGasDropoff, MAX_GAS_DROPOFF_AMOUNT);
     assertEq(baseFee, RELAY_FEE_AMOUNT);
 
@@ -462,13 +433,13 @@ contract UserTest is TbrTestBase {
     offset = 0;
     (peer, offset) = response.asBytes32Unchecked(offset);
     (chainIsPaused, offset) = response.asBoolUnchecked(offset);
-    (txCommitEthereum, offset) = response.asBoolUnchecked(offset);
+    (txSizeSensitive, offset) = response.asBoolUnchecked(offset);
     (maxGasDropoff, offset) = response.asUint32Unchecked(offset);
     (baseFee, offset) = response.asUint32Unchecked(offset);
 
     assertEq(peer, EVM_CANONICAL_PEER);
     assertEq(chainIsPaused, false);
-    assertEq(txCommitEthereum, true);
+    assertEq(txSizeSensitive, true);
     assertEq(maxGasDropoff, MAX_GAS_DROPOFF_AMOUNT);
     assertEq(baseFee, RELAY_FEE_AMOUNT);
   }

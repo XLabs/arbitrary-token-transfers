@@ -5,12 +5,12 @@ pragma solidity ^0.8.25;
 import "forge-std/Test.sol";
 import "wormhole-sdk/proxy/Proxy.sol";
 import "wormhole-sdk/libraries/BytesParsing.sol";
-import { forwardError } from "wormhole-sdk/Utils.sol";
+import { reRevert } from "wormhole-sdk/Utils.sol";
 import "@openzeppelin/token/ERC20/IERC20.sol";
 import "wormhole-sdk/interfaces/ITokenBridge.sol";
-import {IPermit2} from "wormhole-sdk/interfaces/token/IPermit2.sol";
 import {IWETH} from "wormhole-sdk/interfaces/token/IWETH.sol";
 import {Tbr} from "tbr/Tbr.sol";
+import {IPermit2} from "permit2/IPermit2.sol";
 import "./TbrExposer.sol";
 import "price-oracle/PriceOracle.sol";
 import "price-oracle/assets/types/EvmFeeParams.sol";
@@ -27,7 +27,6 @@ contract TbrTestBase is Test {
   address      immutable admin;
   address      immutable feeRecipient;
 
-  uint8        immutable oracleVersion;
   IPermit2     immutable permit2;
   address      immutable oracle;
   ITokenBridge immutable tokenBridge;
@@ -48,7 +47,6 @@ contract TbrTestBase is Test {
 
     permit2       = IPermit2(makeAddr("permit2"));
     oracle        = makeAddr("oracle");
-    oracleVersion = 0;
     tokenBridge   = ITokenBridge(vm.envAddress("TEST_TOKEN_BRIDGE_ADDRESS"));
     initGasToken  = IWETH(vm.envAddress("TEST_WETH_ADDRESS"));
     initGasErc20TokenizationIsExplicit = false;
@@ -63,7 +61,6 @@ contract TbrTestBase is Test {
       permit2,
       tokenBridge,
       oracle,
-      oracleVersion,
       initGasToken,
       initGasErc20TokenizationIsExplicit
     ));
@@ -81,7 +78,6 @@ contract TbrTestBase is Test {
       permit2,
       tokenBridge,
       oracle,
-      oracleVersion,
       initGasToken,
       initGasErc20TokenizationIsExplicit
     );
@@ -93,7 +89,7 @@ contract TbrTestBase is Test {
   function invokeTbr(bytes memory encoded) internal returns (bytes memory data) {
     (bool success, bytes memory result) = address(tbr).call(encoded);
     if (!success) {
-      forwardError(result);
+      reRevert(result);
     }
     (uint length,) = result.asUint256Unchecked(32);
     (data,) = result.sliceUnchecked(64, length);
@@ -102,7 +98,7 @@ contract TbrTestBase is Test {
   function invokeTbr(bytes memory encoded, uint value) internal returns (bytes memory data) {
     (bool success, bytes memory result) = address(tbr).call{value: value}(encoded);
     if (!success) {
-      forwardError(result);
+      reRevert(result);
     }
     (uint length,) = result.asUint256Unchecked(32);
     (data,) = result.sliceUnchecked(64, length);

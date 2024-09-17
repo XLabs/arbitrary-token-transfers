@@ -2,7 +2,7 @@
 solc_version = "0.8.25"
 optimizer = true
 optimizer_runs = 200
-via_ir = false
+via_ir = true
 src = "src"
 test = "test"
 evm_version = "paris"
@@ -17,6 +17,7 @@ remappings = [
     "price-oracle/=lib/relayer-infra-contracts/apps/price-oracle/evm/src/",
     "@openzeppelin/=lib/openzeppelin-contracts/contracts/",
     "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+    "permit2/=lib/permit2/src/interfaces/",
 ]
 
 [fmt]
