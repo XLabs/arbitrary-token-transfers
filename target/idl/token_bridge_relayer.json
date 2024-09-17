@@ -109,36 +109,11 @@
       ],
       "accounts": [
         {
-          "name": "signer",
-          "docs": [
-            "The signer may be the owner, pending owner or admin, depending on the operation."
-          ],
-          "signer": true
-        },
-        {
-          "name": "admin_badge",
-          "docs": [
-            "If the signer is an admin, prove it with this PDA."
-          ],
-          "optional": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  97,
-                  100,
-                  109,
-                  105,
-                  110
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "signer"
-              }
-            ]
-          }
+          "name": "owner",
+          "signer": true,
+          "relations": [
+            "tbr_config"
+          ]
         },
         {
           "name": "tbr_config",
@@ -518,18 +493,20 @@
       ],
       "accounts": [
         {
-          "name": "signer",
-          "docs": [
-            "The signer may be the owner, pending owner or admin, depending on the operation."
-          ],
+          "name": "new_owner",
+          "writable": true,
           "signer": true
         },
         {
-          "name": "admin_badge",
+          "name": "previous_owner",
+          "writable": true
+        },
+        {
+          "name": "new_owner_badge",
           "docs": [
-            "If the signer is an admin, prove it with this PDA."
+            "The admin badge for the new owner."
           ],
-          "optional": true,
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -544,7 +521,29 @@
               },
               {
                 "kind": "account",
-                "path": "signer"
+                "path": "new_owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "previous_owner_badge_to_delete",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  100,
+                  109,
+                  105,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "previous_owner"
               }
             ]
           }
@@ -574,6 +573,10 @@
               }
             ]
           }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
@@ -598,6 +601,31 @@
           ],
           "writable": true,
           "signer": true
+        },
+        {
+          "name": "admin_badge",
+          "docs": [
+            "The admin badge for the owner."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  100,
+                  109,
+                  105,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
         },
         {
           "name": "tbr_config",
@@ -662,9 +690,8 @@
         {
           "name": "admin_badge",
           "docs": [
-            "If the signer is an admin, prove it with this PDA."
+            "Proof that the signer is an admin or the owner."
           ],
-          "optional": true,
           "pda": {
             "seeds": [
               {
@@ -1047,9 +1074,8 @@
         {
           "name": "admin_badge",
           "docs": [
-            "If the signer is an admin, prove it with this PDA."
+            "Proof that the signer is an admin or the owner."
           ],
-          "optional": true,
           "pda": {
             "seeds": [
               {
@@ -1151,36 +1177,11 @@
       ],
       "accounts": [
         {
-          "name": "signer",
-          "docs": [
-            "The signer may be the owner, pending owner or admin, depending on the operation."
-          ],
-          "signer": true
-        },
-        {
-          "name": "admin_badge",
-          "docs": [
-            "If the signer is an admin, prove it with this PDA."
-          ],
-          "optional": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  97,
-                  100,
-                  109,
-                  105,
-                  110
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "signer"
-              }
-            ]
-          }
+          "name": "owner",
+          "signer": true,
+          "relations": [
+            "tbr_config"
+          ]
         },
         {
           "name": "tbr_config",
@@ -1681,16 +1682,15 @@
         {
           "name": "signer",
           "docs": [
-            "The signer may be the owner, pending owner or admin, depending on the operation."
+            "The signer may be the owner, or admin, depending on the operation."
           ],
           "signer": true
         },
         {
           "name": "admin_badge",
           "docs": [
-            "If the signer is an admin, prove it with this PDA."
+            "Proof that the signer is an admin or the owner."
           ],
-          "optional": true,
           "pda": {
             "seeds": [
               {
@@ -1771,16 +1771,15 @@
         {
           "name": "signer",
           "docs": [
-            "The signer may be the owner, pending owner or admin, depending on the operation."
+            "The signer may be the owner, or admin, depending on the operation."
           ],
           "signer": true
         },
         {
           "name": "admin_badge",
           "docs": [
-            "If the signer is an admin, prove it with this PDA."
+            "Proof that the signer is an admin or the owner."
           ],
-          "optional": true,
           "pda": {
             "seeds": [
               {
@@ -1865,9 +1864,8 @@
         {
           "name": "admin_badge",
           "docs": [
-            "If the signer is an admin, prove it with this PDA."
+            "Proof that the signer is an admin or the owner."
           ],
-          "optional": true,
           "pda": {
             "seeds": [
               {
@@ -1984,9 +1982,8 @@
         {
           "name": "admin_badge",
           "docs": [
-            "If the signer is an admin, prove it with this PDA."
+            "Proof that the signer is an admin or the owner."
           ],
-          "optional": true,
           "pda": {
             "seeds": [
               {

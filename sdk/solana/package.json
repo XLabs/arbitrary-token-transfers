@@ -7,9 +7,9 @@
   "types": "ts-build/tbrv3/index.d.ts",
   "exports": {
     ".": {
+      "types": "./ts-build/tbrv3/index.d.ts",
       "require": "./ts-build/tbrv3/index.cjs",
-      "import": "./ts-build/tbrv3/index.js",
-      "types": "./ts-build/tbrv3/index.d.ts"
+      "import": "./ts-build/tbrv3/index.js"
     }
   },
   "files": [
@@ -30,7 +30,6 @@
     "borsh": "^2.0.0"
   },
   "devDependencies": {
-    "@types/bn.js": "^5.1.5",
     "@types/node": "20.16.5",
     "tsup": "^8.2.4",
     "tsx": "4.19.1",

@@ -1838,7 +1838,6 @@ const RAW_RUNTIME_STATE =
           ["@xlabs-xyz/solana-arbitrary-token-transfers", "workspace:sdk/solana"],\
           ["@coral-xyz/anchor", "npm:0.30.1"],\
           ["@solana/web3.js", "npm:1.95.3"],\
-          ["@types/bn.js", "npm:5.1.5"],\
           ["@types/node", "npm:20.16.5"],\
           ["@wormhole-foundation/sdk-base", "npm:0.10.7"],\
           ["@wormhole-foundation/sdk-definitions", "npm:0.10.7"],\
@@ -5393,12 +5392,10 @@ const RAW_RUNTIME_STATE =
           ["solana-d8ec25", "workspace:solana"],\
           ["@coral-xyz/anchor", "npm:0.30.1"],\
           ["@solana/web3.js", "npm:1.95.3"],\
-          ["@types/bn.js", "npm:5.1.5"],\
           ["@types/chai", "npm:4.3.19"],\
           ["@types/mocha", "npm:8.2.3"],\
           ["@wormhole-foundation/sdk-base", "npm:0.10.7"],\
           ["@xlabs-xyz/solana-arbitrary-token-transfers", "workspace:sdk/solana"],\
-          ["bn.js", "npm:5.2.1"],\
           ["chai", "npm:5.1.1"],\
           ["mocha", "npm:8.4.0"],\
           ["ts-mocha", "virtual:feacd3953c0ec0fcf02793cfe4fcf9fb8116306fb019d1298605cc1440750514b75e066c4c97baf4e017440a1937d0d0b54c353fbd9dec5e6083446f6108536b#npm:8.0.0"],\
