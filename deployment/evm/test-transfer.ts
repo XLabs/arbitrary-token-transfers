@@ -7,7 +7,7 @@ import { ethers } from 'ethers';
 import { getProvider, getSigner, sendTx } from '../helpers/evm';
 import { SupportedChains, Tbrv3, Transfer } from '@xlabs-xyz/evm-arbitrary-token-transfers';
 import { toUniversal } from '@wormhole-foundation/sdk-definitions';
-import { Chain } from '@wormhole-foundation/sdk-base';
+import { Chain, chainToPlatform } from '@wormhole-foundation/sdk-base';
 import { inspect } from 'util';
 import { solanaOperatingChains } from '../helpers/solana';
 
@@ -45,7 +45,7 @@ async function run() {
           try {
             console.log(`Creating transfer for ${chain.name}->${targetChain.name}`);
 
-            const address = await signer.getAddress();
+            const address = chainToPlatform(targetChain.name as Chain) === "Evm" ? await signer.getAddress() : getEnv('SOLANA_RECIPIENT_ADDRESS');
 
             const isChainSupported = await tbrv3.isChainSupported(targetChain.name as SupportedChains);
 
