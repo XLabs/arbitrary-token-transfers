@@ -2,22 +2,22 @@
   "TbrV3": [
     {
       "chainId": 10002,
-      "address": "0xAb406919de4ad7B7cf1A65C52B7fD85Bab07beb4",
+      "address": "0x322a792c362cD93813Ef933A7330ae80d8c271d5",
       "constructorArgs": []
     },
     {
       "chainId": 10005,
-      "address": "0xbD416d4aeacfAd2A4Ae89ebD32521120c6eaeF65",
+      "address": "0xAb406919de4ad7B7cf1A65C52B7fD85Bab07beb4",
       "constructorArgs": []
     },
     {
       "chainId": 10004,
-      "address": "0xf807456495197Ad414f570Bca3A0dB3985246Ab7",
+      "address": "0x6113861Db40b52A9583d2979F5bfbdeC4A862224",
       "constructorArgs": []
     },
     {
       "chainId": 1,
-      "address": "AtTpCxEYQiPswfGz493qcbiK1eE13W3YZutvxBdANDeR",
+      "address": "ATTMxkcYak1RMR7BWZ3CMpDke9MHhBf5eUC7WTdX1f1x",
       "constructorArgs": []
     }
   ],
