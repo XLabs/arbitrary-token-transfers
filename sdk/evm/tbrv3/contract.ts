@@ -126,6 +126,8 @@ export class Tbrv3 {
       if (transfer.feeEstimation.isPaused) {
         throw new Error(`Relays to chain ${transfer.args.recipient.chain} are paused. Found in transfer ${i + 1}.`);
       }
+      // We are asking for a transfer on an EVM chain, so the gas token used to pay has 18 decimals.
+      // Here we need to calculate the amount in wei.
       value += BigInt(transfer.feeEstimation.fee * WHOLE_EVM_GAS_TOKEN_UNITS);
 
       if (transfer.args.method === "TransferGasTokenWithRelay") {
@@ -169,9 +171,9 @@ export class Tbrv3 {
     let value: bigint = 0n;
     for (const vaa of vaas) {
       const tbrv3Message = layout.deserializeLayout(TBRv3Message, vaa.payload.payload);
-      // We use the unit of an EVM chain
-      // TODO: source chain from the VAA?
-      value += BigInt(tbrv3Message.gasDropoff);
+      // We are redeeming on an EVM chain so the gas token has 18 decimals.
+      // Here we need to calculate the amount in wei.
+      value += BigInt(tbrv3Message.gasDropoff * WHOLE_EVM_GAS_TOKEN_UNITS);
     }
 
     const methods = layout.serializeLayout(execParamsLayout, {
