@@ -1521,7 +1521,7 @@
           "type": "bool"
         },
         {
-          "name": "gas_dropoff_amount",
+          "name": "gas_dropoff_amount_mwei",
           "type": "u64"
         },
         {
@@ -1947,7 +1947,7 @@
           "type": "u16"
         },
         {
-          "name": "max_gas_dropoff",
+          "name": "max_gas_dropoff_mwei",
           "type": "u64"
         }
       ]
