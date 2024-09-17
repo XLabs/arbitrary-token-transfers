@@ -5,7 +5,9 @@ const addresses = [[
   "Mainnet", []], [
   "Testnet", [
     ["Solana",          "AtTpCxEYQiPswfGz493qcbiK1eE13W3YZutvxBdANDeR"],
-    ["Sepolia",         "0xbd3e6Ee89Ee2085732dCE4d501185f875cC2362d"],
+    ["Sepolia",         "0xb620f38B1211bDB96684576017F66bA9871eb6be"],
+    ["BaseSepolia",     "0x3ddc4d19D05Caf86F70BcF55BdDA5B683E56b2Ae"],
+    ["OptimismSepolia", "0xb620f38B1211bDB96684576017F66bA9871eb6be"],
   ]],
 ] as const satisfies MapLevels<[Network, Chain, string]>;
 

@@ -6,7 +6,9 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "lib": ["ES2023"],
-    "outDir": "ts-build"
+    "outDir": "ts-build",
+    "rootDir": ".",
+    "sourceRoot": "./src"
   },
   "include": ["src"],
   "exclude": ["ts-build"],

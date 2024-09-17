@@ -6,7 +6,8 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "lib": ["ES2023"],
-    "outDir": "ts-build"
+    "outDir": "ts-build",
+    "rootDir": "."
   },
   "include": ["src"],
   "references": []

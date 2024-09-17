@@ -1,15 +1,15 @@
-import { encoding, LayoutToType, Network } from "@wormhole-foundation/sdk-base";
+import { amount as sdkAmount, encoding, LayoutToType, Network } from "@wormhole-foundation/sdk-base";
 import { ChainsConfig, Contracts, isNative, VAA } from "@wormhole-foundation/sdk-definitions";
 import { EvmChains, EvmPlatform, EvmPlatformType, EvmUnsignedTransaction } from "@wormhole-foundation/sdk-evm";
-import { AutomaticTokenBridgeV3, BaseRelayingParamsReturnItem, RelayingFeesParams, RelayingFeesReturnItem, TransferParams } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
-import { acquireModeItem, SupportedChains, Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
+import { AutomaticTokenBridgeV3, tokenBridgeRelayerV3Contracts, BaseRelayingParamsReturnItem, RelayingFeesParams, RelayingFeesReturnItem, TransferParams, tokenBridgeRelayerV3Chains } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
+import { acquireModeItem, relayFeeUnit, SupportedChains, Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
 import { Provider } from "ethers";
+import '@wormhole-foundation/sdk-evm';
 
 export type AcquireMode = LayoutToType<typeof acquireModeItem>;
 
 export interface EvmTransferParams<C extends EvmChains> extends TransferParams<C> {
   acquireMode: AcquireMode;
-  fee: bigint;
 }
 
 export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
@@ -24,7 +24,9 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
     readonly contracts: Contracts,
   ) {
     if (network === 'Devnet') throw new Error('AutomaticTokenBridge not supported on Devnet');
-    this.tbr = new Tbrv3(provider, network);
+    const address = tokenBridgeRelayerV3Contracts.get(network, chain);
+    if (!address) throw new Error(`TokenBridgeRelayerV3 contract not defined for chain ${chain}`);
+    this.tbr = new Tbrv3(provider, network, address);
   }
 
   static async fromRpc<N extends Network>(
@@ -45,12 +47,13 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
     );
   }
 
-  // TODO: make it accept an array?
   async *transfer(params: EvmTransferParams<C>): AsyncGenerator<EvmUnsignedTransaction<N, C>> {
     const acquireTx = await this.acquire(params);
     if (acquireTx) yield acquireTx;
 
-    if (params.recipient.chain !== 'Solana' && params.recipient.chain !== 'Ethereum') throw new Error(`Unsupported destination chain ${params.recipient.chain}`);
+    if (tokenBridgeRelayerV3Chains.has(params.recipient.chain)) throw new Error(`Unsupported destination chain ${params.recipient.chain}`);
+
+    const normalizedFee = BigInt(params.fee / relayFeeUnit);
 
     const transferParams = await this.tbr.transferWithRelay({
       args: {
@@ -58,15 +61,15 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
         acquireMode: params.acquireMode,
         gasDropoff: params.gasDropOff ?? 0n,
         inputAmount: params.amount,
-        inputToken: params.token.toString(),
+        inputToken: params.token.address.toString(),
         recipient: {
           address: params.recipient.address.toUniversalAddress(),
-          chain: params.recipient.chain,
+          chain: params.recipient.chain as any, // TODO: fix supported chain types
         },
         unwrapIntent: true // TODO: receive as option/param?
       },
       feeEstimation: {
-        fee: params.fee,
+        fee: normalizedFee,
         isPaused: false
       }
     });
@@ -74,13 +77,14 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
     // yield the transfer tx
     yield new EvmUnsignedTransaction(
       {
-        data: encoding.hex.encode(transferParams.data),
+        data: encoding.hex.encode(transferParams.data, true),
         to: transferParams.to,
-        value: transferParams.value,
+        // TODO: is the buffer necessary?
+        value: transferParams.value + BigInt(Number(transferParams.value) * 0.05),
       },
       this.network,
       this.chain,
-      'TokenBridgeRelayerV3.transfer',
+      'AutomaticTokenBridgeV3.transfer',
       false
     );
   }
@@ -94,22 +98,22 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
       case 'Preapproved':
         const token = EvmPlatform.getTokenImplementation(
           this.provider,
-          transfer.token.toString()
+          transfer.token.address.toString()
         );
         const allowance = await token.allowance(
           transfer.sender.toString(),
-          '', // TODO: TBRv3 contract address
+          this.tbr.address,
         );
         if (allowance < BigInt(transfer.amount)) {
           const tx = await token.approve.populateTransaction(
-            '', // TODO: TBRv3 contract address
+            this.tbr.address,
             transfer.amount
           );
           return new EvmUnsignedTransaction(
             tx,
             this.network,
             this.chain,
-            'TokenBridgeRelayerV3.approve',
+            'AutomaticTokenBridgeV3.approve',
             false
           );
         }
@@ -132,14 +136,18 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
       },
       this.network,
       this.chain,
-      'TokenBridgeRelayerV3.completeTransfer',
+      'AutomaticTokenBridgeV3.completeTransfer',
       false
     );
   }
 
   async relayingFee(args: RelayingFeesParams): Promise<RelayingFeesReturnItem> {
-    const [fee] = await this.tbr.relayingFee(args);
-    return fee;
+    const [{ fee, isPaused }] = await this.tbr.relayingFee(args);
+
+    return {
+      isPaused,
+      fee: fee * relayFeeUnit
+    };
   }
 
   async baseRelayingParams(chain: SupportedChains): Promise<BaseRelayingParamsReturnItem> {

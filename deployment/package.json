@@ -8,7 +8,8 @@
     "deploy:evm:mainnet": "ENV=mainnet tsx evm/deploy.ts",
     "parse:evm": "tsx evm/parse.ts",
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
-    "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check"
+    "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
+    "clean": "rm -r ts-build build"
   },
   "devDependencies": {
     "@types/node": "20.16.5",

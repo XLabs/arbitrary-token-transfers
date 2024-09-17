@@ -6,12 +6,14 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "lib": ["ES2023"],
-    "outDir": "ts-build"
+    "outDir": "ts-build",
+    "rootDir": ".",
+    "sourceRoot": "./src"
   },
   "include": ["src"],
   "exclude": ["ts-build"],
   "references": [
-    { "path": "../../../sdk/tbrv3/solana" },
+    { "path": "../../../sdk/solana" },
     { "path": "../../definitions" },
   ]
 }

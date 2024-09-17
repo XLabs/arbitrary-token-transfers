@@ -1556,15 +1556,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@wormhole-foundation/sdk-base@npm:0.10.3":
-  version: 0.10.3
-  resolution: "@wormhole-foundation/sdk-base@npm:0.10.3"
-  dependencies:
-    "@scure/base": "npm:^1.1.3"
-  checksum: 10c0/65e75116a4e6df8bdaa9eb36995c3c6fecb1b7a7b5c7e7b96734838e2d44a1d0e564f50624bc0e36e4f0a032825a71c40e645c3b57ccdcf284889f29b35760cd
-  languageName: node
-  linkType: hard
-
 "@wormhole-foundation/sdk-base@npm:0.10.7, @wormhole-foundation/sdk-base@npm:^0.10.7":
   version: 0.10.7
   resolution: "@wormhole-foundation/sdk-base@npm:0.10.7"
@@ -1583,17 +1574,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@wormhole-foundation/sdk-connect@npm:0.10.3":
-  version: 0.10.3
-  resolution: "@wormhole-foundation/sdk-connect@npm:0.10.3"
-  dependencies:
-    "@wormhole-foundation/sdk-base": "npm:0.10.3"
-    "@wormhole-foundation/sdk-definitions": "npm:0.10.3"
-    axios: "npm:^1.4.0"
-  checksum: 10c0/21b7fd563ebf8820808f9cd3e076993ac3a3a8b75f21e8ec9c13efd6be307a172f94031fb1371efa3b8338972a3d43595b89e7c9504d18a253ac27dcd73692b5
-  languageName: node
-  linkType: hard
-
 "@wormhole-foundation/sdk-connect@npm:0.10.7":
   version: 0.10.7
   resolution: "@wormhole-foundation/sdk-connect@npm:0.10.7"
@@ -1602,17 +1582,6 @@ __metadata:
     "@wormhole-foundation/sdk-definitions": "npm:0.10.7"
     axios: "npm:^1.4.0"
   checksum: 10c0/c7b463e058fcd49abf09146d49adba6e97336d3c31a72cc792d3f416366534cecda21377720c65b44c3cbd92057d3a7c6f98d457db13e76bae479beb3318cf84
-  languageName: node
-  linkType: hard
-
-"@wormhole-foundation/sdk-definitions@npm:0.10.3":
-  version: 0.10.3
-  resolution: "@wormhole-foundation/sdk-definitions@npm:0.10.3"
-  dependencies:
-    "@noble/curves": "npm:^1.4.0"
-    "@noble/hashes": "npm:^1.3.1"
-    "@wormhole-foundation/sdk-base": "npm:0.10.3"
-  checksum: 10c0/19a3931512569c9139fc93ac68820fd2ab7db6acfbd05784b6ec6f837302b6453ea30a47b457a10f49f76b9af116e264c06cb35975181701493198bd380900f6
   languageName: node
   linkType: hard
 
@@ -1627,17 +1596,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@wormhole-foundation/sdk-evm@npm:0.10.3":
-  version: 0.10.3
-  resolution: "@wormhole-foundation/sdk-evm@npm:0.10.3"
-  dependencies:
-    "@wormhole-foundation/sdk-connect": "npm:0.10.3"
-    ethers: "npm:^6.5.1"
-  checksum: 10c0/58e58150a5d35a24ec731468dc9c2a26140da8abc59bfe2e7b2b855c191052aa8a2ae0433fba81e9f40c6ba18c28a0b66c1447c70c47cf65fa135ed5ef73b8f3
-  languageName: node
-  linkType: hard
-
-"@wormhole-foundation/sdk-evm@npm:0.10.7":
+"@wormhole-foundation/sdk-evm@npm:0.10.7, @wormhole-foundation/sdk-evm@npm:^0.10.7":
   version: 0.10.7
   resolution: "@wormhole-foundation/sdk-evm@npm:0.10.7"
   dependencies:
@@ -1693,9 +1652,9 @@ __metadata:
   resolution: "@xlabs-xyz/arbitrary-token-transfer-evm-route@workspace:connect/platforms/evm"
   dependencies:
     "@types/node": "npm:20.14.14"
-    "@wormhole-foundation/sdk-base": "npm:0.10.3"
-    "@wormhole-foundation/sdk-definitions": "npm:0.10.3"
-    "@wormhole-foundation/sdk-evm": "npm:0.10.3"
+    "@wormhole-foundation/sdk-base": "npm:0.10.7"
+    "@wormhole-foundation/sdk-definitions": "npm:0.10.7"
+    "@wormhole-foundation/sdk-evm": "npm:0.10.7"
     "@xlabs-xyz/arbitrary-token-transfers-definitions": "workspace:^0.0.1-alpha1"
     "@xlabs-xyz/evm-arbitrary-token-transfers": "workspace:^0.0.1-alpha1"
     ethers: "npm:^6.13.2"
@@ -1710,13 +1669,33 @@ __metadata:
   resolution: "@xlabs-xyz/arbitrary-token-transfer-route@workspace:connect/route"
   dependencies:
     "@types/node": "npm:20.14.14"
-    "@wormhole-foundation/sdk-base": "npm:0.10.3"
-    "@wormhole-foundation/sdk-connect": "npm:0.10.3"
-    "@wormhole-foundation/sdk-definitions": "npm:0.10.3"
-    "@wormhole-foundation/sdk-evm": "npm:0.10.3"
+    "@wormhole-foundation/sdk-base": "npm:0.10.7"
+    "@wormhole-foundation/sdk-connect": "npm:0.10.7"
+    "@wormhole-foundation/sdk-definitions": "npm:0.10.7"
+    "@wormhole-foundation/sdk-evm": "npm:0.10.7"
     "@xlabs-xyz/arbitrary-token-transfer-evm-route": "workspace:^0.0.1-alpha1"
+    "@xlabs-xyz/arbitrary-token-transfer-solana-route": "workspace:^0.0.1-alpha1"
     "@xlabs-xyz/arbitrary-token-transfers-definitions": "workspace:^0.0.1-alpha1"
     ethers: "npm:^6.13.2"
+    tsup: "npm:^8.2.4"
+    tsx: "npm:4.16.5"
+    typescript: "npm:5.5.4"
+  languageName: unknown
+  linkType: soft
+
+"@xlabs-xyz/arbitrary-token-transfer-solana-route@workspace:^0.0.1-alpha1, @xlabs-xyz/arbitrary-token-transfer-solana-route@workspace:connect/platforms/solana":
+  version: 0.0.0-use.local
+  resolution: "@xlabs-xyz/arbitrary-token-transfer-solana-route@workspace:connect/platforms/solana"
+  dependencies:
+    "@coral-xyz/anchor": "npm:^0.30.1"
+    "@solana/spl-token": "npm:0.3.9"
+    "@solana/web3.js": "npm:^1.95.3"
+    "@types/node": "npm:20.14.14"
+    "@wormhole-foundation/sdk-base": "npm:0.10.7"
+    "@wormhole-foundation/sdk-definitions": "npm:0.10.7"
+    "@wormhole-foundation/sdk-solana": "npm:0.10.7"
+    "@xlabs-xyz/arbitrary-token-transfers-definitions": "workspace:^0.0.1-alpha1"
+    "@xlabs-xyz/solana-arbitrary-token-transfers": "workspace:^0.0.1-alpha3"
     tsup: "npm:^8.2.4"
     tsx: "npm:4.16.5"
     typescript: "npm:5.5.4"
@@ -1728,9 +1707,9 @@ __metadata:
   resolution: "@xlabs-xyz/arbitrary-token-transfers-definitions@workspace:connect/definitions"
   dependencies:
     "@types/node": "npm:20.14.14"
-    "@wormhole-foundation/sdk-base": "npm:0.10.3"
-    "@wormhole-foundation/sdk-definitions": "npm:0.10.3"
-    "@wormhole-foundation/sdk-evm": "npm:0.10.3"
+    "@wormhole-foundation/sdk-base": "npm:0.10.7"
+    "@wormhole-foundation/sdk-definitions": "npm:0.10.7"
+    "@wormhole-foundation/sdk-evm": "npm:0.10.7"
     ethers: "npm:^6.13.2"
     tsup: "npm:^8.2.4"
     tsx: "npm:4.16.5"
@@ -1792,7 +1771,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xlabs-xyz/solana-arbitrary-token-transfers@workspace:*, @xlabs-xyz/solana-arbitrary-token-transfers@workspace:^, @xlabs-xyz/solana-arbitrary-token-transfers@workspace:sdk/solana":
+"@xlabs-xyz/solana-arbitrary-token-transfers@workspace:*, @xlabs-xyz/solana-arbitrary-token-transfers@workspace:^, @xlabs-xyz/solana-arbitrary-token-transfers@workspace:^0.0.1-alpha3, @xlabs-xyz/solana-arbitrary-token-transfers@workspace:sdk/solana":
   version: 0.0.0-use.local
   resolution: "@xlabs-xyz/solana-arbitrary-token-transfers@workspace:sdk/solana"
   dependencies:
@@ -2631,6 +2610,7 @@ __metadata:
     "@types/node": "npm:20.16.5"
     "@wormhole-foundation/sdk-base": "npm:^0.10.7"
     "@wormhole-foundation/sdk-definitions": "npm:^0.10.7"
+    "@wormhole-foundation/sdk-evm": "npm:^0.10.7"
     "@wormhole-foundation/sdk-solana": "npm:^0.10.7"
     "@xlabs-xyz/evm-arbitrary-token-transfers": "workspace:*"
     "@xlabs-xyz/ledger-signer": "npm:^0.0.4"

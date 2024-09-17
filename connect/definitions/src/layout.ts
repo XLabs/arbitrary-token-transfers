@@ -1,10 +1,10 @@
 import { Chain, CustomConversion, Layout, ManualSizePureBytes, NamedLayoutItem, UintLayoutItem } from "@wormhole-foundation/sdk-base";
 import { layoutItems } from "@wormhole-foundation/sdk-definitions";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
+import { tokenBridgeRelayerV3Chains } from "./consts.js";
 
-// TODO: update supported chains to the actual chains supported
-export const supportedChains = ["Ethereum", "Solana"] as const satisfies readonly Chain[];
-export const supportedChainItem = layoutItems.chainItem({allowedChains: supportedChains});
+export const supportedChains = Object.values(tokenBridgeRelayerV3Chains);
+export const supportedChainItem = layoutItems.chainItem({allowedChains: supportedChains });
 
 export type SupportedChains = typeof supportedChains[number];
 

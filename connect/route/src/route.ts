@@ -1,8 +1,11 @@
 import {
+  amount as sdkAmount,
   AttestationReceipt,
   Chain,
   ChainAddress,
   ChainContext,
+  finality,
+  guardians,
   isSignOnlySigner,
   Network,
   routes,
@@ -16,11 +19,15 @@ import {
 } from "@wormhole-foundation/sdk-connect";
 import { toNative } from "@wormhole-foundation/sdk-definitions";
 import "@xlabs-xyz/arbitrary-token-transfers-definitions";
-import { AcquireMode, relayFeeUnit, tokenBridgeRelayerV3Chains } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
+import { AcquireMode, SupportedChains, tokenBridgeRelayerV3Chains } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
 
 interface TransferOptions {
-  gasDropoff: bigint;
+  nativeGas: number; // this is a percentage
   acquireMode: AcquireMode;
+}
+
+interface ValidatedTransferOptions extends TransferOptions {
+  gasDropOff: sdkAmount.Amount;
 }
 
 type Receipt = TransferReceipt<AttestationReceipt<"AutomaticTokenBridgeV3">>;
@@ -31,8 +38,9 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
 {
   static NATIVE_GAS_DROPOFF_SUPPORTED = true;
   static IS_AUTOMATIC = true;
+
   static meta = {
-    name: "Token Bridge Relayer v3",
+    name: "AutomaticTokenBridgeV3",
   };
 
   static supportedNetworks(): Network[] {
@@ -86,23 +94,55 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
     params: routes.TransferParams<TransferOptions>,
   ): Promise<routes.ValidationResult<TransferOptions>> {
     try {
-      if (request.fromChain.chain !== 'Ethereum' && request.fromChain.chain !== 'Solana') throw new Error('Sourche chain not supported');
+      if (tokenBridgeRelayerV3Chains.has(request.fromChain.chain)) throw new Error('Source chain not supported');
       if (request.fromChain.config.network === 'Devnet') throw new Error('Devnet not supported');
-      const tbr = await request.fromChain.getProtocol('AutomaticTokenBridgeV3');
 
-      const options = params.options ?? this.getDefaultOptions();
+      // const stbr = await request.fromChain.getProtocol('AutomaticTokenBridgeV3');
+      // const dtbr = await request.toChain.getProtocol('AutomaticTokenBridgeV3');
+      const destinationDecimals = await request.toChain.getDecimals('native');
 
-      const base = await tbr.baseRelayingParams(request.fromChain.chain);
-      if (base.maxGasDropoff < options.gasDropoff) throw new Error(`Gas dropoff above max available ${base.maxGasDropoff}`);
+      const options: ValidatedTransferOptions = {
+        ...this.getDefaultOptions(),
+        ...params.options,
+        gasDropOff: sdkAmount.fromBaseUnits(0n, destinationDecimals)
+      };
+
+      if (options.nativeGas) {
+        if (options.nativeGas > 1.0 || options.nativeGas < 0.0) {
+          throw new Error("Native gas must be between 0.0 and 1.0 (0% and 100%)");
+        }
+
+        // TODO: check max gas drop off (see existing implementation)
+        // TODO: check gas dropoff units for each platform (evm is twei, but solana?)
+        // const { maxGasDropoff } = await dtbr.baseRelayingParams(request.toChain.chain);
+        // const dropoff = request.parseAmount(params.amount) * options.nativeGas;
+        // if ()
+        // ================================================ //
+
+        const stbr = await request.fromChain.getProtocol('AutomaticTokenBridgeV3');
+
+        const { maxGasDropoff } = await stbr.baseRelayingParams(request.toChain.chain);
+
+        const perc = BigInt(Math.floor(options.nativeGas * 100));
+        const dropoff = BigInt(params.amount) * perc / 100n;
+
+        options.gasDropOff = sdkAmount.fromBaseUnits(
+          dropoff > maxGasDropoff ? BigInt(maxGasDropoff) : dropoff,
+          destinationDecimals
+        );
+
+        // ================================================ //
+      }
 
       return {
         valid: true,
         params: {
-          amount: "0",
+          amount: request.parseAmount(params.amount).amount,
           options
         }
       };
     } catch (e) {
+      console.error('Validation error:', e);
       return { valid: false, params, error: e as Error };
     }
   }
@@ -112,18 +152,30 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
     params: routes.ValidatedTransferParams<TransferOptions>,
   ): Promise<routes.QuoteResult<TransferOptions, routes.ValidatedTransferParams<TransferOptions>>> {
     try {
-      const targetChain = request.fromChain.chain;
-      if (targetChain !== 'Ethereum' && targetChain !== 'Solana') throw new Error('Sourche chain not supported');
+      const sourceChain = request.fromChain.chain;
+      const targetChain = request.toChain.chain;
+
+      if (tokenBridgeRelayerV3Chains.has(request.fromChain.chain)) throw new Error('Source chain not supported');
       if (request.fromChain.config.network === 'Devnet') throw new Error('Devnet not supported');
 
       const tbr = await request.fromChain.getProtocol('AutomaticTokenBridgeV3');
 
+      // TODO: convert/normalize to amount (maybe in validate? check implementation)
+      const gasDropoff = BigInt(params.options.nativeGas || 0);
+
       const { fee, isPaused } = await tbr.relayingFee({
-        gasDropoff: params.options.gasDropoff,
+        gasDropoff,
         targetChain
       });
 
-      if (isPaused) throw new Error('Relaying is paused');
+      if (isPaused) throw new Error(`Relaying to ${targetChain} is paused`);
+
+      const srcDecimals = await request.fromChain.getDecimals('native');
+      const dstDecimals = await request.toChain.getDecimals('native');
+
+      const feeToken: TokenId = { address: 'native', chain: sourceChain }
+
+      const eta = finality.estimateFinalityTime(sourceChain) + guardians.guardianAttestationEta;
 
       return {
         success: true,
@@ -143,21 +195,20 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
         },
         params,
         destinationNativeGas: {
-          amount: "0",
-          decimals: await request.toChain.getDecimals('native')
+          amount: gasDropoff.toString(),
+          decimals: dstDecimals
         },
         relayFee: {
           amount: {
-            amount: (fee * relayFeeUnit).toString(),
-            decimals: await request.fromChain.getDecimals('native'),
+            amount: fee.toString(),
+            decimals: srcDecimals
           },
-          token: {
-            chain: targetChain,
-            address: 'native'
-          }
+          token: feeToken
         },
+        eta,
       };
     } catch (e) {
+      console.error('Quote error:', e);
       return { success: false, error: e as Error };
     }
   }
@@ -165,8 +216,8 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
   async initiate(
     request: routes.RouteTransferRequest<N>,
     signer: Signer,
-    quote: routes.Quote<any, any>,
-    to: ChainAddress<'Ethereum' | 'Solana'>,
+    quote: routes.Quote<TransferOptions, routes.ValidatedTransferParams<TransferOptions>>,
+    to: ChainAddress<SupportedChains>,
   ): Promise<Receipt> {
     if (isSignOnlySigner(signer)) throw new Error('Signer must be able to send transactions');
 
@@ -181,7 +232,11 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
       },
       sender: toNative(request.fromChain.chain, signer.address()),
       token: request.source.id,
-      gasDropOff: quote.params.options.gasDropoff,
+      gasDropOff: 0n, // TODO: solve
+      fee: BigInt(quote.relayFee?.amount.amount || 0),
+      // TODO: solve type issue
+      // @ts-ignore
+      acquireMode: quote.params.options.acquireMode,
     });
 
     const originTxs = await signAndSendWait(
@@ -197,13 +252,17 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
     };
   }
 
-  track(receipt: any, timeout?: number): AsyncGenerator<any, any, unknown> {
-    return {} as any;
+  async *track(receipt: Receipt, timeout?: number): AsyncGenerator<any, any, unknown> {
+    try {
+      yield* TokenTransfer.track(this.wh, receipt, timeout);
+    } catch (e) {
+      throw e;
+    }
   }
 
   getDefaultOptions(): TransferOptions {
     return {
-      gasDropoff: 0n,
+      nativeGas: 0,
       acquireMode: {
         mode: 'Preapproved'
       }

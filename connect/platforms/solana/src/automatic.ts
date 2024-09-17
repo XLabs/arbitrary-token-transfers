@@ -4,6 +4,7 @@ import { Chain, Network, platformToChains } from "@wormhole-foundation/sdk-base"
 import { AccountAddress, ChainsConfig, Contracts, isNative, TokenAddress, VAA } from "@wormhole-foundation/sdk-definitions";
 import { SolanaAddress, SolanaChain, SolanaChains, SolanaPlatform, SolanaPlatformType, SolanaUnsignedTransaction } from "@wormhole-foundation/sdk-solana";
 import { AutomaticTokenBridgeV3, BaseRelayingParamsReturnItem, RelayingFeesParams, RelayingFeesReturnItem, SupportedChains, TransferParams } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
+import { BN } from "@coral-xyz/anchor";
 
 import { TbrClient } from "@xlabs-xyz/solana-arbitrary-token-transfers";
 
@@ -85,9 +86,9 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
         {
           recipientChain: params.recipient.chain,
           recipientAddress: params.recipient.address.toUint8Array(),
-          transferredAmount: params.amount,
-          maxFeeSol: params.maxFee,
-          gasDropoffAmount: params.gasDropOff || 0n,
+          transferredAmount: new BN(params.amount.toString()),
+          maxFeeSol: new BN(params.maxFee.toString()),
+          gasDropoffAmount: new BN(params.gasDropOff?.toString() || 0),
           tokenAccount: ata,
           mint,
         }
@@ -98,9 +99,9 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
         recipientChain: params.recipient.chain,
         recipientAddress: params.recipient.address.toUint8Array(),
         userTokenAccount: ata,
-        transferredAmount: params.amount,
-        gasDropoffAmount: params.gasDropOff || 0n,
-        maxFeeSol: params.maxFee,
+        transferredAmount: new BN(params.amount.toString()),
+        gasDropoffAmount: new BN(params.gasDropOff?.toString() || 0),
+        maxFeeSol: new BN(params.maxFee.toString()),
       }));
     }
 
@@ -145,7 +146,7 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
   async relayingFee(args: RelayingFeesParams): Promise<RelayingFeesReturnItem> {
     return {
       fee: 0n,
-      isPaused: true,
+      isPaused: false,
     };
   }
 

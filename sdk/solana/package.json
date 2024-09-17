@@ -17,8 +17,9 @@
     "!**/*.tsbuildinfo"
   ],
   "scripts": {
-    "build": "tsc --noEmit -p ./tsconfig.json && tsup",
-    "prettier": "prettier --write ."
+    "build": "tsc -p ./tsconfig.json && tsup",
+    "prettier": "prettier --write .",
+    "clean": "rm -r ts-build build"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.1",

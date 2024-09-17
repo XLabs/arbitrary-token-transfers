@@ -20,6 +20,7 @@ export interface TransferParams<C extends Chain> {
   token: TokenId;
   amount: bigint;
   gasDropOff?: bigint;
+  fee: bigint;
 }
 
 // export interface RelayingFeesParams {

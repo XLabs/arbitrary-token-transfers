@@ -37,7 +37,6 @@
     "sdk/solana",
     "solana",
     "deployment",
-    "sdk/tbrv3/solana",
     "connect/definitions",
     "connect/platforms/*",
     "connect/route"
