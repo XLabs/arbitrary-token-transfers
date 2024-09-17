@@ -381,20 +381,18 @@ abstract contract TbrUser is TbrBase {
     // TODO: ignore return value? The gas savings might be very low.
     tokenBridge.completeTransferWithPayload(vaa);
 
+    IERC20 token = IERC20(tokenBridge.wrappedAsset(tokenOriginChain, tokenOriginAddress));
+    if (address(token) == address(0))
+      revert TokenNotAttested(tokenOriginAddress, tokenOriginChain);
+
     // If an unwrap is desired, unwrap and call recipient with full amount
     uint totalGasTokenAmount = gasDropoff;
-    if (unwrapIntent && gasErc20TokenizationIsExplicit) {
+    if (address(gasToken) == address(token) && unwrapIntent && gasErc20TokenizationIsExplicit) {
       gasToken.withdraw(tokenAmount);
 
       totalGasTokenAmount += tokenAmount;
     }
     else {
-      // TODO: compute the derived address here to avoid doing a call to the token bridge.
-      // The gas savings shouldn't be that big so it's low priority.
-      IERC20 token = IERC20(tokenBridge.wrappedAsset(tokenOriginChain, tokenOriginAddress));
-      if (address(token) == address(0))
-        revert TokenNotAttested(tokenOriginAddress, tokenOriginChain);
-
       // Otherwise, transfer tokens and perform gas dropoff
       SafeERC20.safeTransfer(token, recipient, tokenAmount);
     }
