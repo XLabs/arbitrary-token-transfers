@@ -467,7 +467,7 @@ library TokenBridgeVAAParser {
   uint private constant _VAA_SIGNATURE_ARRAY_OFFSET = 1 /*version*/ + 4 /*guardianSet*/;
   uint private constant _VAA_SIGNATURE_SIZE = 1 /*guardianSetIndex*/ + 65 /*signaturesize*/;
   uint private constant _VAA_EMITTER_CHAIN_SKIP = 4 /*timestamp*/ + 4 /*nonce*/;
-  uint private constant _VAA_TOKEN_AMOUNT_SKIP_SKIP =
+  uint private constant _VAA_TOKEN_AMOUNT_SKIP =
     32 /*emitter address*/ + 8 /*sequence*/ + 1 /*consistencyLevel*/ + 1 /*payload id*/;
   uint private constant _VAA_TOKEN_BRIDGE_RECIPIENT_SKIP =
     32 /*token bridge recipient address (us)*/ + 2 /*token bridge recipient chain id (our chain)*/;
@@ -498,7 +498,7 @@ library TokenBridgeVAAParser {
 
     dataOffset += signatureCount * _VAA_SIGNATURE_SIZE + _VAA_EMITTER_CHAIN_SKIP;
     (peerChain, dataOffset) = data.asUint16CdUnchecked(dataOffset);
-    dataOffset += _VAA_TOKEN_AMOUNT_SKIP_SKIP;
+    dataOffset += _VAA_TOKEN_AMOUNT_SKIP;
     //we don't check the payload id because the sizes will mismatch in the end if it's not a
     //  payload 3 transfer
     
