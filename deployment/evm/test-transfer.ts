@@ -63,7 +63,7 @@ async function run() {
             const feeEstimation = (
               await tbrv3.relayingFee({
                 targetChain: targetChain.name as SupportedChains,
-                gasDropoff: 0n,
+                gasDropoff: 0,
               })
             )[0];
 
@@ -74,8 +74,8 @@ async function run() {
               args: {
                 method: 'TransferTokenWithRelay',
                 acquireMode: { mode: 'Preapproved' },
-                inputAmount: 1000n, 
-                gasDropoff: 0n,
+                inputAmountInAtomic: 1000n, 
+                gasDropoff: 0,
                 recipient: {
                   chain: targetChain.name as Chain,
                   address: toUniversal(targetChain.name as Chain, address),
