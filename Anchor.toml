@@ -9,7 +9,7 @@ resolution = true
 skip-lint = true
 
 [programs.localnet]
-token_bridge_relayer = "AtTKP4GWymovVhsxRLZwTZhnmXabLKK1GPnQjUSjotj"
+token_bridge_relayer = "AttiDUzaWf6XMmgp6aUVL8sQt7Ax1NFgnZkFceJ2UVC9"
 
 [[test.genesis]]
 address = "ATqjh2vkjogyVUUNmXQssQZNSFGgSA7Tm6P1UzEUg85s" # Mainnet in lib.rs
