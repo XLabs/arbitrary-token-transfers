@@ -1,8 +1,10 @@
-import { serialize, toNative, toUniversal, UniversalAddress, VAA, layoutItems } from "@wormhole-foundation/sdk-definitions";
 import { chainToPlatform, FixedLengthArray, Layout, layout, LayoutItem, LayoutToType, Network, ProperLayout } from "@wormhole-foundation/sdk-base";
-import { ethers } from "ethers";
-import { baseRelayingConfigReturnLayout, BaseRelayingParamsReturn, dispatcherLayout, gasDropoffUnit, relayFeeUnit, relayingFeesInputLayout, RelayingFeesReturn, RelayingFeesReturnItem, relayingFeesReturnLayout, SupportedChains, TBRv3Message, transferTokenWithRelayLayout, versionEnvelopeLayout, transferGasTokenWithRelayLayout, proxyConstructorLayout, ownerItem, GovernanceQuery, GovernanceCommand, peerItem, GovernanceCommandRaw, feeItem, amountItem } from "./layouts.js";
+import { layoutItems, serialize, toNative, toUniversal, UniversalAddress, VAA } from "@wormhole-foundation/sdk-definitions";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
+import { ethers } from "ethers";
+import { baseRelayingConfigReturnLayout, BaseRelayingParamsReturn, commandCategoryLayout, dispatcherLayout, execParamsLayout, feeItem, gasDropoffUnit, GovernanceCommandRaw, GovernanceQuery, ownerItem, peerItem, proxyConstructorLayout, queryCategoryLayout, queryParamsLayout, relayingFeesInputLayout, RelayingFeesReturn, relayingFeesReturnLayout, SupportedChains, TBRv3Message, transferGasTokenWithRelayLayout, transferTokenWithRelayLayout } from "./layouts.js";
+
+type RelayingFeesReturn = LayoutToType<typeof relayingFeesReturnLayout>;
 
 /**
  * Gives you a type that keeps the properties of `T1` while making both properties common to `T1` and `T2` and properties exclusive to `T2` optional.
@@ -102,7 +104,7 @@ export interface Transfer {
    * Increasing this estimation won't affect the actual cost.
    * Excedent gas tokens will be returned to the caller of the contract.
    */
-  feeEstimation: RelayingFeesReturnItem;
+  feeEstimation: RelayingFeesReturn;
   args: TransferTokenWithRelayInput | TransferGasTokenWithRelayInput;
 };
 
@@ -112,19 +114,6 @@ export class Tbrv3 {
 
   constructor(public readonly provider: ethers.Provider, public readonly network: NetworkMain, address: string = Tbrv3.addresses[network]) {
     this.address = address;
-  }
-
-  static createEnvelopeWithSingleMethodKind<const M extends Method>(method: M, args: MakeOptional<MethodArgs<M>, { method: M }>[]): Uint8Array {
-    return Tbrv3.createEnvelope(
-      args.map((arg) => ({ ...arg, method } as MethodArgs<M>)),
-    );
-  }
-
-  static createEnvelope(calls: MethodCall[]): Uint8Array {
-    return layout.serializeLayout(versionEnvelopeLayout, {
-      version: "Version0",
-      methods: calls,
-    });
   }
 
   static readonly addresses: Record<NetworkMain, string> = {
@@ -146,16 +135,19 @@ export class Tbrv3 {
       if (transfer.feeEstimation.isPaused) {
         throw new Error(`Relays to chain ${transfer.args.recipient.chain} are paused. Found in transfer ${i + 1}.`);
       }
-      const convertedFee = transfer.feeEstimation.fee * relayFeeUnit;
-      value += convertedFee;
+      value += BigInt(transfer.feeEstimation.fee);
 
       if (transfer.args.method === "TransferGasTokenWithRelay") {
-        value += transfer.args.inputAmount;
+        value += transfer.args.inputAmountInAtomic;
       }
 
       methodCalls.push(transfer.args);
     }
-    const methods = Tbrv3.createEnvelope(methodCalls);
+    // const methods = Tbrv3.createEnvelope(methodCalls);
+    const methods = layout.serializeLayout(execParamsLayout, {
+      version: 0,
+      commandCategories: [...methodCalls]
+    })
     const data = Tbrv3.encodeExecute(methods);
 
     return {
@@ -208,7 +200,17 @@ export class Tbrv3 {
     if (args.length === 0) {
       throw new Error("At least one relay fee query should be specified.");
     }
-    const queries = Tbrv3.createEnvelopeWithSingleMethodKind("RelayFee", args);
+
+    const queries = layout.serializeLayout(queryParamsLayout, {
+      version: 0,
+      queryCategories:
+        args.map(arg => ({
+          queryCategory: "RelayFee",
+          targetChain: arg.targetChain,
+          gasDropoff: arg.gasDropoff,
+        }) satisfies LayoutToType<typeof queryCategoryLayout>)
+    });
+
     const calldata = Tbrv3.encodeQuery(queries);
     const result = await this.provider.call({
       data: ethers.hexlify(calldata),
@@ -220,20 +222,29 @@ export class Tbrv3 {
   }
 
   async baseRelayingParams(...chains: SupportedChains[]): Promise<BaseRelayingParamsReturn> {
-    const queries = Tbrv3.createEnvelopeWithSingleMethodKind("BaseRelayingConfig", chains.map((targetChain) => ({targetChain})));
+    const queries = layout.serializeLayout(queryParamsLayout, {
+      version: 0,
+      queryCategories: chains.map((targetChain) => ({
+        queryCategory: "BaseRelayingConfig",
+        targetChain,
+      }) satisfies LayoutToType<typeof queryCategoryLayout>)
+    });
+
     const calldata = Tbrv3.encodeQuery(queries);
     const result = await this.provider.call({
       data: ethers.hexlify(calldata),
       to: this.address,
     });
 
-
     const baseRelayingReturnListLayout = fixedLengthArrayLayout(chains.length, baseRelayingConfigReturnLayout);
     return decodeQueryResponseLayout(baseRelayingReturnListLayout, ethers.getBytes(result));
   }
 
   governanceTx<const C extends GovernanceCommandRaw[]>(commands: C): TbrPartialTx {
-    const methods = Tbrv3.createEnvelope([{ method: "GovernanceCommand", commands }]);
+    const methods = layout.serializeLayout(commandCategoryLayout, {
+      commandCategory: 'GovernanceCommands',
+      commands
+    })
     const data = Tbrv3.encodeExecute(methods);
 
     return {
@@ -274,7 +285,15 @@ export class Tbrv3 {
   }
 
   async governanceQuery<const C extends GovernanceQuery[]>(queries: C): Promise<string> {
-    const methods = Tbrv3.createEnvelope([{ method: "GovernanceQuery", queries }]);
+    // const methods = Tbrv3.createEnvelope([{ method: "GovernanceQuery", queries }]);
+    const methods = layout.serializeLayout(queryParamsLayout, {
+      version: 0,
+      queryCategories:
+        queries.map(arg => ({
+          queryCategory: "GovernanceQueries",
+          queries
+        }) satisfies LayoutToType<typeof queryCategoryLayout>)
+    });
     const data = Tbrv3.encodeQuery(methods);
 
     const result = await this.provider.call({
@@ -286,7 +305,7 @@ export class Tbrv3 {
   }
 
   async relayFee(chain: SupportedChains) {
-    const result = await this.governanceQuery([{ query: "RelayFee", chain }]);
+    const result = await this.governanceQuery([{ query: "BaseFee", chain }]);
     
     return decodeQueryResponseLayout(feeItem, ethers.getBytes(result)); 
   }
@@ -303,8 +322,8 @@ export class Tbrv3 {
     return decodeQueryResponseLayout(layoutItems.boolItem, ethers.getBytes(result));
   }
 
-  async isPeer(chain: SupportedChains, peer: UniversalAddress): Promise<boolean> {
-    const result = await this.governanceQuery([{ query: "IsPeer", peer: peer.address, chain }]);
+  async isPeer(chain: SupportedChains, address: UniversalAddress): Promise<boolean> {
+    const result = await this.governanceQuery([{ query: "IsPeer", address, chain }]);
 
     return decodeQueryResponseLayout(layoutItems.boolItem, ethers.getBytes(result));
   }
