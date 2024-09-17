@@ -8,7 +8,6 @@ import {
   TransferWrappedParameters,
   UniversalAddress,
   VaaMessage,
-  OwnerOrAdmin,
 } from '@xlabs-xyz/solana-arbitrary-token-transfers';
 import { sendAndConfirmIx } from './helpers.js';
 
@@ -17,7 +16,6 @@ export class ClientWrapper {
   readonly provider: AnchorProvider;
   readonly logs: { [key: string]: string[] };
   readonly logsSubscriptionId: number;
-  readonly ownerOrAdmin: OwnerOrAdmin;
 
   constructor(
     provider: AnchorProvider,
@@ -31,8 +29,6 @@ export class ClientWrapper {
       this.client = new TbrClient({ connection: provider.connection }, params);
     }
     this.logs = {};
-    this.ownerOrAdmin =
-      accountType === 'owner' ? { owner: this.publicKey } : { admin: this.publicKey };
 
     this.logsSubscriptionId = provider.connection.onLogs(
       'all',
@@ -53,7 +49,6 @@ export class ClientWrapper {
   }
 
   displayLogs(signature: string) {
-    //console.log('ALL', this._logs);
     let lines = this.logs[signature];
     if (lines === undefined) {
       lines = ['<logs not found>'];
@@ -91,15 +86,12 @@ export class ClientWrapper {
   }
 
   async removeAdmin(adminToRemove: PublicKey): Promise<TransactionSignature> {
-    return sendAndConfirmIx(
-      this.client.removeAdmin(this.ownerOrAdmin, adminToRemove),
-      this.provider,
-    );
+    return sendAndConfirmIx(this.client.removeAdmin(this.publicKey, adminToRemove), this.provider);
   }
 
   async registerPeer(chain: Chain, peerAddress: UniversalAddress): Promise<TransactionSignature> {
     return sendAndConfirmIx(
-      this.client.registerPeer(this.ownerOrAdmin, chain, peerAddress),
+      this.client.registerPeer(this.publicKey, chain, peerAddress),
       this.provider,
     );
   }
@@ -116,21 +108,21 @@ export class ClientWrapper {
 
   async setPauseForOutboundTransfers(chain: Chain, paused: boolean): Promise<TransactionSignature> {
     return sendAndConfirmIx(
-      this.client.setPauseForOutboundTransfers(this.ownerOrAdmin, chain, paused),
+      this.client.setPauseForOutboundTransfers(this.publicKey, chain, paused),
       this.provider,
     );
   }
 
   async updateMaxGasDropoff(chain: Chain, maxGasDropoff: BN): Promise<TransactionSignature> {
     return sendAndConfirmIx(
-      this.client.updateMaxGasDropoff(this.ownerOrAdmin, chain, maxGasDropoff),
+      this.client.updateMaxGasDropoff(this.publicKey, chain, maxGasDropoff),
       this.provider,
     );
   }
 
   async updateRelayerFee(chain: Chain, relayerFee: BN): Promise<TransactionSignature> {
     return sendAndConfirmIx(
-      this.client.updateRelayerFee(this.ownerOrAdmin, chain, relayerFee),
+      this.client.updateRelayerFee(this.publicKey, chain, relayerFee),
       this.provider,
     );
   }

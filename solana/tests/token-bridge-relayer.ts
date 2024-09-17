@@ -112,11 +112,11 @@ describe('Token Bridge Relayer Program', () => {
 
     it('Only the owner can add an admin', async () => {
       // At first, the admin doesn't exist:
-      await assertResolveFailure(unauthorizedClient.read.admin(adminClient1.publicKey));
+      await assertResolveFailure(unauthorizedClient.read.adminBadge(adminClient1.publicKey));
 
       // After being added, it exists:
       await newOwnerClient.addAdmin(adminClient1.publicKey);
-      await unauthorizedClient.read.admin(adminClient1.publicKey);
+      await unauthorizedClient.read.adminBadge(adminClient1.publicKey);
 
       // An admin cannot add another one:
       await assertResolveFailure(
@@ -124,13 +124,13 @@ describe('Token Bridge Relayer Program', () => {
         SendTransactionError,
       );
 
-      // The owner can:
+      // ... but the owner can:
       await newOwnerClient.addAdmin(adminClient2.publicKey);
-      await unauthorizedClient.read.admin(adminClient2.publicKey);
+      await unauthorizedClient.read.adminBadge(adminClient2.publicKey);
 
       // On the contrary, an admin can remove another one:
       await adminClient1.removeAdmin(adminClient2.publicKey);
-      await assertResolveFailure(unauthorizedClient.read.admin(adminClient2.publicKey));
+      await assertResolveFailure(unauthorizedClient.read.adminBadge(adminClient2.publicKey));
     });
 
     it('Unauthorized cannot add or remove an admin', async () => {

@@ -1,7 +1,4 @@
-use crate::{
-    error::TokenBridgeRelayerError,
-    state::{AdminState, ChainConfigState, TbrConfigState},
-};
+use crate::state::{AdminState, ChainConfigState, TbrConfigState};
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
@@ -11,12 +8,12 @@ pub struct UpdateChainConfig<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
 
-    /// If the signer is an admin, prove it with this PDA.
+    /// Proof that the signer is an admin or the owner.
     #[account(
         seeds = [AdminState::SEED_PREFIX, signer.key.to_bytes().as_ref()],
         bump
     )]
-    pub admin_badge: Option<Account<'info, AdminState>>,
+    pub admin_badge: Account<'info, AdminState>,
 
     #[account(
         mut,
@@ -38,23 +35,10 @@ pub struct UpdateChainConfig<'info> {
     pub tbr_config: Account<'info, TbrConfigState>,
 }
 
-impl<'info> UpdateChainConfig<'info> {
-    pub fn only_owner_or_admin(&self) -> Result<()> {
-        require!(
-            self.admin_badge.is_some() || self.tbr_config.is_owner(self.signer.key),
-            TokenBridgeRelayerError::OwnerOrAdminOnly
-        );
-
-        Ok(())
-    }
-}
-
 pub fn set_pause_for_outbound_transfers(
     ctx: Context<UpdateChainConfig>,
     paused: bool,
 ) -> Result<()> {
-    ctx.accounts.only_owner_or_admin()?;
-
     let chain_config = &mut ctx.accounts.chain_config;
     chain_config.paused_outbound_transfers = paused;
 
@@ -62,8 +46,6 @@ pub fn set_pause_for_outbound_transfers(
 }
 
 pub fn update_max_gas_dropoff(ctx: Context<UpdateChainConfig>, max_gas_dropoff: u64) -> Result<()> {
-    ctx.accounts.only_owner_or_admin()?;
-
     let chain_config = &mut ctx.accounts.chain_config;
     chain_config.max_gas_dropoff = max_gas_dropoff;
 
@@ -71,8 +53,6 @@ pub fn update_max_gas_dropoff(ctx: Context<UpdateChainConfig>, max_gas_dropoff: 
 }
 
 pub fn update_relayer_fee(ctx: Context<UpdateChainConfig>, relayer_fee: u64) -> Result<()> {
-    ctx.accounts.only_owner_or_admin()?;
-
     let chain_config = &mut ctx.accounts.chain_config;
     chain_config.relayer_fee = relayer_fee;
 
