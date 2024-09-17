@@ -1,9 +1,8 @@
-import { SolanaLedgerSigner } from '@xlabs-xyz/ledger-signer-solana';
 import { BN } from '@coral-xyz/anchor';
 import { chainIdToChain } from '@wormhole-foundation/sdk-base';
 import { UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import { TbrClient } from '@xlabs-xyz/solana-arbitrary-token-transfers';
-import { runOnSolana, ledgerSignAndSend, getConnection } from '../helpers/solana.js';
+import { runOnSolana, ledgerSignAndSend, getConnection, SolanaSigner } from '../helpers/solana.js';
 import { SolanaChainInfo, LoggerFn } from '../helpers/interfaces.js';
 import { dependencies } from '../helpers/env.js';
 import { PublicKey } from '@solana/web3.js';
@@ -17,7 +16,7 @@ runOnSolana('configure-tbr', configureSolanaTbr).catch((error) => {
 
 async function configureSolanaTbr(
   chain: SolanaChainInfo,
-  signer: SolanaLedgerSigner,
+  signer: SolanaSigner,
   log: LoggerFn,
 ): Promise<void> {
   const signerKey = new PublicKey(await signer.getAddress());
