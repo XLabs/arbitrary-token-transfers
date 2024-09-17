@@ -34,31 +34,26 @@ abstract contract TbrDispatcher is RawDispatcher, TbrGovernance, TbrUser {
       uint8 command;
       (command, offset) = data.asUint8CdUnchecked(offset);
 
-      uint movedOffset;
       if (command == TRANSFER_TOKEN_WITH_RELAY_ID) {
         uint256 fee;
-        (fee, movedOffset) =
-          _transferTokenWithRelay(data[offset:], senderRefund, commandIndex);
+        (fee, offset) = _transferTokenWithRelay(data, offset, senderRefund, commandIndex);
         fees += fee;
         senderRefund -= fee;
       } else if (command == TRANSFER_GAS_TOKEN_WITH_RELAY_ID) {
         uint256 fee;
-        (fee, movedOffset) =
-          _transferGasTokenWithRelay(data[offset:], senderRefund, commandIndex);
+        (fee, offset) = _transferGasTokenWithRelay(data, offset, senderRefund, commandIndex);
         fees += fee;
         senderRefund -= fee;
       } else if (command == COMPLETE_TRANSFER_ID) {
         uint256 gasDropoffSpent;
-        (gasDropoffSpent, movedOffset) =
-          _completeTransfer(data[offset:], senderRefund, commandIndex);
+        (gasDropoffSpent, offset) = _completeTransfer(data, offset, senderRefund, commandIndex);
         senderRefund -= gasDropoffSpent;
       }
       else if (command == GOVERNANCE_ID)
-        movedOffset = _batchGovernanceCommands(data[offset:]);
+        offset = _batchGovernanceCommands(data, offset);
       else
         revert InvalidCommand(command, commandIndex);
 
-      offset += movedOffset;
       ++commandIndex;
     }
 
@@ -78,24 +73,22 @@ abstract contract TbrDispatcher is RawDispatcher, TbrGovernance, TbrUser {
     if (version != DISPATCHER_PROTOCOL_VERSION0)
       revert UnsupportedVersion(version);
 
-    uint256 queryIndex = 0;
+    uint queryIndex = 0;
     while (offset < data.length) {
       uint8 query;
       (query, offset) = data.asUint8CdUnchecked(offset);
 
       bytes memory result;
-      uint movedOffset;
       if (query == RELAY_FEE_ID)
-        (result, movedOffset) = _relayFee(data[offset:], queryIndex);
+        (result, offset) = _relayFee(data, offset, queryIndex);
       else if (query == BASE_RELAYING_CONFIG_ID)
-        (result, movedOffset) = _baseRelayingConfig(data[offset:], queryIndex);
+        (result, offset) = _baseRelayingConfig(data, offset, queryIndex);
       else if (query == GOVERNANCE_QUERIES_ID)
-        (result, movedOffset) = _batchGovernanceQueries(data[offset:]);
+        (result, offset) = _batchGovernanceQueries(data, offset);
       else
         revert InvalidCommand(query, queryIndex);
 
       ret = abi.encodePacked(ret, result);
-      offset += movedOffset;
       ++queryIndex;
     }
     data.checkLengthCd(offset);

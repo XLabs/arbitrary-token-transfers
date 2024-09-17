@@ -73,7 +73,7 @@ contract UserTest is TbrTestBase {
 
     // Tbr setup
     executeGovernanceCommand(
-      abi.encodePacked(UPDATE_RELAY_FEE, RELAY_FEE_AMOUNT)
+      abi.encodePacked(UPDATE_BASE_FEE, RELAY_FEE_AMOUNT)
     );
   }
   
@@ -317,7 +317,7 @@ contract UserTest is TbrTestBase {
     vm.assume(acquireMode != ACQUIRE_PREAPPROVED);
     vm.assume(acquireMode != ACQUIRE_PERMIT);
     vm.assume(acquireMode != ACQUIRE_PERMIT2TRANSFER);
-    vm.assume(acquireMode != ACQUIRE_PERMITE2PERMIT);
+    vm.assume(acquireMode != ACQUIRE_PERMIT2PERMIT);
     vm.expectRevert(
       abi.encodeWithSelector(InvalidAcquireMode.selector, acquireMode)
     );
@@ -406,18 +406,18 @@ contract UserTest is TbrTestBase {
     uint offset;
     bytes32 peer;
     bool chainIsPaused;
-    bool txCommitEthereum;
+    bool txSizeSensitive;
     uint32 maxGasDropoff;
     uint32 baseFee;
     (peer, offset) = response.asBytes32Unchecked(offset);
     (chainIsPaused, offset) = response.asBoolUnchecked(offset);
-    (txCommitEthereum, offset) = response.asBoolUnchecked(offset);
+    (txSizeSensitive, offset) = response.asBoolUnchecked(offset);
     (maxGasDropoff, offset) = response.asUint32Unchecked(offset);
     (baseFee, offset) = response.asUint32Unchecked(offset);
 
     assertEq(peer, SOLANA_CANONICAL_PEER);
     assertEq(chainIsPaused, false);
-    assertEq(txCommitEthereum, false);
+    assertEq(txSizeSensitive, false);
     assertEq(maxGasDropoff, MAX_GAS_DROPOFF_AMOUNT);
     assertEq(baseFee, RELAY_FEE_AMOUNT);
 
@@ -433,13 +433,13 @@ contract UserTest is TbrTestBase {
     offset = 0;
     (peer, offset) = response.asBytes32Unchecked(offset);
     (chainIsPaused, offset) = response.asBoolUnchecked(offset);
-    (txCommitEthereum, offset) = response.asBoolUnchecked(offset);
+    (txSizeSensitive, offset) = response.asBoolUnchecked(offset);
     (maxGasDropoff, offset) = response.asUint32Unchecked(offset);
     (baseFee, offset) = response.asUint32Unchecked(offset);
 
     assertEq(peer, EVM_CANONICAL_PEER);
     assertEq(chainIsPaused, false);
-    assertEq(txCommitEthereum, true);
+    assertEq(txSizeSensitive, true);
     assertEq(maxGasDropoff, MAX_GAS_DROPOFF_AMOUNT);
     assertEq(baseFee, RELAY_FEE_AMOUNT);
   }

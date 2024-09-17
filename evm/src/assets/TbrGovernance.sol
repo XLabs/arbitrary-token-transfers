@@ -69,7 +69,7 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
 
   // ---- externals ----
 
-  function _batchGovernanceCommands(bytes calldata commands) internal returns (uint) {
+  function _batchGovernanceCommands(bytes calldata commands, uint offset) internal returns (uint) {
     GovernanceState storage state = governanceState();
     bool isOwner;
     if (msg.sender == state.owner) //check highest privilege level first
@@ -83,7 +83,6 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
     else
       revert NotAuthorized();
 
-    uint offset = 0;
     uint8 commandCount;
     (commandCount, offset) = commands.asUint8CdUnchecked(offset);
 
@@ -101,7 +100,7 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
       else if (command == SWEEP_TOKENS) {
         address token;
         uint256 amount;
-        (token, offset) = commands.asAddressCdUnchecked(offset);
+        (token,  offset) = commands.asAddressCdUnchecked(offset);
         (amount, offset) = commands.asUint256CdUnchecked(offset);
 
         if (token == address(0))
@@ -109,96 +108,86 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
         else
           IERC20(token).safeTransfer(msg.sender, amount);
       }
+      else if (command == UPDATE_MAX_GAS_DROPOFF) {
+        uint16 targetChain;
+        uint32 newMaxGasDropoff;
+        (targetChain,      offset) = commands.asUint16CdUnchecked(offset);
+        (newMaxGasDropoff, offset) = commands.asUint32CdUnchecked(offset);
+        _setMaxGasDropoff(targetChain, newMaxGasDropoff);
+      }
       else if (command == UPDATE_FEE_RECIPIENT) {
         address newFeeRecipient;
         (newFeeRecipient, offset) = commands.asAddressCdUnchecked(offset);
         _updateRole(Role.FeeRecipient, newFeeRecipient);
       }
-      else if (command == UPDATE_RELAY_FEE) {
+      else if (command == UPDATE_BASE_FEE) {
         uint16 targetChain;
-        uint32 newRelayFee;
+        uint32 newBaseFee;
         (targetChain, offset) = commands.asUint16CdUnchecked(offset);
-        (newRelayFee, offset) = commands.asUint32CdUnchecked(offset);
-        _setRelayFee(targetChain, newRelayFee);
-      }
-      else if (command == UPDATE_MAX_GAS_DROPOFF) {
-        uint16 targetChain;
-        uint32 newMaxGasDropoff;
-        (targetChain, offset) = commands.asUint16CdUnchecked(offset);
-        (newMaxGasDropoff, offset) = commands.asUint32CdUnchecked(offset);
-        _setMaxGasDropoff(targetChain, newMaxGasDropoff);
+        (newBaseFee,  offset) = commands.asUint32CdUnchecked(offset);
+        _setBaseFee(targetChain, newBaseFee);
       }
       else if (command == PAUSE_CHAIN) {
         uint16 targetChain;
         bool paused;
         (targetChain, offset) = commands.asUint16CdUnchecked(offset);
-        (paused, offset) = commands.asBoolCdUnchecked(offset);
+        (paused,      offset) = commands.asBoolCdUnchecked(offset);
         _setPause(targetChain, paused);
       }
       else if (command == UPDATE_TX_SIZE_SENSITIVE) {
         uint16 targetChain;
         bool txSizeSensitive;
-        (targetChain, offset) = commands.asUint16CdUnchecked(offset);
+        (targetChain,     offset) = commands.asUint16CdUnchecked(offset);
         (txSizeSensitive, offset) = commands.asBoolCdUnchecked(offset);
         _setChainTxSizeSensitive(targetChain, txSizeSensitive);
       }
-      else if (command == UPGRADE_CONTRACT) {
+      else {
         if (!isOwner)
           revert NotAuthorized();
 
-        address newImplementation;
-        (newImplementation, offset) = commands.asAddressCdUnchecked(offset);
-        //contract upgrades must be the last command in the batch
-        commands.checkLengthCd(offset);
+        if (command == UPDATE_ADMIN) {
+          address newAdmin;
+          bool authorization;
+          (newAdmin,      offset) = commands.asAddressCdUnchecked(offset);
+          (authorization, offset) = commands.asBoolCdUnchecked(offset);
+          _updateAdmins(newAdmin, authorization);
+        }
+        else if (command == UPDATE_CANONICAL_PEER) {
+          uint16 peerChain;
+          bytes32 newCanonicalPeer;
+          (peerChain,        offset) = commands.asUint16CdUnchecked(offset);
+          (newCanonicalPeer, offset) = commands.asBytes32CdUnchecked(offset);
+          _setCanonicalPeer(peerChain, newCanonicalPeer);
+        }
+        else if (command == UPGRADE_CONTRACT) {
+          address newImplementation;
+          (newImplementation, offset) = commands.asAddressCdUnchecked(offset);
+          //contract upgrades must be the last command in the batch
+          commands.checkLengthCd(offset);
 
-        _upgradeTo(newImplementation, new bytes(0));
+          _upgradeTo(newImplementation, new bytes(0));
+        }
+        else if (command == PROPOSE_OWNERSHIP_TRANSFER) {
+          address newOwner;
+          (newOwner, offset) = commands.asAddressCdUnchecked(offset);
+          state.pendingOwner = newOwner;
+        }
+        else if (command == RELINQUISH_OWNERSHIP) {
+          _updateRole(Role.Owner, address(0));
+          //ownership relinquishment must be the last command in the batch
+          commands.checkLengthCd(offset);
+        }
+        else
+          revert InvalidGovernanceCommand(command);
       }
-      else if (command == UPDATE_ADMIN) {
-        if (!isOwner)
-          revert NotAuthorized();
-
-        bool authorization;
-        address newAdmin;
-        (authorization, offset) = commands.asBoolCdUnchecked(offset);
-        (newAdmin, offset) = commands.asAddressCdUnchecked(offset);
-        _updateAdmins(newAdmin, authorization);
-      }
-      else if (command == UPDATE_CANONICAL_PEER) {
-        if (!isOwner)
-          revert NotAuthorized();
-
-        uint16 peerChain;
-        bytes32 newCanonicalPeer;
-        (peerChain, offset) = commands.asUint16CdUnchecked(offset);
-        (newCanonicalPeer, offset) = commands.asBytes32CdUnchecked(offset);
-        _setCanonicalPeer(peerChain, newCanonicalPeer);
-      }
-      else if (command == PROPOSE_OWNERSHIP_TRANSFER) {
-        if (!isOwner)
-          revert NotAuthorized();
-
-        address newOwner;
-        (newOwner, offset) = commands.asAddressCdUnchecked(offset);
-        state.pendingOwner = newOwner;
-      }
-      else if (command == RELINQUISH_OWNERSHIP) {
-        if (!isOwner)
-          revert NotAuthorized();
-
-        _updateRole(Role.Owner, address(0));
-        //ownership relinquishment must be the last command in the batch
-        commands.checkLengthCd(offset);
-      }
-      else
-        revert InvalidGovernanceCommand(command);
     }
     return offset;
   }
 
   function _batchGovernanceQueries(
-    bytes calldata queries
+    bytes calldata queries,
+    uint offset
   ) internal view returns (bytes memory, uint) {
-    uint offset = 0;
     bytes memory ret;
     uint8 queryCount;
     (queryCount, offset) = queries.asUint8CdUnchecked(offset);
@@ -208,20 +197,20 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
       uint8 query;
       (query, offset) = queries.asUint8CdUnchecked(offset);
 
-      if (query == RELAY_FEE) {
+      if (query == BASE_FEE) {
         uint16 targetChainId;
         (targetChainId, offset) = queries.asUint16CdUnchecked(offset);
-        ret = abi.encodePacked(ret, _getRelayFee(targetChainId));
+        ret = abi.encodePacked(ret, _getBaseFee(targetChainId));
       }
       else if (query == MAX_GAS_DROPOFF) {
         uint16 targetChainId;
         (targetChainId, offset) = queries.asUint16CdUnchecked(offset);
         ret = abi.encodePacked(ret, _getMaxGasDropoff(targetChainId));
       }
-      else if (query == CANONICAL_PEER) {
-        uint16 peerChainId;
-        (peerChainId, offset) = queries.asUint16CdUnchecked(offset);
-        ret = abi.encodePacked(ret, _getCanonicalPeer(peerChainId));
+      else if (query == IS_CHAIN_PAUSED) {
+        uint16 chainId;
+        (chainId, offset) = queries.asUint16CdUnchecked(offset);
+        ret = abi.encodePacked(ret, _isPaused(chainId));
       }
       else if (query == IS_PEER) {
         uint16 peerChainId;
@@ -230,20 +219,20 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
         (peer, offset) = queries.asBytes32CdUnchecked(offset);
         ret = abi.encodePacked(ret, _isPeer(peerChainId, peer));
       }
-      else if (query == IS_CHAIN_SUPPORTED) {
-        uint16 chainId;
-        (chainId, offset) = queries.asUint16CdUnchecked(offset);
-        ret = abi.encodePacked(ret, _isChainSupported(chainId));
-      }
-      else if (query == IS_CHAIN_PAUSED) {
-        uint16 chainId;
-        (chainId, offset) = queries.asUint16CdUnchecked(offset);
-        ret = abi.encodePacked(ret, _isPaused(chainId));
-      }
       else if (query == IS_TX_SIZE_SENSITIVE) {
         uint16 chainId;
         (chainId, offset) = queries.asUint16CdUnchecked(offset);
         ret = abi.encodePacked(ret, _isChainTxSizeSensitive(chainId));
+      }
+      else if (query == CANONICAL_PEER) {
+        uint16 peerChainId;
+        (peerChainId, offset) = queries.asUint16CdUnchecked(offset);
+        ret = abi.encodePacked(ret, _getCanonicalPeer(peerChainId));
+      }
+      else if (query == IS_CHAIN_SUPPORTED) {
+        uint16 chainId;
+        (chainId, offset) = queries.asUint16CdUnchecked(offset);
+        ret = abi.encodePacked(ret, _isChainSupported(chainId));
       }
       else if (query == OWNER)
         ret = abi.encodePacked(ret, state.owner);
