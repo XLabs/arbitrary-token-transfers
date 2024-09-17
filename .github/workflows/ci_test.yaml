@@ -52,3 +52,4 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Run Solana SDK tests
         run: anchor test
+        shell: bash
