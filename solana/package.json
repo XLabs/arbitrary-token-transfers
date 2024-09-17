@@ -3,7 +3,8 @@
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
     "test": "anchor test",
-    "clean": "rm -r ts-build build"
+    "clean": "rm -r ts-build build",
+    "build": "yarn ../sdk/solana/ build && tsc --project tsconfig.json"
   },
   "type": "module",
   "dependencies": {
@@ -13,13 +14,9 @@
     "@types/mocha": "8.*",
     "@wormhole-foundation/sdk-base": "^0.10.7",
     "@xlabs-xyz/solana-arbitrary-token-transfers": "workspace:^",
-    "bn.js": "^5.2.1",
     "chai": "^5.1.1",
     "mocha": "8.*",
     "ts-mocha": "8.*",
     "typescript": "^5.6.2"
-  },
-  "devDependencies": {
-    "@types/bn.js": "^5.1.5"
   }
 }
