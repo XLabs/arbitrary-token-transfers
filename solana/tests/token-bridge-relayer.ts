@@ -1,4 +1,4 @@
-import * as anchor from '@coral-xyz/anchor';
+import anchor from '@coral-xyz/anchor';
 import { PublicKey, SendTransactionError, Transaction } from '@solana/web3.js';
 import {
   assertResolveFailure,
@@ -64,6 +64,16 @@ describe('Token Bridge Relayer Program', () => {
         await oracleOwnerClient.updateSolPrice(oracleOwner.publicKey, new anchor.BN(113_000_000)), // SOL is at $113
       ),
     );
+  });
+
+  after(async () => {
+    await Promise.all([
+      ownerClient.close(),
+      newOwnerClient.close(),
+      adminClient1.close(),
+      adminClient2.close(),
+      unauthorizedClient.close(),
+    ]);
   });
 
   it('Is initialized!', async () => {

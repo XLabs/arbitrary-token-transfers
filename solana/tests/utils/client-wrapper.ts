@@ -16,6 +16,7 @@ export class ClientWrapper {
   private readonly client: TbrClient;
   readonly provider: AnchorProvider;
   readonly logs: { [key: string]: string[] };
+  readonly logsSubscriptionId: number;
   readonly ownerOrAdmin: OwnerOrAdmin;
 
   constructor(
@@ -33,7 +34,10 @@ export class ClientWrapper {
     this.ownerOrAdmin =
       accountType === 'owner' ? { owner: this.publicKey } : { admin: this.publicKey };
 
-    provider.connection.onLogs('all', (l) => (this.logs[l.signature] = l.logs));
+    this.logsSubscriptionId = provider.connection.onLogs(
+      'all',
+      (l) => (this.logs[l.signature] = l.logs),
+    );
   }
 
   get publicKey(): PublicKey {
@@ -42,6 +46,10 @@ export class ClientWrapper {
 
   get read(): ReadTbrAccounts {
     return this.client.read;
+  }
+
+  async close() {
+    await this.provider.connection.removeOnLogsListener(this.logsSubscriptionId);
   }
 
   displayLogs(signature: string) {

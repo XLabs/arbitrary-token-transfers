@@ -88,7 +88,7 @@ export class TbrClient {
       wormholeProgramId,
     }: { tokenBridgeProgramId: PublicKey; wormholeProgramId: PublicKey },
   ) {
-    this.program = new Program<TokenBridgeRelayer>(IDL as any, provider);
+    this.program = new Program(IDL as any, provider);
     this.priceOracleClient = new SolanaPriceOracleClient(provider.connection);
     this.tokenBridgeProgramId = tokenBridgeProgramId;
     this.wormholeProgramId = wormholeProgramId;
