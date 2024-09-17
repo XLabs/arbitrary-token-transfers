@@ -18,7 +18,7 @@ import {
 import { SolanaPriceOracleClient } from '@xlabs/solana-price-oracle-sdk';
 
 import { TokenBridgeRelayer } from './idl/token_bridge_relayer.js';
-import * as IDL from '../../../target/idl/token_bridge_relayer.json' with { type: 'json' };
+import IDL from '../../../target/idl/token_bridge_relayer.json' with { type: 'json' };
 
 // Export IDL
 export * from './idl/token_bridge_relayer.js';
