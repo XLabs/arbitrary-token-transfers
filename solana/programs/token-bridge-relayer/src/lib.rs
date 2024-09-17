@@ -42,19 +42,19 @@ pub mod token_bridge_relayer {
 
     /// Updates the owner account. This needs to be either cancelled or approved.
     pub fn submit_owner_transfer_request(
-        ctx: Context<UpdateTbrConfig>,
+        ctx: Context<SubmitOwnerTransfer>,
         new_owner: Pubkey,
     ) -> Result<()> {
         processor::submit_owner_transfer_request(ctx, new_owner)
     }
 
     /// The new owner confirms to be so.
-    pub fn confirm_owner_transfer_request(ctx: Context<UpdateTbrConfig>) -> Result<()> {
+    pub fn confirm_owner_transfer_request(ctx: Context<ConfirmOwnerTransfer>) -> Result<()> {
         processor::confirm_owner_transfer_request(ctx)
     }
 
     /// The owner role transfer is cancelled by the current one.
-    pub fn cancel_owner_transfer_request(ctx: Context<UpdateTbrConfig>) -> Result<()> {
+    pub fn cancel_owner_transfer_request(ctx: Context<CancelOwnerTransfer>) -> Result<()> {
         processor::cancel_owner_transfer_request(ctx)
     }
 
