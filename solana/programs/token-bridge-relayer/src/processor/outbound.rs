@@ -4,7 +4,6 @@ use crate::{
     message::RelayerMessage,
     state::{ChainConfigState, SignerSequenceState, TbrConfigState},
     utils::{calculate_total_fee, create_native_check},
-    KiloLamports, TargetChainGas,
 };
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
@@ -184,8 +183,8 @@ pub fn transfer_tokens(
     recipient_chain: u16,
     transferred_amount: u64,
     unwrap_intent: bool,
-    gas_dropoff_amount: TargetChainGas,
-    max_fee_klam: KiloLamports,
+    gas_dropoff_amount_mwei: u64,
+    max_fee_klam: u64,
     recipient_address: [u8; 32],
 ) -> Result<()> {
     ctx.accounts.chain_config.transfer_allowed()?;
@@ -196,8 +195,11 @@ pub fn transfer_tokens(
         &[ctx.bumps.tbr_config],
     ];
 
-    let (transferred_amount, gas_dropoff_amount) =
-        normalize_amounts(&ctx.accounts.mint, transferred_amount, gas_dropoff_amount)?;
+    let (transferred_amount, gas_dropoff_amount) = normalize_amounts(
+        &ctx.accounts.mint,
+        transferred_amount,
+        gas_dropoff_amount_mwei,
+    )?;
 
     let total_fees_klam = calculate_total_fee(
         &ctx.accounts.tbr_config,

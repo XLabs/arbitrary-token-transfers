@@ -7,8 +7,6 @@ use wormhole_anchor_sdk::token_bridge;
 pub struct TbrConfigState {
     /// Program's owner.
     pub owner: Pubkey,
-    /// Program's admin. Can be used to update the quotes or appoint a new price updater.
-    pub admin: Pubkey,
     /// Intermediate storage for the pending owner. Is used to transfer ownership.
     pub pending_owner: Option<Pubkey>,
 
@@ -19,12 +17,12 @@ pub struct TbrConfigState {
 }
 
 impl TbrConfigState {
-    /// Has any authority:
-    /// - Owner
-    /// - Admin
-    pub fn is_owner_or_admin(&self, key: &Pubkey) -> bool {
-        key == &self.owner || key == &self.admin
-    }
+    // /// Has any authority:
+    // /// - Owner
+    // /// - Admin
+    // pub fn is_owner_or_admin(&self, key: &Pubkey) -> bool {
+    //     key == &self.owner || key == &self.admin
+    // }
 
     /// Has owner authority:
     pub fn is_owner(&self, key: &Pubkey) -> bool {
