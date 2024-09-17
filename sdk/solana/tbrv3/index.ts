@@ -112,14 +112,7 @@ export class TbrClient {
 
   get read(): ReadTbrAccounts {
     return {
-      config: async () => {
-        console.log("config", this.address.config());
-
-        const conf = await this.program.account.tbrConfigState.fetch(this.address.config());
-
-        console.log("CONFG", conf);
-        return conf;
-      },
+      config: () => this.program.account.tbrConfigState.fetch(this.address.config()),
       chainConfig: (chain: Chain) =>
         this.program.account.chainConfigState.fetch(this.address.chainConfig(chain)),
       peer: (chain: Chain, peerAddress: UniversalAddress) =>
