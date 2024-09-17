@@ -69,7 +69,7 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
 
   // ---- externals ----
 
-  function _batchGovernanceCommands(bytes calldata commands) internal returns (uint) {
+  function _batchGovernanceCommands(bytes calldata commands, uint offset) internal returns (uint) {
     GovernanceState storage state = governanceState();
     bool isOwner;
     if (msg.sender == state.owner) //check highest privilege level first
@@ -83,7 +83,6 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
     else
       revert NotAuthorized();
 
-    uint offset = 0;
     uint8 commandCount;
     (commandCount, offset) = commands.asUint8CdUnchecked(offset);
 
@@ -101,7 +100,7 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
       else if (command == SWEEP_TOKENS) {
         address token;
         uint256 amount;
-        (token, offset) = commands.asAddressCdUnchecked(offset);
+        (token,  offset) = commands.asAddressCdUnchecked(offset);
         (amount, offset) = commands.asUint256CdUnchecked(offset);
 
         if (token == address(0))
@@ -114,17 +113,17 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
         (newFeeRecipient, offset) = commands.asAddressCdUnchecked(offset);
         _updateRole(Role.FeeRecipient, newFeeRecipient);
       }
-      else if (command == UPDATE_RELAY_FEE) {
+      else if (command == UPDATE_BASE_FEE) {
         uint16 targetChain;
-        uint32 newRelayFee;
+        uint32 newBaseFee;
         (targetChain, offset) = commands.asUint16CdUnchecked(offset);
-        (newRelayFee, offset) = commands.asUint32CdUnchecked(offset);
-        _setRelayFee(targetChain, newRelayFee);
+        (newBaseFee,  offset) = commands.asUint32CdUnchecked(offset);
+        _setBaseFee(targetChain, newBaseFee);
       }
       else if (command == UPDATE_MAX_GAS_DROPOFF) {
         uint16 targetChain;
         uint32 newMaxGasDropoff;
-        (targetChain, offset) = commands.asUint16CdUnchecked(offset);
+        (targetChain,      offset) = commands.asUint16CdUnchecked(offset);
         (newMaxGasDropoff, offset) = commands.asUint32CdUnchecked(offset);
         _setMaxGasDropoff(targetChain, newMaxGasDropoff);
       }
@@ -132,13 +131,13 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
         uint16 targetChain;
         bool paused;
         (targetChain, offset) = commands.asUint16CdUnchecked(offset);
-        (paused, offset) = commands.asBoolCdUnchecked(offset);
+        (paused,      offset) = commands.asBoolCdUnchecked(offset);
         _setPause(targetChain, paused);
       }
       else if (command == UPDATE_TX_SIZE_SENSITIVE) {
         uint16 targetChain;
         bool txSizeSensitive;
-        (targetChain, offset) = commands.asUint16CdUnchecked(offset);
+        (targetChain,     offset) = commands.asUint16CdUnchecked(offset);
         (txSizeSensitive, offset) = commands.asBoolCdUnchecked(offset);
         _setChainTxSizeSensitive(targetChain, txSizeSensitive);
       }
@@ -157,10 +156,10 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
         if (!isOwner)
           revert NotAuthorized();
 
-        bool authorization;
         address newAdmin;
+        bool authorization;
+        (newAdmin,      offset) = commands.asAddressCdUnchecked(offset);
         (authorization, offset) = commands.asBoolCdUnchecked(offset);
-        (newAdmin, offset) = commands.asAddressCdUnchecked(offset);
         _updateAdmins(newAdmin, authorization);
       }
       else if (command == UPDATE_CANONICAL_PEER) {
@@ -169,7 +168,7 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
 
         uint16 peerChain;
         bytes32 newCanonicalPeer;
-        (peerChain, offset) = commands.asUint16CdUnchecked(offset);
+        (peerChain,        offset) = commands.asUint16CdUnchecked(offset);
         (newCanonicalPeer, offset) = commands.asBytes32CdUnchecked(offset);
         _setCanonicalPeer(peerChain, newCanonicalPeer);
       }
@@ -196,9 +195,9 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
   }
 
   function _batchGovernanceQueries(
-    bytes calldata queries
+    bytes calldata queries,
+    uint offset
   ) internal view returns (bytes memory, uint) {
-    uint offset = 0;
     bytes memory ret;
     uint8 queryCount;
     (queryCount, offset) = queries.asUint8CdUnchecked(offset);
@@ -208,10 +207,10 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
       uint8 query;
       (query, offset) = queries.asUint8CdUnchecked(offset);
 
-      if (query == RELAY_FEE) {
+      if (query == BASE_FEE) {
         uint16 targetChainId;
         (targetChainId, offset) = queries.asUint16CdUnchecked(offset);
-        ret = abi.encodePacked(ret, _getRelayFee(targetChainId));
+        ret = abi.encodePacked(ret, _getBaseFee(targetChainId));
       }
       else if (query == MAX_GAS_DROPOFF) {
         uint16 targetChainId;

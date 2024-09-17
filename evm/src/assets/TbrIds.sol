@@ -28,7 +28,7 @@ uint8 constant ADD_PEER = 0;
 uint8 constant SWEEP_TOKENS = 1;
 uint8 constant UPDATE_MAX_GAS_DROPOFF = 2;
 uint8 constant UPDATE_FEE_RECIPIENT = 3;
-uint8 constant UPDATE_RELAY_FEE = 4;
+uint8 constant UPDATE_BASE_FEE = 4;
 uint8 constant PAUSE_CHAIN = 5;
 uint8 constant UPDATE_TX_SIZE_SENSITIVE = 6;
 // only available to owner:
@@ -40,7 +40,7 @@ uint8 constant RELINQUISH_OWNERSHIP = 11;
 
 // Query commands
 
-uint8 constant RELAY_FEE = 0x80;
+uint8 constant BASE_FEE = 0x80;
 uint8 constant MAX_GAS_DROPOFF = 0x81;
 uint8 constant IS_CHAIN_PAUSED = 0x82;
 uint8 constant IS_PEER = 0x83;
@@ -52,7 +52,3 @@ uint8 constant PENDING_OWNER = 0x88;
 uint8 constant IS_ADMIN = 0x89;
 uint8 constant FEE_RECIPIENT = 0x8A;
 uint8 constant IMPLEMENTATION = 0x8B;
-
-// ----------- Token Bridge Ids ---------
-
-uint8 constant TB_TRANSFER_WITH_PAYLOAD = 3;
