@@ -382,8 +382,6 @@ abstract contract TbrUser is TbrBase {
     tokenBridge.completeTransferWithPayload(vaa);
 
     IERC20 token = IERC20(tokenBridge.wrappedAsset(tokenOriginChain, tokenOriginAddress));
-    if (address(token) == address(0))
-      revert TokenNotAttested(tokenOriginAddress, tokenOriginChain);
 
     // If an unwrap is desired, unwrap and call recipient with full amount
     uint totalGasTokenAmount = gasDropoff;
