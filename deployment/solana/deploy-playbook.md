@@ -14,6 +14,8 @@ rm ./sdk/solana/tbrv3/idl/token_bridge_relayer.json
 
 cp ./target/idl/token_bridge_relayer.json ./sdk/solana/tbrv3/idl
 
+yarn ./sdk/solana build
+
 solana program -k "$buffer_creator_account.json" \
   --url $solana_rpc_url \
   write-buffer \
