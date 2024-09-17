@@ -26,17 +26,17 @@ struct ChainData {
    */
   mapping(bytes32 => bool) peers;
   /**
-   * @notice The relayer fee is denominated in Mwei of the source chain native token, i.e. 10^6 wei
+   * @notice The base fee is denominated in µusd.
    */
-  uint32 relayFee;
+  uint32 baseFee;
   /**
-   * @notice The maximum gas dropoff is denominated in Twei / Klamport of the target chain native token
+   * @notice The maximum gas dropoff is denominated in µ gas token of the target chain native token
    */
   uint32 maxGasDropoff;
   /**
    * @notice If the chain is paused, no outbound transfers will be allowed
    */
-  bool isPaused;
+  bool paused;
   /**
    * @notice If the chain is sensitive to the transaction size, i.e. if commits a transaction to another chain
    */
@@ -75,6 +75,9 @@ error PaymentFailure(address target);
 abstract contract TbrBase is PriceOracleIntegration {
   using BytesParsing for bytes;
 
+  // 18 decimal precision representation / _TOTAL_FEE_DIVISOR = uint64 total fee
+  uint internal constant _TOTAL_FEE_DIVISOR = 1e6;
+
   IPermit2     internal immutable permit2;
   uint16       internal immutable whChainId;
   ITokenBridge internal immutable tokenBridge;
@@ -88,10 +91,9 @@ abstract contract TbrBase is PriceOracleIntegration {
     IPermit2 initPermit2,
     ITokenBridge initTokenBridge,
     address oracle,
-    uint8 oracleVersion,
     IWETH initGasToken,
     bool initGasErc20TokenizationIsExplicit
-  ) PriceOracleIntegration(oracle, oracleVersion) {
+  ) PriceOracleIntegration(oracle) {
     permit2 = initPermit2;
     whChainId = _oracleChainId();
     tokenBridge = initTokenBridge;
@@ -101,9 +103,15 @@ abstract contract TbrBase is PriceOracleIntegration {
 
   function _getTargetChainData(
     uint16 targetChain
-  ) internal view returns (bytes32, bool, bool, uint32) {
+  ) internal view returns (bytes32, uint32, uint32, bool, bool) {
     ChainData storage data = tbrChainState(targetChain);
-    return (data.canonicalPeer, data.isPaused, data.txSizeSensitive, data.maxGasDropoff);
+    return (
+      data.canonicalPeer,
+      data.baseFee,
+      data.maxGasDropoff,
+      data.paused,
+      data.txSizeSensitive
+    );
   }
 
   function _isPeer(uint16 targetChain, bytes32 peer) internal view returns (bool) {
@@ -166,12 +174,12 @@ abstract contract TbrBase is PriceOracleIntegration {
     return _getCanonicalPeer(targetChain) != bytes32(0);
   }
 
-  function _getRelayFee(uint16 targetChain) internal view returns (uint32) {
-    return tbrChainState(targetChain).relayFee;
+  function _getBaseFee(uint16 targetChain) internal view returns (uint32) {
+    return tbrChainState(targetChain).baseFee;
   }
 
-  function _setRelayFee(uint16 targetChain, uint32 fee) internal {
-    tbrChainState(targetChain).relayFee = fee;
+  function _setBaseFee(uint16 targetChain, uint32 baseFee) internal {
+    tbrChainState(targetChain).baseFee = baseFee;
   }
 
   function _getMaxGasDropoff(uint16 targetChain) internal view returns (uint32) {
@@ -186,14 +194,14 @@ abstract contract TbrBase is PriceOracleIntegration {
    * @notice Check if outbound transfers are paused for a given chain
    */
   function _isPaused(uint16 targetChain) internal view returns (bool) {
-    return tbrChainState(targetChain).isPaused;
+    return tbrChainState(targetChain).paused;
   }
 
   /**
    * @notice Set outbound transfers for a given chain
    */
   function _setPause(uint16 targetChain, bool paused) internal {
-    tbrChainState(targetChain).isPaused = paused;
+    tbrChainState(targetChain).paused = paused;
   }
 
   function _transferEth(address to, uint256 amount) internal {

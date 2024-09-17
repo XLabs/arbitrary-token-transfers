@@ -13,15 +13,13 @@ contract TbrExposer is Tbr {
     IPermit2 initPermit2,
     ITokenBridge initTokenBridge,
     address oracle,
-    uint8 oracleVersion,
     IWETH initGasToken,
     bool initGasErc20TokenizationIsExplicit
   ) Tbr(
-    initPermit2, 
-    initTokenBridge, 
-    oracle, 
-    oracleVersion, 
-    initGasToken, 
+    initPermit2,
+    initTokenBridge,
+    oracle,
+    initGasToken,
     initGasErc20TokenizationIsExplicit
   ) {}
 
@@ -43,7 +41,7 @@ contract TbrExposer is Tbr {
 
   function exposedGetTargetChainData(
     uint16 targetChain
-  ) public view returns (bytes32, bool, bool, uint32) {
+  ) public view returns (bytes32, uint32, uint32, bool, bool) {
     return _getTargetChainData(targetChain);
   }
 
@@ -78,17 +76,18 @@ contract TbrExposer is Tbr {
   function exposedQuoteRelay(
     uint16 chainId,
     uint32 gasDropoff,
-    bool txCommitEthereum
+    uint32 baseFee,
+    bool txSizeSensitive
   ) public view returns (uint256) {
-    return _quoteRelay(chainId, gasDropoff, txCommitEthereum);
+    return _quoteRelay(chainId, gasDropoff, baseFee, txSizeSensitive);
   }
 
-  function exposedSetRelayFee(uint16 chainId, uint32 fee) public {
-    _setRelayFee(chainId, fee);
+  function exposedSetBaseFee(uint16 chainId, uint32 fee) public {
+    _setBaseFee(chainId, fee);
   }
 
-  function exposedGetRelayFee(uint16 chainId) public view returns (uint32) {
-    return _getRelayFee(chainId);
+  function exposedGetBaseFee(uint16 chainId) public view returns (uint32) {
+    return _getBaseFee(chainId);
   }
 
   function exposedIsChainSupported(uint16 targetChain) public view returns (bool) {

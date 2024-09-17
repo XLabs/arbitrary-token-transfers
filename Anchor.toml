@@ -24,3 +24,4 @@ wallet = "~/.config/solana/id.json"
 
 [scripts]
 test = "yarn run mocha -p ./solana/tsconfig.json -t 1000000 solana/tests/token-bridge-relayer.ts"
+#test = "yarn run ts-mocha -p ./solana/tsconfig.json -t 1000000 solana/tests/*.ts"

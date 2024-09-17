@@ -90,7 +90,7 @@ async function deployRelayerImplementation(chain: EvmChainInfo, config: EvmTbrV3
   const oracle = await getDependencyAddress("oracle", chain);
   const initGasToken = await getDependencyAddress("initGasToken", chain);
 
-  const contract = await factory.deploy(permit2, tokenBridge, oracle, config.oracleVersion, initGasToken, config.initGasErc20TokenizationIsExplicit);
+  const contract = await factory.deploy(permit2, tokenBridge, oracle, initGasToken, config.initGasErc20TokenizationIsExplicit);
 
   const tx = contract.deploymentTransaction();
   if (tx === null) {

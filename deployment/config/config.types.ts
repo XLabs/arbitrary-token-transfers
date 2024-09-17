@@ -10,7 +10,6 @@ export type BaseTbrV3Config = ChainConfig & {
 
 // TODO: in reality this should limit ChainConfig to only containing evm chain ids..
 export type EvmTbrV3Config = BaseTbrV3Config & {
-  oracleVersion: 0;
   initGasErc20TokenizationIsExplicit: boolean;
   txSizeSensitive: boolean;
 };
