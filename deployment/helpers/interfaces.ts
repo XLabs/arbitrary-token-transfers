@@ -1,10 +1,10 @@
 import { Commitment } from "@solana/web3.js";
-import { ChainId, Network } from "@wormhole-foundation/sdk-base";
-import { SolanaLedgerSigner } from "@xlabs-xyz/ledger-signer-solana";
+import { ChainId } from "@wormhole-foundation/sdk-base";
 import { ethers } from "ethers";
+import { SolanaSigner } from "./solana";
 
 export type EvmScriptCb = (chain: EvmChainInfo, signer: ethers.Signer, logFn: LoggerFn) => Promise<void>;
-export type SolanaScriptCb = (chain: SolanaChainInfo, signer: SolanaLedgerSigner, logFn: LoggerFn) => Promise<void>;
+export type SolanaScriptCb = (chain: SolanaChainInfo, signer: SolanaSigner, logFn: LoggerFn) => Promise<void>;
 
 export type LoggerFn = (...args: any[]) => void;
 

@@ -4,12 +4,14 @@ import {
   Keypair,
   PublicKey,
   Connection,
-  Commitment
+  Commitment,
+  VersionedTransaction
 } from "@solana/web3.js";
 import { SolanaLedgerSigner } from "@xlabs-xyz/ledger-signer-solana";
 import { ecosystemChains, getEnv } from "./env.js";
 import type { SolanaScriptCb, SolanaChainInfo } from "./interfaces.js";
 import { inspect } from "util";
+import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet.js";
 
 export const connectionCommitmentLevel = (process.env.SOLANA_COMMITMENT || "confirmed") as Commitment;
 export const priorityMicrolamports = process.env.PRIORITY_MICROLAMPORTS !== "undefined" ? Number(process.env.PRIORITY_MICROLAMPORTS) : 1;
@@ -57,14 +59,48 @@ export async function runOnSolana(scriptName: string, cb: SolanaScriptCb) {
   await Promise.all(result);
 }
 
-let signer: SolanaLedgerSigner | null;
-export async function getSigner(): Promise<SolanaLedgerSigner> {
-  if (!signer) {
-    const derivationPath = getEnv("SOLANA_LEDGER_BIP32_PATH");
-    signer = await SolanaLedgerSigner.create(derivationPath);
+export interface SolanaSigner {
+  getAddress(): Promise<Buffer>;
+  signTransaction(transaction: Transaction): Promise<Buffer>;
+  raw(): NodeWallet | SolanaLedgerSigner;
+  type: "ledger" | "wallet";
+}
+
+let signer: SolanaSigner | null;
+export async function getSigner(): Promise<SolanaSigner> {
+  const privateKey = getEnv("WALLET_KEY");
+
+  if (privateKey !== "ledger") {
+    if (!signer) {
+      console.log("Creating wallet signer");
+      const pk = Uint8Array.from(JSON.parse(privateKey));
+      console.log("pk", pk);
+      console.log(pk.length)
+      const keypair = Keypair.fromSecretKey(pk);
+      const wallet = new NodeWallet(keypair);
+
+      signer = {
+        getAddress: () => Promise.resolve(wallet.publicKey.toBuffer()),
+        raw: () => wallet,
+        signTransaction: async (transaction) => (await wallet.signTransaction(transaction)).compileMessage().serialize(),
+        type: "wallet"
+      } 
+    }
+  } else {
+    if (!signer) {
+      console.log("Creating ledger signer");
+      const derivationPath = getEnv("SOLANA_LEDGER_BIP32_PATH");
+      const ledgerSigner = await SolanaLedgerSigner.create(derivationPath);
+      signer = {
+        getAddress: () => ledgerSigner.getAddress(),
+        raw: () => ledgerSigner,
+        signTransaction: (transaction) => ledgerSigner.signTransaction(transaction.compileMessage().serialize()),
+        type: "ledger"
+      }
+    }
   }
 
-  return signer;
+  return signer;  
 }
 
 let connection: Connection;
@@ -77,6 +113,7 @@ export function getConnection(chain: SolanaChainInfo) {
 
 export async function ledgerSignAndSend(connection: Connection, instructions: TransactionInstruction[], signers: Keypair[]) {
   const deployerSigner = await getSigner();
+  deployerSigner.signTransaction
   const deployerPk = new PublicKey(await deployerSigner.getAddress());
 
   const tx = new Transaction();
@@ -90,12 +127,12 @@ export async function ledgerSignAndSend(connection: Connection, instructions: Tr
 
   signers.forEach((signer) => tx.partialSign(signer));
 
-  await addLedgerSignature(tx, deployerSigner, deployerPk);
+  await addSignature(tx, deployerSigner, deployerPk);
 
   return connection.sendRawTransaction(tx.serialize());
 }
 
-async function addLedgerSignature(tx: Transaction, signer: SolanaLedgerSigner, signerPk: PublicKey) {
-  const signedByPayer = await signer.signTransaction(tx.compileMessage().serialize());
+async function addSignature(tx: Transaction, signer: SolanaSigner, signerPk: PublicKey) {
+  const signedByPayer = await signer.signTransaction(tx);
   tx.addSignature(signerPk, signedByPayer);
 }

@@ -1,9 +1,9 @@
-
 import { TbrClient } from "@xlabs-xyz/solana-arbitrary-token-transfers";
-import { runOnSolana, ledgerSignAndSend, getConnection, SolanaSigner } from "../helpers/solana.js";
+import { runOnSolana, getConnection, SolanaSigner } from "../helpers/solana.js";
 import { SolanaChainInfo, LoggerFn } from "../helpers/interfaces.js";
 import { dependencies } from '../helpers/env.js';
 import { PublicKey } from '@solana/web3.js';
+import { inspect } from 'util';
 
 runOnSolana("initialize-tbr", initializeSolanaTbr).catch((e) => {
   console.error("Error executing script: ", e);
@@ -25,7 +25,7 @@ async function initializeSolanaTbr(
     wormholeProgramId: new PublicKey(solanaDependencies.wormhole),
   });
 
-  const initializeIx = await tbr.initialize(signerKey);
+  const config = await tbr.read.config();
 
-  await ledgerSignAndSend(connection, [initializeIx], []);
+  console.log("config", inspect(config));
 }

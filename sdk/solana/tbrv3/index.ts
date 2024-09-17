@@ -19,6 +19,7 @@ import { SolanaPriceOracleClient } from '@xlabs/solana-price-oracle-sdk';
 
 import { TokenBridgeRelayer } from './idl/token_bridge_relayer.js';
 import IDL from '../../../target/idl/token_bridge_relayer.json' with { type: 'json' };
+import { inspect } from 'util';
 
 // Export IDL
 export * from './idl/token_bridge_relayer.js';
@@ -28,6 +29,7 @@ export { SolanaPriceOracleClient } from '@xlabs/solana-price-oracle-sdk';
 /**
  * 32 bytes.
  */
+// TODO: is this intentional?
 export type UniversalAddress = number[] | Uint8Array | Buffer;
 export type VaaMessage = VAA<'TokenBridge:TransferWithPayload'>;
 
@@ -328,9 +330,11 @@ export class TbrClient {
 
     const { feeRecipient } = await this.read.config();
     let payerSequenceNumber = new anchor.BN(0);
+
     try {
       payerSequenceNumber = (await this.read.signerSequence(signer)).value;
     } catch {}
+
     const tokenBridgeAccounts = transferNativeTokenBridgeAccounts({
       programId: this.program.programId,
       tokenBridgeProgramId: this.tokenBridgeProgramId,
