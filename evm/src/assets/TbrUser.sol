@@ -134,7 +134,7 @@ abstract contract TbrUser is TbrBase {
     uint offset,
     uint256 unallocatedBalance,
     uint commandIndex
-  ) internal returns (uint256, uint256) {
+  ) internal returns (uint256, uint256, uint256) {
     if (address(gasToken) == address(0))
       revert GasTokenNotSupported();
 
@@ -156,7 +156,7 @@ abstract contract TbrUser is TbrBase {
     _bridgeOut(token, targetChain, peer, recipient, tokenAmount, gasDropoff, fee, false);
 
     // Return the fee that must be sent to the fee recipient.
-    return (fee, offset);
+    return (fee, tokenAmount, offset);
   }
 
   function _parseSharedParams(

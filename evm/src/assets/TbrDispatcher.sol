@@ -40,10 +40,10 @@ abstract contract TbrDispatcher is RawDispatcher, TbrGovernance, TbrUser {
         fees += fee;
         senderRefund -= fee;
       } else if (command == TRANSFER_GAS_TOKEN_WITH_RELAY_ID) {
-        uint256 fee;
-        (fee, offset) = _transferGasTokenWithRelay(data, offset, senderRefund, commandIndex);
+        uint256 fee; uint256 gasTokenSent;
+        (fee, gasTokenSent, offset) = _transferGasTokenWithRelay(data, offset, senderRefund, commandIndex);
         fees += fee;
-        senderRefund -= fee;
+        senderRefund -= fee + gasTokenSent;
       } else if (command == COMPLETE_TRANSFER_ID) {
         uint256 gasDropoffSpent;
         (gasDropoffSpent, offset) = _completeTransfer(data, offset, senderRefund, commandIndex);
