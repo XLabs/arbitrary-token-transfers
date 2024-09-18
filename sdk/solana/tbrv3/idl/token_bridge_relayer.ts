@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/token_bridge_relayer.json`.
  */
 export type TokenBridgeRelayer = {
-  "address": "AtTpCxEYQiPswfGz493qcbiK1eE13W3YZutvxBdANDeR",
+  "address": "ATTMxkcYak1RMR7BWZ3CMpDke9MHhBf5eUC7WTdX1f1x",
   "metadata": {
     "name": "tokenBridgeRelayer",
     "version": "3.0.0",
@@ -115,36 +115,11 @@ export type TokenBridgeRelayer = {
       ],
       "accounts": [
         {
-          "name": "signer",
-          "docs": [
-            "The signer may be the owner, pending owner or admin, depending on the operation."
-          ],
-          "signer": true
-        },
-        {
-          "name": "adminBadge",
-          "docs": [
-            "If the signer is an admin, prove it with this PDA."
-          ],
-          "optional": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  97,
-                  100,
-                  109,
-                  105,
-                  110
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "signer"
-              }
-            ]
-          }
+          "name": "owner",
+          "signer": true,
+          "relations": [
+            "tbrConfig"
+          ]
         },
         {
           "name": "tbrConfig",
@@ -524,18 +499,20 @@ export type TokenBridgeRelayer = {
       ],
       "accounts": [
         {
-          "name": "signer",
-          "docs": [
-            "The signer may be the owner, pending owner or admin, depending on the operation."
-          ],
+          "name": "newOwner",
+          "writable": true,
           "signer": true
         },
         {
-          "name": "adminBadge",
+          "name": "previousOwner",
+          "writable": true
+        },
+        {
+          "name": "newOwnerBadge",
           "docs": [
-            "If the signer is an admin, prove it with this PDA."
+            "The admin badge for the new owner."
           ],
-          "optional": true,
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -550,7 +527,29 @@ export type TokenBridgeRelayer = {
               },
               {
                 "kind": "account",
-                "path": "signer"
+                "path": "newOwner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "previousOwnerBadgeToDelete",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  100,
+                  109,
+                  105,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "previousOwner"
               }
             ]
           }
@@ -580,6 +579,10 @@ export type TokenBridgeRelayer = {
               }
             ]
           }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
@@ -604,6 +607,31 @@ export type TokenBridgeRelayer = {
           ],
           "writable": true,
           "signer": true
+        },
+        {
+          "name": "adminBadge",
+          "docs": [
+            "The admin badge for the owner."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  100,
+                  109,
+                  105,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
         },
         {
           "name": "tbrConfig",
@@ -668,9 +696,8 @@ export type TokenBridgeRelayer = {
         {
           "name": "adminBadge",
           "docs": [
-            "If the signer is an admin, prove it with this PDA."
+            "Proof that the signer is an admin or the owner."
           ],
-          "optional": true,
           "pda": {
             "seeds": [
               {
@@ -1053,9 +1080,8 @@ export type TokenBridgeRelayer = {
         {
           "name": "adminBadge",
           "docs": [
-            "If the signer is an admin, prove it with this PDA."
+            "Proof that the signer is an admin or the owner."
           ],
-          "optional": true,
           "pda": {
             "seeds": [
               {
@@ -1157,36 +1183,11 @@ export type TokenBridgeRelayer = {
       ],
       "accounts": [
         {
-          "name": "signer",
-          "docs": [
-            "The signer may be the owner, pending owner or admin, depending on the operation."
-          ],
-          "signer": true
-        },
-        {
-          "name": "adminBadge",
-          "docs": [
-            "If the signer is an admin, prove it with this PDA."
-          ],
-          "optional": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  97,
-                  100,
-                  109,
-                  105,
-                  110
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "signer"
-              }
-            ]
-          }
+          "name": "owner",
+          "signer": true,
+          "relations": [
+            "tbrConfig"
+          ]
         },
         {
           "name": "tbrConfig",
@@ -1687,16 +1688,15 @@ export type TokenBridgeRelayer = {
         {
           "name": "signer",
           "docs": [
-            "The signer may be the owner, pending owner or admin, depending on the operation."
+            "The signer may be the owner, or admin, depending on the operation."
           ],
           "signer": true
         },
         {
           "name": "adminBadge",
           "docs": [
-            "If the signer is an admin, prove it with this PDA."
+            "Proof that the signer is an admin or the owner."
           ],
-          "optional": true,
           "pda": {
             "seeds": [
               {
@@ -1777,16 +1777,15 @@ export type TokenBridgeRelayer = {
         {
           "name": "signer",
           "docs": [
-            "The signer may be the owner, pending owner or admin, depending on the operation."
+            "The signer may be the owner, or admin, depending on the operation."
           ],
           "signer": true
         },
         {
           "name": "adminBadge",
           "docs": [
-            "If the signer is an admin, prove it with this PDA."
+            "Proof that the signer is an admin or the owner."
           ],
-          "optional": true,
           "pda": {
             "seeds": [
               {
@@ -1871,9 +1870,8 @@ export type TokenBridgeRelayer = {
         {
           "name": "adminBadge",
           "docs": [
-            "If the signer is an admin, prove it with this PDA."
+            "Proof that the signer is an admin or the owner."
           ],
-          "optional": true,
           "pda": {
             "seeds": [
               {
@@ -1990,9 +1988,8 @@ export type TokenBridgeRelayer = {
         {
           "name": "adminBadge",
           "docs": [
-            "If the signer is an admin, prove it with this PDA."
+            "Proof that the signer is an admin or the owner."
           ],
-          "optional": true,
           "pda": {
             "seeds": [
               {

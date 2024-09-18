@@ -1,21 +1,14 @@
-import { serialize, toNative, toUniversal, UniversalAddress, VAA, layoutItems } from "@wormhole-foundation/sdk-definitions";
 import { chainToPlatform, FixedLengthArray, Layout, layout, LayoutItem, LayoutToType, Network, ProperLayout } from "@wormhole-foundation/sdk-base";
-import { ethers } from "ethers";
-import { baseRelayingConfigReturnLayout, BaseRelayingParamsReturn, dispatcherLayout, gasDropoffUnit, relayFeeUnit, relayingFeesInputLayout, RelayingFeesReturn, RelayingFeesReturnItem, relayingFeesReturnLayout, SupportedChains, TBRv3Message, transferTokenWithRelayLayout, versionEnvelopeLayout, transferGasTokenWithRelayLayout, proxyConstructorLayout, ownerItem, GovernanceQuery, GovernanceCommand, peerItem, GovernanceCommandRaw, feeItem, amountItem } from "./layouts.js";
+import { layoutItems, serialize, toNative, UniversalAddress, VAA } from "@wormhole-foundation/sdk-definitions";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
+import { ethers } from "ethers";
+import { baseRelayingConfigReturnLayout, commandCategoryLayout, evmAddressItem, execParamsLayout, gasDropoffItem, GovernanceCommand, GovernanceQuery, proxyConstructorLayout, queryCategoryLayout, queryParamsLayout, relayingFeesInputLayout, relayingFeesReturnLayout, SupportedChains, TBRv3Message, transferGasTokenWithRelayLayout, transferTokenWithRelayLayout } from "./layouts.js";
 
-/**
- * Gives you a type that keeps the properties of `T1` while making both properties common to `T1` and `T2` and properties exclusive to `T2` optional.
- * This is the intersection of these three:
- * T1 ∖ T2
- * Partial(T1 ∖ (T1 ∖ T2))
- * Partial(T2 ∖ T1)
- */
-type MakeOptional<T1, T2> = Omit<T1, keyof T2> & Partial<Omit<T1, keyof Omit<T1, keyof T2>>> & Partial<Omit<T2, keyof T1>>;
+const WHOLE_EVM_GAS_TOKEN_UNITS = 10 ** 18;
 
-type Method = LayoutToType<typeof dispatcherLayout>["method"];
-type MethodCall = LayoutToType<typeof dispatcherLayout>;
-type MethodArgs<M extends Method> = Extract<MethodCall, { method: M }>;
+type RelayingFeesReturn = LayoutToType<typeof relayingFeesReturnLayout>;
+type BaseRelayingParamsReturn = LayoutToType<typeof baseRelayingConfigReturnLayout>;
+
 
 type FixedArray<T extends Layout> = {
     binary: "array",
@@ -102,7 +95,7 @@ export interface Transfer {
    * Increasing this estimation won't affect the actual cost.
    * Excedent gas tokens will be returned to the caller of the contract.
    */
-  feeEstimation: RelayingFeesReturnItem;
+  feeEstimation: RelayingFeesReturn;
   args: TransferTokenWithRelayInput | TransferGasTokenWithRelayInput;
 };
 
@@ -112,19 +105,6 @@ export class Tbrv3 {
 
   constructor(public readonly provider: ethers.Provider, public readonly network: NetworkMain, address: string = Tbrv3.addresses[network]) {
     this.address = address;
-  }
-
-  static createEnvelopeWithSingleMethodKind<const M extends Method>(method: M, args: MakeOptional<MethodArgs<M>, { method: M }>[]): Uint8Array {
-    return Tbrv3.createEnvelope(
-      args.map((arg) => ({ ...arg, method } as MethodArgs<M>)),
-    );
-  }
-
-  static createEnvelope(calls: MethodCall[]): Uint8Array {
-    return layout.serializeLayout(versionEnvelopeLayout, {
-      version: "Version0",
-      methods: calls,
-    });
   }
 
   static readonly addresses: Record<NetworkMain, string> = {
@@ -146,16 +126,25 @@ export class Tbrv3 {
       if (transfer.feeEstimation.isPaused) {
         throw new Error(`Relays to chain ${transfer.args.recipient.chain} are paused. Found in transfer ${i + 1}.`);
       }
-      const convertedFee = transfer.feeEstimation.fee * relayFeeUnit;
-      value += convertedFee;
+      // We are asking for a transfer on an EVM chain, so the gas token used to pay has 18 decimals.
+      // Here we need to calculate the amount in wei.
+      value += BigInt(transfer.feeEstimation.fee * WHOLE_EVM_GAS_TOKEN_UNITS);
 
       if (transfer.args.method === "TransferGasTokenWithRelay") {
-        value += transfer.args.inputAmount;
+        value += transfer.args.inputAmountInAtomic;
       }
 
       methodCalls.push(transfer.args);
     }
-    const methods = Tbrv3.createEnvelope(methodCalls);
+
+    const methods = layout.serializeLayout(execParamsLayout, {
+      version: 0,
+      commandCategories: methodCalls.map((call): LayoutToType<typeof commandCategoryLayout> => {
+        return call.method === 'TransferTokenWithRelay'
+          ? { commandCategory: 'TransferTokenWithRelay', ...call }
+          : { commandCategory: 'TransferGasTokenWithRelay', ...call };
+      })
+    });
     const data = Tbrv3.encodeExecute(methods);
 
     return {
@@ -182,13 +171,19 @@ export class Tbrv3 {
     let value: bigint = 0n;
     for (const vaa of vaas) {
       const tbrv3Message = layout.deserializeLayout(TBRv3Message, vaa.payload.payload);
-      // We use the unit of an EVM chain
-      // TODO: source chain from the VAA?
-      value += tbrv3Message.gasDropoff * gasDropoffUnit("Ethereum");
+      // We are redeeming on an EVM chain so the gas token has 18 decimals.
+      // Here we need to calculate the amount in wei.
+      value += BigInt(tbrv3Message.gasDropoff * WHOLE_EVM_GAS_TOKEN_UNITS);
     }
 
-    const args = vaas.map((vaa) => ({vaa: serialize(vaa)}));
-    const methods = Tbrv3.createEnvelopeWithSingleMethodKind("CompleteTransfer", args);
+    const methods = layout.serializeLayout(execParamsLayout, {
+      version: 0,
+      commandCategories: vaas.map((vaa) => ({
+        commandCategory: "CompleteTransfer",
+        vaa: serialize(vaa)
+      }) satisfies LayoutToType<typeof commandCategoryLayout>)
+    });
+
     const data = Tbrv3.encodeExecute(methods);
 
     return {
@@ -204,11 +199,21 @@ export class Tbrv3 {
    * Each relay needs to be passed in as a separate argument.
    * The result is a list of quotes for the relays in the same order as they were passed in.
    */
-  async relayingFee(...args: RelayingFeesInput[]): Promise<RelayingFeesReturn> {
+  async relayingFee(...args: RelayingFeesInput[]): Promise<readonly RelayingFeesReturn[]> {
     if (args.length === 0) {
       throw new Error("At least one relay fee query should be specified.");
     }
-    const queries = Tbrv3.createEnvelopeWithSingleMethodKind("RelayFee", args);
+
+    const queries = layout.serializeLayout(queryParamsLayout, {
+      version: 0,
+      queryCategories:
+        args.map(arg => ({
+          queryCategory: "RelayFee",
+          targetChain: arg.targetChain,
+          gasDropoff: arg.gasDropoff,
+        }) satisfies LayoutToType<typeof queryCategoryLayout>)
+    });
+
     const calldata = Tbrv3.encodeQuery(queries);
     const result = await this.provider.call({
       data: ethers.hexlify(calldata),
@@ -219,21 +224,30 @@ export class Tbrv3 {
     return decodeQueryResponseLayout(relayingFeesReturnListLayout, ethers.getBytes(result));
   }
 
-  async baseRelayingParams(...chains: SupportedChains[]): Promise<BaseRelayingParamsReturn> {
-    const queries = Tbrv3.createEnvelopeWithSingleMethodKind("BaseRelayingConfig", chains.map((targetChain) => ({targetChain})));
+  async baseRelayingParams(...chains: SupportedChains[]): Promise<readonly BaseRelayingParamsReturn[]> {
+    const queries = layout.serializeLayout(queryParamsLayout, {
+      version: 0,
+      queryCategories: chains.map((targetChain) => ({
+        queryCategory: "BaseRelayingConfig",
+        targetChain,
+      }) satisfies LayoutToType<typeof queryCategoryLayout>)
+    });
+
     const calldata = Tbrv3.encodeQuery(queries);
     const result = await this.provider.call({
       data: ethers.hexlify(calldata),
       to: this.address,
     });
 
-
     const baseRelayingReturnListLayout = fixedLengthArrayLayout(chains.length, baseRelayingConfigReturnLayout);
     return decodeQueryResponseLayout(baseRelayingReturnListLayout, ethers.getBytes(result));
   }
 
-  governanceTx<const C extends GovernanceCommandRaw[]>(commands: C): TbrPartialTx {
-    const methods = Tbrv3.createEnvelope([{ method: "GovernanceCommand", commands }]);
+  governanceTx<const C extends GovernanceCommand[]>(commands: C): TbrPartialTx {
+    const methods = layout.serializeLayout(commandCategoryLayout, {
+      commandCategory: 'GovernanceCommands',
+      commands
+    })
     const data = Tbrv3.encodeExecute(methods);
 
     return {
@@ -243,38 +257,46 @@ export class Tbrv3 {
     };
   }
 
-  updateMaxGasDroppoffs(dropoffs: Map<SupportedChains, bigint>): TbrPartialTx {
+  updateMaxGasDroppoffs(dropoffs: Map<SupportedChains, number>): TbrPartialTx {
     return this.governanceTx(Array.from(dropoffs).map(
-      ([chain, maxDropoff]) => ({ command: "UpdateMaxGasDropoff", maxGasDropoff: maxDropoff, chain: chain as SupportedChains })
+      ([chain, maxDropoff]) => ({ command: "UpdateMaxGasDropoff", value: maxDropoff, chain: chain as SupportedChains })
     ));
   }
 
   updateRelayFee(chain: SupportedChains, fee: number): TbrPartialTx {
-    return this.governanceTx([{ command: "UpdateRelayFee", chain, fee }]);
+    return this.governanceTx([{ command: "UpdateBaseFee", chain, value: fee }]);
   }
 
   updateAdmin(authorized: boolean, admin: EvmAddress): TbrPartialTx {
-    return this.governanceTx([{ command: "UpdateAdmin", admin: admin.toString(), isAdmin: authorized }]);
+    return this.governanceTx([{ command: "UpdateAdmin", address: admin.toString(), isAdmin: authorized }]);
   }
 
   updateCanonicalPeers(canonicalPeers: Map<SupportedChains, UniversalAddress>): TbrPartialTx {
     return this.governanceTx(Array.from(canonicalPeers).map(
-      ([chain, peer]) => ({ command: "UpdateCanonicalPeer", peer: peer.toUint8Array(), chain: chain as SupportedChains })
+      ([chain, peer]) => ({ command: "UpdateCanonicalPeer", address: peer, chain: chain as SupportedChains })
     ));
   }
 
   upgradeContract(newImplementationAddress: EvmAddress): TbrPartialTx {
-    return this.governanceTx([{command: "UpgradeContract", contract: newImplementationAddress.toString() }]);
+    return this.governanceTx([{command: "UpgradeContract", address: newImplementationAddress.toString() }]);
   }
 
   addPeers(peers: { chain: SupportedChains, peer: UniversalAddress }[]): TbrPartialTx {
     return this.governanceTx(peers.map(
-      (peer) => ({command: "AddPeer", peer: peer.peer.toUint8Array(), chain: peer.chain })
+      (peer) => ({command: "AddPeer", address: peer.peer, chain: peer.chain })
     ));
   }
 
   async governanceQuery<const C extends GovernanceQuery[]>(queries: C): Promise<string> {
-    const methods = Tbrv3.createEnvelope([{ method: "GovernanceQuery", queries }]);
+    // const methods = Tbrv3.createEnvelope([{ method: "GovernanceQuery", queries }]);
+    const methods = layout.serializeLayout(queryParamsLayout, {
+      version: 0,
+      queryCategories:
+        queries.map(arg => ({
+          queryCategory: "GovernanceQueries",
+          queries
+        }) satisfies LayoutToType<typeof queryCategoryLayout>)
+    });
     const data = Tbrv3.encodeQuery(methods);
 
     const result = await this.provider.call({
@@ -286,15 +308,18 @@ export class Tbrv3 {
   }
 
   async relayFee(chain: SupportedChains) {
-    const result = await this.governanceQuery([{ query: "RelayFee", chain }]);
+    const result = await this.governanceQuery([{ query: "BaseFee", chain }]);
     
-    return decodeQueryResponseLayout(feeItem, ethers.getBytes(result)); 
+    return decodeQueryResponseLayout(relayingFeesReturnLayout, ethers.getBytes(result)); 
   }
 
+  /**
+   * @returns Maximum gas dropoff in gas token units, e.g. ETH for Ethereum.
+   */
   async maxGasDropoff(chain: SupportedChains) {
     const result = await this.governanceQuery([{ query: "MaxGasDropoff", chain }]);
 
-    return BigInt(decodeQueryResponseLayout(feeItem, ethers.getBytes(result)));
+    return decodeQueryResponseLayout(gasDropoffItem, ethers.getBytes(result));
   }
 
   async isChainPaused(chain: SupportedChains) {
@@ -303,8 +328,8 @@ export class Tbrv3 {
     return decodeQueryResponseLayout(layoutItems.boolItem, ethers.getBytes(result));
   }
 
-  async isPeer(chain: SupportedChains, peer: UniversalAddress): Promise<boolean> {
-    const result = await this.governanceQuery([{ query: "IsPeer", peer: peer.address, chain }]);
+  async isPeer(chain: SupportedChains, address: UniversalAddress): Promise<boolean> {
+    const result = await this.governanceQuery([{ query: "IsPeer", address, chain }]);
 
     return decodeQueryResponseLayout(layoutItems.boolItem, ethers.getBytes(result));
   }
@@ -318,13 +343,13 @@ export class Tbrv3 {
   async canonicalPeer(chain: SupportedChains): Promise<UniversalAddress> {
     const result = await this.governanceQuery([{ query: "CanonicalPeer", chain }]);
 
-    return toUniversal(chain, decodeQueryResponseLayout(peerItem, ethers.getBytes(result)));
+    return decodeQueryResponseLayout(layoutItems.universalAddressItem, ethers.getBytes(result));
   }
 
   async owner() {
     const result = await this.governanceQuery([{ query: "Owner" }]);
     
-    return decodeQueryResponseLayout(ownerItem, ethers.getBytes(result)); 
+    return decodeQueryResponseLayout(evmAddressItem, ethers.getBytes(result)); 
   }
 
   async isChainSupported(chain: SupportedChains): Promise<boolean> {
@@ -342,7 +367,7 @@ export class Tbrv3 {
   async feeRecipient() {
     const result = await this.governanceQuery([{ query: "FeeRecipient" }]);
     
-    return decodeQueryResponseLayout(ownerItem, ethers.getBytes(result)); 
+    return decodeQueryResponseLayout(evmAddressItem, ethers.getBytes(result)); 
   }
 
   static encodeExecute(methods: Uint8Array): Uint8Array {
@@ -425,25 +450,3 @@ function decodeQueryResponseLayout<const T extends Layout>(tbrLayout: T, value: 
   return response;
 }
 
-async function example() {
-  const exampleTransferArgs = {
-    method: "TransferTokenWithRelay",
-    acquireMode: {mode: "Preapproved"},
-    inputAmount: 1000n,
-    gasDropoff: 10n,
-    recipient: { chain: "Ethereum", address: toUniversal("Ethereum" ,"0xabababababa")},
-    inputToken: "0xabababababa",
-    unwrapIntent: false,
-  } as const;
-  
-  const test = await (new Tbrv3(undefined as any, "Mainnet")).relayingFee({
-    gasDropoff: exampleTransferArgs.gasDropoff,
-    targetChain: exampleTransferArgs.recipient.chain,
-  });
-  
-  (new Tbrv3(undefined as any, "Mainnet")).transferWithRelay({
-    feeEstimation: test[0],
-    args: exampleTransferArgs,
-  });
-  
-}

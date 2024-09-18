@@ -35,7 +35,7 @@ pub fn calculate_total_fee(
         + u64::from(dropoff_amount);
 
     // μusd = Mwei * μusd/Token / Mwei/Token + μusd)
-    let total_fees_usd = total_fees_mwei * oracle_evm_prices.gas_token_price / MWEI_PER_ETH
+    let total_fees_usd = total_fees_mwei / MWEI_PER_ETH * oracle_evm_prices.gas_token_price
         + chain_config.relayer_fee;
 
     // µSOL/SOL * μusd / μusd/SOL

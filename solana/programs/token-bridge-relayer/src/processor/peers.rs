@@ -14,12 +14,12 @@ pub struct RegisterPeer<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
 
-    /// If the signer is an admin, prove it with this PDA.
+    /// Proof that the signer is an admin or the owner.
     #[account(
         seeds = [AdminState::SEED_PREFIX, signer.key.to_bytes().as_ref()],
         bump
     )]
-    pub admin_badge: Option<Account<'info, AdminState>>,
+    pub admin_badge: Account<'info, AdminState>,
 
     /// Owner Config account. This program requires that the `signer` specified
     /// in the context equals an authorized pubkey specified in this account.
@@ -58,12 +58,6 @@ pub struct RegisterPeer<'info> {
 }
 
 pub fn register_peer(ctx: Context<RegisterPeer>, peer_address: [u8; 32]) -> Result<()> {
-    require!(
-        ctx.accounts.admin_badge.is_some()
-            || ctx.accounts.tbr_config.is_owner(ctx.accounts.signer.key),
-        TokenBridgeRelayerError::OwnerOrAdminOnly
-    );
-
     // If it is the first peer for this chain, make it canonical:
     if ctx.accounts.chain_config.is_uninitialized() {
         let canonical_peer = &mut ctx.accounts.chain_config;

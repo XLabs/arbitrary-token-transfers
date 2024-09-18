@@ -55,7 +55,7 @@ export function assertEqBns(left: BN, right: BN) {
 export async function sendAndConfirmIx(
   ix: TransactionInstruction | Promise<TransactionInstruction>,
   provider: AnchorProvider,
-) {
+): Promise<TransactionSignature> {
   const tx = new Transaction().add(await ix);
 
   return provider.sendAndConfirm(tx);

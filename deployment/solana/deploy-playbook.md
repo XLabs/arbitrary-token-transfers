@@ -1,5 +1,7 @@
-### Solana Upgrade Playbook:
+### Solana Deployment Playbook:
 ```shell
+
+solana-keygen grind --ignore-case --starts-with att:1
 solana-keygen grind --ignore-case --starts-with atb:1
 
 #!! set the buffer account address on your env
@@ -16,10 +18,10 @@ solana program -k "$buffer_creator_account.json" \
   --url $solana_rpc_url \
   write-buffer \
   ../target/deploy/token_bridge_relayer.so \
-  --buffer "./$upgrade_buffer_account.json" \
+  --buffer "./$buffer_account.json" \
   --with-compute-unit-price 100000 
 
-solana program set-buffer-authority $upgrade_buffer_account \
+solana program set-buffer-authority $buffer_account \
   -k $buffer_creator_account.json --new-buffer-authority $deployer_account \
   --url $solana_rpc_url
 
@@ -27,14 +29,18 @@ solana program show $program_address --url $solana_rpc_url
 
 solana program extend $program_address 100000 --url $solana_rpc_url -k usb://ledger?key=$ledger_cli_derivation_path
 
-solana program -k usb://ledger?key=$ledger_cli_derivation_path upgrade \
+solana program -k usb://ledger?key=$ledger_cli_derivation_path deploy \
  --url $solana_rpc_url \
- $upgrade_buffer_account.json \
- $program_address
+ --buffer $buffer_account.json \
+ --program-id $program_address.json
 
-anchor idl upgrade \
-  --provider.cluster=$solana_rpc_url \
+anchor idl init --provider.cluster=$solana_rpc_url \
   --provider.wallet "./deployment/$buffer_creator_account.json" \
-   --filepath "./target/idl/token_bridge_relayer.json" $program_address
+   --filepath ./target/idl/token_bridge_relayer.json $program_address
+
+
+cd deployment 
+
+yarn tsx ./solana/initialize.ts
 
 ```

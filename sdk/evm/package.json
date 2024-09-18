@@ -7,9 +7,9 @@
   "types": "ts-build/tbrv3/index.d.ts",
   "exports": {
     ".": {
+      "types": "./ts-build/tbrv3/index.d.ts",
       "require": "./ts-build/tbrv3/index.cjs",
-      "import": "./ts-build/tbrv3/index.js",
-      "types": "./ts-build/tbrv3/index.d.ts"
+      "import": "./ts-build/tbrv3/index.js"
     }
   },
   "scripts": {

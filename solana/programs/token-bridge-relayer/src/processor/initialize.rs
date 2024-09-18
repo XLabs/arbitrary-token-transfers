@@ -1,4 +1,4 @@
-use crate::state::TbrConfigState;
+use crate::state::{AdminState, TbrConfigState};
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
@@ -6,6 +6,16 @@ pub struct Initialize<'info> {
     /// Owner of the program as set in the [`OwnerConfig`] account.
     #[account(mut)]
     pub owner: Signer<'info>,
+
+    /// The admin badge for the owner.
+    #[account(
+        init,
+        payer = owner,
+        space = 8 + AdminState::INIT_SPACE,
+        seeds = [AdminState::SEED_PREFIX, owner.key.to_bytes().as_ref()],
+        bump
+    )]
+    pub admin_badge: Account<'info, AdminState>,
 
     /// Owner Config account. This program requires that the `owner` specified
     /// in the context equals the pubkey specified in this account. Mutable.
