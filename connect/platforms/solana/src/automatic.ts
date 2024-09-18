@@ -4,7 +4,7 @@ import { Connection, PublicKey, Transaction, TransactionInstruction } from "@sol
 import { Chain, Network } from "@wormhole-foundation/sdk-base";
 import { AccountAddress, ChainsConfig, Contracts, isNative, TokenAddress, UniversalAddress, VAA } from "@wormhole-foundation/sdk-definitions";
 import { SolanaAddress, SolanaChain, SolanaChains, SolanaPlatform, SolanaPlatformType, SolanaUnsignedTransaction, SolanaZeroAddress } from "@wormhole-foundation/sdk-solana";
-import { AutomaticTokenBridgeV3, BaseRelayingParamsReturn, RelayingFeesParams, RelayingFeesReturn, SupportedChains, TransferParams } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
+import { AutomaticTokenBridgeV3, BaseRelayingParamsReturn, RelayingFee, RelayingFeesParams, RelayingFeesReturn, SupportedChains, TransferParams } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
 
 import { SolanaPriceOracleClient, TbrClient } from "@xlabs-xyz/solana-arbitrary-token-transfers";
 
@@ -15,6 +15,7 @@ export interface SolanaTransferParams<C extends SolanaChains> extends TransferPa
 const NATIVE_MINT = new PublicKey('So11111111111111111111111111111111111111112');
 
 const KLAM_PER_SOL = 1_000_000n;
+const MWEI_PER_MICRO_ETH = 1_000_000n;
 const MWEI_PER_ETH = 1_000_000_000_000n;
 
 export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaChains>
@@ -150,7 +151,7 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     }
   }
 
-  async relayingFee(args: RelayingFeesParams): Promise<RelayingFeesReturn> {
+  async relayingFee(args: RelayingFeesParams): Promise<RelayingFee> {
     const config = await this.client.read.config();
     const chainConfig = await this.client.read.chainConfig(args.targetChain);
     
@@ -160,12 +161,12 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
 
     const totalFeesMWei = BigInt(config.evmTransactionGas.toString()) * BigInt(oraclePrices.gasPrice)
       + BigInt(config.evmTransactionSize.toString()) * BigInt(oraclePrices.pricePerByte)
-      + BigInt(args.gasDropoff);
+      + args.gasDropoff * MWEI_PER_MICRO_ETH;
 
-    const totalFeesUsd = totalFeesMWei / MWEI_PER_ETH * BigInt(oraclePrices.gasTokenPrice.toString())
+    const totalFeesMicroUsd = totalFeesMWei * BigInt(oraclePrices.gasTokenPrice.toString()) / MWEI_PER_ETH
       + BigInt(chainConfig.relayerFeeMicroUsd.toString());
 
-    const fee = KLAM_PER_SOL * totalFeesUsd / BigInt(oracleConfig.solPrice.toString());
+    const fee = KLAM_PER_SOL * totalFeesMicroUsd / BigInt(oracleConfig.solPrice.toString());
 
     // const fee = await this.client.relayingFee(
     //   new PublicKey(SolanaZeroAddress),
@@ -174,7 +175,7 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     // );
 
     return {
-      fee: Number(fee),
+      fee: fee,
       isPaused: chainConfig.pausedOutboundTransfers,
     };
   }

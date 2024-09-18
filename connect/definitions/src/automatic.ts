@@ -19,6 +19,11 @@ declare module "@wormhole-foundation/sdk-definitions" {
   }
 }
 
+export interface RelayingFee {
+  fee: bigint;
+  isPaused: boolean;
+}
+
 export interface AutomaticTokenBridgeV3<N extends Network, C extends Chain> {
   // TODO: make it accept an array?
   transfer(
@@ -27,7 +32,7 @@ export interface AutomaticTokenBridgeV3<N extends Network, C extends Chain> {
 
   redeem(vaa: VAA<'AutomaticTokenBridgeV3:TransferWithRelay'>, payer?: AccountAddress<C>): AsyncGenerator<UnsignedTransaction<N, C>>;
 
-  relayingFee(args: RelayingFeesParams): Promise<RelayingFeesReturn>;
+  relayingFee(args: RelayingFeesParams): Promise<RelayingFee>;
 
   baseRelayingParams(chain: SupportedChains): Promise<BaseRelayingParamsReturn>;
 }

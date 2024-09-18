@@ -1,10 +1,12 @@
-import { amount as sdkAmount, encoding, LayoutToType, Network } from "@wormhole-foundation/sdk-base";
+import { encoding, Network } from "@wormhole-foundation/sdk-base";
 import { ChainsConfig, Contracts, isNative, VAA } from "@wormhole-foundation/sdk-definitions";
-import { EvmChains, EvmPlatform, EvmPlatformType, EvmUnsignedTransaction } from "@wormhole-foundation/sdk-evm";
-import { AutomaticTokenBridgeV3, tokenBridgeRelayerV3Contracts, RelayingFeesParams, TransferParams, tokenBridgeRelayerV3Chains, AcquireMode } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
-import { acquireModeItem, BaseRelayingParamsReturn, RelayingFeesReturn, SupportedChains, Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
-import { Provider } from "ethers";
 import '@wormhole-foundation/sdk-evm';
+import { EvmChains, EvmPlatform, EvmPlatformType, EvmUnsignedTransaction } from "@wormhole-foundation/sdk-evm";
+import { AcquireMode, AutomaticTokenBridgeV3, RelayingFee, RelayingFeesParams, tokenBridgeRelayerV3Chains, tokenBridgeRelayerV3Contracts, TransferParams } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
+import { BaseRelayingParamsReturn, RelayingFeesReturn, SupportedChains, Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
+import { Provider } from "ethers";
+
+const WHOLE_EVM_GAS_TOKEN_UNITS = 1e18;
 
 export interface EvmTransferParams<C extends EvmChains> extends TransferParams<C> {
   acquireMode: AcquireMode;
@@ -51,11 +53,16 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
 
     if (tokenBridgeRelayerV3Chains.has(params.recipient.chain)) throw new Error(`Unsupported destination chain ${params.recipient.chain}`);
 
+    // convert the fee and gas dropoff back from wei to eth
+    // TODO: find a better way in order to avoid precision issues
+    const fee = Number(params.fee || 0) / WHOLE_EVM_GAS_TOKEN_UNITS;
+    const gasDropoff = Number(params.gasDropOff || 0) / WHOLE_EVM_GAS_TOKEN_UNITS;
+
     const transferParams = await this.tbr.transferWithRelay({
       args: {
         method: isNative(params.token) ? 'TransferGasTokenWithRelay' : 'TransferTokenWithRelay',
         acquireMode: params.acquireMode,
-        gasDropoff: params.gasDropOff ?? 0,
+        gasDropoff,
         inputAmountInAtomic: params.amount,
         inputToken: params.token.address.toString(),
         recipient: {
@@ -65,7 +72,7 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
         unwrapIntent: true // TODO: receive as option/param?
       },
       feeEstimation: {
-        fee: params.fee,
+        fee,
         isPaused: false
       }
     });
@@ -137,8 +144,15 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
     );
   }
 
-  async relayingFee(args: RelayingFeesParams): Promise<RelayingFeesReturn> {
-    const [{ fee, isPaused }] = await this.tbr.relayingFee(args);
+  async relayingFee(args: RelayingFeesParams): Promise<RelayingFee> {
+    const [{ fee: rawFee, isPaused }] = await this.tbr.relayingFee({
+      ...args,
+      gasDropoff: Number(args.gasDropoff) / WHOLE_EVM_GAS_TOKEN_UNITS
+    });
+
+    // convert from eth to wei since the ui needs it in base units
+    // TODO: find a better way in order to avoid precision issues
+    const fee = BigInt(Math.floor(rawFee * WHOLE_EVM_GAS_TOKEN_UNITS))
 
     return {
       isPaused,

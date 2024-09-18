@@ -32,8 +32,6 @@ interface ValidatedTransferOptions extends TransferOptions {
 
 type Receipt = TransferReceipt<AttestationReceipt<"AutomaticTokenBridgeV3">>;
 
-const WHOLE_EVM_GAS_TOKEN_UNITS = 1e18;
-
 export class AutomaticTokenBridgeRouteV3<N extends Network>
   extends routes.AutomaticRoute<N, any, any, any>
   implements routes.StaticRouteMethods<typeof AutomaticTokenBridgeRouteV3>
@@ -85,7 +83,7 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
 
     const { isPaused } = await tbr.relayingFee({
       targetChain: request.toChain.chain as any,
-      gasDropoff: 0
+      gasDropoff: 0n
     });
 
     return !isPaused;
@@ -113,10 +111,14 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
         }
 
         const stbr = await request.fromChain.getProtocol('AutomaticTokenBridgeV3');
-        const { maxGasDropoff } = await stbr.baseRelayingParams(request.toChain.chain);
-
+        // expect them to return in the gas token (e.g. eth, avax, sol)
+        const { maxGasDropoff: rawMaxGasDropoff } = await stbr.baseRelayingParams(request.toChain.chain);
+        const maxGasDropoff = sdkAmount.units(
+          sdkAmount.parse(rawMaxGasDropoff, destinationDecimals)
+        );
+        
         const perc = BigInt(Math.floor(options.nativeGas * 100));
-        const dropoff = BigInt(maxGasDropoff) * perc / 100n;
+        const dropoff = maxGasDropoff * perc / 100n;
 
         options.gasDropOff = sdkAmount.fromBaseUnits(
           dropoff,
@@ -150,8 +152,7 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
 
       const tbr = await request.fromChain.getProtocol('AutomaticTokenBridgeV3');
 
-      // TODO: find a better way in order to avoid precision issues
-      const gasDropoff = Number(params.options.gasDropOff?.amount || 0) / WHOLE_EVM_GAS_TOKEN_UNITS;
+      const gasDropoff = BigInt(params.options.gasDropOff?.amount) || 0n;
 
       const { fee, isPaused } = await tbr.relayingFee({
         gasDropoff,
@@ -160,23 +161,20 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
 
       if (isPaused) throw new Error(`Relaying to ${targetChain} is paused`);
 
-      const srcDecimals = await request.fromChain.getDecimals('native');
+      const srcNativeDecimals = await request.fromChain.getDecimals('native');
+      const dstNativeDecimals = await request.toChain.getDecimals('native');
 
       const dstToken = await TokenTransfer.lookupDestinationToken(
         request.fromChain,
         request.toChain,
         request.source.id
       );
-      const dstDecimals = await request.toChain.getDecimals(dstToken.address);
-
-      // convert from eth to wei since the ui needs it in base units
-      // TODO: find a better way in order to avoid precision issues
-      const feeAmount = BigInt(Math.floor(fee * WHOLE_EVM_GAS_TOKEN_UNITS));
+      const dstTokenDecimals = await request.toChain.getDecimals(dstToken.address);
 
       // recall that the token bridge normalizes to 8 decimals for tokens above that
       const srcAmount = sdkAmount.fromBaseUnits(BigInt(params.amount), request.source.decimals);
       const truncatedSrcAmount = sdkAmount.truncate(srcAmount, TokenTransfer.MAX_DECIMALS);
-      const dstAmount = sdkAmount.scale(truncatedSrcAmount, dstDecimals);
+      const dstAmount = sdkAmount.scale(truncatedSrcAmount, dstTokenDecimals);
 
       const eta = finality.estimateFinalityTime(sourceChain) + guardians.guardianAttestationEta;
 
@@ -193,12 +191,12 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
         params,
         destinationNativeGas: {
           amount: gasDropoff.toString(),
-          decimals: dstDecimals
+          decimals: dstNativeDecimals
         },
         relayFee: {
           amount: {
-            amount: feeAmount.toString(),
-            decimals: srcDecimals
+            amount: fee.toString(),
+            decimals: srcNativeDecimals
           },
           // fees are paid in the source gas token
           token: { address: 'native', chain: sourceChain }
@@ -221,10 +219,8 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
 
     const tbr = await request.fromChain.getProtocol('AutomaticTokenBridgeV3');
 
-    // convert the fee and gas dropoff back from wei to eth
-    // TODO: find a better way in order to avoid precision issues
-    const fee = Number(quote.relayFee?.amount.amount || 0) / WHOLE_EVM_GAS_TOKEN_UNITS;
-    const gasDropOff = Number(quote.params.options.gasDropOff?.amount || 0) / WHOLE_EVM_GAS_TOKEN_UNITS;
+    const fee = Number(quote.relayFee?.amount.amount || 0);
+    const gasDropOff = Number(quote.params.options.gasDropOff?.amount || 0);
 
     // TODO: how to specify chain specific args (e.g. acquireMode)?
     const transferTxs = tbr.transfer({
@@ -237,8 +233,8 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
       token: request.source.id,
       gasDropOff,
       fee,
-      // TODO: receive through config. Set false to follow the original behaviour
-      unwrapIntent: false,
+      // TODO: receive through config
+      unwrapIntent: true,
       // TODO: fix types
       // @ts-ignore
       acquireMode: quote.params.options.acquireMode,

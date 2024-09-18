@@ -24,8 +24,7 @@ export interface TransferParams<C extends Chain> {
   unwrapIntent: boolean;
 }
 
-// export interface RelayingFeesParams {
-//   targetChain: SupportedChains;
-//   gasDropoff: bigint;
-// }
-export type RelayingFeesParams = LayoutToType<typeof relayingFeesInputLayout>;
+export type RelayingFeesParams = {
+  gasDropoff: bigint;
+  targetChain: SupportedChains;
+};
