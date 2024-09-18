@@ -139,8 +139,8 @@ export const baseRelayingConfigInputLayout = [
 
 export const baseRelayingConfigReturnLayout = [
   { name: "peer", ...layoutItems.universalAddressItem },
-  { name: "baseFee", binary: "uint", size: 4 },
-  { name: "maxGasDropoff", binary: "uint", size: 4 },
+  { name: "baseFee", ...baseFeeItem},
+  { name: "maxGasDropoff", ...gasDropoffItem },
   { name: "paused", ...layoutItems.boolItem },
   { name: "txSizeSensitive", ...layoutItems.boolItem },
 ] as const satisfies Layout;
