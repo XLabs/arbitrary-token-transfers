@@ -161,30 +161,33 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
       if (isPaused) throw new Error(`Relaying to ${targetChain} is paused`);
 
       const srcDecimals = await request.fromChain.getDecimals('native');
-      const dstDecimals = await request.toChain.getDecimals('native');
 
-      const feeToken: TokenId = { address: 'native', chain: sourceChain }
+      const dstToken = await TokenTransfer.lookupDestinationToken(
+        request.fromChain,
+        request.toChain,
+        request.source.id
+      );
+      const dstDecimals = await request.toChain.getDecimals(dstToken.address);
 
       // convert from eth to wei since the ui needs it in base units
       // TODO: find a better way in order to avoid precision issues
       const feeAmount = BigInt(Math.floor(fee * WHOLE_EVM_GAS_TOKEN_UNITS));
+
+      // recall that the token bridge normalizes to 8 decimals for tokens above that
+      const srcAmount = sdkAmount.fromBaseUnits(BigInt(params.amount), request.source.decimals);
+      const truncatedSrcAmount = sdkAmount.truncate(srcAmount, TokenTransfer.MAX_DECIMALS);
+      const dstAmount = sdkAmount.scale(truncatedSrcAmount, dstDecimals);
 
       const eta = finality.estimateFinalityTime(sourceChain) + guardians.guardianAttestationEta;
 
       return {
         success: true,
         sourceToken: {
-          amount: {
-            amount: params.amount,
-            decimals: request.source.decimals,
-          },
+          amount: truncatedSrcAmount,
           token: request.source.id
         },
         destinationToken: {
-          amount: {
-            amount: params.amount,
-            decimals: request.destination.decimals,
-          },
+          amount: dstAmount,
           token: request.destination.id
         },
         params,
@@ -197,7 +200,8 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
             amount: feeAmount.toString(),
             decimals: srcDecimals
           },
-          token: feeToken
+          // fees are paid in the source gas token
+          token: { address: 'native', chain: sourceChain }
         },
         eta,
       };
@@ -233,8 +237,8 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
       token: request.source.id,
       gasDropOff,
       fee,
-      // TODO: receive through config
-      unwrapIntent: true,
+      // TODO: receive through config. Set false to follow the original behaviour
+      unwrapIntent: false,
       // TODO: fix types
       // @ts-ignore
       acquireMode: quote.params.options.acquireMode,

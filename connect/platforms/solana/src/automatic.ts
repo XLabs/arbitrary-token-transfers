@@ -6,13 +6,16 @@ import { AccountAddress, ChainsConfig, Contracts, isNative, TokenAddress, Univer
 import { SolanaAddress, SolanaChain, SolanaChains, SolanaPlatform, SolanaPlatformType, SolanaUnsignedTransaction, SolanaZeroAddress } from "@wormhole-foundation/sdk-solana";
 import { AutomaticTokenBridgeV3, BaseRelayingParamsReturn, RelayingFeesParams, RelayingFeesReturn, SupportedChains, TransferParams } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
 
-import { TbrClient } from "@xlabs-xyz/solana-arbitrary-token-transfers";
+import { SolanaPriceOracleClient, TbrClient } from "@xlabs-xyz/solana-arbitrary-token-transfers";
 
 export interface SolanaTransferParams<C extends SolanaChains> extends TransferParams<C> {
   maxFee: bigint;
 }
 
 const NATIVE_MINT = new PublicKey('So11111111111111111111111111111111111111112');
+
+const KLAM_PER_SOL = 1_000_000n;
+const MWEI_PER_ETH = 1_000_000_000_000n;
 
 export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaChains>
   implements AutomaticTokenBridgeV3<N, C> {
@@ -80,9 +83,11 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
       );
     }
 
+    const senderPk = new PublicKey(params.sender.toNative('Solana').toString());
+
     if (isNativeToken) {
       transaction.add(await this.client.transferNativeTokens(
-        new PublicKey(params.sender.toNative('Solana')),
+        senderPk,
         {
           recipientChain: params.recipient.chain,
           recipientAddress: params.recipient.address.toUint8Array(),
@@ -96,7 +101,7 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
       ))
     } else {
       transaction.add(await this.client.transferWrappedTokens(
-        new PublicKey(params.sender.toNative('Solana')), {
+        senderPk, {
         recipientChain: params.recipient.chain,
         recipientAddress: params.recipient.address.toUint8Array(),
         userTokenAccount: ata,
@@ -146,20 +151,43 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
   }
 
   async relayingFee(args: RelayingFeesParams): Promise<RelayingFeesReturn> {
+    const config = await this.client.read.config();
+    const chainConfig = await this.client.read.chainConfig(args.targetChain);
+    
+    const oracleClient = new SolanaPriceOracleClient(this.connection);
+    const oraclePrices = await oracleClient.read.evmPrices(args.targetChain);
+    const oracleConfig = await oracleClient.read.config();
+
+    const totalFeesMWei = BigInt(config.evmTransactionGas.toString()) * BigInt(oraclePrices.gasPrice)
+      + BigInt(config.evmTransactionSize.toString()) * BigInt(oraclePrices.pricePerByte)
+      + BigInt(args.gasDropoff);
+
+    const totalFeesUsd = totalFeesMWei / MWEI_PER_ETH * BigInt(oraclePrices.gasTokenPrice.toString())
+      + BigInt(chainConfig.relayerFee.toString());
+
+    const fee = KLAM_PER_SOL * totalFeesUsd / BigInt(oracleConfig.solPrice.toString());
+
+    // const fee = await this.client.relayingFee(
+    //   new PublicKey(SolanaZeroAddress),
+    //   args.targetChain,
+    //   new BN(args.gasDropoff)
+    // );
+
     return {
-      fee: 0,
-      isPaused: false,
+      fee: Number(fee),
+      isPaused: chainConfig.pausedOutboundTransfers,
     };
   }
 
   async baseRelayingParams(chain: SupportedChains): Promise<BaseRelayingParamsReturn> {
-    // TODO: read contract
+    const config = await this.client.read.chainConfig(chain);
+
     return {
-      maxGasDropoff: 0,
-      baseFee: 0,
-      paused: false,
-      peer: new UniversalAddress(new PublicKey(SolanaZeroAddress).toBuffer()),
-      txSizeSensitive: false
+      maxGasDropoff: config.maxGasDropoff.toNumber(),
+      baseFee: config.relayerFee.toNumber(),
+      paused: config.pausedOutboundTransfers,
+      peer: new UniversalAddress(new Uint8Array(config.canonicalPeer)),
+      txSizeSensitive: false // TODO: might not be necessary
     };
   }
 
