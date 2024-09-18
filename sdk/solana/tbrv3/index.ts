@@ -76,7 +76,7 @@ export interface ReadTbrAccounts {
   adminBadge(signer: PublicKey): Promise<AdminAccount>;
 }
 
-export class TbrClient {
+export class SolanaTokenBridgeRelayer {
   public readonly program: anchor.Program<TokenBridgeRelayer>;
   private readonly priceOracleClient: SolanaPriceOracleClient;
   private readonly tokenBridgeProgramId: PublicKey;

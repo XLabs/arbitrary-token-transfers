@@ -2,7 +2,7 @@ import { AnchorProvider, BN } from '@coral-xyz/anchor';
 import { PublicKey, TransactionSignature } from '@solana/web3.js';
 import { Chain } from '@wormhole-foundation/sdk-base';
 import {
-  TbrClient,
+  SolanaTokenBridgeRelayer,
   ReadTbrAccounts,
   TransferNativeParameters,
   TransferWrappedParameters,
@@ -14,7 +14,7 @@ import { SolanaWormholeCore } from '@wormhole-foundation/sdk-solana-core';
 import { SolanaAutomaticTokenBridge } from '@wormhole-foundation/sdk-solana-tokenbridge';
 
 export class TbrWrapper {
-  private readonly client: TbrClient;
+  private readonly client: SolanaTokenBridgeRelayer;
   readonly provider: AnchorProvider;
   readonly logs: { [key: string]: string[] };
   readonly logsSubscriptionId: number;
@@ -26,9 +26,9 @@ export class TbrWrapper {
   ) {
     this.provider = provider;
     if (accountType === 'regular') {
-      this.client = new TbrClient(provider, params);
+      this.client = new SolanaTokenBridgeRelayer(provider, params);
     } else {
-      this.client = new TbrClient({ connection: provider.connection }, params);
+      this.client = new SolanaTokenBridgeRelayer({ connection: provider.connection }, params);
     }
     this.logs = {};
 
