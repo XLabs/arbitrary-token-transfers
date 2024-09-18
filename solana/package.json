@@ -2,7 +2,9 @@
   "scripts": {
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
-    "build": "yarn ../sdk/solana/ build && tsc --project tsconfig.json",
+    "build:devnet": "anchor build -- --features solana-devnet && rm ./sdk/solana/tbrv3/idl/token_bridge_relayer.json && cp ./target/idl/token_bridge_relayer.json ./sdk/solana/tbrv3/idl",
+    "build": "anchor build && rm ./sdk/solana/tbrv3/idl/token_bridge_relayer.json && cp ./target/idl/token_bridge_relayer.json ./sdk/solana/tbrv3/idl",
+    "clean": "rm -rf target/idl target/types",
     "test": "anchor test"
   },
   "type": "module",

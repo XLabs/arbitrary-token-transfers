@@ -5,6 +5,15 @@
   "description": "",
   "scripts": {
     "build": "tsc --build tsconfig.json && yarn workspaces foreach -A run build",
+    "build:sdk-evm": "yarn sdk/evm build",
+    "build:sdk-solana": "yarn sdk/solana build",
+    "build:solana-devenet": "yarn sdk/solana build:devnet",
+    "build:solana": "yarn sdk/solana build",
+    "build:evm": "(cd evm && forge build)",
+    "build:all-devnet": "yarn build:solana-devenet && yarn build:evm && yarn build:sdk-solana && yarn build:sdk-evm",
+    "build:all": "yarn build:solana && yarn build:evm && yarn build:sdk-solana && yarn build:sdk-evm",
+    "clean:solana": "yarn sdk/solana clean",
+    "clean:evm": "(cd evm && forge clean)",
     "prettier": "prettier --write ."
   },
   "keywords": [],
