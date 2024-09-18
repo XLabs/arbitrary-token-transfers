@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/token_bridge_relayer.json`.
  */
 export type TokenBridgeRelayer = {
-  "address": "Att3wDS1NGALc1mgV4fE2HVgBVdMwYuYhsibFnej2V8P",
+  "address": "AtTByoATABXxKRK8VZbiKw3vuURVszCpD5PmsgF6XXJc",
   "metadata": {
     "name": "tokenBridgeRelayer",
     "version": "3.0.0",
@@ -1348,6 +1348,7 @@ export type TokenBridgeRelayer = {
           "docs": [
             "Fee recipient's account. The fee will be transferred to this account."
           ],
+          "writable": true,
           "relations": [
             "tbrConfig"
           ]
@@ -1455,6 +1456,10 @@ export type TokenBridgeRelayer = {
           "docs": [
             "tokens transferred in this account for our program. Mutable."
           ],
+          "writable": true
+        },
+        {
+          "name": "wormholeFeeCollector",
           "writable": true
         },
         {

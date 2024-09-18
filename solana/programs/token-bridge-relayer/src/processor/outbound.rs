@@ -84,6 +84,7 @@ pub struct OutboundTransfer<'info> {
     pub temporary_account: Box<Account<'info, TokenAccount>>,
 
     /// Fee recipient's account. The fee will be transferred to this account.
+    #[account(mut)]
     pub fee_recipient: UncheckedAccount<'info>,
 
     #[account(
@@ -158,6 +159,10 @@ pub struct OutboundTransfer<'info> {
         bump,
     )]
     pub wormhole_message: AccountInfo<'info>,
+
+    #[account(mut)]
+    /// CHECK: Wormhole fee collector. Mutable.
+    pub wormhole_fee_collector: UncheckedAccount<'info>,
 
     /// Used to keep track of payer's Wormhole sequence number.
     #[account(
@@ -299,7 +304,7 @@ fn normalize_amounts(
     // Normalize the dropoff amount:
     //FIXME: it should not be the mint decimals
     let normalized_dropoff_amount =
-        token_bridge::normalize_amount(gas_dropoff_amount, mint.decimals)
+        (gas_dropoff_amount / 1_000_000)
             .try_into()
             .map_err(|_| TokenBridgeRelayerError::Overflow)?;
     require!(
@@ -347,7 +352,7 @@ fn token_bridge_transfer_native(
                 wormhole_message: ctx.accounts.wormhole_message.to_account_info(),
                 wormhole_emitter: ctx.accounts.token_bridge_emitter.to_account_info(),
                 wormhole_sequence: ctx.accounts.token_bridge_sequence.to_account_info(),
-                wormhole_fee_collector: ctx.accounts.fee_recipient.to_account_info(),
+                wormhole_fee_collector: ctx.accounts.wormhole_fee_collector.to_account_info(),
                 clock: ctx.accounts.clock.to_account_info(),
                 sender: ctx.accounts.tbr_config.to_account_info(),
                 rent: ctx.accounts.rent.to_account_info(),

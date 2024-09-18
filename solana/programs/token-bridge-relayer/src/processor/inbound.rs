@@ -193,8 +193,7 @@ pub fn complete_transfer(ctx: Context<CompleteTransfer>) -> Result<()> {
     // Redeem the gas dropoff:
 
     // Denormalize the gas_dropoff_amount:
-    let gas_dropoff_amount =
-        token_bridge::denormalize_amount(u64::from(gas_dropoff_amount), ctx.accounts.mint.decimals);
+    let gas_dropoff_amount = gas_dropoff_amount as u64 * 1_000;
 
     // Transfer lamports from the payer to the recipient if the
     // gas_dropoff_amount is nonzero:

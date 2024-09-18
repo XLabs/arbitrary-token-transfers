@@ -1,5 +1,5 @@
 {
-  "address": "Att3wDS1NGALc1mgV4fE2HVgBVdMwYuYhsibFnej2V8P",
+  "address": "AtTByoATABXxKRK8VZbiKw3vuURVszCpD5PmsgF6XXJc",
   "metadata": {
     "name": "token_bridge_relayer",
     "version": "3.0.0",
@@ -1342,6 +1342,7 @@
           "docs": [
             "Fee recipient's account. The fee will be transferred to this account."
           ],
+          "writable": true,
           "relations": [
             "tbr_config"
           ]
@@ -1449,6 +1450,10 @@
           "docs": [
             "tokens transferred in this account for our program. Mutable."
           ],
+          "writable": true
+        },
+        {
+          "name": "wormhole_fee_collector",
           "writable": true
         },
         {
