@@ -21,8 +21,8 @@ idl-build = [
 ]
 
 # Environments
-mainnet = ["solana-price-oracle/mainnet"]
-solana-devnet = ["solana-price-oracle/solana-devnet"]
+mainnet = ["solana-price-oracle/mainnet", "wormhole-anchor-sdk/mainnet"]
+solana-devnet = ["solana-price-oracle/solana-devnet", "wormhole-anchor-sdk/solana-devnet"]
 tilt-devnet = ["solana-price-oracle/tilt-devnet"]
 
 [dependencies]
