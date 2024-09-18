@@ -119,9 +119,9 @@ pub mod token_bridge_relayer {
     pub fn update_max_gas_dropoff(
         ctx: Context<UpdateChainConfig>,
         _chain_id: u16,
-        max_gas_dropoff_mwei: u64,
+        max_gas_dropoff_micro_token: u32,
     ) -> Result<()> {
-        processor::update_max_gas_dropoff(ctx, max_gas_dropoff_mwei)
+        processor::update_max_gas_dropoff(ctx, max_gas_dropoff_micro_token)
     }
 
     /// Updates the value of the relayer fee, *i.e.* the flat USD amount
@@ -133,7 +133,7 @@ pub mod token_bridge_relayer {
     pub fn update_relayer_fee(
         ctx: Context<UpdateChainConfig>,
         _chain_id: u16,
-        relayer_fee: u64,
+        relayer_fee: u32,
     ) -> Result<()> {
         processor::update_relayer_fee(ctx, relayer_fee)
     }
@@ -167,13 +167,17 @@ pub mod token_bridge_relayer {
 
     /* Transfers */
 
+    /// # Parameters
+    ///
+    /// - `dropoff_amount_micro`: the dropoff in µ-target-token.
+    /// - `max_fee_klam`: the maximum fee the user is willing to pay, in Klamports, aka µSOL.
     pub fn transfer_tokens(
         ctx: Context<OutboundTransfer>,
         recipient_chain: u16,
         recipient_address: [u8; 32],
         transferred_amount: u64,
         unwrap_intent: bool,
-        gas_dropoff_amount_mwei: u64,
+        dropoff_amount_micro: u32,
         max_fee_klam: u64,
     ) -> Result<()> {
         processor::transfer_tokens(
@@ -181,7 +185,7 @@ pub mod token_bridge_relayer {
             recipient_chain,
             transferred_amount,
             unwrap_intent,
-            gas_dropoff_amount_mwei,
+            dropoff_amount_micro,
             max_fee_klam,
             recipient_address,
         )
@@ -194,12 +198,12 @@ pub mod token_bridge_relayer {
 
     /* Helpers */
 
-    /// Returns a quote for a transfer.
+    /// Returns a quote for a transfer, in µUSD.
     pub fn relaying_fee(
         ctx: Context<QuoteQuery>,
         _chain_id: u16,
-        dropoff_amount: u64,
+        dropoff_amount_micro: u32,
     ) -> Result<u64> {
-        processor::relaying_fee(ctx, dropoff_amount)
+        processor::relaying_fee(ctx, dropoff_amount_micro)
     }
 }

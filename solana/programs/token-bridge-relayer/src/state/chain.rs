@@ -11,10 +11,11 @@ pub struct PeerState {}
 #[derive(InitSpace)]
 pub struct ChainConfigState {
     pub canonical_peer: [u8; 32],
-    pub max_gas_dropoff: u64,
+    /// The maximum amount of target token the user can ask a dropoff for, in µ-target-token.
+    pub max_gas_dropoff_micro_token: u32,
     pub paused_outbound_transfers: bool,
     /// The fee for the relayer, in μUSD.
-    pub relayer_fee: u64,
+    pub relayer_fee_micro_usd: u32,
 }
 
 impl PeerState {

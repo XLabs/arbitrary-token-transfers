@@ -45,16 +45,19 @@ pub fn set_pause_for_outbound_transfers(
     Ok(())
 }
 
-pub fn update_max_gas_dropoff(ctx: Context<UpdateChainConfig>, max_gas_dropoff: u64) -> Result<()> {
+pub fn update_max_gas_dropoff(
+    ctx: Context<UpdateChainConfig>,
+    max_gas_dropoff_micro_token: u32,
+) -> Result<()> {
     let chain_config = &mut ctx.accounts.chain_config;
-    chain_config.max_gas_dropoff = max_gas_dropoff;
+    chain_config.max_gas_dropoff_micro_token = max_gas_dropoff_micro_token;
 
     Ok(())
 }
 
-pub fn update_relayer_fee(ctx: Context<UpdateChainConfig>, relayer_fee: u64) -> Result<()> {
+pub fn update_relayer_fee(ctx: Context<UpdateChainConfig>, relayer_fee: u32) -> Result<()> {
     let chain_config = &mut ctx.accounts.chain_config;
-    chain_config.relayer_fee = relayer_fee;
+    chain_config.relayer_fee_micro_usd = relayer_fee;
 
     Ok(())
 }

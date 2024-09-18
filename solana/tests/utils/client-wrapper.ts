@@ -113,14 +113,14 @@ export class ClientWrapper {
     );
   }
 
-  async updateMaxGasDropoff(chain: Chain, maxGasDropoff: BN): Promise<TransactionSignature> {
+  async updateMaxGasDropoff(chain: Chain, maxGasDropoff: number): Promise<TransactionSignature> {
     return sendAndConfirmIx(
       this.client.updateMaxGasDropoff(this.publicKey, chain, maxGasDropoff),
       this.provider,
     );
   }
 
-  async updateRelayerFee(chain: Chain, relayerFee: BN): Promise<TransactionSignature> {
+  async updateRelayerFee(chain: Chain, relayerFee: number): Promise<TransactionSignature> {
     return sendAndConfirmIx(
       this.client.updateRelayerFee(this.publicKey, chain, relayerFee),
       this.provider,
@@ -180,7 +180,7 @@ export class ClientWrapper {
     );
   }
 
-  async relayingFee(chain: Chain, dropoffAmount: BN): Promise<BN> {
+  async relayingFee(chain: Chain, dropoffAmount: number): Promise<BN> {
     return this.client.relayingFee(this.publicKey, chain, dropoffAmount);
   }
 }

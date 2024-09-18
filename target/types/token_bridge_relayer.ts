@@ -659,6 +659,25 @@ export type TokenBridgeRelayer = {
           }
         },
         {
+          "name": "wormholeSender",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  110,
+                  100,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
+        },
+        {
           "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
@@ -818,7 +837,7 @@ export type TokenBridgeRelayer = {
     {
       "name": "relayingFee",
       "docs": [
-        "Returns a quote for a transfer."
+        "Returns a quote for a transfer, in µUSD."
       ],
       "discriminator": [
         140,
@@ -940,8 +959,8 @@ export type TokenBridgeRelayer = {
           "type": "u16"
         },
         {
-          "name": "dropoffAmount",
-          "type": "u64"
+          "name": "dropoffAmountMicro",
+          "type": "u32"
         }
       ],
       "returns": "u64"
@@ -1225,6 +1244,12 @@ export type TokenBridgeRelayer = {
     },
     {
       "name": "transferTokens",
+      "docs": [
+        "# Parameters",
+        "",
+        "- `dropoff_amount_micro`: the dropoff in µ-target-token.",
+        "- `max_fee_klam`: the maximum fee the user is willing to pay, in Klamports, aka µSOL."
+      ],
       "discriminator": [
         54,
         180,
@@ -1459,6 +1484,24 @@ export type TokenBridgeRelayer = {
           "writable": true
         },
         {
+          "name": "wormholeSender",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  110,
+                  100,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
+        },
+        {
           "name": "wormholeFeeCollector",
           "writable": true
         },
@@ -1533,8 +1576,8 @@ export type TokenBridgeRelayer = {
           "type": "bool"
         },
         {
-          "name": "gasDropoffAmountMwei",
-          "type": "u64"
+          "name": "dropoffAmountMicro",
+          "type": "u32"
         },
         {
           "name": "maxFeeKlam",
@@ -1956,8 +1999,8 @@ export type TokenBridgeRelayer = {
           "type": "u16"
         },
         {
-          "name": "maxGasDropoffMwei",
-          "type": "u64"
+          "name": "maxGasDropoffMicroToken",
+          "type": "u32"
         }
       ]
     },
@@ -2075,7 +2118,7 @@ export type TokenBridgeRelayer = {
         },
         {
           "name": "relayerFee",
-          "type": "u64"
+          "type": "u32"
         }
       ]
     }
@@ -2144,6 +2187,19 @@ export type TokenBridgeRelayer = {
         210,
         185,
         218
+      ]
+    },
+    {
+      "name": "senderState",
+      "discriminator": [
+        15,
+        38,
+        72,
+        105,
+        206,
+        169,
+        147,
+        163
       ]
     },
     {
@@ -2299,19 +2355,22 @@ export type TokenBridgeRelayer = {
             }
           },
           {
-            "name": "maxGasDropoff",
-            "type": "u64"
+            "name": "maxGasDropoffMicroToken",
+            "docs": [
+              "The maximum amount of target token the user can ask a dropoff for, in µ-target-token."
+            ],
+            "type": "u32"
           },
           {
             "name": "pausedOutboundTransfers",
             "type": "bool"
           },
           {
-            "name": "relayerFee",
+            "name": "relayerFeeMicroUsd",
             "docs": [
               "The fee for the relayer, in μUSD."
             ],
-            "type": "u64"
+            "type": "u32"
           }
         ]
       }
@@ -2404,6 +2463,16 @@ export type TokenBridgeRelayer = {
             "type": "u64"
           }
         ]
+      }
+    },
+    {
+      "name": "senderState",
+      "docs": [
+        "Empty account. Exists only because the Wormhole program expects it."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": []
       }
     },
     {
