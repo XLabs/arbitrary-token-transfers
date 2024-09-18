@@ -1,0 +1,11 @@
+{
+  "name": "evm",
+  "version": "0.0.1",
+  "scripts": {
+    "build": "forge build && typechain --target=ethers-v6 --out-dir=./ethers-contracts ../evm/build-forge/*.sol/!(*.dbg).json --show-stack-traces",
+    "clean": "forge clean && rm -rf ./ethers-contracts"
+  },
+  "dependencies": {
+    "@typechain/ethers-v6": "^0.5.1"
+  }
+}
