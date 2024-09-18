@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/token_bridge_relayer.json`.
  */
 export type TokenBridgeRelayer = {
-  "address": "AtTszDryLbQ4bE6nQp5NhFk9jAsPSNX1arYHMxifzTn1",
+  "address": "AttbEYJMSsnVRDcKY4AcX1GBcdPy9FzHcxTbKaMGGuLs",
   "metadata": {
     "name": "tokenBridgeRelayer",
     "version": "3.0.0",

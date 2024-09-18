@@ -1,8 +1,9 @@
 ### Solana Deployment Playbook:
 ```shell
-
-solana-keygen grind --ignore-case --starts-with att:1
-solana-keygen grind --ignore-case --starts-with atb:1
+cd deployment && \
+  solana-keygen grind --ignore-case --starts-with att:1 && \
+  solana-keygen grind --ignore-case --starts-with atb:1 && \
+  cd -
 
 #
 # ❗❗❗ set the buffer account address on your env and on lib.rs, anchor.toml and contracts.json
@@ -14,14 +15,11 @@ solana-keygen grind --ignore-case --starts-with atb:1
 
 set -o allexport && source ./deployment/.env.testnet
 
-rm -rf target/idl target/types
-
-anchor build -- --features "solana-devnet"
-
-rm ./sdk/solana/tbrv3/idl/token_bridge_relayer.json && \
-  cp ./target/idl/token_bridge_relayer.json ./sdk/solana/tbrv3/idl
-
-yarn ./sdk/solana build
+rm -rf target/idl target/types && \
+  anchor build -- --features "solana-devnet" && \
+  rm ./sdk/solana/tbrv3/idl/token_bridge_relayer.json && \
+  cp ./target/idl/token_bridge_relayer.json ./sdk/solana/tbrv3/idl && \
+  yarn ./sdk/solana build
 
 cd deployment
 
@@ -54,7 +52,5 @@ yarn tsx ./solana/initialize.ts && \
   yarn tsx ./solana/unpause-contract.ts
 
 yarn tsx ./solana/register-peers.ts
-
-
 
 ```

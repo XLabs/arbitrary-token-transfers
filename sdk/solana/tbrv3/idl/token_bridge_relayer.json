@@ -1,5 +1,5 @@
 {
-  "address": "AtTszDryLbQ4bE6nQp5NhFk9jAsPSNX1arYHMxifzTn1",
+  "address": "AttbEYJMSsnVRDcKY4AcX1GBcdPy9FzHcxTbKaMGGuLs",
   "metadata": {
     "name": "token_bridge_relayer",
     "version": "3.0.0",
@@ -653,6 +653,25 @@
           }
         },
         {
+          "name": "wormhole_sender",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  110,
+                  100,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
+        },
+        {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
@@ -812,7 +831,7 @@
     {
       "name": "relaying_fee",
       "docs": [
-        "Returns a quote for a transfer."
+        "Returns a quote for a transfer, in µUSD."
       ],
       "discriminator": [
         140,
@@ -934,8 +953,8 @@
           "type": "u16"
         },
         {
-          "name": "dropoff_amount",
-          "type": "u64"
+          "name": "dropoff_amount_micro",
+          "type": "u32"
         }
       ],
       "returns": "u64"
@@ -1219,6 +1238,12 @@
     },
     {
       "name": "transfer_tokens",
+      "docs": [
+        "# Parameters",
+        "",
+        "- `dropoff_amount_micro`: the dropoff in µ-target-token.",
+        "- `max_fee_klam`: the maximum fee the user is willing to pay, in Klamports, aka µSOL."
+      ],
       "discriminator": [
         54,
         180,
@@ -1453,6 +1478,24 @@
           "writable": true
         },
         {
+          "name": "wormhole_sender",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  110,
+                  100,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
+        },
+        {
           "name": "wormhole_fee_collector",
           "writable": true
         },
@@ -1527,8 +1570,8 @@
           "type": "bool"
         },
         {
-          "name": "gas_dropoff_amount_mwei",
-          "type": "u64"
+          "name": "dropoff_amount_micro",
+          "type": "u32"
         },
         {
           "name": "max_fee_klam",
@@ -1950,8 +1993,8 @@
           "type": "u16"
         },
         {
-          "name": "max_gas_dropoff_mwei",
-          "type": "u64"
+          "name": "max_gas_dropoff_micro_token",
+          "type": "u32"
         }
       ]
     },
@@ -2069,7 +2112,7 @@
         },
         {
           "name": "relayer_fee",
-          "type": "u64"
+          "type": "u32"
         }
       ]
     }
@@ -2138,6 +2181,19 @@
         210,
         185,
         218
+      ]
+    },
+    {
+      "name": "SenderState",
+      "discriminator": [
+        15,
+        38,
+        72,
+        105,
+        206,
+        169,
+        147,
+        163
       ]
     },
     {
@@ -2293,19 +2349,22 @@
             }
           },
           {
-            "name": "max_gas_dropoff",
-            "type": "u64"
+            "name": "max_gas_dropoff_micro_token",
+            "docs": [
+              "The maximum amount of target token the user can ask a dropoff for, in µ-target-token."
+            ],
+            "type": "u32"
           },
           {
             "name": "paused_outbound_transfers",
             "type": "bool"
           },
           {
-            "name": "relayer_fee",
+            "name": "relayer_fee_micro_usd",
             "docs": [
               "The fee for the relayer, in μUSD."
             ],
-            "type": "u64"
+            "type": "u32"
           }
         ]
       }
@@ -2398,6 +2457,16 @@
             "type": "u64"
           }
         ]
+      }
+    },
+    {
+      "name": "SenderState",
+      "docs": [
+        "Empty account. Exists only because the Wormhole program expects it."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": []
       }
     },
     {
