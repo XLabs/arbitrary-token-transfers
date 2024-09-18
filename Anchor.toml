@@ -15,6 +15,14 @@ token_bridge_relayer = "AtTszDryLbQ4bE6nQp5NhFk9jAsPSNX1arYHMxifzTn1"
 address = "ATqjh2vkjogyVUUNmXQssQZNSFGgSA7Tm6P1UzEUg85s" # Mainnet in lib.rs
 program = "solana/tests/solana_price_oracle.so"
 
+[[test.genesis]]
+address = "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth" # Mainnet in lib.rs
+program = "solana/tests/bridge.so"                      # Wormhole Core program
+
+[[test.genesis]]
+address = "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb" # Mainnet in lib.rs
+program = "solana/tests/token_bridge.so"
+
 [registry]
 url = "https://api.apr.dev"
 

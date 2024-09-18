@@ -9,9 +9,11 @@ import {
   UniversalAddress,
   VaaMessage,
 } from '@xlabs-xyz/solana-arbitrary-token-transfers';
-import { sendAndConfirmIx } from './helpers.js';
+import { sendAndConfirmIx, wormholeProgramId, tokenBridgeProgramId } from './helpers.js';
+import { SolanaWormholeCore } from '@wormhole-foundation/sdk-solana-core';
+import { SolanaAutomaticTokenBridge } from '@wormhole-foundation/sdk-solana-tokenbridge';
 
-export class ClientWrapper {
+export class TbrWrapper {
   private readonly client: TbrClient;
   readonly provider: AnchorProvider;
   readonly logs: { [key: string]: string[] };
@@ -180,7 +182,39 @@ export class ClientWrapper {
     );
   }
 
-  async relayingFee(chain: Chain, dropoffAmount: number): Promise<BN> {
-    return this.client.relayingFee(this.publicKey, chain, dropoffAmount);
+  async relayingFee(chain: Chain, dropoffAmount: number): Promise<number> {
+    return this.client.relayingFee(chain, dropoffAmount);
+  }
+}
+
+export class WormholeCoreWrapper {
+  public readonly provider: AnchorProvider;
+  public readonly client: SolanaWormholeCore<'Mainnet', 'Solana'>;
+
+  constructor(provider: AnchorProvider) {
+    this.provider = provider;
+    this.client = new SolanaWormholeCore('Mainnet', 'Solana', provider.connection, {
+      tokenBridge: tokenBridgeProgramId.toString(),
+    });
+  }
+
+  async initialize() {
+    //todo
+  }
+}
+
+export class TokenBridgeWrapper {
+  public readonly provider: AnchorProvider;
+  public readonly client: SolanaAutomaticTokenBridge<'Mainnet', 'Solana'>;
+
+  constructor(provider: AnchorProvider) {
+    this.provider = provider;
+    this.client = new SolanaAutomaticTokenBridge('Mainnet', 'Solana', provider.connection, {
+      coreBridge: wormholeProgramId.toString(),
+    });
+  }
+
+  async initialize() {
+    //todo
   }
 }

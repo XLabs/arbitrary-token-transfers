@@ -8,8 +8,12 @@ import {
   requestAirdrop,
   assertEqChainConfigs,
 } from './utils/helpers.js';
-import { ClientWrapper } from './utils/client-wrapper.js';
+import { TbrWrapper, TokenBridgeWrapper, WormholeCoreWrapper } from './utils/client-wrapper.js';
 import { SolanaPriceOracleClient } from '@xlabs-xyz/solana-arbitrary-token-transfers';
+import * as wormholeCore from '@wormhole-foundation/sdk-solana-core';
+import * as tokenBridge from '@wormhole-foundation/sdk-solana-tokenbridge';
+import { wormholeProgramId, tokenBridgeProgramId } from './utils/helpers.js';
+import { expect } from 'chai';
 
 const ETHEREUM = 'Ethereum';
 const OASIS = 'Oasis';
@@ -17,11 +21,11 @@ const OASIS = 'Oasis';
 describe('Token Bridge Relayer Program', () => {
   const clients = (['owner', 'owner', 'admin', 'admin', 'regular'] as const).map(
     (typeAccount) =>
-      new ClientWrapper(
+      new TbrWrapper(
         newProvider(),
         {
-          tokenBridgeProgramId: PublicKey.default,
-          wormholeProgramId: PublicKey.default,
+          tokenBridgeProgramId,
+          wormholeProgramId,
         },
         typeAccount,
       ),
@@ -30,6 +34,12 @@ describe('Token Bridge Relayer Program', () => {
 
   const oracleOwner = newProvider();
   const oracleOwnerClient = new SolanaPriceOracleClient(oracleOwner.connection);
+
+  const wormholeCoreOwner = newProvider();
+  const wormholeCoreClient = new WormholeCoreWrapper(wormholeCoreOwner);
+
+  const tokenBridgeOwner = newProvider();
+  const tokenBridgeClient = new TokenBridgeWrapper(tokenBridgeOwner);
 
   const feeRecipient = PublicKey.unique();
   const evmTransactionGas = new anchor.BN(321000);
@@ -52,6 +62,9 @@ describe('Token Bridge Relayer Program', () => {
     await Promise.all(clients.map((client) => requestAirdrop(client.provider)));
     await requestAirdrop(oracleOwner);
 
+    // Oracle Setup
+    // ============
+
     await oracleOwner.sendAndConfirm(
       new Transaction().add(
         await oracleOwnerClient.initialize(oracleOwner.publicKey),
@@ -64,6 +77,10 @@ describe('Token Bridge Relayer Program', () => {
         await oracleOwnerClient.updateSolPrice(oracleOwner.publicKey, new anchor.BN(113_000_000)), // SOL is at $113
       ),
     );
+
+    // Wormhole Core Setup
+    // ===================
+    await wormholeCoreClient.initialize();
   });
 
   after(async () => {
@@ -279,7 +296,7 @@ describe('Token Bridge Relayer Program', () => {
 
       const result = await unauthorizedClient.relayingFee(ETHEREUM, dropoff);
 
-      assertEqBns(result, new anchor.BN(361824)); // SOL0.36, which is roughly $40
+      expect(result).closeTo(0.361824, 0.000001); // SOL0.36, which is roughly $40
     });
   });
 });

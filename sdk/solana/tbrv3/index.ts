@@ -493,13 +493,19 @@ export class TbrClient {
 
   /* Queries */
 
-  async relayingFee(signer: PublicKey, chain: Chain, dropoffAmount: number): Promise<anchor.BN> {
+  /**
+   *
+   * @param chain The target chain where the token will be sent to.
+   * @param dropoffAmount The amount to send to the target chain.
+   * @returns The fee to pay for the transfer in SOL.
+   */
+  async relayingFee(chain: Chain, dropoffAmount: number): Promise<number> {
     assertProvider(this.program.provider);
 
     const tx = await this.program.methods
       .relayingFee(chainToChainId(chain), dropoffAmount)
       .accountsStrict({
-        payer: signer,
+        payer: this.program.provider.publicKey,
         tbrConfig: this.address.config(),
         chainConfig: this.address.chainConfig(chain),
         oracleConfig: this.priceOracleClient.address.config(),
@@ -510,10 +516,9 @@ export class TbrClient {
       commitment: 'confirmed',
       maxSupportedTransactionVersion: undefined,
     });
-
     const result = returnedDataFromTransaction<bigint>('u64', txResponse);
 
-    return new anchor.BN(result.toString());
+    return Number(result) / 1_000_000;
   }
 }
 
