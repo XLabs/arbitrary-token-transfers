@@ -49,12 +49,12 @@ anchor idl init --provider.cluster=$solana_rpc_url \
   --provider.wallet "./deployment/$buffer_creator_account.json" \
    --filepath ./target/idl/token_bridge_relayer.json $program_address
 
-yarn tsx ./solana/initialize.ts
-
-yarn tsx ./solana/configure.ts
+yarn tsx ./solana/initialize.ts && \
+  yarn tsx ./solana/configure.ts && \
+  yarn tsx ./solana/unpause-contract.ts
 
 yarn tsx ./solana/register-peers.ts
 
-yarn tsx ./
+
 
 ```

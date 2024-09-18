@@ -12,6 +12,7 @@ import { EvmTbrV3Config } from '../config/config.types.js';
 
 runOnSolana('configure-tbr', configureSolanaTbr).catch((error) => {
   console.error('Error executing script: ', error);
+  console.log("extra logs", error.getLogs());
 });
 
 async function configureSolanaTbr(
@@ -30,7 +31,7 @@ async function configureSolanaTbr(
     wormholeProgramId: new PublicKey(solanaDependencies.wormhole),
   });
 
-  for (const tbrDeployment of contracts["TbrV3"]) {
+  for (const tbrDeployment of contracts["TbrV3Proxies"]) {
     if (tbrDeployment.chainId === chain.chainId) continue; // skip self;
 
     const desiredChainConfig = await getChainConfig<EvmTbrV3Config>('tbr-v3', tbrDeployment.chainId);
@@ -42,15 +43,30 @@ async function configureSolanaTbr(
       if (!(error instanceof Error) || !error.message?.includes("Account does not exist")) throw error;
     }
 
+    const peerUniversalAddress = new UniversalAddress(tbrDeployment.address);
+
     if (!currentChainConfig) {
       log('Registering peer on chain', tbrDeployment.chainId);
       const ix = await tbr.registerPeer(
         signerKey,
         chainIdToChain(tbrDeployment.chainId),
-        new UniversalAddress(tbrDeployment.address).address,
+        peerUniversalAddress.address,
       );
       const tx = await ledgerSignAndSend(connection, [ix], []);
       log(`Register succeeded on tx: ${tx}`);
+    } else {
+      const currentPeer = new UniversalAddress(new Uint8Array(currentChainConfig.canonicalPeer));
+
+      if (!currentPeer.equals(peerUniversalAddress)) {
+        log(`Updating peer for chain ${tbrDeployment.chainId} from ${currentPeer} to ${peerUniversalAddress}`);
+        const ix = await tbr.updateCanonicalPeer(
+          signerKey,
+          chainIdToChain(tbrDeployment.chainId),
+          peerUniversalAddress.address,
+        );
+        const tx = await ledgerSignAndSend(connection, [ix], []);
+        log(`Update succeeded on tx: ${tx}`);
+      }
     }
 
     if (!currentChainConfig || currentChainConfig.maxGasDropoff.toString() !== desiredChainConfig.maxGasDropoff) {

@@ -14,6 +14,7 @@ async function initializeSolanaTbr(
   signer: SolanaSigner,
   log: LoggerFn,
 ): Promise<void> {
+  console.log("hello?");
   const signerKey = new PublicKey(await signer.getAddress());
   const connection = getConnection(chain);
   const solanaDependencies = dependencies.find((d) => d.chainId === chain.chainId);
@@ -25,7 +26,9 @@ async function initializeSolanaTbr(
     wormholeProgramId: new PublicKey(solanaDependencies.wormhole),
   });
 
-  const config = await tbr.read.config();
+  const config = await tbr.read.chainConfig("Sepolia");
 
+  const peer = Buffer.from(config.canonicalPeer).toString("hex");
   console.log("config", inspect(config));
+  console.log("peer", peer);
 }

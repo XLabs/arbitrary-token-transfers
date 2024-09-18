@@ -34,7 +34,7 @@ evm.runOnEvms("register-peers", async (chain, signer, log) => {
 
     const currentCanonicalPeer = await tbrv3.canonicalPeer(otherTbrv3Chain);
     if (!currentCanonicalPeer.equals(peerAddress)) {
-      log(`Will update canonical peer: ${peerAddress}(${otherTbrv3.chainId})`);
+      log(`Will update canonical peer: ${peerAddress} (${otherTbrv3.chainId})`);
       updateCanonicalPeersCmd.set(otherTbrv3Chain, peerAddress);
     }
 
