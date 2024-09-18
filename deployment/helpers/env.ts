@@ -38,6 +38,14 @@ function loadVerificationApiKeys() {
   return loadJson<VerificationApiKeys[]>("verification-api-keys");
 }
 
+export function getEnvOrDefault(env: string, defaultValue: string): string {
+  try{
+    return getEnv(env);
+  }catch(e){
+    return defaultValue;
+  }
+}
+
 export function getEnv(env: string): string {
   const v = process.env[env];
   if (!v) {
