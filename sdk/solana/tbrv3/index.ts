@@ -39,8 +39,8 @@ export interface TransferNativeParameters {
   mint: PublicKey;
   tokenAccount: PublicKey;
   transferredAmount: anchor.BN;
-  gasDropoffAmount: anchor.BN;
-  maxFeeSol: anchor.BN;
+  gasDropoffAmount: number;
+  maxFeeKlamports: anchor.BN;
   unwrapIntent: boolean;
 }
 
@@ -49,8 +49,8 @@ export interface TransferWrappedParameters {
   recipientAddress: UniversalAddress;
   userTokenAccount: PublicKey;
   transferredAmount: anchor.BN;
-  gasDropoffAmount: anchor.BN;
-  maxFeeSol: anchor.BN;
+  gasDropoffAmount: number;
+  maxFeeKlamports: anchor.BN;
   unwrapIntent: boolean;
 }
 
@@ -255,7 +255,7 @@ export class TbrClient {
   async updateMaxGasDropoff(
     signer: PublicKey,
     chain: Chain,
-    maxGasDropoff: anchor.BN,
+    maxGasDropoff: number,
   ): Promise<web3.TransactionInstruction> {
     return this.program.methods
       .updateMaxGasDropoff(chainToChainId(chain), maxGasDropoff)
@@ -271,7 +271,7 @@ export class TbrClient {
   async updateRelayerFee(
     signer: PublicKey,
     chain: Chain,
-    relayerFee: anchor.BN,
+    relayerFee: number,
   ): Promise<web3.TransactionInstruction> {
     return this.program.methods
       .updateRelayerFee(chainToChainId(chain), relayerFee)
@@ -324,7 +324,7 @@ export class TbrClient {
       tokenAccount: userTokenAccount,
       transferredAmount,
       gasDropoffAmount,
-      maxFeeSol,
+      maxFeeKlamports: maxFeeSol,
       unwrapIntent,
     } = params;
 
@@ -380,7 +380,7 @@ export class TbrClient {
       userTokenAccount,
       transferredAmount,
       gasDropoffAmount,
-      maxFeeSol,
+      maxFeeKlamports,
       unwrapIntent,
     } = params;
 
@@ -406,7 +406,7 @@ export class TbrClient {
         transferredAmount,
         unwrapIntent,
         gasDropoffAmount,
-        maxFeeSol,
+        maxFeeKlamports,
       )
       .accountsPartial({
         payer: signer,
@@ -493,7 +493,7 @@ export class TbrClient {
 
   /* Queries */
 
-  async relayingFee(signer: PublicKey, chain: Chain, dropoffAmount: anchor.BN): Promise<anchor.BN> {
+  async relayingFee(signer: PublicKey, chain: Chain, dropoffAmount: number): Promise<anchor.BN> {
     assertProvider(this.program.provider);
 
     const tx = await this.program.methods

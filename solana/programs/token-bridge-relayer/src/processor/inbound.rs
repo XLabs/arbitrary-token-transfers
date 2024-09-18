@@ -64,7 +64,6 @@ pub struct CompleteTransfer<'info> {
         bump,
         constraint = vaa.data().to() == crate::ID @ TokenBridgeRelayerError::InvalidTransferToAddress,
         constraint = vaa.data().to_chain() == wormhole::CHAIN_ID_SOLANA @ TokenBridgeRelayerError::InvalidTransferToChain,
-        constraint = vaa.data().token_chain() == wormhole::CHAIN_ID_SOLANA @ TokenBridgeRelayerError::InvalidTransferTokenChain
     )]
     pub vaa: Account<'info, PostedRelayerMessage>,
 
@@ -184,10 +183,24 @@ pub fn complete_transfer(ctx: Context<CompleteTransfer>) -> Result<()> {
         ctx.accounts.peer.key()
     );
 
+    let signer_seeds: [&[_]; 1] = [
+        // "redeemer"
+        &[
+            TbrConfigState::SEED_PREFIX.as_ref(),
+            &[ctx.bumps.tbr_config],
+        ],
+    ];
+
     if is_native(&ctx)? {
-        token_bridge_complete_native(&ctx)?;
+        token_bridge_complete_native(&ctx, &signer_seeds)?;
     } else {
-        token_bridge_complete_wrapped(&ctx)?;
+        require_eq!(
+            ctx.accounts.vaa.data().token_chain(),
+            wormhole::CHAIN_ID_SOLANA,
+            TokenBridgeRelayerError::InvalidTransferTokenChain
+        );
+
+        token_bridge_complete_wrapped(&ctx, &signer_seeds)?;
     }
 
     // Redeem the gas dropoff:
@@ -210,11 +223,6 @@ pub fn complete_transfer(ctx: Context<CompleteTransfer>) -> Result<()> {
         )?;
     }
 
-    let config_seed = &[
-        TbrConfigState::SEED_PREFIX.as_ref(),
-        &[ctx.bumps.tbr_config],
-    ];
-
     // Finish instruction by closing tmp_token_account.
     anchor_spl::token::close_account(CpiContext::new_with_signer(
         ctx.accounts.token_program.to_account_info(),
@@ -223,16 +231,14 @@ pub fn complete_transfer(ctx: Context<CompleteTransfer>) -> Result<()> {
             destination: ctx.accounts.payer.to_account_info(),
             authority: ctx.accounts.tbr_config.to_account_info(),
         },
-        &[config_seed],
+        &signer_seeds,
     ))
 }
 
-fn token_bridge_complete_native(ctx: &Context<CompleteTransfer>) -> Result<()> {
-    let config_seed = &[
-        TbrConfigState::SEED_PREFIX.as_ref(),
-        &[ctx.bumps.tbr_config],
-    ];
-
+fn token_bridge_complete_native(
+    ctx: &Context<CompleteTransfer>,
+    signer_seeds: &[&[&[u8]]],
+) -> Result<()> {
     let token_bridge_custody = ctx
         .accounts
         .token_bridge_custody
@@ -262,16 +268,14 @@ fn token_bridge_complete_native(ctx: &Context<CompleteTransfer>) -> Result<()> {
             token_program: ctx.accounts.token_program.to_account_info(),
             wormhole_program: ctx.accounts.wormhole_program.to_account_info(),
         },
-        &[config_seed],
+        signer_seeds,
     ))
 }
 
-fn token_bridge_complete_wrapped(ctx: &Context<CompleteTransfer>) -> Result<()> {
-    let config_seed = &[
-        TbrConfigState::SEED_PREFIX.as_ref(),
-        &[ctx.bumps.tbr_config],
-    ];
-
+fn token_bridge_complete_wrapped(
+    ctx: &Context<CompleteTransfer>,
+    signer_seeds: &[&[&[u8]]],
+) -> Result<()> {
     let token_bridge_wrapped_meta = ctx
         .accounts
         .token_bridge_wrapped_meta
@@ -302,7 +306,7 @@ fn token_bridge_complete_wrapped(ctx: &Context<CompleteTransfer>) -> Result<()> 
             token_program: ctx.accounts.token_program.to_account_info(),
             wormhole_program: ctx.accounts.wormhole_program.to_account_info(),
         },
-        &[config_seed],
+        signer_seeds,
     ))
 }
 

@@ -69,16 +69,16 @@ async function configureSolanaTbr(
       }
     }
 
-    if (!currentChainConfig || currentChainConfig.maxGasDropoff.toString() !== desiredChainConfig.maxGasDropoff) {
+    if (!currentChainConfig || currentChainConfig.maxGasDropoffMicroToken.toString() !== desiredChainConfig.maxGasDropoff) {
       await log(`Updating maxGasDropoff on chain ${tbrDeployment.chainId} to ${desiredChainConfig.maxGasDropoff}`);
-      const ix = await tbr.updateMaxGasDropoff(signerKey, chainIdToChain(tbrDeployment.chainId), new BN(desiredChainConfig.maxGasDropoff));
+      const ix = await tbr.updateMaxGasDropoff(signerKey, chainIdToChain(tbrDeployment.chainId), parseInt(desiredChainConfig.maxGasDropoff));
       const tx = await ledgerSignAndSend(connection, [ix], []);
       log(`Update succeeded on tx: ${tx}`);
     }
 
-    if (!currentChainConfig || currentChainConfig.relayerFee.toNumber() !== desiredChainConfig.relayFee) {
+    if (!currentChainConfig || currentChainConfig.relayerFeeMicroUsd !== desiredChainConfig.relayFee) {
       await log(`Updating relayerFee on chain ${tbrDeployment.chainId} to ${desiredChainConfig.relayFee}`);
-      const ix = await tbr.updateRelayerFee(signerKey, chainIdToChain(tbrDeployment.chainId), new BN(desiredChainConfig.relayFee));
+      const ix = await tbr.updateRelayerFee(signerKey, chainIdToChain(tbrDeployment.chainId), desiredChainConfig.relayFee);
       const tx = await ledgerSignAndSend(connection, [ix], []);
       log(`Update succeeded on tx: ${tx}`);
     };
