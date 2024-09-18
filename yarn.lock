@@ -2738,6 +2738,7 @@ __metadata:
   resolution: "evm@workspace:evm"
   dependencies:
     "@typechain/ethers-v6": "npm:^0.5.1"
+    typechain: "npm:^8.3.2"
   languageName: unknown
   linkType: soft
 

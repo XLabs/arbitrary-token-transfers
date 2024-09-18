@@ -5,8 +5,4 @@
     "moduleResolution": "node",
     "outDir": "ts-build"
   },
-  "include": ["tests"],
-  "references": [
-    { "path": "../sdk/solana/tsconfig.json" }
-  ]
 }

@@ -1540,7 +1540,7 @@ const RAW_RUNTIME_STATE =
           ["ethers", null],\
           ["lodash", "npm:4.17.21"],\
           ["ts-essentials", "virtual:91d258d4ca48cb491244a607cfd81dab34494fb2ce3fd4304c0d469d316aed0277cd025bdda63758e07ed74de63e3682e71c96605677ae5650b27869f52acc1b#npm:7.0.3"],\
-          ["typechain", null],\
+          ["typechain", "virtual:bc7555349d25a577323e2ff8ce48f83f7b2f78c2c15b4d3ed865dda59d3d61a9a44ea1fc7ee82f6c30b9b2feecb24c1fb93ed3466a82de84f404a2f01e7ef122#npm:8.3.2"],\
           ["typescript", null]\
         ],\
         "packagePeers": [\
@@ -3192,7 +3192,8 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./evm/",\
         "packageDependencies": [\
           ["evm", "workspace:evm"],\
-          ["@typechain/ethers-v6", "virtual:bc7555349d25a577323e2ff8ce48f83f7b2f78c2c15b4d3ed865dda59d3d61a9a44ea1fc7ee82f6c30b9b2feecb24c1fb93ed3466a82de84f404a2f01e7ef122#npm:0.5.1"]\
+          ["@typechain/ethers-v6", "virtual:bc7555349d25a577323e2ff8ce48f83f7b2f78c2c15b4d3ed865dda59d3d61a9a44ea1fc7ee82f6c30b9b2feecb24c1fb93ed3466a82de84f404a2f01e7ef122#npm:0.5.1"],\
+          ["typechain", "virtual:bc7555349d25a577323e2ff8ce48f83f7b2f78c2c15b4d3ed865dda59d3d61a9a44ea1fc7ee82f6c30b9b2feecb24c1fb93ed3466a82de84f404a2f01e7ef122#npm:8.3.2"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -6061,6 +6062,29 @@ const RAW_RUNTIME_STATE =
           ["ts-command-line-args", "npm:2.5.1"],\
           ["ts-essentials", "virtual:9d9d59e77a154ace80a497ad65534b0250a59b20d99ddfadb59d3a17148b62b6dde403d40350cd4b485786b726d24b1825a8256e1ccf2bf4789c79f483de843f#npm:7.0.3"],\
           ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=8c6c40"]\
+        ],\
+        "packagePeers": [\
+          "@types/typescript",\
+          "typescript"\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["virtual:bc7555349d25a577323e2ff8ce48f83f7b2f78c2c15b4d3ed865dda59d3d61a9a44ea1fc7ee82f6c30b9b2feecb24c1fb93ed3466a82de84f404a2f01e7ef122#npm:8.3.2", {\
+        "packageLocation": "./.yarn/__virtual__/typechain-virtual-aa814831eb/0/cache/typechain-npm-8.3.2-b02e27439e-1ea660cc7c.zip/node_modules/typechain/",\
+        "packageDependencies": [\
+          ["typechain", "virtual:bc7555349d25a577323e2ff8ce48f83f7b2f78c2c15b4d3ed865dda59d3d61a9a44ea1fc7ee82f6c30b9b2feecb24c1fb93ed3466a82de84f404a2f01e7ef122#npm:8.3.2"],\
+          ["@types/prettier", "npm:2.7.3"],\
+          ["@types/typescript", null],\
+          ["debug", "virtual:c9e1a4b59e37cb479517edede3bf2093b28c0ca1a9d0e517f3c345075bd1e468980b94b4957e389116607ee7155441dfd7d09e19a4229d5d09bcf06244401590#npm:4.3.7"],\
+          ["fs-extra", "npm:7.0.1"],\
+          ["glob", "npm:7.1.7"],\
+          ["js-sha3", "npm:0.8.0"],\
+          ["lodash", "npm:4.17.21"],\
+          ["mkdirp", "npm:1.0.4"],\
+          ["prettier", "npm:2.8.8"],\
+          ["ts-command-line-args", "npm:2.5.1"],\
+          ["ts-essentials", "virtual:91d258d4ca48cb491244a607cfd81dab34494fb2ce3fd4304c0d469d316aed0277cd025bdda63758e07ed74de63e3682e71c96605677ae5650b27869f52acc1b#npm:7.0.3"],\
+          ["typescript", null]\
         ],\
         "packagePeers": [\
           "@types/typescript",\
