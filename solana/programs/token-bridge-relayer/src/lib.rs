@@ -12,7 +12,7 @@ cfg_if::cfg_if! {
         declare_id!("AtTrxsPbTfBhC9uwwJGJbkFMux78t5EWTAXAbwUW8yC7");
         const WORMHOLE_MINT_AUTHORITY: Pubkey = anchor_lang::pubkey!("BCD75RNBHrJJpW4dXVagL5mPjzRLnVZq4YirJdjEYMV7");
     } else if #[cfg(feature = "solana-devnet")] {
-        declare_id!("AtTByoATABXxKRK8VZbiKw3vuURVszCpD5PmsgF6XXJc");
+        declare_id!("AtTY94XFgUwGXCF6ZJjuwTF4y6545bwFdX98Jp1oKe3o");
         const WORMHOLE_MINT_AUTHORITY: Pubkey = anchor_lang::pubkey!("rRsXLHe7sBHdyKU3KY3wbcgWvoT1Ntqudf6e9PKusgb");
     } else if #[cfg(feature = "tilt-devnet")] {
         declare_id!("46kv4wCpfEtLsHPDh4zm7jJb2pVdvke8Pj2ABYYJotFD");

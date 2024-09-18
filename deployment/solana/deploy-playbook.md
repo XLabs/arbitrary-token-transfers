@@ -4,28 +4,33 @@
 solana-keygen grind --ignore-case --starts-with att:1
 solana-keygen grind --ignore-case --starts-with atb:1
 
-#!! set the buffer account address on your env and on lib.rs, anchor.toml and contracts.json
+#
+# ❗❗❗ set the buffer account address on your env and on lib.rs, anchor.toml and contracts.json
+#
+
+#
+# ❗❗❗ make sure to 
+#
+
+set -o allexport && source ./deployment/.env.testnet
 
 rm -rf target/idl target/types
 
 anchor build -- --features "solana-devnet"
 
-rm ./sdk/solana/tbrv3/idl/token_bridge_relayer.json
-
-cp ./target/idl/token_bridge_relayer.json ./sdk/solana/tbrv3/idl
+rm ./sdk/solana/tbrv3/idl/token_bridge_relayer.json && \
+  cp ./target/idl/token_bridge_relayer.json ./sdk/solana/tbrv3/idl
 
 yarn ./sdk/solana build
 
 cd deployment
-
-. .env.testnet
 
 solana program -k "$buffer_creator_account.json" \
   --url $solana_rpc_url \
   write-buffer \
   ../target/deploy/token_bridge_relayer.so \
   --buffer "./$buffer_account.json" \
-  --with-compute-unit-price 100000 
+  --with-compute-unit-price 10000 
 
 solana program set-buffer-authority $buffer_account \
   -k $buffer_creator_account.json --new-buffer-authority $deployer_account \
@@ -49,5 +54,7 @@ yarn tsx ./solana/initialize.ts
 yarn tsx ./solana/configure.ts
 
 yarn tsx ./solana/register-peers.ts
+
+yarn tsx ./
 
 ```
