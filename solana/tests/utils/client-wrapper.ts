@@ -166,7 +166,7 @@ export class TbrWrapper {
     recipient: PublicKey,
   ): Promise<TransactionSignature> {
     return sendAndConfirmIx(
-      this.client.completeNativeTransfer(this.publicKey, vaa, recipientTokenAccount, recipient),
+      this.client.completeNativeTransfer(this.publicKey, vaa, recipientTokenAccount),
       this.provider,
     );
   }
@@ -177,7 +177,7 @@ export class TbrWrapper {
     recipient: PublicKey,
   ): Promise<TransactionSignature> {
     return sendAndConfirmIx(
-      this.client.completeWrappedTransfer(this.publicKey, vaa, recipientTokenAccount, recipient),
+      this.client.completeWrappedTransfer(this.publicKey, vaa, recipientTokenAccount),
       this.provider,
     );
   }

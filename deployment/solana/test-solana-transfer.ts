@@ -51,8 +51,8 @@ async function sendTestTransaction(
         mint: new PublicKey(getEnv('TRANSFER_MINT')),
         tokenAccount: new PublicKey(getEnv('TRANSFER_TOKEN_ACCOUNT')),
         transferredAmount: new BN(1000),
-        gasDropoffAmount: new BN(0),
-        maxFeeSol: new BN(5000),
+        gasDropoffAmount: 0,
+        maxFeeKlamports: new BN(5000),
         unwrapIntent: false,
       };
 
