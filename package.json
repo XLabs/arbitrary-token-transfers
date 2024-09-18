@@ -10,10 +10,12 @@
     "build:solana-devenet": "yarn sdk/solana build:devnet",
     "build:solana": "yarn sdk/solana build",
     "build:evm": "(cd evm && forge build)",
+    "build:deployment": "yarn ./deployment build:evm",
     "build:all-devnet": "yarn build:solana-devenet && yarn build:evm && yarn build:sdk-solana && yarn build:sdk-evm",
     "build:all": "yarn build:solana && yarn build:evm && yarn build:sdk-solana && yarn build:sdk-evm",
     "clean:solana": "yarn sdk/solana clean",
     "clean:evm": "(cd evm && forge clean)",
+    "clean:deployment": "yarn ./deployment clean",
     "prettier": "prettier --write ."
   },
   "keywords": [],
