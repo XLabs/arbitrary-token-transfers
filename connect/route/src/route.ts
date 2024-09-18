@@ -32,6 +32,8 @@ interface ValidatedTransferOptions extends TransferOptions {
 
 type Receipt = TransferReceipt<AttestationReceipt<"AutomaticTokenBridgeV3">>;
 
+const WHOLE_EVM_GAS_TOKEN_UNITS = 1e18;
+
 export class AutomaticTokenBridgeRouteV3<N extends Network>
   extends routes.AutomaticRoute<N, any, any, any>
   implements routes.StaticRouteMethods<typeof AutomaticTokenBridgeRouteV3>
@@ -97,8 +99,6 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
       if (tokenBridgeRelayerV3Chains.has(request.fromChain.chain)) throw new Error('Source chain not supported');
       if (request.fromChain.config.network === 'Devnet') throw new Error('Devnet not supported');
 
-      // const stbr = await request.fromChain.getProtocol('AutomaticTokenBridgeV3');
-      // const dtbr = await request.toChain.getProtocol('AutomaticTokenBridgeV3');
       const destinationDecimals = await request.toChain.getDecimals('native');
 
       const options: ValidatedTransferOptions = {
@@ -112,15 +112,7 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
           throw new Error("Native gas must be between 0.0 and 1.0 (0% and 100%)");
         }
 
-        // TODO: check max gas drop off (see existing implementation)
-        // TODO: check gas dropoff units for each platform (evm is twei, but solana?)
-        // const { maxGasDropoff } = await dtbr.baseRelayingParams(request.toChain.chain);
-        // const dropoff = request.parseAmount(params.amount) * options.nativeGas;
-        // if ()
-        // ================================================ //
-
         const stbr = await request.fromChain.getProtocol('AutomaticTokenBridgeV3');
-
         const { maxGasDropoff } = await stbr.baseRelayingParams(request.toChain.chain);
 
         const perc = BigInt(Math.floor(options.nativeGas * 100));
@@ -130,8 +122,6 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
           dropoff,
           destinationDecimals
         );
-
-        // ================================================ //
       }
 
       return {
@@ -160,7 +150,8 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
 
       const tbr = await request.fromChain.getProtocol('AutomaticTokenBridgeV3');
 
-      const gasDropoff = Number(params.options.gasDropOff?.amount || 0) / 1e18;
+      // TODO: find a better way in order to avoid precision issues
+      const gasDropoff = Number(params.options.gasDropOff?.amount || 0) / WHOLE_EVM_GAS_TOKEN_UNITS;
 
       const { fee, isPaused } = await tbr.relayingFee({
         gasDropoff,
@@ -175,7 +166,8 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
       const feeToken: TokenId = { address: 'native', chain: sourceChain }
 
       // convert from eth to wei since the ui needs it in base units
-      const feeAmount = BigInt(Math.floor(fee * 1e10)) * BigInt(Math.floor(10 ** Math.abs(srcDecimals - 10)));
+      // TODO: find a better way in order to avoid precision issues
+      const feeAmount = BigInt(Math.floor(fee * WHOLE_EVM_GAS_TOKEN_UNITS));
 
       const eta = finality.estimateFinalityTime(sourceChain) + guardians.guardianAttestationEta;
 
@@ -225,11 +217,10 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
 
     const tbr = await request.fromChain.getProtocol('AutomaticTokenBridgeV3');
 
-    // convert the fee back from wei to eth
-    const fee = Number(quote.relayFee?.amount.amount || 0) / 1e18;
-
-    // const gasDropoff = Number(quote.params.options.gasDropOff?.amount || 0);
-    const gasDropOff = Number(quote.params.options.gasDropOff?.amount || 0) / 1e18;
+    // convert the fee and gas dropoff back from wei to eth
+    // TODO: find a better way in order to avoid precision issues
+    const fee = Number(quote.relayFee?.amount.amount || 0) / WHOLE_EVM_GAS_TOKEN_UNITS;
+    const gasDropOff = Number(quote.params.options.gasDropOff?.amount || 0) / WHOLE_EVM_GAS_TOKEN_UNITS;
 
     // TODO: how to specify chain specific args (e.g. acquireMode)?
     const transferTxs = tbr.transfer({
@@ -242,7 +233,9 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
       token: request.source.id,
       gasDropOff,
       fee,
-      // TODO: solve type issue
+      // TODO: receive through config
+      unwrapIntent: true,
+      // TODO: fix types
       // @ts-ignore
       acquireMode: quote.params.options.acquireMode,
     });
