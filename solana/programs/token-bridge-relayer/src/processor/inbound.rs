@@ -193,8 +193,7 @@ pub fn complete_transfer(ctx: Context<CompleteTransfer>) -> Result<()> {
     // Redeem the gas dropoff:
 
     // Denormalize the gas_dropoff_amount:
-    let gas_dropoff_amount =
-        token_bridge::denormalize_amount(u64::from(gas_dropoff_amount), ctx.accounts.mint.decimals);
+    let gas_dropoff_amount = gas_dropoff_amount as u64 * 1_000;
 
     // Transfer lamports from the payer to the recipient if the
     // gas_dropoff_amount is nonzero:
@@ -211,7 +210,21 @@ pub fn complete_transfer(ctx: Context<CompleteTransfer>) -> Result<()> {
         )?;
     }
 
-    Ok(())
+    let config_seed = &[
+        TbrConfigState::SEED_PREFIX.as_ref(),
+        &[ctx.bumps.tbr_config],
+    ];
+
+    // Finish instruction by closing tmp_token_account.
+    anchor_spl::token::close_account(CpiContext::new_with_signer(
+        ctx.accounts.token_program.to_account_info(),
+        anchor_spl::token::CloseAccount {
+            account: ctx.accounts.temporary_account.to_account_info(),
+            destination: ctx.accounts.payer.to_account_info(),
+            authority: ctx.accounts.tbr_config.to_account_info(),
+        },
+        &[config_seed],
+    ))
 }
 
 fn token_bridge_complete_native(ctx: &Context<CompleteTransfer>) -> Result<()> {

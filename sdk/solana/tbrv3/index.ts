@@ -457,6 +457,7 @@ export class TbrClient {
         ...tokenBridgeAccounts,
         tokenBridgeProgram: this.tokenBridgeProgramId,
         wormholeProgram: this.wormholeProgramId,
+        peer: pda.peer(this.program.programId, vaa.emitterChain, vaa.emitterAddress.toUint8Array()),
       })
       .instruction();
   }
@@ -485,6 +486,7 @@ export class TbrClient {
         ...tokenBridgeAccounts,
         tokenBridgeProgram: this.tokenBridgeProgramId,
         wormholeProgram: this.wormholeProgramId,
+        peer: pda.peer(this.program.programId, vaa.emitterChain, vaa.emitterAddress.toUint8Array()),
       })
       .instruction();
   }

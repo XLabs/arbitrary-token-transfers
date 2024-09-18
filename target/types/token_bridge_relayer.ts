@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/token_bridge_relayer.json`.
  */
 export type TokenBridgeRelayer = {
-  "address": "ATTMxkcYak1RMR7BWZ3CMpDke9MHhBf5eUC7WTdX1f1x",
+  "address": "AtTByoATABXxKRK8VZbiKw3vuURVszCpD5PmsgF6XXJc",
   "metadata": {
     "name": "tokenBridgeRelayer",
     "version": "3.0.0",
@@ -459,11 +459,11 @@ export type TokenBridgeRelayer = {
         },
         {
           "name": "wormholeProgram",
-          "address": "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth"
+          "address": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"
         },
         {
           "name": "tokenBridgeProgram",
-          "address": "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"
+          "address": "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe"
         },
         {
           "name": "rent",
@@ -1348,6 +1348,7 @@ export type TokenBridgeRelayer = {
           "docs": [
             "Fee recipient's account. The fee will be transferred to this account."
           ],
+          "writable": true,
           "relations": [
             "tbrConfig"
           ]
@@ -1458,6 +1459,10 @@ export type TokenBridgeRelayer = {
           "writable": true
         },
         {
+          "name": "wormholeFeeCollector",
+          "writable": true
+        },
+        {
           "name": "payerSequence",
           "docs": [
             "Used to keep track of payer's Wormhole sequence number."
@@ -1490,11 +1495,11 @@ export type TokenBridgeRelayer = {
         },
         {
           "name": "tokenBridgeProgram",
-          "address": "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"
+          "address": "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe"
         },
         {
           "name": "wormholeProgram",
-          "address": "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth"
+          "address": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"
         },
         {
           "name": "clock",

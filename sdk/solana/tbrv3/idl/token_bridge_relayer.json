@@ -1,5 +1,5 @@
 {
-  "address": "ATTMxkcYak1RMR7BWZ3CMpDke9MHhBf5eUC7WTdX1f1x",
+  "address": "AtTByoATABXxKRK8VZbiKw3vuURVszCpD5PmsgF6XXJc",
   "metadata": {
     "name": "token_bridge_relayer",
     "version": "3.0.0",
@@ -453,11 +453,11 @@
         },
         {
           "name": "wormhole_program",
-          "address": "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth"
+          "address": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"
         },
         {
           "name": "token_bridge_program",
-          "address": "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"
+          "address": "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe"
         },
         {
           "name": "rent",
@@ -1342,6 +1342,7 @@
           "docs": [
             "Fee recipient's account. The fee will be transferred to this account."
           ],
+          "writable": true,
           "relations": [
             "tbr_config"
           ]
@@ -1452,6 +1453,10 @@
           "writable": true
         },
         {
+          "name": "wormhole_fee_collector",
+          "writable": true
+        },
+        {
           "name": "payer_sequence",
           "docs": [
             "Used to keep track of payer's Wormhole sequence number."
@@ -1484,11 +1489,11 @@
         },
         {
           "name": "token_bridge_program",
-          "address": "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"
+          "address": "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe"
         },
         {
           "name": "wormhole_program",
-          "address": "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth"
+          "address": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"
         },
         {
           "name": "clock",
