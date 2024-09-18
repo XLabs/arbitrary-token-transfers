@@ -1,4 +1,4 @@
-import * as anchor from '@coral-xyz/anchor';
+import anchor from '@coral-xyz/anchor';
 import { PublicKey, SendTransactionError, Transaction } from '@solana/web3.js';
 import {
   assertResolveFailure,
@@ -66,6 +66,11 @@ describe('Token Bridge Relayer Program', () => {
     );
   });
 
+  after(async () => {
+    // Prevents the tests to be stuck, by closing the open channels.
+    await Promise.all(clients.map((client) => client.close()));
+  });
+
   it('Is initialized!', async () => {
     await ownerClient.initialize();
 
@@ -102,11 +107,11 @@ describe('Token Bridge Relayer Program', () => {
 
     it('Only the owner can add an admin', async () => {
       // At first, the admin doesn't exist:
-      await assertResolveFailure(unauthorizedClient.read.admin(adminClient1.publicKey));
+      await assertResolveFailure(unauthorizedClient.read.adminBadge(adminClient1.publicKey));
 
       // After being added, it exists:
       await newOwnerClient.addAdmin(adminClient1.publicKey);
-      await unauthorizedClient.read.admin(adminClient1.publicKey);
+      await unauthorizedClient.read.adminBadge(adminClient1.publicKey);
 
       // An admin cannot add another one:
       await assertResolveFailure(
@@ -114,13 +119,13 @@ describe('Token Bridge Relayer Program', () => {
         SendTransactionError,
       );
 
-      // The owner can:
+      // ... but the owner can:
       await newOwnerClient.addAdmin(adminClient2.publicKey);
-      await unauthorizedClient.read.admin(adminClient2.publicKey);
+      await unauthorizedClient.read.adminBadge(adminClient2.publicKey);
 
       // On the contrary, an admin can remove another one:
       await adminClient1.removeAdmin(adminClient2.publicKey);
-      await assertResolveFailure(unauthorizedClient.read.admin(adminClient2.publicKey));
+      await assertResolveFailure(unauthorizedClient.read.adminBadge(adminClient2.publicKey));
     });
 
     it('Unauthorized cannot add or remove an admin', async () => {
@@ -140,31 +145,31 @@ describe('Token Bridge Relayer Program', () => {
       await newOwnerClient.registerPeer(ETHEREUM, ethereumPeer1);
       assertEqChainConfigs(await unauthorizedClient.read.chainConfig(ETHEREUM), {
         canonicalPeer: Array.from(ethereumPeer1),
-        maxGasDropoff: new anchor.BN(0),
+        maxGasDropoffMicroToken: 0,
         pausedOutboundTransfers: true,
-        relayerFee: new anchor.BN(0),
+        relayerFeeMicroUsd: 0,
       });
 
       await adminClient1.registerPeer(ETHEREUM, ethereumPeer2);
       assertEqChainConfigs(await unauthorizedClient.read.chainConfig(ETHEREUM), {
         canonicalPeer: Array.from(ethereumPeer1),
-        maxGasDropoff: new anchor.BN(0),
+        maxGasDropoffMicroToken: 0,
         pausedOutboundTransfers: true,
-        relayerFee: new anchor.BN(0),
+        relayerFeeMicroUsd: 0,
       });
 
       await adminClient1.registerPeer(OASIS, oasisPeer);
       assertEqChainConfigs(await unauthorizedClient.read.chainConfig(OASIS), {
         canonicalPeer: Array.from(oasisPeer),
-        maxGasDropoff: new anchor.BN(0),
+        maxGasDropoffMicroToken: 0,
         pausedOutboundTransfers: true,
-        relayerFee: new anchor.BN(0),
+        relayerFeeMicroUsd: 0,
       });
       assertEqChainConfigs(await unauthorizedClient.read.chainConfig(ETHEREUM), {
         canonicalPeer: Array.from(ethereumPeer1),
-        maxGasDropoff: new anchor.BN(0),
+        maxGasDropoffMicroToken: 0,
         pausedOutboundTransfers: true,
-        relayerFee: new anchor.BN(0),
+        relayerFeeMicroUsd: 0,
       });
     });
 
@@ -173,9 +178,9 @@ describe('Token Bridge Relayer Program', () => {
 
       assertEqChainConfigs(await unauthorizedClient.read.chainConfig(ETHEREUM), {
         canonicalPeer: Array.from(ethereumPeer2),
-        maxGasDropoff: new anchor.BN(0),
+        maxGasDropoffMicroToken: 0,
         pausedOutboundTransfers: true,
-        relayerFee: new anchor.BN(0),
+        relayerFeeMicroUsd: 0,
       });
     });
 
@@ -210,19 +215,19 @@ describe('Token Bridge Relayer Program', () => {
 
   describe('Chain Config', () => {
     it('Values are updated', async () => {
-      const maxGasDropoff = new anchor.BN('10000000000000'); // ETH10 maximum
-      const relayerFee = new anchor.BN(900_000); // $0.9
+      const maxGasDropoffMicroToken = 10_000_000; // ETH10 maximum
+      const relayerFeeMicroUsd = 900_000; // $0.9
       await Promise.all([
         adminClient1.setPauseForOutboundTransfers(ETHEREUM, false),
-        adminClient1.updateMaxGasDropoff(ETHEREUM, maxGasDropoff),
-        adminClient1.updateRelayerFee(ETHEREUM, relayerFee),
+        adminClient1.updateMaxGasDropoff(ETHEREUM, maxGasDropoffMicroToken),
+        adminClient1.updateRelayerFee(ETHEREUM, relayerFeeMicroUsd),
       ]);
 
       assertEqChainConfigs(await unauthorizedClient.read.chainConfig(ETHEREUM), {
         canonicalPeer: Array.from(ethereumPeer2),
-        maxGasDropoff,
+        maxGasDropoffMicroToken,
         pausedOutboundTransfers: false,
-        relayerFee,
+        relayerFeeMicroUsd,
       });
     });
 
@@ -232,11 +237,11 @@ describe('Token Bridge Relayer Program', () => {
         SendTransactionError,
       );
       await assertResolveFailure(
-        unauthorizedClient.updateMaxGasDropoff(ETHEREUM, new anchor.BN(0)),
+        unauthorizedClient.updateMaxGasDropoff(ETHEREUM, 0),
         SendTransactionError,
       );
       await assertResolveFailure(
-        unauthorizedClient.updateRelayerFee(ETHEREUM, new anchor.BN(0)),
+        unauthorizedClient.updateRelayerFee(ETHEREUM, 0),
         SendTransactionError,
       );
     });
@@ -270,11 +275,11 @@ describe('Token Bridge Relayer Program', () => {
 
   describe('Querying the quote', () => {
     it('Fetches the quote', async () => {
-      const dropoff = new anchor.BN('50000000000'); // ETH0.05
+      const dropoff = 50000; // ETH0.05
 
       const result = await unauthorizedClient.relayingFee(ETHEREUM, dropoff);
 
-      assertEqBns(result, new anchor.BN(123));
+      assertEqBns(result, new anchor.BN(361824)); // SOL0.36, which is roughly $40
     });
   });
 });

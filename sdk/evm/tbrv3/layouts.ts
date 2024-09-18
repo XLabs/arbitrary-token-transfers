@@ -19,7 +19,7 @@ const peerChainAndAddressItem = {
   ]
 } as const;
 
-const evmAddressItem = {
+export const evmAddressItem = {
   binary: "bytes",
   size: 20,
   custom: {
@@ -42,7 +42,7 @@ const decimalDownShift = (downShift: number) => ({
 
 //specifed as: gas token (i.e. eth, avax, ...)
 // encoded as: µgas token
-const gasDropoffItem = {
+export const gasDropoffItem = {
   binary: "uint",
   size: 4,
   custom: decimalDownShift(6),
@@ -50,7 +50,7 @@ const gasDropoffItem = {
 
 //specifed as: usd
 // encoded as: µusd
-const baseFeeItem = gasDropoffItem; //same representation
+export const baseFeeItem = gasDropoffItem; //same representation
 
 const bigintDownshift = (quoteResultDecimals: number) => ({
   //like downshift, but for bigints
@@ -139,8 +139,8 @@ export const baseRelayingConfigInputLayout = [
 
 export const baseRelayingConfigReturnLayout = [
   { name: "peer", ...layoutItems.universalAddressItem },
-  { name: "baseFee", binary: "uint", size: 4 },
-  { name: "maxGasDropoff", binary: "uint", size: 4 },
+  { name: "baseFee", ...baseFeeItem},
+  { name: "maxGasDropoff", ...gasDropoffItem },
   { name: "paused", ...layoutItems.boolItem },
   { name: "txSizeSensitive", ...layoutItems.boolItem },
 ] as const satisfies Layout;

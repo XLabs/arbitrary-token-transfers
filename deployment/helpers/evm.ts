@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { ChainInfo, ecosystemChains, EvmScriptCb, getEnv, EvmChainInfo } from "./index.js";
+import { ChainInfo, ecosystemChains, EvmScriptCb, getEnv, EvmChainInfo, UncheckedConstructorArgs } from "./index.js";
 import { toChain } from "@wormhole-foundation/sdk-base";
 
 export async function runOnEvms(scriptName: string, cb: EvmScriptCb) {
@@ -96,4 +96,43 @@ export async function sendTx(
     console.error("Error sending transaction", error);
     return { receipt: null, error }
   }
+}
+
+export function getVerifyCommand({
+  chain,
+  contractName,
+  contractPath,
+  contractAddress,
+  constructorSignature,
+  constructorArgs,
+  verifier,
+  verifierUrl,
+  apiKey
+}: {  
+  chain: EvmChainInfo,
+  contractName: string,
+  contractPath: string,
+  contractAddress: string,
+  constructorSignature: string,
+  constructorArgs: UncheckedConstructorArgs,
+  verifier: string,
+  verifierUrl?: string,
+  apiKey?: string
+}): string {
+  if (chain.externalId === undefined)
+    throw new Error(`Chain ${chain.chainId} does not have an external ID`);
+
+  if (verifier === "blockscout" && verifierUrl === undefined)
+    throw new Error(`Verifier URL is required for Blockscout verifier`);
+
+  let command = `
+    forge verify-contract ${contractAddress} ${contractPath}:${contractName} \
+    --verifier ${verifier} \
+    ${ verifier === "blockscout" ? `--verifier-url ${verifierUrl}` : ''} \
+    --watch --constructor-args $(cast abi-encode "${constructorSignature}" "${constructorArgs.join('" "')}") \
+    --chain-id ${chain.externalId} \
+    ${ apiKey === undefined || apiKey === "" ? '' : `--etherscan-api-key ${apiKey}` }
+  `;
+
+  return command;
 }

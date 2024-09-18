@@ -49,7 +49,7 @@ pub struct QuoteQuery<'info> {
     pub oracle_evm_prices: Box<Account<'info, EvmPricesAccount>>,
 }
 
-pub fn relaying_fee(ctx: Context<QuoteQuery>, dropoff_amount: u64) -> Result<u64> {
+pub fn relaying_fee(ctx: Context<QuoteQuery>, dropoff_amount: u32) -> Result<u64> {
     calculate_total_fee(
         &ctx.accounts.tbr_config,
         &ctx.accounts.chain_config,

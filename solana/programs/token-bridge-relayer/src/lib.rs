@@ -9,10 +9,10 @@ use processor::*;
 
 cfg_if::cfg_if! {
     if #[cfg(feature = "mainnet")] {
-        declare_id!("AtTpCxEYQiPswfGz493qcbiK1eE13W3YZutvxBdANDeR");
+        declare_id!("AtTrxsPbTfBhC9uwwJGJbkFMux78t5EWTAXAbwUW8yC7");
         const WORMHOLE_MINT_AUTHORITY: Pubkey = anchor_lang::pubkey!("BCD75RNBHrJJpW4dXVagL5mPjzRLnVZq4YirJdjEYMV7");
     } else if #[cfg(feature = "solana-devnet")] {
-        declare_id!("AtTpCxEYQiPswfGz493qcbiK1eE13W3YZutvxBdANDeR");
+        declare_id!("AttbEYJMSsnVRDcKY4AcX1GBcdPy9FzHcxTbKaMGGuLs");
         const WORMHOLE_MINT_AUTHORITY: Pubkey = anchor_lang::pubkey!("rRsXLHe7sBHdyKU3KY3wbcgWvoT1Ntqudf6e9PKusgb");
     } else if #[cfg(feature = "tilt-devnet")] {
         declare_id!("46kv4wCpfEtLsHPDh4zm7jJb2pVdvke8Pj2ABYYJotFD");
@@ -42,19 +42,19 @@ pub mod token_bridge_relayer {
 
     /// Updates the owner account. This needs to be either cancelled or approved.
     pub fn submit_owner_transfer_request(
-        ctx: Context<UpdateTbrConfig>,
+        ctx: Context<SubmitOwnerTransfer>,
         new_owner: Pubkey,
     ) -> Result<()> {
         processor::submit_owner_transfer_request(ctx, new_owner)
     }
 
     /// The new owner confirms to be so.
-    pub fn confirm_owner_transfer_request(ctx: Context<UpdateTbrConfig>) -> Result<()> {
+    pub fn confirm_owner_transfer_request(ctx: Context<ConfirmOwnerTransfer>) -> Result<()> {
         processor::confirm_owner_transfer_request(ctx)
     }
 
     /// The owner role transfer is cancelled by the current one.
-    pub fn cancel_owner_transfer_request(ctx: Context<UpdateTbrConfig>) -> Result<()> {
+    pub fn cancel_owner_transfer_request(ctx: Context<CancelOwnerTransfer>) -> Result<()> {
         processor::cancel_owner_transfer_request(ctx)
     }
 
@@ -119,9 +119,9 @@ pub mod token_bridge_relayer {
     pub fn update_max_gas_dropoff(
         ctx: Context<UpdateChainConfig>,
         _chain_id: u16,
-        max_gas_dropoff_mwei: u64,
+        max_gas_dropoff_micro_token: u32,
     ) -> Result<()> {
-        processor::update_max_gas_dropoff(ctx, max_gas_dropoff_mwei)
+        processor::update_max_gas_dropoff(ctx, max_gas_dropoff_micro_token)
     }
 
     /// Updates the value of the relayer fee, *i.e.* the flat USD amount
@@ -133,7 +133,7 @@ pub mod token_bridge_relayer {
     pub fn update_relayer_fee(
         ctx: Context<UpdateChainConfig>,
         _chain_id: u16,
-        relayer_fee: u64,
+        relayer_fee: u32,
     ) -> Result<()> {
         processor::update_relayer_fee(ctx, relayer_fee)
     }
@@ -167,13 +167,17 @@ pub mod token_bridge_relayer {
 
     /* Transfers */
 
+    /// # Parameters
+    ///
+    /// - `dropoff_amount_micro`: the dropoff in µ-target-token.
+    /// - `max_fee_klam`: the maximum fee the user is willing to pay, in Klamports, aka µSOL.
     pub fn transfer_tokens(
         ctx: Context<OutboundTransfer>,
         recipient_chain: u16,
         recipient_address: [u8; 32],
         transferred_amount: u64,
         unwrap_intent: bool,
-        gas_dropoff_amount_mwei: u64,
+        dropoff_amount_micro: u32,
         max_fee_klam: u64,
     ) -> Result<()> {
         processor::transfer_tokens(
@@ -181,7 +185,7 @@ pub mod token_bridge_relayer {
             recipient_chain,
             transferred_amount,
             unwrap_intent,
-            gas_dropoff_amount_mwei,
+            dropoff_amount_micro,
             max_fee_klam,
             recipient_address,
         )
@@ -194,12 +198,12 @@ pub mod token_bridge_relayer {
 
     /* Helpers */
 
-    /// Returns a quote for a transfer.
+    /// Returns a quote for a transfer, in µUSD.
     pub fn relaying_fee(
         ctx: Context<QuoteQuery>,
         _chain_id: u16,
-        dropoff_amount: u64,
+        dropoff_amount_micro: u32,
     ) -> Result<u64> {
-        processor::relaying_fee(ctx, dropoff_amount)
+        processor::relaying_fee(ctx, dropoff_amount_micro)
     }
 }

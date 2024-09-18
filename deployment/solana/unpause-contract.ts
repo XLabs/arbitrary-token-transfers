@@ -5,11 +5,11 @@ import { SolanaChainInfo, LoggerFn } from "../helpers/interfaces.js";
 import { dependencies } from '../helpers/env.js';
 import { PublicKey } from '@solana/web3.js';
 
-runOnSolana("initialize-tbr", initializeSolanaTbr).catch((e) => {
+runOnSolana("unpause-contract", unpauseContract).catch((e) => {
   console.error("Error executing script: ", e);
 });
 
-async function initializeSolanaTbr(
+async function unpauseContract(
   chain: SolanaChainInfo,
   signer: SolanaSigner,
   log: LoggerFn,
@@ -25,7 +25,11 @@ async function initializeSolanaTbr(
     wormholeProgramId: new PublicKey(solanaDependencies.wormhole),
   });
 
-  const initializeIx = await tbr.initialize(signerKey);
+  const initializeIx = await tbr.setPauseForOutboundTransfers(
+    signerKey,
+    "Sepolia",
+    false,
+  );
 
   await ledgerSignAndSend(connection, [initializeIx], []);
 }

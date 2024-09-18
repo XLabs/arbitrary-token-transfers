@@ -1,4 +1,4 @@
-import * as anchor from '@coral-xyz/anchor';
+import anchor from '@coral-xyz/anchor';
 import { Program, web3 } from '@coral-xyz/anchor';
 import {
   PublicKey,
@@ -18,7 +18,8 @@ import {
 import { SolanaPriceOracleClient } from '@xlabs/solana-price-oracle-sdk';
 
 import { TokenBridgeRelayer } from './idl/token_bridge_relayer.js';
-import * as IDL from './idl/token_bridge_relayer.json' with { type: 'json' };
+import IDL from '../../../target/idl/token_bridge_relayer.json' with { type: 'json' };
+import { inspect } from 'util';
 
 // Export IDL
 export * from './idl/token_bridge_relayer.js';
@@ -28,9 +29,9 @@ export { SolanaPriceOracleClient } from '@xlabs/solana-price-oracle-sdk';
 /**
  * 32 bytes.
  */
+// TODO: is this intentional?
 export type UniversalAddress = number[] | Uint8Array | Buffer;
 export type VaaMessage = VAA<'TokenBridge:TransferWithPayload'>;
-export type OwnerOrAdmin = { owner: PublicKey } | { admin: PublicKey };
 
 export interface TransferNativeParameters {
   recipientChain: Chain;
@@ -38,8 +39,8 @@ export interface TransferNativeParameters {
   mint: PublicKey;
   tokenAccount: PublicKey;
   transferredAmount: anchor.BN;
-  gasDropoffAmount: anchor.BN;
-  maxFeeSol: anchor.BN;
+  gasDropoffAmount: number;
+  maxFeeKlamports: anchor.BN;
   unwrapIntent: boolean;
 }
 
@@ -48,8 +49,8 @@ export interface TransferWrappedParameters {
   recipientAddress: UniversalAddress;
   userTokenAccount: PublicKey;
   transferredAmount: anchor.BN;
-  gasDropoffAmount: anchor.BN;
-  maxFeeSol: anchor.BN;
+  gasDropoffAmount: number;
+  maxFeeKlamports: anchor.BN;
   unwrapIntent: boolean;
 }
 
@@ -64,7 +65,7 @@ export interface TbrAddresses {
   chainConfig(chain: Chain): PublicKey;
   peer(chain: Chain, peerAddress: UniversalAddress): PublicKey;
   signerSequence(signer: PublicKey): PublicKey;
-  admin(signer: PublicKey): PublicKey;
+  adminBadge(signer: PublicKey): PublicKey;
 }
 
 export interface ReadTbrAccounts {
@@ -72,7 +73,7 @@ export interface ReadTbrAccounts {
   chainConfig(chain: Chain): Promise<ChainConfigAccount>;
   peer(chain: Chain, peerAddress: UniversalAddress): Promise<PeerAccount>;
   signerSequence(signer: PublicKey): Promise<SignerSequenceAccount>;
-  admin(signer: PublicKey): Promise<AdminAccount>;
+  adminBadge(signer: PublicKey): Promise<AdminAccount>;
 }
 
 export class TbrClient {
@@ -88,7 +89,7 @@ export class TbrClient {
       wormholeProgramId,
     }: { tokenBridgeProgramId: PublicKey; wormholeProgramId: PublicKey },
   ) {
-    this.program = new Program<TokenBridgeRelayer>(IDL as any, provider);
+    this.program = new Program(IDL as any, provider);
     this.priceOracleClient = new SolanaPriceOracleClient(provider.connection);
     this.tokenBridgeProgramId = tokenBridgeProgramId;
     this.wormholeProgramId = wormholeProgramId;
@@ -105,7 +106,7 @@ export class TbrClient {
       peer: (chain: Chain, peerAddress: UniversalAddress) =>
         pda.peer(this.program.programId, chain, peerAddress),
       signerSequence: (signer: PublicKey) => pda.signerSequence(this.program.programId, signer),
-      admin: (admin: PublicKey) => pda.admin(this.program.programId, admin),
+      adminBadge: (admin: PublicKey) => pda.admin(this.program.programId, admin),
     };
   }
 
@@ -118,19 +119,9 @@ export class TbrClient {
         this.program.account.peerState.fetch(this.address.peer(chain, peerAddress)),
       signerSequence: (signer: PublicKey) =>
         this.program.account.signerSequenceState.fetch(this.address.signerSequence(signer)),
-      admin: (admin: PublicKey) =>
-        this.program.account.adminState.fetch(this.address.signerSequence(admin)),
+      adminBadge: (admin: PublicKey) =>
+        this.program.account.adminState.fetch(this.address.adminBadge(admin)),
     };
-  }
-
-  private getSignerAndAdmin(ownerOrAdmin: OwnerOrAdmin): {
-    signer: PublicKey;
-    adminBadge: PublicKey | null;
-  } {
-    let adminBadge = 'admin' in ownerOrAdmin ? this.address.admin(ownerOrAdmin.admin) : null;
-    let signer = 'admin' in ownerOrAdmin ? ownerOrAdmin.admin : ownerOrAdmin.owner;
-
-    return { signer, adminBadge };
   }
 
   /* Initialize */
@@ -147,31 +138,34 @@ export class TbrClient {
   /* Roles */
 
   async submitOwnerTransferRequest(
-    signer: PublicKey,
+    owner: PublicKey,
     newOwner: PublicKey,
   ): Promise<web3.TransactionInstruction> {
     return this.program.methods
       .submitOwnerTransferRequest(newOwner)
       .accounts({
-        signer,
+        owner,
       })
       .instruction();
   }
 
-  async confirmOwnerTransferRequest(signer: PublicKey): Promise<web3.TransactionInstruction> {
+  async confirmOwnerTransferRequest(newOwner: PublicKey): Promise<web3.TransactionInstruction> {
+    const previousOwner = (await this.read.config()).owner;
+
     return this.program.methods
       .confirmOwnerTransferRequest()
       .accounts({
-        signer,
+        newOwner,
+        previousOwner,
       })
       .instruction();
   }
 
-  async cancelOwnerTransferRequest(signer: PublicKey): Promise<web3.TransactionInstruction> {
+  async cancelOwnerTransferRequest(owner: PublicKey): Promise<web3.TransactionInstruction> {
     return this.program.methods
       .cancelOwnerTransferRequest()
       .accounts({
-        signer,
+        owner,
       })
       .instruction();
   }
@@ -182,25 +176,23 @@ export class TbrClient {
       .accountsStrict({
         owner,
         tbrConfig: this.address.config(),
-        adminBadge: this.address.admin(newAdmin),
+        adminBadge: this.address.adminBadge(newAdmin),
         systemProgram: SystemProgram.programId,
       })
       .instruction();
   }
 
   async removeAdmin(
-    ownerOrAdmin: OwnerOrAdmin,
+    signer: PublicKey,
     adminToRemove: PublicKey,
   ): Promise<web3.TransactionInstruction> {
-    let { signer, adminBadge } = this.getSignerAndAdmin(ownerOrAdmin);
-
     return this.program.methods
       .removeAdmin(adminToRemove)
       .accountsStrict({
         signer,
-        adminBadge,
+        adminBadge: this.address.adminBadge(signer),
         tbrConfig: this.address.config(),
-        adminBadgeToBeRemoved: this.address.admin(adminToRemove),
+        adminBadgeToBeRemoved: this.address.adminBadge(adminToRemove),
       })
       .instruction();
   }
@@ -208,17 +200,15 @@ export class TbrClient {
   /* Peer management */
 
   async registerPeer(
-    ownerOrAdmin: OwnerOrAdmin,
+    signer: PublicKey,
     chain: Chain,
     peerAddress: UniversalAddress,
   ): Promise<web3.TransactionInstruction> {
-    let { signer, adminBadge } = this.getSignerAndAdmin(ownerOrAdmin);
-
     return this.program.methods
       .registerPeer(chainToChainId(chain), Array.from(peerAddress))
       .accountsStrict({
         signer,
-        adminBadge,
+        adminBadge: this.address.adminBadge(signer),
         tbrConfig: this.address.config(),
         peer: this.address.peer(chain, peerAddress),
         chainConfig: this.address.chainConfig(chain),
@@ -247,17 +237,15 @@ export class TbrClient {
   /* Chain config update */
 
   async setPauseForOutboundTransfers(
-    ownerOrAdmin: OwnerOrAdmin,
+    signer: PublicKey,
     chain: Chain,
     paused: boolean,
   ): Promise<web3.TransactionInstruction> {
-    let { signer, adminBadge } = this.getSignerAndAdmin(ownerOrAdmin);
-
     return this.program.methods
       .setPauseForOutboundTransfers(chainToChainId(chain), paused)
       .accountsStrict({
         signer,
-        adminBadge,
+        adminBadge: this.address.adminBadge(signer),
         chainConfig: this.address.chainConfig(chain),
         tbrConfig: this.address.config(),
       })
@@ -265,17 +253,15 @@ export class TbrClient {
   }
 
   async updateMaxGasDropoff(
-    ownerOrAdmin: OwnerOrAdmin,
+    signer: PublicKey,
     chain: Chain,
-    maxGasDropoff: anchor.BN,
+    maxGasDropoff: number,
   ): Promise<web3.TransactionInstruction> {
-    let { signer, adminBadge } = this.getSignerAndAdmin(ownerOrAdmin);
-
     return this.program.methods
       .updateMaxGasDropoff(chainToChainId(chain), maxGasDropoff)
       .accountsStrict({
         signer,
-        adminBadge,
+        adminBadge: this.address.adminBadge(signer),
         chainConfig: this.address.chainConfig(chain),
         tbrConfig: this.address.config(),
       })
@@ -283,17 +269,15 @@ export class TbrClient {
   }
 
   async updateRelayerFee(
-    ownerOrAdmin: OwnerOrAdmin,
+    signer: PublicKey,
     chain: Chain,
-    relayerFee: anchor.BN,
+    relayerFee: number,
   ): Promise<web3.TransactionInstruction> {
-    let { signer, adminBadge } = this.getSignerAndAdmin(ownerOrAdmin);
-
     return this.program.methods
       .updateRelayerFee(chainToChainId(chain), relayerFee)
       .accountsStrict({
         signer,
-        adminBadge,
+        adminBadge: this.address.adminBadge(signer),
         chainConfig: this.address.chainConfig(chain),
         tbrConfig: this.address.config(),
       })
@@ -340,15 +324,17 @@ export class TbrClient {
       tokenAccount: userTokenAccount,
       transferredAmount,
       gasDropoffAmount,
-      maxFeeSol,
+      maxFeeKlamports: maxFeeSol,
       unwrapIntent,
     } = params;
 
     const { feeRecipient } = await this.read.config();
     let payerSequenceNumber = new anchor.BN(0);
+
     try {
       payerSequenceNumber = (await this.read.signerSequence(signer)).value;
     } catch {}
+
     const tokenBridgeAccounts = transferNativeTokenBridgeAccounts({
       programId: this.program.programId,
       tokenBridgeProgramId: this.tokenBridgeProgramId,
@@ -394,7 +380,7 @@ export class TbrClient {
       userTokenAccount,
       transferredAmount,
       gasDropoffAmount,
-      maxFeeSol,
+      maxFeeKlamports,
       unwrapIntent,
     } = params;
 
@@ -420,7 +406,7 @@ export class TbrClient {
         transferredAmount,
         unwrapIntent,
         gasDropoffAmount,
-        maxFeeSol,
+        maxFeeKlamports,
       )
       .accountsPartial({
         payer: signer,
@@ -471,6 +457,7 @@ export class TbrClient {
         ...tokenBridgeAccounts,
         tokenBridgeProgram: this.tokenBridgeProgramId,
         wormholeProgram: this.wormholeProgramId,
+        peer: pda.peer(this.program.programId, vaa.emitterChain, vaa.payload.from.toUint8Array()),
       })
       .instruction();
   }
@@ -499,13 +486,14 @@ export class TbrClient {
         ...tokenBridgeAccounts,
         tokenBridgeProgram: this.tokenBridgeProgramId,
         wormholeProgram: this.wormholeProgramId,
+        peer: pda.peer(this.program.programId, vaa.emitterChain, vaa.payload.from.toUint8Array()),
       })
       .instruction();
   }
 
   /* Queries */
 
-  async relayingFee(signer: PublicKey, chain: Chain, dropoffAmount: anchor.BN): Promise<anchor.BN> {
+  async relayingFee(signer: PublicKey, chain: Chain, dropoffAmount: number): Promise<anchor.BN> {
     assertProvider(this.program.provider);
 
     const tx = await this.program.methods

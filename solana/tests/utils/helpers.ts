@@ -39,9 +39,9 @@ export function assertEqChainConfigs(left: ChainConfigAccount, right: ChainConfi
   expect(Buffer.from(left.canonicalPeer).toString('hex')).equal(
     Buffer.from(right.canonicalPeer).toString('hex'),
   );
-  assertEqBns(left.maxGasDropoff, right.maxGasDropoff);
+  expect(left.maxGasDropoffMicroToken).equal(right.maxGasDropoffMicroToken);
   expect(left.pausedOutboundTransfers).equal(right.pausedOutboundTransfers);
-  assertEqBns(left.relayerFee, right.relayerFee);
+  expect(left.relayerFeeMicroUsd).equal(right.relayerFeeMicroUsd);
 }
 
 export function assertEqKeys(left: PublicKey, right: PublicKey) {
@@ -55,7 +55,7 @@ export function assertEqBns(left: BN, right: BN) {
 export async function sendAndConfirmIx(
   ix: TransactionInstruction | Promise<TransactionInstruction>,
   provider: AnchorProvider,
-) {
+): Promise<TransactionSignature> {
   const tx = new Transaction().add(await ix);
 
   return provider.sendAndConfirm(tx);

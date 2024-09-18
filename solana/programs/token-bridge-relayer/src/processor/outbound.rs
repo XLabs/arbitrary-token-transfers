@@ -2,7 +2,7 @@ use crate::{
     constant::{SEED_PREFIX_BRIDGED, SEED_PREFIX_TEMPORARY},
     error::{TokenBridgeRelayerError, TokenBridgeRelayerResult},
     message::RelayerMessage,
-    state::{ChainConfigState, SignerSequenceState, TbrConfigState},
+    state::{ChainConfigState, SenderState, SignerSequenceState, TbrConfigState},
     utils::{calculate_total_fee, create_native_check},
 };
 use anchor_lang::prelude::*;
@@ -84,6 +84,7 @@ pub struct OutboundTransfer<'info> {
     pub temporary_account: Box<Account<'info, TokenAccount>>,
 
     /// Fee recipient's account. The fee will be transferred to this account.
+    #[account(mut)]
     pub fee_recipient: UncheckedAccount<'info>,
 
     #[account(
@@ -159,6 +160,16 @@ pub struct OutboundTransfer<'info> {
     )]
     pub wormhole_message: AccountInfo<'info>,
 
+    #[account(
+        seeds = [SenderState::SEED_PREFIX],
+        bump
+    )]
+    pub wormhole_sender: Account<'info, SenderState>,
+
+    #[account(mut)]
+    /// CHECK: Wormhole fee collector. Mutable.
+    pub wormhole_fee_collector: UncheckedAccount<'info>,
+
     /// Used to keep track of payer's Wormhole sequence number.
     #[account(
         init_if_needed,
@@ -183,7 +194,7 @@ pub fn transfer_tokens(
     recipient_chain: u16,
     transferred_amount: u64,
     unwrap_intent: bool,
-    gas_dropoff_amount_mwei: u64,
+    dropoff_amount_micro: u32,
     max_fee_klam: u64,
     recipient_address: [u8; 32],
 ) -> Result<()> {
@@ -195,18 +206,12 @@ pub fn transfer_tokens(
         &[ctx.bumps.tbr_config],
     ];
 
-    let (transferred_amount, gas_dropoff_amount) = normalize_amounts(
-        &ctx.accounts.mint,
-        transferred_amount,
-        gas_dropoff_amount_mwei,
-    )?;
-
     let total_fees_klam = calculate_total_fee(
         &ctx.accounts.tbr_config,
         &ctx.accounts.chain_config,
         &ctx.accounts.oracle_evm_prices,
         &ctx.accounts.oracle_config,
-        gas_dropoff_amount.into(),
+        dropoff_amount_micro,
     )?;
     require!(
         total_fees_klam <= max_fee_klam,
@@ -252,7 +257,24 @@ pub fn transfer_tokens(
         transferred_amount,
     )?;
 
-    let relayer_message = RelayerMessage::new(recipient_address, gas_dropoff_amount, unwrap_intent);
+    let relayer_message =
+        RelayerMessage::new(recipient_address, dropoff_amount_micro, unwrap_intent);
+
+    let payer_sequence = ctx.accounts.payer_sequence.take_and_uptick();
+    let signer_seeds: [&[_]; 2] = [
+        // "bridged"
+        &[
+            SEED_PREFIX_BRIDGED,
+            ctx.accounts.payer.key.as_ref(),
+            &payer_sequence,
+            &[ctx.bumps.wormhole_message],
+        ],
+        // "sender"
+        &[
+            SenderState::SEED_PREFIX.as_ref(),
+            &[ctx.bumps.wormhole_sender],
+        ],
+    ];
 
     if is_native(&ctx)? {
         token_bridge_transfer_native(
@@ -260,6 +282,7 @@ pub fn transfer_tokens(
             transferred_amount,
             recipient_chain,
             &relayer_message,
+            &signer_seeds,
         )?;
     } else {
         token_bridge_transfer_wrapped(
@@ -267,6 +290,7 @@ pub fn transfer_tokens(
             transferred_amount,
             recipient_chain,
             &relayer_message,
+            &signer_seeds,
         )?;
     }
 
@@ -298,10 +322,9 @@ fn normalize_amounts(
 
     // Normalize the dropoff amount:
     //FIXME: it should not be the mint decimals
-    let normalized_dropoff_amount =
-        token_bridge::normalize_amount(gas_dropoff_amount, mint.decimals)
-            .try_into()
-            .map_err(|_| TokenBridgeRelayerError::Overflow)?;
+    let normalized_dropoff_amount = (gas_dropoff_amount / 1_000_000)
+        .try_into()
+        .map_err(|_| TokenBridgeRelayerError::Overflow)?;
     require!(
         gas_dropoff_amount == 0 || normalized_dropoff_amount > 0,
         TokenBridgeRelayerError::InvalidToNativeAmount
@@ -315,12 +338,8 @@ fn token_bridge_transfer_native(
     transferred_amount: u64,
     recipient_chain: u16,
     relayer_message: &RelayerMessage,
+    signer_seeds: &[&[&[u8]]],
 ) -> Result<()> {
-    let config_seed = &[
-        TbrConfigState::SEED_PREFIX.as_ref(),
-        &[ctx.bumps.tbr_config],
-    ];
-
     let token_bridge_custody = ctx
         .accounts
         .token_bridge_custody
@@ -347,7 +366,7 @@ fn token_bridge_transfer_native(
                 wormhole_message: ctx.accounts.wormhole_message.to_account_info(),
                 wormhole_emitter: ctx.accounts.token_bridge_emitter.to_account_info(),
                 wormhole_sequence: ctx.accounts.token_bridge_sequence.to_account_info(),
-                wormhole_fee_collector: ctx.accounts.fee_recipient.to_account_info(),
+                wormhole_fee_collector: ctx.accounts.wormhole_fee_collector.to_account_info(),
                 clock: ctx.accounts.clock.to_account_info(),
                 sender: ctx.accounts.tbr_config.to_account_info(),
                 rent: ctx.accounts.rent.to_account_info(),
@@ -355,15 +374,7 @@ fn token_bridge_transfer_native(
                 token_program: ctx.accounts.token_program.to_account_info(),
                 wormhole_program: ctx.accounts.wormhole_program.to_account_info(),
             },
-            &[
-                config_seed,
-                &[
-                    SEED_PREFIX_BRIDGED,
-                    ctx.accounts.payer.key().as_ref(),
-                    &ctx.accounts.payer_sequence.take_and_uptick()[..],
-                    &[ctx.bumps.wormhole_message],
-                ],
-            ],
+            signer_seeds,
         ),
         0,
         transferred_amount,
@@ -379,12 +390,8 @@ fn token_bridge_transfer_wrapped(
     transferred_amount: u64,
     recipient_chain: u16,
     relayer_message: &RelayerMessage,
+    signer_seeds: &[&[&[u8]]],
 ) -> Result<()> {
-    let config_seed = &[
-        TbrConfigState::SEED_PREFIX.as_ref(),
-        &[ctx.bumps.tbr_config],
-    ];
-
     let token_bridge_wrapped_meta = ctx
         .accounts
         .token_bridge_wrapped_meta
@@ -406,7 +413,7 @@ fn token_bridge_transfer_wrapped(
                 wormhole_message: ctx.accounts.wormhole_message.to_account_info(),
                 wormhole_emitter: ctx.accounts.token_bridge_emitter.to_account_info(),
                 wormhole_sequence: ctx.accounts.token_bridge_sequence.to_account_info(),
-                wormhole_fee_collector: ctx.accounts.fee_recipient.to_account_info(),
+                wormhole_fee_collector: ctx.accounts.wormhole_fee_collector.to_account_info(),
                 clock: ctx.accounts.clock.to_account_info(),
                 sender: ctx.accounts.tbr_config.to_account_info(),
                 rent: ctx.accounts.rent.to_account_info(),
@@ -414,15 +421,7 @@ fn token_bridge_transfer_wrapped(
                 token_program: ctx.accounts.token_program.to_account_info(),
                 wormhole_program: ctx.accounts.wormhole_program.to_account_info(),
             },
-            &[
-                config_seed,
-                &[
-                    SEED_PREFIX_BRIDGED,
-                    ctx.accounts.payer.key().as_ref(),
-                    &ctx.accounts.payer_sequence.take_and_uptick()[..],
-                    &[ctx.bumps.wormhole_message],
-                ],
-            ],
+            signer_seeds,
         ),
         0,
         transferred_amount,

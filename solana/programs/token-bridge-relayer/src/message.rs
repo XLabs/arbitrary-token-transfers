@@ -8,6 +8,7 @@ const PAYLOAD_ID_SIZE: usize = 1; // 1 byte
 pub enum RelayerMessage {
     V0 {
         recipient: [u8; 32],
+        /// The gas to get on the target chain, in µToken.
         gas_dropoff_amount: u32,
         unwrap_intent: bool,
     },

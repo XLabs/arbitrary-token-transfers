@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/token_bridge_relayer.json`.
  */
 export type TokenBridgeRelayer = {
-  "address": "AtTpCxEYQiPswfGz493qcbiK1eE13W3YZutvxBdANDeR",
+  "address": "AttbEYJMSsnVRDcKY4AcX1GBcdPy9FzHcxTbKaMGGuLs",
   "metadata": {
     "name": "tokenBridgeRelayer",
     "version": "3.0.0",
@@ -115,36 +115,11 @@ export type TokenBridgeRelayer = {
       ],
       "accounts": [
         {
-          "name": "signer",
-          "docs": [
-            "The signer may be the owner, pending owner or admin, depending on the operation."
-          ],
-          "signer": true
-        },
-        {
-          "name": "adminBadge",
-          "docs": [
-            "If the signer is an admin, prove it with this PDA."
-          ],
-          "optional": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  97,
-                  100,
-                  109,
-                  105,
-                  110
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "signer"
-              }
-            ]
-          }
+          "name": "owner",
+          "signer": true,
+          "relations": [
+            "tbrConfig"
+          ]
         },
         {
           "name": "tbrConfig",
@@ -484,11 +459,11 @@ export type TokenBridgeRelayer = {
         },
         {
           "name": "wormholeProgram",
-          "address": "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth"
+          "address": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"
         },
         {
           "name": "tokenBridgeProgram",
-          "address": "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"
+          "address": "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe"
         },
         {
           "name": "rent",
@@ -524,18 +499,20 @@ export type TokenBridgeRelayer = {
       ],
       "accounts": [
         {
-          "name": "signer",
-          "docs": [
-            "The signer may be the owner, pending owner or admin, depending on the operation."
-          ],
+          "name": "newOwner",
+          "writable": true,
           "signer": true
         },
         {
-          "name": "adminBadge",
+          "name": "previousOwner",
+          "writable": true
+        },
+        {
+          "name": "newOwnerBadge",
           "docs": [
-            "If the signer is an admin, prove it with this PDA."
+            "The admin badge for the new owner."
           ],
-          "optional": true,
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -550,7 +527,29 @@ export type TokenBridgeRelayer = {
               },
               {
                 "kind": "account",
-                "path": "signer"
+                "path": "newOwner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "previousOwnerBadgeToDelete",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  100,
+                  109,
+                  105,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "previousOwner"
               }
             ]
           }
@@ -580,6 +579,10 @@ export type TokenBridgeRelayer = {
               }
             ]
           }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
@@ -606,6 +609,31 @@ export type TokenBridgeRelayer = {
           "signer": true
         },
         {
+          "name": "adminBadge",
+          "docs": [
+            "The admin badge for the owner."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  100,
+                  109,
+                  105,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
           "name": "tbrConfig",
           "docs": [
             "Owner Config account. This program requires that the `owner` specified",
@@ -623,6 +651,25 @@ export type TokenBridgeRelayer = {
                   101,
                   101,
                   109,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "wormholeSender",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  110,
+                  100,
                   101,
                   114
                 ]
@@ -668,9 +715,8 @@ export type TokenBridgeRelayer = {
         {
           "name": "adminBadge",
           "docs": [
-            "If the signer is an admin, prove it with this PDA."
+            "Proof that the signer is an admin or the owner."
           ],
-          "optional": true,
           "pda": {
             "seeds": [
               {
@@ -791,7 +837,7 @@ export type TokenBridgeRelayer = {
     {
       "name": "relayingFee",
       "docs": [
-        "Returns a quote for a transfer."
+        "Returns a quote for a transfer, in µUSD."
       ],
       "discriminator": [
         140,
@@ -913,8 +959,8 @@ export type TokenBridgeRelayer = {
           "type": "u16"
         },
         {
-          "name": "dropoffAmount",
-          "type": "u64"
+          "name": "dropoffAmountMicro",
+          "type": "u32"
         }
       ],
       "returns": "u64"
@@ -1053,9 +1099,8 @@ export type TokenBridgeRelayer = {
         {
           "name": "adminBadge",
           "docs": [
-            "If the signer is an admin, prove it with this PDA."
+            "Proof that the signer is an admin or the owner."
           ],
-          "optional": true,
           "pda": {
             "seeds": [
               {
@@ -1157,36 +1202,11 @@ export type TokenBridgeRelayer = {
       ],
       "accounts": [
         {
-          "name": "signer",
-          "docs": [
-            "The signer may be the owner, pending owner or admin, depending on the operation."
-          ],
-          "signer": true
-        },
-        {
-          "name": "adminBadge",
-          "docs": [
-            "If the signer is an admin, prove it with this PDA."
-          ],
-          "optional": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  97,
-                  100,
-                  109,
-                  105,
-                  110
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "signer"
-              }
-            ]
-          }
+          "name": "owner",
+          "signer": true,
+          "relations": [
+            "tbrConfig"
+          ]
         },
         {
           "name": "tbrConfig",
@@ -1224,6 +1244,12 @@ export type TokenBridgeRelayer = {
     },
     {
       "name": "transferTokens",
+      "docs": [
+        "# Parameters",
+        "",
+        "- `dropoff_amount_micro`: the dropoff in µ-target-token.",
+        "- `max_fee_klam`: the maximum fee the user is willing to pay, in Klamports, aka µSOL."
+      ],
       "discriminator": [
         54,
         180,
@@ -1347,6 +1373,7 @@ export type TokenBridgeRelayer = {
           "docs": [
             "Fee recipient's account. The fee will be transferred to this account."
           ],
+          "writable": true,
           "relations": [
             "tbrConfig"
           ]
@@ -1457,6 +1484,28 @@ export type TokenBridgeRelayer = {
           "writable": true
         },
         {
+          "name": "wormholeSender",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  110,
+                  100,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "wormholeFeeCollector",
+          "writable": true
+        },
+        {
           "name": "payerSequence",
           "docs": [
             "Used to keep track of payer's Wormhole sequence number."
@@ -1489,11 +1538,11 @@ export type TokenBridgeRelayer = {
         },
         {
           "name": "tokenBridgeProgram",
-          "address": "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"
+          "address": "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe"
         },
         {
           "name": "wormholeProgram",
-          "address": "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth"
+          "address": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"
         },
         {
           "name": "clock",
@@ -1527,8 +1576,8 @@ export type TokenBridgeRelayer = {
           "type": "bool"
         },
         {
-          "name": "gasDropoffAmountMwei",
-          "type": "u64"
+          "name": "dropoffAmountMicro",
+          "type": "u32"
         },
         {
           "name": "maxFeeKlam",
@@ -1687,16 +1736,15 @@ export type TokenBridgeRelayer = {
         {
           "name": "signer",
           "docs": [
-            "The signer may be the owner, pending owner or admin, depending on the operation."
+            "The signer may be the owner, or admin, depending on the operation."
           ],
           "signer": true
         },
         {
           "name": "adminBadge",
           "docs": [
-            "If the signer is an admin, prove it with this PDA."
+            "Proof that the signer is an admin or the owner."
           ],
-          "optional": true,
           "pda": {
             "seeds": [
               {
@@ -1777,16 +1825,15 @@ export type TokenBridgeRelayer = {
         {
           "name": "signer",
           "docs": [
-            "The signer may be the owner, pending owner or admin, depending on the operation."
+            "The signer may be the owner, or admin, depending on the operation."
           ],
           "signer": true
         },
         {
           "name": "adminBadge",
           "docs": [
-            "If the signer is an admin, prove it with this PDA."
+            "Proof that the signer is an admin or the owner."
           ],
-          "optional": true,
           "pda": {
             "seeds": [
               {
@@ -1871,9 +1918,8 @@ export type TokenBridgeRelayer = {
         {
           "name": "adminBadge",
           "docs": [
-            "If the signer is an admin, prove it with this PDA."
+            "Proof that the signer is an admin or the owner."
           ],
-          "optional": true,
           "pda": {
             "seeds": [
               {
@@ -1953,8 +1999,8 @@ export type TokenBridgeRelayer = {
           "type": "u16"
         },
         {
-          "name": "maxGasDropoffMwei",
-          "type": "u64"
+          "name": "maxGasDropoffMicroToken",
+          "type": "u32"
         }
       ]
     },
@@ -1990,9 +2036,8 @@ export type TokenBridgeRelayer = {
         {
           "name": "adminBadge",
           "docs": [
-            "If the signer is an admin, prove it with this PDA."
+            "Proof that the signer is an admin or the owner."
           ],
-          "optional": true,
           "pda": {
             "seeds": [
               {
@@ -2073,7 +2118,7 @@ export type TokenBridgeRelayer = {
         },
         {
           "name": "relayerFee",
-          "type": "u64"
+          "type": "u32"
         }
       ]
     }
@@ -2142,6 +2187,19 @@ export type TokenBridgeRelayer = {
         210,
         185,
         218
+      ]
+    },
+    {
+      "name": "senderState",
+      "discriminator": [
+        15,
+        38,
+        72,
+        105,
+        206,
+        169,
+        147,
+        163
       ]
     },
     {
@@ -2297,19 +2355,22 @@ export type TokenBridgeRelayer = {
             }
           },
           {
-            "name": "maxGasDropoff",
-            "type": "u64"
+            "name": "maxGasDropoffMicroToken",
+            "docs": [
+              "The maximum amount of target token the user can ask a dropoff for, in µ-target-token."
+            ],
+            "type": "u32"
           },
           {
             "name": "pausedOutboundTransfers",
             "type": "bool"
           },
           {
-            "name": "relayerFee",
+            "name": "relayerFeeMicroUsd",
             "docs": [
               "The fee for the relayer, in μUSD."
             ],
-            "type": "u64"
+            "type": "u32"
           }
         ]
       }
@@ -2402,6 +2463,16 @@ export type TokenBridgeRelayer = {
             "type": "u64"
           }
         ]
+      }
+    },
+    {
+      "name": "senderState",
+      "docs": [
+        "Empty account. Exists only because the Wormhole program expects it."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": []
       }
     },
     {

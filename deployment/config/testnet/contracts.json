@@ -2,33 +2,33 @@
   "TbrV3": [
     {
       "chainId": 10002,
-      "address": "0xbD416d4aeacfAd2A4Ae89ebD32521120c6eaeF65",
+      "address": "0x322a792c362cD93813Ef933A7330ae80d8c271d5",
       "constructorArgs": []
     },
     {
       "chainId": 10005,
-      "address": "0x7669D1C07C7185a590EaebE6e4a11C21d79cfBE5",
+      "address": "0xAb406919de4ad7B7cf1A65C52B7fD85Bab07beb4",
       "constructorArgs": []
     },
     {
       "chainId": 10004,
-      "address": "0xcd898cC15210179ec6721A10Eb317564926a8893",
+      "address": "0x6113861Db40b52A9583d2979F5bfbdeC4A862224",
       "constructorArgs": []
     },
     {
       "chainId": 1,
-      "address": "AtTpCxEYQiPswfGz493qcbiK1eE13W3YZutvxBdANDeR",
+      "address": "AttbEYJMSsnVRDcKY4AcX1GBcdPy9FzHcxTbKaMGGuLs",
       "constructorArgs": []
     }
   ],
   "TbrV3Proxies": [
     {
-      "chainId": 10005,
+      "chainId": 10002,
       "address": "0xb620f38B1211bDB96684576017F66bA9871eb6be",
       "constructorArgs": []
     },
     {
-      "chainId": 10002,
+      "chainId": 10005,
       "address": "0xb620f38B1211bDB96684576017F66bA9871eb6be",
       "constructorArgs": []
     },

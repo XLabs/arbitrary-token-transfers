@@ -134,7 +134,7 @@ abstract contract TbrUser is TbrBase {
     uint offset,
     uint256 unallocatedBalance,
     uint commandIndex
-  ) internal returns (uint256, uint256) {
+  ) internal returns (uint256, uint256, uint256) {
     if (address(gasToken) == address(0))
       revert GasTokenNotSupported();
 
@@ -156,7 +156,7 @@ abstract contract TbrUser is TbrBase {
     _bridgeOut(token, targetChain, peer, recipient, tokenAmount, gasDropoff, fee, false);
 
     // Return the fee that must be sent to the fee recipient.
-    return (fee, offset);
+    return (fee, tokenAmount, offset);
   }
 
   function _parseSharedParams(
@@ -381,20 +381,16 @@ abstract contract TbrUser is TbrBase {
     // TODO: ignore return value? The gas savings might be very low.
     tokenBridge.completeTransferWithPayload(vaa);
 
+    IERC20 token = IERC20(tokenBridge.wrappedAsset(tokenOriginChain, tokenOriginAddress));
+
     // If an unwrap is desired, unwrap and call recipient with full amount
     uint totalGasTokenAmount = gasDropoff;
-    if (unwrapIntent && gasErc20TokenizationIsExplicit) {
+    if (address(gasToken) == address(token) && unwrapIntent && gasErc20TokenizationIsExplicit) {
       gasToken.withdraw(tokenAmount);
 
       totalGasTokenAmount += tokenAmount;
     }
     else {
-      // TODO: compute the derived address here to avoid doing a call to the token bridge.
-      // The gas savings shouldn't be that big so it's low priority.
-      IERC20 token = IERC20(tokenBridge.wrappedAsset(tokenOriginChain, tokenOriginAddress));
-      if (address(token) == address(0))
-        revert TokenNotAttested(tokenOriginAddress, tokenOriginChain);
-
       // Otherwise, transfer tokens and perform gas dropoff
       SafeERC20.safeTransfer(token, recipient, tokenAmount);
     }
@@ -467,7 +463,7 @@ library TokenBridgeVAAParser {
   uint private constant _VAA_SIGNATURE_ARRAY_OFFSET = 1 /*version*/ + 4 /*guardianSet*/;
   uint private constant _VAA_SIGNATURE_SIZE = 1 /*guardianSetIndex*/ + 65 /*signaturesize*/;
   uint private constant _VAA_EMITTER_CHAIN_SKIP = 4 /*timestamp*/ + 4 /*nonce*/;
-  uint private constant _VAA_TOKEN_AMOUNT_SKIP_SKIP =
+  uint private constant _VAA_TOKEN_AMOUNT_SKIP =
     32 /*emitter address*/ + 8 /*sequence*/ + 1 /*consistencyLevel*/ + 1 /*payload id*/;
   uint private constant _VAA_TOKEN_BRIDGE_RECIPIENT_SKIP =
     32 /*token bridge recipient address (us)*/ + 2 /*token bridge recipient chain id (our chain)*/;
@@ -498,7 +494,7 @@ library TokenBridgeVAAParser {
 
     dataOffset += signatureCount * _VAA_SIGNATURE_SIZE + _VAA_EMITTER_CHAIN_SKIP;
     (peerChain, dataOffset) = data.asUint16CdUnchecked(dataOffset);
-    dataOffset += _VAA_TOKEN_AMOUNT_SKIP_SKIP;
+    dataOffset += _VAA_TOKEN_AMOUNT_SKIP;
     //we don't check the payload id because the sizes will mismatch in the end if it's not a
     //  payload 3 transfer
     

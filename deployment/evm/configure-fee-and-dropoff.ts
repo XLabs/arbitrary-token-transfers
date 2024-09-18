@@ -19,10 +19,10 @@ evm.runOnEvms("configure-fee-and-dropoff", async (chain, signer, log) => {
   const deployedTbrv3s = contracts["TbrV3Proxies"].filter((tbr) => tbr.chainId !== chain.chainId);
   const desiredRelayFee = Number(config.relayFee);
 
-  const currentRelayFee = await tbrv3.relayFee();
-  if (currentRelayFee !== desiredRelayFee) {
+  const currentRelayFee = await tbrv3.relayFee(chain.name as SupportedChains);
+  if (currentRelayFee.fee !== desiredRelayFee) {
     log(`Updating relay fee: ${desiredRelayFee}`);
-    const partialTx = await tbrv3.updateRelayFee(desiredRelayFee);
+    const partialTx = tbrv3.updateRelayFee(chain.name as SupportedChains, desiredRelayFee);
     const { error, receipt } = await evm.sendTx(signer, { ...partialTx, data: ethers.hexlify(partialTx.data) });
     if (error) {
       log("Error updating relay fee: ", error);
@@ -33,11 +33,11 @@ evm.runOnEvms("configure-fee-and-dropoff", async (chain, signer, log) => {
     }
   }
 
-  const updateMaxGasDropoff: Map<SupportedChains, bigint> = new Map();
+  const updateMaxGasDropoff: Map<SupportedChains, number> = new Map();
   for (const otherTbrv3 of deployedTbrv3s) {
     const otherTbrv3Chain = chainIdToChain(otherTbrv3.chainId) as SupportedChains;
     const peerChainCfg = await getChainConfig<EvmTbrV3Config>("tbr-v3", otherTbrv3.chainId);
-    const desiredMaxGasDropoff = BigInt(peerChainCfg.maxGasDropoff);
+    const desiredMaxGasDropoff = Number(peerChainCfg.maxGasDropoff);
 
     const currentMaxGasDropoff = await tbrv3.maxGasDropoff(otherTbrv3Chain);
     if (currentMaxGasDropoff !== desiredMaxGasDropoff) {
@@ -48,7 +48,7 @@ evm.runOnEvms("configure-fee-and-dropoff", async (chain, signer, log) => {
 
   if (updateMaxGasDropoff.size !== 0) {
     log("Updating max gas dropoff");
-    const partialTx = await tbrv3.updateMaxGasDroppoffs(updateMaxGasDropoff);
+    const partialTx = tbrv3.updateMaxGasDroppoffs(updateMaxGasDropoff);
     const { error, receipt } = await evm.sendTx(signer, { ...partialTx, data: ethers.hexlify(partialTx.data) });
     if (error) {
       log("Error updating max gas dropoff: ", error);
