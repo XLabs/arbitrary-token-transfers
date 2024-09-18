@@ -5,6 +5,21 @@
   "description": "",
   "scripts": {
     "build": "tsc --build tsconfig.json && yarn workspaces foreach -A run build",
+    "build:sdk-evm": "yarn sdk/evm build",
+    "build:sdk-solana": "yarn sdk/solana build",
+    "build:solana-devnet": "yarn ./solana build:devnet",
+    "build:solana": "yarn ./solana build",
+    "build:evm": "yarn ./evm build",
+    "build:deployment": "yarn ./deployment build:evm",
+    "build:all-devnet": "yarn build:solana-devnet && yarn build:evm && yarn build:sdk-solana && yarn build:sdk-evm",
+    "build:all": "yarn build:solana && yarn build:evm && yarn build:sdk-solana && yarn build:sdk-evm",
+    "clean:sdk-solana": "yarn sdk/solana clean",
+    "clean:solana": "yarn ./solana clean",
+    "clean:evm": "yarn ./evm clean",
+    "clean:deployment": "yarn ./deployment clean",
+    "test:evm": "yarn ./evm test",
+    "test:solana": "yarn ./solana test",
+    "test:sdk-evm": "yarn sdk/evm test:deploy:integration",
     "prettier": "prettier --write ."
   },
   "keywords": [],
@@ -34,6 +49,7 @@
   "workspaces": [
     "sdk/evm",
     "sdk/solana",
+    "evm",
     "solana",
     "deployment"
   ],
