@@ -244,9 +244,12 @@ export class Tbrv3 {
   }
 
   governanceTx<const C extends GovernanceCommand[]>(commands: C): TbrPartialTx {
-    const methods = layout.serializeLayout(commandCategoryLayout, {
-      commandCategory: 'GovernanceCommands',
-      commands
+    const methods = layout.serializeLayout(execParamsLayout, {
+      version: 0,
+      commandCategories: commands.map(arg => ({
+        commandCategory: 'GovernanceCommands',
+        commands
+      }) satisfies LayoutToType<typeof commandCategoryLayout>),
     })
     const data = Tbrv3.encodeExecute(methods);
 
