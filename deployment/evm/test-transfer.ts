@@ -26,14 +26,14 @@ async function run() {
     const inputToken = getEnv('INPUT_TOKEN');
     const inputAmountInAtomic = BigInt(getEnvOrDefault('INPUT_AMOUNT', "1000"));
     const unwrapIntent = getEnvOrDefault('UNWRAP_INTENT', "false") === 'true';
-    const gasDropoff = Number(getEnvOrDefault('GAS_DROPOFF', "0"));
+    const configuredGasDropoff = Number(getEnvOrDefault('GAS_DROPOFF', "0"));
 
     console.log({
       sourceChain,
       inputToken,
       inputAmountInAtomic,
       unwrapIntent,
-      gasDropoff,
+      configuredGasDropoff,
     })
 
     const chain = chains.find((chain) => chain.chainId === Number(sourceChain));
@@ -68,6 +68,13 @@ async function run() {
               });
               throw new Error(`Chain ${targetChain.name} is not supported`);
             }
+
+            const gasDropoff = chainToPlatform(targetChain.name as Chain) === "Evm" ? configuredGasDropoff : 0;
+
+            console.log({
+              chain: targetChain.name,
+              gasDropoff,
+            })
 
             const feeEstimation = (
               await tbrv3.relayingFee({
