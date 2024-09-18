@@ -9,10 +9,10 @@ use processor::*;
 
 cfg_if::cfg_if! {
     if #[cfg(feature = "mainnet")] {
-        declare_id!("AttiDUzaWf6XMmgp6aUVL8sQt7Ax1NFgnZkFceJ2UVC9");
+        declare_id!("AtTrxsPbTfBhC9uwwJGJbkFMux78t5EWTAXAbwUW8yC7");
         const WORMHOLE_MINT_AUTHORITY: Pubkey = anchor_lang::pubkey!("BCD75RNBHrJJpW4dXVagL5mPjzRLnVZq4YirJdjEYMV7");
     } else if #[cfg(feature = "solana-devnet")] {
-        declare_id!("AttiDUzaWf6XMmgp6aUVL8sQt7Ax1NFgnZkFceJ2UVC9");
+        declare_id!("AtTrxsPbTfBhC9uwwJGJbkFMux78t5EWTAXAbwUW8yC7");
         const WORMHOLE_MINT_AUTHORITY: Pubkey = anchor_lang::pubkey!("rRsXLHe7sBHdyKU3KY3wbcgWvoT1Ntqudf6e9PKusgb");
     } else if #[cfg(feature = "tilt-devnet")] {
         declare_id!("46kv4wCpfEtLsHPDh4zm7jJb2pVdvke8Pj2ABYYJotFD");

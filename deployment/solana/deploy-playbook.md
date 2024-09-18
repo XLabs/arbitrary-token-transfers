@@ -8,7 +8,7 @@ solana-keygen grind --ignore-case --starts-with atb:1
 
 rm -rf target/idl target/types
 
-anchor build
+anchor build -- --features "solana-devnet"
 
 rm ./sdk/solana/tbrv3/idl/token_bridge_relayer.json
 
