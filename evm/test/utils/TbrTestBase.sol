@@ -30,8 +30,8 @@ contract TbrTestBase is Test {
   IPermit2     immutable permit2;
   address      immutable oracle;
   ITokenBridge immutable tokenBridge;
-  IWETH        immutable initGasToken;
-  bool         immutable initGasErc20TokenizationIsExplicit;
+  IWETH        immutable gasToken;
+  bool         immutable gasErc20TokenizationIsExplicit;
   
   IERC20       immutable usdt;
 
@@ -48,8 +48,8 @@ contract TbrTestBase is Test {
     permit2       = IPermit2(makeAddr("permit2"));
     oracle        = makeAddr("oracle");
     tokenBridge   = ITokenBridge(vm.envAddress("TEST_TOKEN_BRIDGE_ADDRESS"));
-    initGasToken  = IWETH(vm.envAddress("TEST_WETH_ADDRESS"));
-    initGasErc20TokenizationIsExplicit = false;
+    gasToken  = IWETH(vm.envAddress("TEST_WETH_ADDRESS"));
+    gasErc20TokenizationIsExplicit = false;
 
     usdt          = IERC20(vm.envAddress("TEST_USDT_ADDRESS"));
   }
@@ -67,8 +67,8 @@ contract TbrTestBase is Test {
       permit2,
       tokenBridge,
       oracle,
-      initGasToken,
-      initGasErc20TokenizationIsExplicit
+      gasToken,
+      gasErc20TokenizationIsExplicit
     ));
 
     tbr = Tbr(payable(new Proxy(
@@ -84,8 +84,8 @@ contract TbrTestBase is Test {
       permit2,
       tokenBridge,
       oracle,
-      initGasToken,
-      initGasErc20TokenizationIsExplicit
+      gasToken,
+      gasErc20TokenizationIsExplicit
     );
 
     setUpOracle();

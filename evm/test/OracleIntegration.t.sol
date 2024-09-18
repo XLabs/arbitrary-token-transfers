@@ -17,8 +17,8 @@ contract OracleIntegrationTest is TbrTestBase {
       permit2,
       tokenBridge,
       address(priceOracle),
-      initGasToken,
-      initGasErc20TokenizationIsExplicit
+      gasToken,
+      gasErc20TokenizationIsExplicit
     );
   }
   

@@ -208,6 +208,119 @@ contract UserTest is TbrTestBase {
     );
   }
 
+  function testTransferGasTokenWithRelay(
+    uint256 tokenAmount, 
+    uint32 gasDropoff,
+    bytes32 recipient,
+    uint256 feeQuote,
+    uint256 unallocatedBalance
+  ) public {
+    tokenAmount = bound(tokenAmount, 1, 1e12);
+    feeQuote = bound(feeQuote, 1, 1e12);
+    vm.assume(recipient != bytes32(0));
+    vm.assume(gasDropoff < MAX_GAS_DROPOFF_AMOUNT);
+    vm.assume(unallocatedBalance >= feeQuote + tokenAmount);
+    deal(address(this), unallocatedBalance);
+
+    uint16 targetChain = SOLANA_CHAIN_ID;
+    bool unwrapIntent = false;
+    bytes memory tbrMessage = abi.encodePacked(
+      TBR_V3_MESSAGE_VERSION,
+      recipient,
+      gasDropoff,
+      unwrapIntent
+    );
+    uint initialFeeRecipientBalance = address(feeRecipient).balance;
+    uint initialCallerBalance = address(this).balance;
+
+    uint64 sequence = 1;
+    vm.mockCall(
+      address(tokenBridge), 
+      abi.encodeWithSelector(tokenBridge.transferTokensWithPayload.selector), 
+      abi.encode(sequence)
+    );
+
+    vm.mockCall(
+      address(oracle), 
+      abi.encodeWithSelector(IPriceOracle.get1959.selector), 
+      abi.encode(abi.encodePacked(uint256(feeQuote)))
+    );
+
+    vm.expectCall(
+      address(tokenBridge),
+      abi.encodeWithSelector(
+        tokenBridge.transferTokensWithPayload.selector,
+        address(gasToken),
+        tokenAmount,
+        targetChain,
+        SOLANA_CANONICAL_PEER,
+        0,
+        tbrMessage
+      ),
+      1
+    );
+
+    vm.expectEmit(address(tbr));
+    emit TransferRequested(address(this), sequence, gasDropoff, feeQuote);
+
+    invokeTbr(
+      abi.encodePacked(
+        tbr.exec768.selector, 
+        DISPATCHER_PROTOCOL_VERSION0, 
+        TRANSFER_GAS_TOKEN_WITH_RELAY_ID,
+        targetChain,
+        recipient,
+        gasDropoff,
+        tokenAmount
+      ),
+      unallocatedBalance
+    );
+
+    assertEq(address(this).balance, initialCallerBalance - feeQuote);
+    assertEq(address(feeRecipient).balance, initialFeeRecipientBalance + feeQuote);
+  }
+
+  function testTransferGasTokenWithRelay_FeesInsufficient(    
+    uint256 tokenAmount, 
+    uint32 gasDropoff,
+    bytes32 recipient,
+    uint256 feeQuote,
+    uint256 unallocatedBalance
+  ) public {
+    tokenAmount = bound(tokenAmount, 1, 1e12);
+    feeQuote = bound(feeQuote, 1, 1e12);
+    vm.assume(recipient != bytes32(0));
+    vm.assume(gasDropoff < MAX_GAS_DROPOFF_AMOUNT);
+    vm.assume(unallocatedBalance < feeQuote + tokenAmount);
+    deal(address(this), unallocatedBalance);
+
+    uint16 targetChain = SOLANA_CHAIN_ID;
+    uint commandIndex = 0;
+
+    vm.mockCall(
+      address(oracle), 
+      abi.encodeWithSelector(IPriceOracle.get1959.selector), 
+      abi.encode(abi.encodePacked(uint256(feeQuote)))
+    );
+
+    vm.expectRevert(
+      abi.encodeWithSelector(FeesInsufficient.selector, unallocatedBalance, commandIndex)
+    );
+
+    invokeTbr(
+      abi.encodePacked(
+        tbr.exec768.selector, 
+        DISPATCHER_PROTOCOL_VERSION0, 
+        TRANSFER_GAS_TOKEN_WITH_RELAY_ID,
+        targetChain,
+        recipient,
+        gasDropoff,
+        tokenAmount
+      ),
+      unallocatedBalance
+    );
+  } 
+
   function testParseSharedParams(
     uint16 targetChain,
     bytes32 recipient,
