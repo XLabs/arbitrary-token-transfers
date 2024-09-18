@@ -58,13 +58,13 @@ jobs:
         run: |
           eval `ssh-agent -s`
           ssh-add - <<< '${{ secrets.RELAYER_INFRA_CONTRACTS }}'
-          cd solana
           anchor build
+        working-directory: ./solana
         shell: bash
       - run: find . -maxdepth 10 -name '*price_oracle.so'
       - run: cp ./solana/src/solana/target/deploy/solana_price_oracle.so ./solana/tests/
       - name: Run Solana SDK tests
         run: |
-          cd solana
           anchor test
+        working-directory: ./solana
         shell: bash
