@@ -175,7 +175,7 @@ pub fn complete_transfer(ctx: Context<CompleteTransfer>) -> Result<()> {
             &[
                 PeerState::SEED_PREFIX,
                 ctx.accounts.vaa.meta.emitter_chain.to_be_bytes().as_ref(),
-                ctx.accounts.vaa.meta.emitter_address.as_ref(),
+                ctx.accounts.vaa.data().from_address().as_ref(),
             ],
             ctx.program_id
         )
