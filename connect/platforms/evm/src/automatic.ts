@@ -1,12 +1,10 @@
 import { amount as sdkAmount, encoding, LayoutToType, Network } from "@wormhole-foundation/sdk-base";
 import { ChainsConfig, Contracts, isNative, VAA } from "@wormhole-foundation/sdk-definitions";
 import { EvmChains, EvmPlatform, EvmPlatformType, EvmUnsignedTransaction } from "@wormhole-foundation/sdk-evm";
-import { AutomaticTokenBridgeV3, tokenBridgeRelayerV3Contracts, BaseRelayingParamsReturnItem, RelayingFeesParams, RelayingFeesReturnItem, TransferParams, tokenBridgeRelayerV3Chains } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
-import { acquireModeItem, relayFeeUnit, SupportedChains, Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
+import { AutomaticTokenBridgeV3, tokenBridgeRelayerV3Contracts, RelayingFeesParams, TransferParams, tokenBridgeRelayerV3Chains, AcquireMode } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
+import { acquireModeItem, BaseRelayingParamsReturn, RelayingFeesReturn, SupportedChains, Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
 import { Provider } from "ethers";
 import '@wormhole-foundation/sdk-evm';
-
-export type AcquireMode = LayoutToType<typeof acquireModeItem>;
 
 export interface EvmTransferParams<C extends EvmChains> extends TransferParams<C> {
   acquireMode: AcquireMode;
@@ -53,14 +51,12 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
 
     if (tokenBridgeRelayerV3Chains.has(params.recipient.chain)) throw new Error(`Unsupported destination chain ${params.recipient.chain}`);
 
-    const normalizedFee = BigInt(params.fee / relayFeeUnit);
-
     const transferParams = await this.tbr.transferWithRelay({
       args: {
         method: isNative(params.token) ? 'TransferGasTokenWithRelay' : 'TransferTokenWithRelay',
         acquireMode: params.acquireMode,
-        gasDropoff: params.gasDropOff ?? 0n,
-        inputAmount: params.amount,
+        gasDropoff: params.gasDropOff ?? 0,
+        inputAmountInAtomic: params.amount,
         inputToken: params.token.address.toString(),
         recipient: {
           address: params.recipient.address.toUniversalAddress(),
@@ -69,7 +65,7 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
         unwrapIntent: true // TODO: receive as option/param?
       },
       feeEstimation: {
-        fee: normalizedFee,
+        fee: params.fee,
         isPaused: false
       }
     });
@@ -141,16 +137,16 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
     );
   }
 
-  async relayingFee(args: RelayingFeesParams): Promise<RelayingFeesReturnItem> {
+  async relayingFee(args: RelayingFeesParams): Promise<RelayingFeesReturn> {
     const [{ fee, isPaused }] = await this.tbr.relayingFee(args);
 
     return {
       isPaused,
-      fee: fee * relayFeeUnit
+      fee
     };
   }
 
-  async baseRelayingParams(chain: SupportedChains): Promise<BaseRelayingParamsReturnItem> {
+  async baseRelayingParams(chain: SupportedChains): Promise<BaseRelayingParamsReturn> {
     const [params] = await this.tbr.baseRelayingParams(chain);
     return params;
   }

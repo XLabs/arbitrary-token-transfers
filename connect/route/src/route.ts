@@ -19,7 +19,7 @@ import {
 } from "@wormhole-foundation/sdk-connect";
 import { toNative } from "@wormhole-foundation/sdk-definitions";
 import "@xlabs-xyz/arbitrary-token-transfers-definitions";
-import { AcquireMode, SupportedChains, tokenBridgeRelayerV3Chains } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
+import { SupportedChains, tokenBridgeRelayerV3Chains, AcquireMode } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
 
 interface TransferOptions {
   nativeGas: number; // this is a percentage
@@ -83,7 +83,7 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
 
     const { isPaused } = await tbr.relayingFee({
       targetChain: request.toChain.chain as any,
-      gasDropoff: 0n
+      gasDropoff: 0
     });
 
     return !isPaused;
@@ -124,10 +124,10 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
         const { maxGasDropoff } = await stbr.baseRelayingParams(request.toChain.chain);
 
         const perc = BigInt(Math.floor(options.nativeGas * 100));
-        const dropoff = BigInt(params.amount) * perc / 100n;
+        const dropoff = BigInt(maxGasDropoff) * perc / 100n;
 
         options.gasDropOff = sdkAmount.fromBaseUnits(
-          dropoff > maxGasDropoff ? BigInt(maxGasDropoff) : dropoff,
+          dropoff,
           destinationDecimals
         );
 
@@ -149,8 +149,8 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
 
   async quote(
     request: routes.RouteTransferRequest<N>,
-    params: routes.ValidatedTransferParams<TransferOptions>,
-  ): Promise<routes.QuoteResult<TransferOptions, routes.ValidatedTransferParams<TransferOptions>>> {
+    params: routes.ValidatedTransferParams<ValidatedTransferOptions>,
+  ): Promise<routes.QuoteResult<TransferOptions, routes.ValidatedTransferParams<ValidatedTransferOptions>>> {
     try {
       const sourceChain = request.fromChain.chain;
       const targetChain = request.toChain.chain;
@@ -160,8 +160,7 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
 
       const tbr = await request.fromChain.getProtocol('AutomaticTokenBridgeV3');
 
-      // TODO: convert/normalize to amount (maybe in validate? check implementation)
-      const gasDropoff = BigInt(params.options.nativeGas || 0);
+      const gasDropoff = Number(params.options.gasDropOff?.amount || 0) / 1e18;
 
       const { fee, isPaused } = await tbr.relayingFee({
         gasDropoff,
@@ -174,6 +173,9 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
       const dstDecimals = await request.toChain.getDecimals('native');
 
       const feeToken: TokenId = { address: 'native', chain: sourceChain }
+
+      // convert from eth to wei since the ui needs it in base units
+      const feeAmount = BigInt(Math.floor(fee * 1e10)) * BigInt(Math.floor(10 ** Math.abs(srcDecimals - 10)));
 
       const eta = finality.estimateFinalityTime(sourceChain) + guardians.guardianAttestationEta;
 
@@ -200,7 +202,7 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
         },
         relayFee: {
           amount: {
-            amount: fee.toString(),
+            amount: feeAmount.toString(),
             decimals: srcDecimals
           },
           token: feeToken
@@ -216,12 +218,18 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
   async initiate(
     request: routes.RouteTransferRequest<N>,
     signer: Signer,
-    quote: routes.Quote<TransferOptions, routes.ValidatedTransferParams<TransferOptions>>,
+    quote: routes.Quote<TransferOptions, routes.ValidatedTransferParams<ValidatedTransferOptions>>,
     to: ChainAddress<SupportedChains>,
   ): Promise<Receipt> {
     if (isSignOnlySigner(signer)) throw new Error('Signer must be able to send transactions');
 
     const tbr = await request.fromChain.getProtocol('AutomaticTokenBridgeV3');
+
+    // convert the fee back from wei to eth
+    const fee = Number(quote.relayFee?.amount.amount || 0) / 1e18;
+
+    // const gasDropoff = Number(quote.params.options.gasDropOff?.amount || 0);
+    const gasDropOff = Number(quote.params.options.gasDropOff?.amount || 0) / 1e18;
 
     // TODO: how to specify chain specific args (e.g. acquireMode)?
     const transferTxs = tbr.transfer({
@@ -232,8 +240,8 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
       },
       sender: toNative(request.fromChain.chain, signer.address()),
       token: request.source.id,
-      gasDropOff: 0n, // TODO: solve
-      fee: BigInt(quote.relayFee?.amount.amount || 0),
+      gasDropOff,
+      fee,
       // TODO: solve type issue
       // @ts-ignore
       acquireMode: quote.params.options.acquireMode,

@@ -1,6 +1,6 @@
 import { Chain, LayoutToType } from "@wormhole-foundation/sdk-base";
 import { AccountAddress, ChainAddress, TokenAddress, TokenId } from "@wormhole-foundation/sdk-definitions";
-import { acquireModeItem, relayingFeesInputLayout, SupportedChains } from "./layout.js";
+import { relayingFeesInputLayout, SupportedChains } from "./layout.js";
 
 // export type SupportedChains = typeof supportedChains[number];
 
@@ -19,8 +19,9 @@ export interface TransferParams<C extends Chain> {
   recipient: ChainAddress;
   token: TokenId;
   amount: bigint;
-  gasDropOff?: bigint;
-  fee: bigint;
+  gasDropOff?: number;
+  fee: number;
+  unwrapIntent: boolean;
 }
 
 // export interface RelayingFeesParams {
@@ -28,5 +29,3 @@ export interface TransferParams<C extends Chain> {
 //   gasDropoff: bigint;
 // }
 export type RelayingFeesParams = LayoutToType<typeof relayingFeesInputLayout>;
-
-export type AcquireMode = LayoutToType<typeof acquireModeItem>;

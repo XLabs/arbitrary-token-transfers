@@ -67,7 +67,7 @@ const feeItem = {
   custom: bigintDownshift(12),
 } as const satisfies LayoutItem;
 
-const acquireModeItem = {
+export const acquireModeItem = {
   name: "acquireMode",
   binary: "switch",
   idSize: 1,
@@ -132,6 +132,7 @@ export const relayingFeesReturnLayout = [
   { name: "isPaused", ...layoutItems.boolItem },
   { name: "fee", ...feeItem },
 ] as const satisfies Layout;
+export type RelayingFeesReturn = LayoutToType<typeof relayingFeesReturnLayout>;
 
 export const baseRelayingConfigInputLayout = [
   { name: "targetChain", ...supportedChainItem },
@@ -144,6 +145,7 @@ export const baseRelayingConfigReturnLayout = [
   { name: "paused", ...layoutItems.boolItem },
   { name: "txSizeSensitive", ...layoutItems.boolItem },
 ] as const satisfies Layout;
+export type BaseRelayingParamsReturn = LayoutToType<typeof baseRelayingConfigReturnLayout>;
 
 const governanceCommandLayout = 
   { 

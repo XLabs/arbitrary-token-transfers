@@ -1,10 +1,10 @@
+import { AnchorProvider, BN } from "@coral-xyz/anchor";
 import { createAssociatedTokenAccountInstruction } from "@solana/spl-token";
 import { Connection, PublicKey, Transaction, TransactionInstruction } from "@solana/web3.js";
-import { Chain, Network, platformToChains } from "@wormhole-foundation/sdk-base";
-import { AccountAddress, ChainsConfig, Contracts, isNative, TokenAddress, VAA } from "@wormhole-foundation/sdk-definitions";
-import { SolanaAddress, SolanaChain, SolanaChains, SolanaPlatform, SolanaPlatformType, SolanaUnsignedTransaction } from "@wormhole-foundation/sdk-solana";
-import { AutomaticTokenBridgeV3, BaseRelayingParamsReturnItem, RelayingFeesParams, RelayingFeesReturnItem, SupportedChains, TransferParams } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
-import { BN } from "@coral-xyz/anchor";
+import { Chain, Network } from "@wormhole-foundation/sdk-base";
+import { AccountAddress, ChainsConfig, Contracts, isNative, TokenAddress, UniversalAddress, VAA } from "@wormhole-foundation/sdk-definitions";
+import { SolanaAddress, SolanaChain, SolanaChains, SolanaPlatform, SolanaPlatformType, SolanaUnsignedTransaction, SolanaZeroAddress } from "@wormhole-foundation/sdk-solana";
+import { AutomaticTokenBridgeV3, BaseRelayingParamsReturn, RelayingFeesParams, RelayingFeesReturn, SupportedChains, TransferParams } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
 
 import { TbrClient } from "@xlabs-xyz/solana-arbitrary-token-transfers";
 
@@ -31,7 +31,7 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     
     this.chain = new SolanaChain(chainName, new SolanaPlatform(this.network));
 
-    this.client = new TbrClient(connection, {
+    this.client = new TbrClient({ connection }, {
       tokenBridgeProgramId: new PublicKey(contracts.tokenBridge),
       wormholeProgramId: new PublicKey(contracts.coreBridge)
     });
@@ -91,6 +91,7 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
           gasDropoffAmount: new BN(params.gasDropOff?.toString() || 0),
           tokenAccount: ata,
           mint,
+          unwrapIntent: params.unwrapIntent
         }
       ))
     } else {
@@ -102,6 +103,7 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
         transferredAmount: new BN(params.amount.toString()),
         gasDropoffAmount: new BN(params.gasDropOff?.toString() || 0),
         maxFeeSol: new BN(params.maxFee.toString()),
+        unwrapIntent: params.unwrapIntent
       }));
     }
 
@@ -143,17 +145,21 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     }
   }
 
-  async relayingFee(args: RelayingFeesParams): Promise<RelayingFeesReturnItem> {
+  async relayingFee(args: RelayingFeesParams): Promise<RelayingFeesReturn> {
     return {
-      fee: 0n,
+      fee: 0,
       isPaused: false,
     };
   }
 
-  async baseRelayingParams(chain: SupportedChains): Promise<BaseRelayingParamsReturnItem> {
+  async baseRelayingParams(chain: SupportedChains): Promise<BaseRelayingParamsReturn> {
+    // TODO: read contract
     return {
       maxGasDropoff: 0,
       baseFee: 0,
+      paused: false,
+      peer: new UniversalAddress(new PublicKey(SolanaZeroAddress).toBuffer()),
+      txSizeSensitive: false
     };
   }
 

@@ -2,12 +2,9 @@ import { chainToPlatform, FixedLengthArray, Layout, layout, LayoutItem, LayoutTo
 import { layoutItems, serialize, toNative, UniversalAddress, VAA } from "@wormhole-foundation/sdk-definitions";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
 import { ethers } from "ethers";
-import { baseRelayingConfigReturnLayout, commandCategoryLayout, evmAddressItem, execParamsLayout, gasDropoffItem, GovernanceCommand, GovernanceQuery, proxyConstructorLayout, queryCategoryLayout, queryParamsLayout, relayingFeesInputLayout, relayingFeesReturnLayout, SupportedChains, TBRv3Message, transferGasTokenWithRelayLayout, transferTokenWithRelayLayout } from "./layouts.js";
+import { baseRelayingConfigReturnLayout, BaseRelayingParamsReturn, commandCategoryLayout, evmAddressItem, execParamsLayout, gasDropoffItem, GovernanceCommand, GovernanceQuery, proxyConstructorLayout, queryCategoryLayout, queryParamsLayout, relayingFeesInputLayout, RelayingFeesReturn, relayingFeesReturnLayout, SupportedChains, TBRv3Message, transferGasTokenWithRelayLayout, transferTokenWithRelayLayout } from "./layouts.js";
 
 const WHOLE_EVM_GAS_TOKEN_UNITS = 10 ** 18;
-
-type RelayingFeesReturn = LayoutToType<typeof relayingFeesReturnLayout>;
-type BaseRelayingParamsReturn = LayoutToType<typeof baseRelayingConfigReturnLayout>;
 
 
 type FixedArray<T extends Layout> = {

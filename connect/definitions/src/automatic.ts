@@ -1,7 +1,7 @@
 import { Chain, Network } from "@wormhole-foundation/sdk-base";
 import { AccountAddress, EmptyPlatformMap, UnsignedTransaction, VAA } from "@wormhole-foundation/sdk-definitions";
 import { RelayingFeesParams, TransferParams } from "./types.js";
-import { BaseRelayingParamsReturnItem, RelayingFeesReturnItem, SupportedChains } from "./layout.js";
+import { BaseRelayingParamsReturn, RelayingFeesReturn, SupportedChains } from "./layout.js";
 
 export namespace AutomaticTokenBridgeV3 {
   const _protocol = "AutomaticTokenBridgeV3";
@@ -27,7 +27,7 @@ export interface AutomaticTokenBridgeV3<N extends Network, C extends Chain> {
 
   redeem(vaa: VAA<'AutomaticTokenBridgeV3:TransferWithRelay'>, payer?: AccountAddress<C>): AsyncGenerator<UnsignedTransaction<N, C>>;
 
-  relayingFee(args: RelayingFeesParams): Promise<RelayingFeesReturnItem>;
+  relayingFee(args: RelayingFeesParams): Promise<RelayingFeesReturn>;
 
-  baseRelayingParams(chain: SupportedChains): Promise<BaseRelayingParamsReturnItem>;
+  baseRelayingParams(chain: SupportedChains): Promise<BaseRelayingParamsReturn>;
 }

@@ -1,4 +1,4 @@
-import anchor from '@coral-xyz/anchor';
+import { BN, Provider, IdlAccounts } from '@coral-xyz/anchor';
 import { Program, web3 } from '@coral-xyz/anchor';
 import {
   PublicKey,
@@ -38,9 +38,9 @@ export interface TransferNativeParameters {
   recipientAddress: UniversalAddress;
   mint: PublicKey;
   tokenAccount: PublicKey;
-  transferredAmount: anchor.BN;
-  gasDropoffAmount: anchor.BN;
-  maxFeeSol: anchor.BN;
+  transferredAmount: BN;
+  gasDropoffAmount: BN;
+  maxFeeSol: BN;
   unwrapIntent: boolean;
 }
 
@@ -48,17 +48,17 @@ export interface TransferWrappedParameters {
   recipientChain: Chain;
   recipientAddress: UniversalAddress;
   userTokenAccount: PublicKey;
-  transferredAmount: anchor.BN;
-  gasDropoffAmount: anchor.BN;
-  maxFeeSol: anchor.BN;
+  transferredAmount: BN;
+  gasDropoffAmount: BN;
+  maxFeeSol: BN;
   unwrapIntent: boolean;
 }
 
-export type TbrConfigAccount = anchor.IdlAccounts<TokenBridgeRelayer>['tbrConfigState'];
-export type ChainConfigAccount = anchor.IdlAccounts<TokenBridgeRelayer>['chainConfigState'];
-export type PeerAccount = anchor.IdlAccounts<TokenBridgeRelayer>['peerState'];
-export type SignerSequenceAccount = anchor.IdlAccounts<TokenBridgeRelayer>['signerSequenceState'];
-export type AdminAccount = anchor.IdlAccounts<TokenBridgeRelayer>['adminState'];
+export type TbrConfigAccount = IdlAccounts<TokenBridgeRelayer>['tbrConfigState'];
+export type ChainConfigAccount = IdlAccounts<TokenBridgeRelayer>['chainConfigState'];
+export type PeerAccount = IdlAccounts<TokenBridgeRelayer>['peerState'];
+export type SignerSequenceAccount = IdlAccounts<TokenBridgeRelayer>['signerSequenceState'];
+export type AdminAccount = IdlAccounts<TokenBridgeRelayer>['adminState'];
 
 export interface TbrAddresses {
   config(): PublicKey;
@@ -77,13 +77,13 @@ export interface ReadTbrAccounts {
 }
 
 export class TbrClient {
-  public readonly program: anchor.Program<TokenBridgeRelayer>;
+  public readonly program: Program<TokenBridgeRelayer>;
   private readonly priceOracleClient: SolanaPriceOracleClient;
   private readonly tokenBridgeProgramId: PublicKey;
   private readonly wormholeProgramId: PublicKey;
 
   constructor(
-    provider: anchor.Provider,
+    provider: Provider,
     {
       tokenBridgeProgramId,
       wormholeProgramId,
@@ -255,7 +255,7 @@ export class TbrClient {
   async updateMaxGasDropoff(
     signer: PublicKey,
     chain: Chain,
-    maxGasDropoff: anchor.BN,
+    maxGasDropoff: BN,
   ): Promise<web3.TransactionInstruction> {
     return this.program.methods
       .updateMaxGasDropoff(chainToChainId(chain), maxGasDropoff)
@@ -271,7 +271,7 @@ export class TbrClient {
   async updateRelayerFee(
     signer: PublicKey,
     chain: Chain,
-    relayerFee: anchor.BN,
+    relayerFee: BN,
   ): Promise<web3.TransactionInstruction> {
     return this.program.methods
       .updateRelayerFee(chainToChainId(chain), relayerFee)
@@ -300,8 +300,8 @@ export class TbrClient {
 
   async updateEvmTransactionConfig(
     signer: PublicKey,
-    evmTransactionGas: anchor.BN,
-    evmTransactionSize: anchor.BN,
+    evmTransactionGas: BN,
+    evmTransactionSize: BN,
   ): Promise<web3.TransactionInstruction> {
     return this.program.methods
       .updateEvmTransactionConfig(evmTransactionGas, evmTransactionSize)
@@ -329,7 +329,7 @@ export class TbrClient {
     } = params;
 
     const { feeRecipient } = await this.read.config();
-    let payerSequenceNumber = new anchor.BN(0);
+    let payerSequenceNumber = new BN(0);
 
     try {
       payerSequenceNumber = (await this.read.signerSequence(signer)).value;
@@ -387,7 +387,7 @@ export class TbrClient {
     const chainId = chainToChainId(recipientChain);
 
     const { feeRecipient } = await this.read.config();
-    let payerSequenceNumber = new anchor.BN(0);
+    let payerSequenceNumber = new BN(0);
     try {
       payerSequenceNumber = (await this.read.signerSequence(signer)).value;
     } catch {}
@@ -491,7 +491,7 @@ export class TbrClient {
 
   /* Queries */
 
-  async relayingFee(signer: PublicKey, chain: Chain, dropoffAmount: anchor.BN): Promise<anchor.BN> {
+  async relayingFee(signer: PublicKey, chain: Chain, dropoffAmount: BN): Promise<BN> {
     assertProvider(this.program.provider);
 
     const tx = await this.program.methods
@@ -511,7 +511,7 @@ export class TbrClient {
 
     const result = returnedDataFromTransaction<bigint>('u64', txResponse);
 
-    return new anchor.BN(result.toString());
+    return new BN(result.toString());
   }
 }
 
@@ -556,7 +556,7 @@ const pda = {
   wormholeMessage: (
     programId: PublicKey,
     payer: PublicKey,
-    payerSequence: anchor.BN,
+    payerSequence: BN,
   ): PublicKey => {
     return PublicKey.findProgramAddressSync(
       [Buffer.from('bridged'), payer.toBuffer(), payerSequence.toBuffer()],
@@ -565,7 +565,7 @@ const pda = {
   },
 };
 
-function assertProvider(provider: anchor.Provider) {
+function assertProvider(provider: Provider) {
   if (provider.sendAndConfirm === undefined) {
     throw new Error('The client must be created with a full provider to use this method');
   }
