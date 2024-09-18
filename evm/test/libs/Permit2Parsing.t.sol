@@ -67,16 +67,16 @@ contract Permit2ParsingTest is Test {
 
   function testParsePermit2Transfer(
     uint256 amount, 
-    uint256 expiration, 
     uint256 nonce, 
+    uint256 sigDeadline, 
     bytes memory signature
   ) public view {
     vm.assume(signature.length == 65);
-    bytes memory params = abi.encodePacked(amount, expiration, nonce, signature);
-    (uint256 _amount, uint256 _expiration, uint256 _nonce, bytes memory _signature, uint offset) = this.parsePermit2Transfer(params, 0);
+    bytes memory params = abi.encodePacked(amount, nonce, sigDeadline, signature);
+    (uint256 _amount, uint256 _nonce, uint256 _sigDeadline, bytes memory _signature, uint offset) = this.parsePermit2Transfer(params, 0);
     assertEq(_amount, amount);
-    assertEq(_expiration, expiration);
     assertEq(_nonce, nonce);
+    assertEq(_sigDeadline, sigDeadline);
     assertEq(_signature, signature);
     assertEq(offset, params.length);
   }

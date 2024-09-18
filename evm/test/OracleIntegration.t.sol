@@ -22,7 +22,7 @@ contract OracleIntegrationTest is TbrTestBase {
     );
   }
   
-  function testQuoteRelay_evmTransactionQuote() public {
+  function testQuoteRelay_evmTransactionQuote() public view {
     uint32 gasDropoff = 1000;
     uint16 chainId = EVM_CHAIN_ID;
     bool txCommitEthereum = false;
@@ -32,7 +32,7 @@ contract OracleIntegrationTest is TbrTestBase {
     assertEq(quote, expectedQuote);
   } 
 
-  function testQuoteRelay_evmTransactionWithTxSizeQuote() public {
+  function testQuoteRelay_evmTransactionWithTxSizeQuote() public view {
     uint32 gasDropoff = 1000;
     uint16 chainId = EVM_CHAIN_ID;
     bool txCommitEthereum = true;
@@ -42,7 +42,7 @@ contract OracleIntegrationTest is TbrTestBase {
     assertEq(quote, expectedQuote);
   } 
 
-  function testQuoteRelay_solanaTransactionQuote() public {
+  function testQuoteRelay_solanaTransactionQuote() public view {
     uint32 gasDropoff = 1000;
     uint16 chainId = SOLANA_CHAIN_ID;
     bool txCommitEthereum = false;
