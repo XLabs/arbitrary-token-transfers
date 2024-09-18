@@ -54,9 +54,13 @@ jobs:
         run: yarn install --immutable --immutable-cache
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Run Solana SDK tests
+      - name: Build Solana programs
         run: |
           eval `ssh-agent -s`
           ssh-add - <<< '${{ secrets.RELAYER_INFRA_CONTRACTS }}'
+          anchor build
+        shell: bash
+      - name: Run Solana SDK tests
+        run: |
           anchor test
         shell: bash
