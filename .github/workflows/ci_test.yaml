@@ -33,7 +33,7 @@ jobs:
             ~/.local/share/solana/
           key: solana-cli-${{ runner.os }}-build-1.28.23
       - name: Install Solana CLI tools
-        run: sh -c "$(curl -sSfL https://release.solana.com/v1.28.23/install)"
+        run: sh -c "$(curl -sSfL https://release.anza.xyz/v1.18.23/install)"
         shell: bash
       - name: Update PATH
         run: echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
