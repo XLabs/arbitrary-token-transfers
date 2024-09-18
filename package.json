@@ -17,6 +17,9 @@
     "clean:solana": "yarn ./solana clean",
     "clean:evm": "yarn ./evm clean",
     "clean:deployment": "yarn ./deployment clean",
+    "test:evm": "yarn ./evm test",
+    "test:solana": "yarn ./solana test",
+    "test:sdk-evm": "yarn sdk/evm test:deploy:integration",
     "prettier": "prettier --write ."
   },
   "keywords": [],
