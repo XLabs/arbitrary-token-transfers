@@ -60,6 +60,7 @@ jobs:
           ssh-add - <<< '${{ secrets.RELAYER_INFRA_CONTRACTS }}'
           anchor build
         shell: bash
+      - run: cp ./solana/target/sbf-solana-solana/release/solana_price_oracle.so ./solana/tests/
       - name: Run Solana SDK tests
         run: |
           anchor test
