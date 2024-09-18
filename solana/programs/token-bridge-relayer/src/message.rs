@@ -17,8 +17,8 @@ pub enum RelayerMessage {
 impl RelayerMessage {
     pub fn new(recipient: [u8; 32], gas_dropoff_amount: u32, unwrap_intent: bool) -> Self {
         Self::V0 {
-            gas_dropoff_amount,
             recipient,
+            gas_dropoff_amount,
             unwrap_intent,
         }
     }
@@ -29,8 +29,8 @@ impl RelayerMessage {
         unwrap_intent: bool,
     ) -> io::Result<Vec<u8>> {
         let msg = Self::V0 {
-            gas_dropoff_amount,
             recipient,
+            gas_dropoff_amount,
             unwrap_intent,
         };
 
@@ -47,8 +47,8 @@ impl Readable for RelayerMessage {
     {
         match Readable::read(reader)? {
             0_u8 => Ok(RelayerMessage::V0 {
-                gas_dropoff_amount: Readable::read(reader)?,
                 recipient: Readable::read(reader)?,
+                gas_dropoff_amount: Readable::read(reader)?,
                 unwrap_intent: Readable::read(reader)?,
             }),
             _invalid_variant => Err(io::Error::new(
@@ -63,13 +63,13 @@ impl Writeable for RelayerMessage {
     fn written_size(&self) -> usize {
         match self {
             RelayerMessage::V0 {
-                gas_dropoff_amount,
                 recipient,
+                gas_dropoff_amount,
                 unwrap_intent,
             } => {
                 PAYLOAD_ID_SIZE
-                    + gas_dropoff_amount.written_size()
                     + recipient.written_size()
+                    + gas_dropoff_amount.written_size()
                     + unwrap_intent.written_size()
             }
         }
@@ -81,13 +81,13 @@ impl Writeable for RelayerMessage {
     {
         match self {
             RelayerMessage::V0 {
-                gas_dropoff_amount,
                 recipient,
+                gas_dropoff_amount,
                 unwrap_intent,
             } => {
                 0_u8.write(writer)?;
-                gas_dropoff_amount.write(writer)?;
                 recipient.write(writer)?;
+                gas_dropoff_amount.write(writer)?;
                 unwrap_intent.write(writer)
             }
         }

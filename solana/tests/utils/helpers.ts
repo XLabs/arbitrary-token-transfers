@@ -14,6 +14,8 @@ import { ChainConfigAccount } from '@xlabs-xyz/solana-arbitrary-token-transfers'
 import { expect } from 'chai';
 
 const LOCALHOST = 'http://localhost:8899';
+export const wormholeProgramId = new PublicKey('worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth');
+export const tokenBridgeProgramId = new PublicKey('wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb');
 
 export interface ErrorConstructor {
   new (...args: any[]): Error;

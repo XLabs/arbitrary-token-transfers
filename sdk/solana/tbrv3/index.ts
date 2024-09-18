@@ -19,12 +19,45 @@ import { SolanaPriceOracleClient } from '@xlabs/solana-price-oracle-sdk';
 
 import { TokenBridgeRelayer } from './idl/token_bridge_relayer.js';
 import IDL from '../../../target/idl/token_bridge_relayer.json' with { type: 'json' };
-import { inspect } from 'util';
 
 // Export IDL
 export * from './idl/token_bridge_relayer.js';
 export const idl = IDL;
 export { SolanaPriceOracleClient } from '@xlabs/solana-price-oracle-sdk';
+
+//================== Should be in a package
+import { CustomConversion, Layout, layout, LayoutItem } from '@wormhole-foundation/sdk-base';
+import { layoutItems } from '@wormhole-foundation/sdk-definitions';
+
+//TODO eliminate copy paste from oracle sdk and unify in some shared repo
+const decimalDownShift = (downShift: number) =>
+  ({
+    to: (val: number): number => val / 10 ** downShift,
+    from: (price: number): number => {
+      const encoded = Math.round(price * 10 ** downShift);
+      if (encoded === 0 && price !== 0)
+        throw new Error(`losing all precision when storing ${price} with shift ${downShift}`);
+
+      return encoded;
+    },
+  }) as const satisfies CustomConversion<number, number>;
+
+//specifed as: gas token (i.e. eth, avax, ...)
+// encoded as: µgas token
+const gasDropoffItem = {
+  binary: 'uint',
+  size: 4,
+  custom: decimalDownShift(6),
+} as const satisfies LayoutItem;
+
+const TBRv3Message = [
+  //we can turn this into a switch layout if we ever get a version 1
+  { name: 'version', binary: 'uint', size: 1, custom: 0, omit: true },
+  { name: 'recipient', ...layoutItems.universalAddressItem },
+  { name: 'gasDropoff', ...gasDropoffItem },
+  { name: 'unwrapIntent', ...layoutItems.boolItem },
+] as const satisfies Layout;
+//==================
 
 /**
  * 32 bytes.
@@ -76,7 +109,7 @@ export interface ReadTbrAccounts {
   adminBadge(signer: PublicKey): Promise<AdminAccount>;
 }
 
-export class TbrClient {
+export class SolanaTokenBridgeRelayer {
   public readonly program: anchor.Program<TokenBridgeRelayer>;
   private readonly priceOracleClient: SolanaPriceOracleClient;
   private readonly tokenBridgeProgramId: PublicKey;
@@ -437,13 +470,13 @@ export class TbrClient {
     signer: PublicKey,
     vaa: VaaMessage,
     recipientTokenAccount: PublicKey,
-    recipient: PublicKey,
   ): Promise<web3.TransactionInstruction> {
     const tokenBridgeAccounts = completeNativeTokenBridgeAccounts({
       tokenBridgeProgramId: this.tokenBridgeProgramId,
       wormholeProgramId: this.wormholeProgramId,
       vaa,
     });
+    const { recipient } = layout.deserializeLayout(TBRv3Message, vaa.payload.payload);
 
     return this.program.methods
       .completeTransfer(Array.from(vaa.hash))
@@ -451,7 +484,7 @@ export class TbrClient {
         payer: signer,
         tbrConfig: this.address.config(),
         recipientTokenAccount,
-        recipient,
+        recipient: new PublicKey(recipient.address),
         vaa: pda.vaa(this.wormholeProgramId, vaa.hash),
         temporaryAccount: pda.temporary(this.program.programId, tokenBridgeAccounts.mint),
         ...tokenBridgeAccounts,
@@ -466,13 +499,13 @@ export class TbrClient {
     signer: PublicKey,
     vaa: VaaMessage,
     recipientTokenAccount: PublicKey,
-    recipient: PublicKey,
   ): Promise<web3.TransactionInstruction> {
     const tokenBridgeAccounts = completeWrappedTokenBridgeAccounts({
       tokenBridgeProgramId: this.tokenBridgeProgramId,
       wormholeProgramId: this.wormholeProgramId,
       vaa,
     });
+    const { recipient } = layout.deserializeLayout(TBRv3Message, vaa.payload.payload);
 
     return this.program.methods
       .completeTransfer(Array.from(vaa.hash))
@@ -480,7 +513,7 @@ export class TbrClient {
         payer: signer,
         tbrConfig: this.address.config(),
         recipientTokenAccount,
-        recipient,
+        recipient: new PublicKey(recipient.address),
         vaa: pda.vaa(this.wormholeProgramId, vaa.hash),
         temporaryAccount: pda.temporary(this.program.programId, tokenBridgeAccounts.mint),
         ...tokenBridgeAccounts,
@@ -493,13 +526,19 @@ export class TbrClient {
 
   /* Queries */
 
-  async relayingFee(signer: PublicKey, chain: Chain, dropoffAmount: number): Promise<anchor.BN> {
+  /**
+   *
+   * @param chain The target chain where the token will be sent to.
+   * @param dropoffAmount The amount to send to the target chain.
+   * @returns The fee to pay for the transfer in SOL.
+   */
+  async relayingFee(chain: Chain, dropoffAmount: number): Promise<number> {
     assertProvider(this.program.provider);
 
     const tx = await this.program.methods
       .relayingFee(chainToChainId(chain), dropoffAmount)
       .accountsStrict({
-        payer: signer,
+        payer: this.program.provider.publicKey,
         tbrConfig: this.address.config(),
         chainConfig: this.address.chainConfig(chain),
         oracleConfig: this.priceOracleClient.address.config(),
@@ -510,10 +549,9 @@ export class TbrClient {
       commitment: 'confirmed',
       maxSupportedTransactionVersion: undefined,
     });
-
     const result = returnedDataFromTransaction<bigint>('u64', txResponse);
 
-    return new anchor.BN(result.toString());
+    return Number(result) / 1_000_000;
   }
 }
 
