@@ -3053,6 +3053,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"evm@workspace:evm":
+  version: 0.0.0-use.local
+  resolution: "evm@workspace:evm"
+  dependencies:
+    "@typechain/ethers-v6": "npm:^0.5.1"
+    typechain: "npm:^8.3.2"
+  languageName: unknown
+  linkType: soft
+
 "execa@npm:^5.1.1":
   version: 5.1.1
   resolution: "execa@npm:5.1.1"
@@ -5082,9 +5091,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"solana-d8ec25@workspace:solana":
+"solana@workspace:solana":
   version: 0.0.0-use.local
-  resolution: "solana-d8ec25@workspace:solana"
+  resolution: "solana@workspace:solana"
   dependencies:
     "@coral-xyz/anchor": "npm:^0.30.1"
     "@solana/web3.js": "npm:^1.95.3"

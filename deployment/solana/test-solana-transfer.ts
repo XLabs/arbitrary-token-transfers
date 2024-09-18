@@ -1,5 +1,5 @@
 import { SolanaLedgerSigner } from '@xlabs-xyz/ledger-signer-solana';
-import { TbrClient } from '@xlabs-xyz/solana-arbitrary-token-transfers';
+import { TbrClient, TransferNativeParameters } from '@xlabs-xyz/solana-arbitrary-token-transfers';
 import { dependencies, evm, getEnv, LoggerFn, solana, SolanaChainInfo } from '../helpers';
 import { getConnection, ledgerSignAndSend, runOnSolana, SolanaSigner } from '../helpers/solana';
 import { PublicKey } from '@solana/web3.js';
@@ -42,14 +42,14 @@ async function sendTestTransaction(
 
       const evmAddress = getEnv('RECIPIENT_EVM_ADDRESS');
 
-      const params = {
+      const params: TransferNativeParameters = {
         recipientChain: targetChain.name as Chain,
         recipientAddress: toUniversal(targetChain.name as Chain, evmAddress).toUint8Array(),
         mint: new PublicKey(getEnv("TRANSFER_MINT")),
         tokenAccount: new PublicKey(getEnv("TRANSFER_TOKEN_ACCOUNT")),
         transferredAmount: new BN(1000),
-        gasDropoffAmount: new BN(0),
-        maxFeeSol: new BN(5000),
+        gasDropoffAmount: 0,
+        maxFeeKlamports: new BN(5000),
         unwrapIntent: false,
       };
 

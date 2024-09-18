@@ -26,6 +26,7 @@
     { "path": "./sdk/solana/tsconfig.json" },
     { "path": "./deployment" },
     { "path": "./solana/tsconfig.json" },
+    { "path": "./evm/tsconfig.json" },
     { "path": "./connect/definitions" },
     { "path": "./connect/platforms/evm" },
     { "path": "./connect/platforms/solana" },

@@ -39,8 +39,8 @@ export interface TransferNativeParameters {
   mint: PublicKey;
   tokenAccount: PublicKey;
   transferredAmount: BN;
-  gasDropoffAmount: BN;
-  maxFeeSol: BN;
+  gasDropoffAmount: number;
+  maxFeeKlamports: BN;
   unwrapIntent: boolean;
 }
 
@@ -49,8 +49,8 @@ export interface TransferWrappedParameters {
   recipientAddress: UniversalAddress;
   userTokenAccount: PublicKey;
   transferredAmount: BN;
-  gasDropoffAmount: BN;
-  maxFeeSol: BN;
+  gasDropoffAmount: number;
+  maxFeeKlamports: BN;
   unwrapIntent: boolean;
 }
 
@@ -255,7 +255,7 @@ export class TbrClient {
   async updateMaxGasDropoff(
     signer: PublicKey,
     chain: Chain,
-    maxGasDropoff: BN,
+    maxGasDropoff: number,
   ): Promise<web3.TransactionInstruction> {
     return this.program.methods
       .updateMaxGasDropoff(chainToChainId(chain), maxGasDropoff)
@@ -271,7 +271,7 @@ export class TbrClient {
   async updateRelayerFee(
     signer: PublicKey,
     chain: Chain,
-    relayerFee: BN,
+    relayerFee: number,
   ): Promise<web3.TransactionInstruction> {
     return this.program.methods
       .updateRelayerFee(chainToChainId(chain), relayerFee)
@@ -324,7 +324,7 @@ export class TbrClient {
       tokenAccount: userTokenAccount,
       transferredAmount,
       gasDropoffAmount,
-      maxFeeSol,
+      maxFeeKlamports: maxFeeSol,
       unwrapIntent,
     } = params;
 
@@ -380,7 +380,7 @@ export class TbrClient {
       userTokenAccount,
       transferredAmount,
       gasDropoffAmount,
-      maxFeeSol,
+      maxFeeKlamports,
       unwrapIntent,
     } = params;
 
@@ -406,7 +406,7 @@ export class TbrClient {
         transferredAmount,
         unwrapIntent,
         gasDropoffAmount,
-        maxFeeSol,
+        maxFeeKlamports,
       )
       .accountsPartial({
         payer: signer,
@@ -457,7 +457,7 @@ export class TbrClient {
         ...tokenBridgeAccounts,
         tokenBridgeProgram: this.tokenBridgeProgramId,
         wormholeProgram: this.wormholeProgramId,
-        peer: pda.peer(this.program.programId, vaa.emitterChain, vaa.emitterAddress.toUint8Array()),
+        peer: pda.peer(this.program.programId, vaa.emitterChain, vaa.payload.from.toUint8Array()),
       })
       .instruction();
   }
@@ -486,14 +486,14 @@ export class TbrClient {
         ...tokenBridgeAccounts,
         tokenBridgeProgram: this.tokenBridgeProgramId,
         wormholeProgram: this.wormholeProgramId,
-        peer: pda.peer(this.program.programId, vaa.emitterChain, vaa.emitterAddress.toUint8Array()),
+        peer: pda.peer(this.program.programId, vaa.emitterChain, vaa.payload.from.toUint8Array()),
       })
       .instruction();
   }
 
   /* Queries */
 
-  async relayingFee(signer: PublicKey, chain: Chain, dropoffAmount: BN): Promise<BN> {
+  async relayingFee(signer: PublicKey, chain: Chain, dropoffAmount: number): Promise<BN> {
     assertProvider(this.program.provider);
 
     const tx = await this.program.methods

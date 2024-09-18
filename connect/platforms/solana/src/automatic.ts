@@ -92,8 +92,8 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
           recipientChain: params.recipient.chain,
           recipientAddress: params.recipient.address.toUint8Array(),
           transferredAmount: new BN(params.amount.toString()),
-          maxFeeSol: new BN(params.maxFee.toString()),
-          gasDropoffAmount: new BN(params.gasDropOff?.toString() || 0),
+          maxFeeKlamports: new BN(params.maxFee.toString()),
+          gasDropoffAmount: params.gasDropOff || 0,
           tokenAccount: ata,
           mint,
           unwrapIntent: params.unwrapIntent
@@ -106,8 +106,8 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
         recipientAddress: params.recipient.address.toUint8Array(),
         userTokenAccount: ata,
         transferredAmount: new BN(params.amount.toString()),
-        gasDropoffAmount: new BN(params.gasDropOff?.toString() || 0),
-        maxFeeSol: new BN(params.maxFee.toString()),
+        gasDropoffAmount: params.gasDropOff || 0,
+        maxFeeKlamports: new BN(params.maxFee.toString()),
         unwrapIntent: params.unwrapIntent
       }));
     }
@@ -163,7 +163,7 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
       + BigInt(args.gasDropoff);
 
     const totalFeesUsd = totalFeesMWei / MWEI_PER_ETH * BigInt(oraclePrices.gasTokenPrice.toString())
-      + BigInt(chainConfig.relayerFee.toString());
+      + BigInt(chainConfig.relayerFeeMicroUsd.toString());
 
     const fee = KLAM_PER_SOL * totalFeesUsd / BigInt(oracleConfig.solPrice.toString());
 
@@ -183,8 +183,8 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     const config = await this.client.read.chainConfig(chain);
 
     return {
-      maxGasDropoff: config.maxGasDropoff.toNumber(),
-      baseFee: config.relayerFee.toNumber(),
+      maxGasDropoff: config.maxGasDropoffMicroToken,
+      baseFee: config.relayerFeeMicroUsd,
       paused: config.pausedOutboundTransfers,
       peer: new UniversalAddress(new Uint8Array(config.canonicalPeer)),
       txSizeSensitive: false // TODO: might not be necessary

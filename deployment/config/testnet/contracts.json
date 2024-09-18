@@ -17,18 +17,18 @@
     },
     {
       "chainId": 1,
-      "address": "AtTByoATABXxKRK8VZbiKw3vuURVszCpD5PmsgF6XXJc",
+      "address": "AttbEYJMSsnVRDcKY4AcX1GBcdPy9FzHcxTbKaMGGuLs",
       "constructorArgs": []
     }
   ],
   "TbrV3Proxies": [
     {
-      "chainId": 10005,
+      "chainId": 10002,
       "address": "0xb620f38B1211bDB96684576017F66bA9871eb6be",
       "constructorArgs": []
     },
     {
-      "chainId": 10002,
+      "chainId": 10005,
       "address": "0xb620f38B1211bDB96684576017F66bA9871eb6be",
       "constructorArgs": []
     },
