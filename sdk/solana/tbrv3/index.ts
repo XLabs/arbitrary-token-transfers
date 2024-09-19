@@ -696,6 +696,7 @@ function transferWrappedTokenBridgeAccounts(params: {
   tokenBridgeEmitter: PublicKey;
   tokenBridgeSequence: PublicKey;
   mint: PublicKey;
+  wormholeFeeCollector: PublicKey;
 } {
   const { programId, tokenBridgeProgramId, wormholeProgramId, tokenChain, tokenAddress } = params;
 
@@ -707,6 +708,7 @@ function transferWrappedTokenBridgeAccounts(params: {
     tokenBridgeSequence,
     tokenBridgeWrappedMeta,
     tokenBridgeWrappedMint,
+    wormholeFeeCollector
   } = getTransferWrappedWithPayloadCpiAccounts(
     programId,
     tokenBridgeProgramId,
@@ -728,6 +730,7 @@ function transferWrappedTokenBridgeAccounts(params: {
     tokenBridgeEmitter,
     tokenBridgeSequence,
     mint: tokenBridgeWrappedMint,
+    wormholeFeeCollector
   };
 }
 
