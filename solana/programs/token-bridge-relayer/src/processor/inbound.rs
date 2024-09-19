@@ -175,7 +175,7 @@ pub fn complete_transfer(ctx: Context<CompleteTransfer>) -> Result<()> {
             &[
                 PeerState::SEED_PREFIX,
                 ctx.accounts.vaa.meta.emitter_chain.to_be_bytes().as_ref(),
-                ctx.accounts.vaa.meta.emitter_address.as_ref(),
+                ctx.accounts.vaa.data().from_address().as_ref(),
             ],
             ctx.program_id
         )
@@ -194,12 +194,6 @@ pub fn complete_transfer(ctx: Context<CompleteTransfer>) -> Result<()> {
     if is_native(&ctx)? {
         token_bridge_complete_native(&ctx, &signer_seeds)?;
     } else {
-        require_eq!(
-            ctx.accounts.vaa.data().token_chain(),
-            wormhole::CHAIN_ID_SOLANA,
-            TokenBridgeRelayerError::InvalidTransferTokenChain
-        );
-
         token_bridge_complete_wrapped(&ctx, &signer_seeds)?;
     }
 

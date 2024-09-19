@@ -5,6 +5,7 @@ pragma solidity ^0.8.25;
 import {IERC20} from "@openzeppelin/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import {IWETH} from "wormhole-sdk/interfaces/token/IWETH.sol";
+import {IWormhole} from "wormhole-sdk/interfaces/IWormhole.sol";
 import {ITokenBridge} from "wormhole-sdk/interfaces/ITokenBridge.sol";
 import {BytesParsing} from "wormhole-sdk/libraries/BytesParsing.sol";
 import {IPermit2} from "permit2/IPermit2.sol";
@@ -80,6 +81,7 @@ abstract contract TbrBase is PriceOracleIntegration {
 
   IPermit2     internal immutable permit2;
   uint16       internal immutable whChainId;
+  IWormhole    internal immutable wormholeCore;
   ITokenBridge internal immutable tokenBridge;
   IWETH        internal immutable gasToken;
   /**
@@ -96,6 +98,7 @@ abstract contract TbrBase is PriceOracleIntegration {
   ) PriceOracleIntegration(oracle) {
     permit2 = initPermit2;
     whChainId = _oracleChainId();
+    wormholeCore = initTokenBridge.wormhole();
     tokenBridge = initTokenBridge;
     gasToken = initGasToken;
     gasErc20TokenizationIsExplicit = initGasErc20TokenizationIsExplicit;
