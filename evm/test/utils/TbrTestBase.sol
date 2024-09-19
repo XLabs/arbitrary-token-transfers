@@ -7,7 +7,7 @@ import {IWETH} from "wormhole-sdk/interfaces/token/IWETH.sol";
 import "wormhole-sdk/interfaces/ITokenBridge.sol";
 import "wormhole-sdk/libraries/BytesParsing.sol";
 import {reRevert} from "wormhole-sdk/Utils.sol";
-import "@openzeppelin/token/ERC20/IERC20.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IPermit2} from "permit2/IPermit2.sol";
 import "wormhole-sdk/proxy/Proxy.sol";
 
@@ -36,7 +36,7 @@ contract TbrTestBase is Test {
   IWETH        immutable gasToken;
   bool         immutable gasErc20TokenizationIsExplicit;
   
-  IERC20       immutable usdt;
+  IERC20Metadata immutable usdt;
   IWormhole    immutable wormholeCore;
 
   address     tbrImplementation;
@@ -55,7 +55,7 @@ contract TbrTestBase is Test {
     gasToken      = IWETH(vm.envAddress("TEST_WETH_ADDRESS"));
     gasErc20TokenizationIsExplicit = true;
 
-    usdt          = IERC20(vm.envAddress("TEST_USDT_ADDRESS"));
+    usdt          = IERC20Metadata(vm.envAddress("TEST_USDT_ADDRESS"));
     wormholeCore  = IWormhole(vm.envAddress("TEST_WORMHOLE_ADDRESS"));
   }
 
