@@ -1,4 +1,4 @@
-use crate::state::{AdminState, SenderState, TbrConfigState};
+use crate::state::{AdminState, RedeemerState, SenderState, TbrConfigState};
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
@@ -36,6 +36,15 @@ pub struct Initialize<'info> {
         bump
     )]
     pub wormhole_sender: Account<'info, SenderState>,
+
+    #[account(
+        init,
+        payer = owner,
+        space = 8 + RedeemerState::INIT_SPACE,
+        seeds = [RedeemerState::SEED_PREFIX],
+        bump
+    )]
+    pub wormhole_redeemer: Account<'info, RedeemerState>,
 
     pub system_program: Program<'info, System>,
 }

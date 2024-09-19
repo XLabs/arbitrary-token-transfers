@@ -10,3 +10,13 @@ impl SenderState {
     /// Value: sender.
     pub const SEED_PREFIX: &'static [u8] = token_bridge::SEED_PREFIX_SENDER;
 }
+
+/// Empty account. Exists only because the Wormhole program expects it.
+#[account]
+#[derive(Default, InitSpace)]
+pub struct RedeemerState {}
+
+impl RedeemerState {
+    /// Value: sender.
+    pub const SEED_PREFIX: &'static [u8] = token_bridge::SEED_PREFIX_REDEEMER;
+}

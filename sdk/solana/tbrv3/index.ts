@@ -525,7 +525,7 @@ export class SolanaTokenBridgeRelayer {
 const chainSeed = (chain: Chain) => encoding.bignum.toBytes(chainToChainId(chain), 2);
 const pda = {
   tbrConfig: (programId: PublicKey): PublicKey => {
-    return PublicKey.findProgramAddressSync([Buffer.from('redeemer')], programId)[0];
+    return PublicKey.findProgramAddressSync([Buffer.from('config')], programId)[0];
   },
 
   peer: (programId: PublicKey, chain: Chain, peerAddress: UniversalAddress): PublicKey => {

@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
-use wormhole_anchor_sdk::token_bridge;
 
 /// The program's main account.
 #[account]
@@ -33,9 +32,9 @@ impl TbrConfigState {
         self.pending_owner.as_ref() == Some(key)
     }
 
-    /// Value `b"redeemer"`.
+    /// Value `b"config"`.
     ///
     /// It has to stay with that value because that is what the token-bridge is
     /// looking for.
-    pub const SEED_PREFIX: &'static [u8; 8] = token_bridge::SEED_PREFIX_REDEEMER;
+    pub const SEED_PREFIX: &'static [u8; 6] = b"config";
 }

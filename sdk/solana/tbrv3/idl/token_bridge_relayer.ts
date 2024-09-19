@@ -51,14 +51,12 @@ export type TokenBridgeRelayer = {
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
                 ]
               }
             ]
@@ -134,14 +132,12 @@ export type TokenBridgeRelayer = {
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
                 ]
               }
             ]
@@ -185,14 +181,12 @@ export type TokenBridgeRelayer = {
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
                 ]
               }
             ]
@@ -450,6 +444,26 @@ export type TokenBridgeRelayer = {
           "optional": true
         },
         {
+          "name": "wormholeRedeemer",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  100,
+                  101,
+                  101,
+                  109,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
+        },
+        {
           "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         },
@@ -567,14 +581,12 @@ export type TokenBridgeRelayer = {
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
                 ]
               }
             ]
@@ -645,14 +657,12 @@ export type TokenBridgeRelayer = {
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
                 ]
               }
             ]
@@ -670,6 +680,27 @@ export type TokenBridgeRelayer = {
                   101,
                   110,
                   100,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "wormholeRedeemer",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  100,
+                  101,
+                  101,
+                  109,
                   101,
                   114
                 ]
@@ -747,14 +778,12 @@ export type TokenBridgeRelayer = {
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
                 ]
               }
             ]
@@ -865,14 +894,12 @@ export type TokenBridgeRelayer = {
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
                 ]
               }
             ]
@@ -1025,14 +1052,12 @@ export type TokenBridgeRelayer = {
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
                 ]
               }
             ]
@@ -1160,14 +1185,12 @@ export type TokenBridgeRelayer = {
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
                 ]
               }
             ]
@@ -1221,14 +1244,12 @@ export type TokenBridgeRelayer = {
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
                 ]
               }
             ]
@@ -1280,14 +1301,12 @@ export type TokenBridgeRelayer = {
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
                 ]
               }
             ]
@@ -1627,14 +1646,12 @@ export type TokenBridgeRelayer = {
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
                 ]
               }
             ]
@@ -1777,14 +1794,12 @@ export type TokenBridgeRelayer = {
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
                 ]
               }
             ]
@@ -1866,14 +1881,12 @@ export type TokenBridgeRelayer = {
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
                 ]
               }
             ]
@@ -1979,14 +1992,12 @@ export type TokenBridgeRelayer = {
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
                 ]
               }
             ]
@@ -2097,14 +2108,12 @@ export type TokenBridgeRelayer = {
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
                 ]
               }
             ]
@@ -2187,6 +2196,19 @@ export type TokenBridgeRelayer = {
         210,
         185,
         218
+      ]
+    },
+    {
+      "name": "redeemerState",
+      "discriminator": [
+        196,
+        153,
+        54,
+        42,
+        174,
+        180,
+        3,
+        16
       ]
     },
     {
@@ -2462,6 +2484,16 @@ export type TokenBridgeRelayer = {
             "type": "u64"
           }
         ]
+      }
+    },
+    {
+      "name": "redeemerState",
+      "docs": [
+        "Empty account. Exists only because the Wormhole program expects it."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": []
       }
     },
     {

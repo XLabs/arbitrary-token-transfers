@@ -2,10 +2,10 @@ use crate::{
     constant::SEED_PREFIX_TEMPORARY,
     error::{TokenBridgeRelayerError, TokenBridgeRelayerResult},
     message::{PostedRelayerMessage, RelayerMessage},
-    state::{PeerState, TbrConfigState},
+    state::{PeerState, RedeemerState, TbrConfigState},
     utils::create_native_check,
 };
-use anchor_lang::prelude::*;
+use anchor_lang::{prelude::*, system_program};
 use anchor_spl::token::{spl_token::native_mint, Mint, Token, TokenAccount};
 use wormhole_anchor_sdk::{
     token_bridge::{self, program::TokenBridge},
@@ -146,6 +146,12 @@ pub struct CompleteTransfer<'info> {
     /// Wrapped transfer only.
     pub token_bridge_wrapped_meta: Option<UncheckedAccount<'info>>,
 
+    #[account(
+        seeds = [RedeemerState::SEED_PREFIX],
+        bump
+    )]
+    pub wormhole_redeemer: Account<'info, RedeemerState>,
+
     /* Programs */
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
@@ -161,6 +167,15 @@ pub fn complete_transfer(ctx: Context<CompleteTransfer>) -> Result<()> {
         unwrap_intent,
     } = *ctx.accounts.vaa.message().data();
 
+    let tbr_config_seeds = &[
+        TbrConfigState::SEED_PREFIX.as_ref(),
+        &[ctx.bumps.tbr_config],
+    ];
+    let redeemer_seeds = &[
+        RedeemerState::SEED_PREFIX.as_ref(),
+        &[ctx.bumps.wormhole_redeemer],
+    ];
+
     // The intended recipient must agree with the recipient account:
     require!(
         ctx.accounts.recipient.key() == Pubkey::from(recipient),
@@ -169,113 +184,17 @@ pub fn complete_transfer(ctx: Context<CompleteTransfer>) -> Result<()> {
 
     ctx.accounts.peer.check_origin(&ctx.accounts.vaa)?;
 
-    let signer_seeds: [&[_]; 1] = [
-        // "redeemer"
-        &[
-            TbrConfigState::SEED_PREFIX.as_ref(),
-            &[ctx.bumps.tbr_config],
-        ],
-    ];
-
+    // The tokens are transferred into the temporary_account:
     if is_native(&ctx)? {
-        token_bridge_complete_native(&ctx, &signer_seeds)?;
+        token_bridge_complete_native(&ctx, redeemer_seeds)?;
     } else {
-        token_bridge_complete_wrapped(&ctx, &signer_seeds)?;
+        token_bridge_complete_wrapped(&ctx, redeemer_seeds)?;
     }
 
     redeem_gas(&ctx, gas_dropoff_amount)?;
+    redeem_token(&ctx, unwrap_intent, tbr_config_seeds)?;
 
-    if unwrap_intent && ctx.accounts.mint.key() == native_mint::ID {
-        // Here the user wants to get the wrapped SOL back as SOL.
-
-        //TODO
-    }
-
-    // Finish instruction by closing tmp_token_account.
-    anchor_spl::token::close_account(CpiContext::new_with_signer(
-        ctx.accounts.token_program.to_account_info(),
-        anchor_spl::token::CloseAccount {
-            account: ctx.accounts.temporary_account.to_account_info(),
-            destination: ctx.accounts.payer.to_account_info(),
-            authority: ctx.accounts.tbr_config.to_account_info(),
-        },
-        &signer_seeds,
-    ))
-}
-
-fn token_bridge_complete_native(
-    ctx: &Context<CompleteTransfer>,
-    signer_seeds: &[&[&[u8]]],
-) -> Result<()> {
-    let token_bridge_custody = ctx
-        .accounts
-        .token_bridge_custody
-        .as_ref()
-        .expect("We have checked that before");
-    let token_bridge_custody_signer = ctx
-        .accounts
-        .token_bridge_custody_signer
-        .as_ref()
-        .expect("We have checked that before");
-
-    token_bridge::complete_transfer_native_with_payload(CpiContext::new_with_signer(
-        ctx.accounts.token_bridge_program.to_account_info(),
-        token_bridge::CompleteTransferNativeWithPayload {
-            payer: ctx.accounts.payer.to_account_info(),
-            config: ctx.accounts.token_bridge_config.to_account_info(),
-            vaa: ctx.accounts.vaa.to_account_info(),
-            claim: ctx.accounts.token_bridge_claim.to_account_info(),
-            foreign_endpoint: ctx.accounts.token_bridge_foreign_endpoint.to_account_info(),
-            to: ctx.accounts.temporary_account.to_account_info(),
-            redeemer: ctx.accounts.tbr_config.to_account_info(),
-            custody: token_bridge_custody.to_account_info(),
-            mint: ctx.accounts.mint.to_account_info(),
-            custody_signer: token_bridge_custody_signer.to_account_info(),
-            rent: ctx.accounts.rent.to_account_info(),
-            system_program: ctx.accounts.system_program.to_account_info(),
-            token_program: ctx.accounts.token_program.to_account_info(),
-            wormhole_program: ctx.accounts.wormhole_program.to_account_info(),
-        },
-        signer_seeds,
-    ))
-}
-
-fn token_bridge_complete_wrapped(
-    ctx: &Context<CompleteTransfer>,
-    signer_seeds: &[&[&[u8]]],
-) -> Result<()> {
-    let token_bridge_wrapped_meta = ctx
-        .accounts
-        .token_bridge_wrapped_meta
-        .as_ref()
-        .expect("We have checked that before");
-    let token_bridge_mint_authority = ctx
-        .accounts
-        .token_bridge_mint_authority
-        .as_ref()
-        .expect("We have checked that before");
-
-    // Redeem the token transfer to the recipient token account.
-    token_bridge::complete_transfer_wrapped_with_payload(CpiContext::new_with_signer(
-        ctx.accounts.token_bridge_program.to_account_info(),
-        token_bridge::CompleteTransferWrappedWithPayload {
-            payer: ctx.accounts.payer.to_account_info(),
-            config: ctx.accounts.token_bridge_config.to_account_info(),
-            vaa: ctx.accounts.vaa.to_account_info(),
-            claim: ctx.accounts.token_bridge_claim.to_account_info(),
-            foreign_endpoint: ctx.accounts.token_bridge_foreign_endpoint.to_account_info(),
-            to: ctx.accounts.recipient_token_account.to_account_info(),
-            redeemer: ctx.accounts.tbr_config.to_account_info(),
-            wrapped_mint: ctx.accounts.mint.to_account_info(),
-            wrapped_metadata: token_bridge_wrapped_meta.to_account_info(),
-            mint_authority: token_bridge_mint_authority.to_account_info(),
-            rent: ctx.accounts.rent.to_account_info(),
-            system_program: ctx.accounts.system_program.to_account_info(),
-            token_program: ctx.accounts.token_program.to_account_info(),
-            wormhole_program: ctx.accounts.wormhole_program.to_account_info(),
-        },
-        signer_seeds,
-    ))
+    Ok(())
 }
 
 fn is_native(ctx: &Context<CompleteTransfer>) -> TokenBridgeRelayerResult<bool> {
@@ -297,6 +216,81 @@ fn is_native(ctx: &Context<CompleteTransfer>) -> TokenBridgeRelayerResult<bool> 
     })
 }
 
+fn token_bridge_complete_native(
+    ctx: &Context<CompleteTransfer>,
+    redeemer_seeds: &[&[u8]],
+) -> Result<()> {
+    let token_bridge_custody = ctx
+        .accounts
+        .token_bridge_custody
+        .as_ref()
+        .expect("We have checked that before");
+    let token_bridge_custody_signer = ctx
+        .accounts
+        .token_bridge_custody_signer
+        .as_ref()
+        .expect("We have checked that before");
+
+    token_bridge::complete_transfer_native_with_payload(CpiContext::new_with_signer(
+        ctx.accounts.token_bridge_program.to_account_info(),
+        token_bridge::CompleteTransferNativeWithPayload {
+            payer: ctx.accounts.payer.to_account_info(),
+            config: ctx.accounts.token_bridge_config.to_account_info(),
+            vaa: ctx.accounts.vaa.to_account_info(),
+            claim: ctx.accounts.token_bridge_claim.to_account_info(),
+            foreign_endpoint: ctx.accounts.token_bridge_foreign_endpoint.to_account_info(),
+            to: ctx.accounts.temporary_account.to_account_info(),
+            redeemer: ctx.accounts.wormhole_redeemer.to_account_info(),
+            custody: token_bridge_custody.to_account_info(),
+            mint: ctx.accounts.mint.to_account_info(),
+            custody_signer: token_bridge_custody_signer.to_account_info(),
+            rent: ctx.accounts.rent.to_account_info(),
+            system_program: ctx.accounts.system_program.to_account_info(),
+            token_program: ctx.accounts.token_program.to_account_info(),
+            wormhole_program: ctx.accounts.wormhole_program.to_account_info(),
+        },
+        &[redeemer_seeds],
+    ))
+}
+
+fn token_bridge_complete_wrapped(
+    ctx: &Context<CompleteTransfer>,
+    redeemer_seeds: &[&[u8]],
+) -> Result<()> {
+    let token_bridge_wrapped_meta = ctx
+        .accounts
+        .token_bridge_wrapped_meta
+        .as_ref()
+        .expect("We have checked that before");
+    let token_bridge_mint_authority = ctx
+        .accounts
+        .token_bridge_mint_authority
+        .as_ref()
+        .expect("We have checked that before");
+
+    // Redeem the token transfer to the recipient token account.
+    token_bridge::complete_transfer_wrapped_with_payload(CpiContext::new_with_signer(
+        ctx.accounts.token_bridge_program.to_account_info(),
+        token_bridge::CompleteTransferWrappedWithPayload {
+            payer: ctx.accounts.payer.to_account_info(),
+            config: ctx.accounts.token_bridge_config.to_account_info(),
+            vaa: ctx.accounts.vaa.to_account_info(),
+            claim: ctx.accounts.token_bridge_claim.to_account_info(),
+            foreign_endpoint: ctx.accounts.token_bridge_foreign_endpoint.to_account_info(),
+            to: ctx.accounts.temporary_account.to_account_info(),
+            redeemer: ctx.accounts.wormhole_redeemer.to_account_info(),
+            wrapped_mint: ctx.accounts.mint.to_account_info(),
+            wrapped_metadata: token_bridge_wrapped_meta.to_account_info(),
+            mint_authority: token_bridge_mint_authority.to_account_info(),
+            rent: ctx.accounts.rent.to_account_info(),
+            system_program: ctx.accounts.system_program.to_account_info(),
+            token_program: ctx.accounts.token_program.to_account_info(),
+            wormhole_program: ctx.accounts.wormhole_program.to_account_info(),
+        },
+        &[redeemer_seeds],
+    ))
+}
+
 /// If the transfer includes a gas dropoff, the gas will be transferred to the recipient.
 fn redeem_gas(ctx: &Context<CompleteTransfer>, gas_dropoff_amount: u32) -> Result<()> {
     // Denormalize the gas_dropoff_amount.
@@ -316,6 +310,70 @@ fn redeem_gas(ctx: &Context<CompleteTransfer>, gas_dropoff_amount: u32) -> Resul
             ),
             gas_dropoff_amount,
         )?;
+    }
+
+    Ok(())
+}
+
+fn redeem_token(
+    ctx: &Context<CompleteTransfer>,
+    unwrap_intent: bool,
+    tbr_config_seeds: &[&[u8]],
+) -> Result<()> {
+    let unwrap_spl_sol_as_sol = unwrap_intent && ctx.accounts.mint.key() == native_mint::ID;
+    let token_amount = ctx.accounts.temporary_account.amount;
+
+    if unwrap_spl_sol_as_sol {
+        // The SPL SOLs are transferred to the payer as gas:
+        anchor_spl::token::close_account(CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            anchor_spl::token::CloseAccount {
+                account: ctx.accounts.temporary_account.to_account_info(),
+                destination: ctx.accounts.payer.to_account_info(),
+                authority: ctx.accounts.tbr_config.to_account_info(),
+            },
+            &[tbr_config_seeds],
+        ))?;
+
+        // If the payer is not the recipient, the tokens must be transferred to the recipient:
+        if ctx.accounts.payer.key() != ctx.accounts.recipient.key() {
+            system_program::transfer(
+                CpiContext::new(
+                    ctx.accounts.system_program.to_account_info(),
+                    system_program::Transfer {
+                        from: ctx.accounts.payer.to_account_info(),
+                        to: ctx.accounts.recipient.to_account_info(),
+                    },
+                ),
+                token_amount,
+            )?;
+        }
+    } else {
+        // Transfer the SPL tokens from temporary_account to recipent_token_account
+        anchor_spl::token::transfer(
+            CpiContext::new_with_signer(
+                ctx.accounts.token_program.to_account_info(),
+                anchor_spl::token::Transfer {
+                    from: ctx.accounts.temporary_account.to_account_info(),
+                    to: ctx.accounts.recipient_token_account.to_account_info(),
+                    authority: ctx.accounts.tbr_config.to_account_info(),
+                },
+                &[tbr_config_seeds],
+            ),
+            token_amount,
+        )?;
+
+        // Now that the tokens have been transferred, we can close the account
+        // and let the payer collect the rent.
+        anchor_spl::token::close_account(CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            anchor_spl::token::CloseAccount {
+                account: ctx.accounts.temporary_account.to_account_info(),
+                destination: ctx.accounts.payer.to_account_info(),
+                authority: ctx.accounts.tbr_config.to_account_info(),
+            },
+            &[tbr_config_seeds],
+        ))?;
     }
 
     Ok(())
