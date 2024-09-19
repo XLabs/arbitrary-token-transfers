@@ -1,6 +1,6 @@
 {
   "name": "common-arbitrary-token-transfer",
-  "version": "0.0.1-alpha8",
+  "version": "0.0.1-alpha1",
   "license": "ISC",
   "type": "module",
   "module": "ts-build/index.js",

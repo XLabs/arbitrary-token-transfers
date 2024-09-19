@@ -4,6 +4,7 @@
     "lib": [
       "es2023"
     ],
+    "rootDir": ".",
     "outDir": "ts-build"
   },
   "include": [

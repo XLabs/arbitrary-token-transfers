@@ -187,36 +187,8 @@ pub fn complete_transfer(ctx: Context<CompleteTransfer>) -> Result<()> {
 
     if unwrap_intent && ctx.accounts.mint.key() == native_mint::ID {
         // Here the user wants to get the wrapped SOL back as SOL.
-        /* //=====
-        // Transfer all lamports to the payer.
-        anchor_spl::token::close_account(CpiContext::new_with_signer(
-            ctx.accounts.token_program.to_account_info(),
-            anchor_spl::token::CloseAccount {
-                account: ctx.accounts.temporary_account.to_account_info(),
-                destination: ctx.accounts.payer.to_account_info(),
-                authority: ctx.accounts.config.to_account_info(),
-            },
-            &[config_seeds],
-        ))?;
 
-        // If the payer is a relayer, we need to send the expected lamports
-        // to the recipient, less the relayer fee.
-        if ctx.accounts.payer.key() != ctx.accounts.recipient.key() {
-            system_program::transfer(
-                CpiContext::new(
-                    ctx.accounts.system_program.to_account_info(),
-                    Transfer {
-                        from: ctx.accounts.payer.to_account_info(),
-                        to: ctx.accounts.recipient.to_account_info(),
-                    },
-                ),
-                amount - denormalized_relayer_fee,
-            )
-        } else {
-            Ok(())
-        }
-        //=====
-        */
+        //TODO
     }
 
     // Finish instruction by closing tmp_token_account.
