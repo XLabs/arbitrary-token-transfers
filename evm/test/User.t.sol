@@ -167,6 +167,127 @@ contract UserTest is TbrTestBase {
     assertEq(address(feeRecipient).balance, initialFeeRecipientBalance + feeQuote);
   }
 
+    function testTransferTokenWithRelayDoubleTransfer(
+    uint256 firstTokenAmount,
+    uint256 secondTokenAmount, 
+    uint32 gasDropoff,
+    bytes32 recipient,
+    uint256 feeQuote,
+    uint256 unallocatedBalance,
+    uint256 wormholeFee
+  ) public {
+    // use a bound max value in order to prevent overflow
+    uint boundMaxValue = 1e12;
+    wormholeFee = bound(wormholeFee, 1, boundMaxValue);
+    feeQuote = bound(feeQuote, 1, boundMaxValue);
+    vm.assume(firstTokenAmount > 0 && firstTokenAmount <= type(uint56).max);
+    vm.assume(secondTokenAmount > 0 && secondTokenAmount <= type(uint56).max);
+    vm.assume(recipient != bytes32(0));
+    vm.assume(gasDropoff < MAX_GAS_DROPOFF_AMOUNT);
+    vm.assume(unallocatedBalance >= (feeQuote + wormholeFee) * 2);
+    deal(address(this), unallocatedBalance);
+    deal(address(usdt), address(this), firstTokenAmount + secondTokenAmount);
+    SafeERC20.safeApprove(usdt, address(tbr), firstTokenAmount + secondTokenAmount);
+
+    uint16 targetChain = SOLANA_CHAIN_ID;
+    bool unwrapIntent = false;
+    bytes memory tbrMessage = abi.encodePacked(
+      TBR_V3_MESSAGE_VERSION,
+      recipient,
+      gasDropoff,
+      unwrapIntent
+    );
+    uint initialFeeRecipientBalance = address(feeRecipient).balance;
+    uint initialCallerBalance = address(this).balance;
+
+    // First transfer
+
+    uint64 sequence = 1;
+    vm.mockCall(
+      address(wormholeCore), 
+      abi.encodeWithSelector(wormholeCore.publishMessage.selector), 
+      abi.encode(sequence)
+    );
+
+    vm.mockCall(
+      address(oracle), 
+      abi.encodeWithSelector(IPriceOracle.get1959.selector), 
+      abi.encode(abi.encodePacked(uint256(feeQuote)))
+    );
+
+    vm.mockCall(
+      address(wormholeCore), 
+      abi.encodeWithSelector(
+        wormholeCore.messageFee.selector
+      ),
+      abi.encode(uint256(wormholeFee))
+    );
+
+    vm.expectEmit(address(tbr));
+    emit TransferRequested(address(this), sequence, gasDropoff, feeQuote);
+
+    invokeTbr(
+      abi.encodePacked(
+        tbr.exec768.selector, 
+        DISPATCHER_PROTOCOL_VERSION0, 
+        TRANSFER_TOKEN_WITH_RELAY_ID,
+        targetChain,
+        recipient,
+        gasDropoff,
+        firstTokenAmount,
+        address(usdt),
+        unwrapIntent,
+        ACQUIRE_PREAPPROVED
+      ),
+      feeQuote + wormholeFee
+    );
+
+    // Second transfer
+
+    sequence = 2;
+    vm.mockCall(
+      address(wormholeCore), 
+      abi.encodeWithSelector(wormholeCore.publishMessage.selector), 
+      abi.encode(sequence)
+    );
+
+    vm.mockCall(
+      address(oracle), 
+      abi.encodeWithSelector(IPriceOracle.get1959.selector), 
+      abi.encode(abi.encodePacked(uint256(feeQuote)))
+    );
+
+    vm.mockCall(
+      address(wormholeCore), 
+      abi.encodeWithSelector(
+        wormholeCore.messageFee.selector
+      ),
+      abi.encode(uint256(wormholeFee))
+    );
+
+    vm.expectEmit(address(tbr));
+    emit TransferRequested(address(this), sequence, gasDropoff, feeQuote);
+
+    invokeTbr(
+      abi.encodePacked(
+        tbr.exec768.selector, 
+        DISPATCHER_PROTOCOL_VERSION0, 
+        TRANSFER_TOKEN_WITH_RELAY_ID,
+        targetChain,
+        recipient,
+        gasDropoff,
+        secondTokenAmount,
+        address(usdt),
+        unwrapIntent,
+        ACQUIRE_PREAPPROVED
+      ),
+      feeQuote + wormholeFee
+    );
+
+    assertEq(address(this).balance, initialCallerBalance - (feeQuote + wormholeFee) * 2);
+    assertEq(address(feeRecipient).balance, initialFeeRecipientBalance + feeQuote * 2);
+  }
+
   function testTransferTokenWithRelay_FeesInsufficient(    
     uint256 tokenAmount, 
     uint32 gasDropoff,
