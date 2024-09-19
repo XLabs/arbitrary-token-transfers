@@ -40,16 +40,20 @@ const decimalDownShift = (downShift: number) => ({
   }
 } as const satisfies CustomConversion<number, number>);
 
-//specifed as: gas token (i.e. eth, avax, ...)
-// encoded as: µgas token
+/**
+ * Specifed as: gas token (i.e. eth, avax, ...)
+ * Encoded as: µgas token
+ */
 export const gasDropoffItem = {
   binary: "uint",
   size: 4,
   custom: decimalDownShift(6),
 } as const satisfies LayoutItem;
 
-//specifed as: usd
-// encoded as: µusd
+/**
+ * Specified as usd.
+ * Encoded as µusd.
+ */
 export const baseFeeItem = gasDropoffItem; //same representation
 
 const bigintDownshift = (quoteResultDecimals: number) => ({
@@ -128,10 +132,55 @@ export const relayingFeesInputLayout = [
   { name: "gasDropoff", ...gasDropoffItem },
 ] as const satisfies Layout;
 
+/**
+ * This is the response schema for a single `RelayFee` command.
+ */
+export interface RelayingFee {
+  /**
+   * If outbound transfers towards the target chain are paused, this will be `true`.
+   */
+  readonly isPaused: boolean;
+  /**
+   * The fee is denominated in the gas token unit of the source chain native token, e.g. ETH, AVAX, etc.
+   */
+  readonly fee: number;
+}
+export type RelayingFeesReturn = readonly RelayingFee[];
+
 export const relayingFeesReturnLayout = [
   { name: "isPaused", ...layoutItems.boolItem },
   { name: "fee", ...feeItem },
 ] as const satisfies Layout;
+
+export interface BaseRelayingParams {
+  /**
+   * This is the TBRv3 peer address on the chosen chain.
+   */
+  peer: UniversalAddress;
+  /**
+   * If true, outbound transfers are rejected to this chain.
+   */
+  paused: boolean;
+  /**
+   * If true, txs sent to this chain require factoring in the size when quoting relay costs.
+   * Usually, this is because they are later committed in the Ethereum chain.
+   * This is mostly informational as it only matters for quoting prices for relays.
+   */
+  txSizeSensitive: boolean;
+  /**
+   * This is denominated in μETH or equivalent for EVM native tokens.
+   * Equivalently, Twei, 10 ** 12 wei.
+   */
+  maxGasDropoff: number;
+  /**
+   * The base fee is denominated in usd.
+   * This is added on top of the chain tx cost quote.
+   * For small quotes, it might not be added in its entirety.
+   * @todo update description once the implementation is settled.
+   */
+  baseFee: number;
+}
+export type BaseRelayingParamsReturn = readonly BaseRelayingParams[];
 
 export const baseRelayingConfigInputLayout = [
   { name: "targetChain", ...supportedChainItem },
