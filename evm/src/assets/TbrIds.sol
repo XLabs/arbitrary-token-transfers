@@ -37,7 +37,8 @@ uint8 constant UPDATE_ADMIN_ID = 12;
 uint8 constant UPDATE_CANONICAL_PEER_ID = 13;
 uint8 constant UPGRADE_CONTRACT_ID = 14;
 uint8 constant PROPOSE_OWNERSHIP_TRANSFER_ID = 15;
-uint8 constant RELINQUISH_OWNERSHIP_ID = 16;
+uint8 constant ACQUIRE_OWNERSHIP_ID = 16;
+uint8 constant RELINQUISH_OWNERSHIP_ID = 17;
 
 // Query commands
 
