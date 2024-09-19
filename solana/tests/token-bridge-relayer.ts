@@ -10,8 +10,6 @@ import {
 } from './utils/helpers.js';
 import { TbrWrapper, TokenBridgeWrapper, WormholeCoreWrapper } from './utils/client-wrapper.js';
 import { SolanaPriceOracleClient } from '@xlabs-xyz/solana-arbitrary-token-transfers';
-import * as wormholeCore from '@wormhole-foundation/sdk-solana-core';
-import * as tokenBridge from '@wormhole-foundation/sdk-solana-tokenbridge';
 import { wormholeProgramId, tokenBridgeProgramId } from './utils/helpers.js';
 import { expect } from 'chai';
 
@@ -166,6 +164,10 @@ describe('Token Bridge Relayer Program', () => {
         pausedOutboundTransfers: true,
         relayerFeeMicroUsd: 0,
       });
+      expect(await unauthorizedClient.read.peer(ETHEREUM, ethereumPeer1)).deep.equal({
+        chain: ETHEREUM,
+        address: Array.from(ethereumPeer1),
+      });
 
       await adminClient1.registerPeer(ETHEREUM, ethereumPeer2);
       assertEqChainConfigs(await unauthorizedClient.read.chainConfig(ETHEREUM), {
@@ -173,6 +175,10 @@ describe('Token Bridge Relayer Program', () => {
         maxGasDropoffMicroToken: 0,
         pausedOutboundTransfers: true,
         relayerFeeMicroUsd: 0,
+      });
+      expect(await unauthorizedClient.read.peer(ETHEREUM, ethereumPeer2)).deep.equal({
+        chain: ETHEREUM,
+        address: Array.from(ethereumPeer2),
       });
 
       await adminClient1.registerPeer(OASIS, oasisPeer);
@@ -187,6 +193,10 @@ describe('Token Bridge Relayer Program', () => {
         maxGasDropoffMicroToken: 0,
         pausedOutboundTransfers: true,
         relayerFeeMicroUsd: 0,
+      });
+      expect(await unauthorizedClient.read.peer(OASIS, oasisPeer)).deep.equal({
+        chain: OASIS,
+        address: Array.from(oasisPeer),
       });
     });
 

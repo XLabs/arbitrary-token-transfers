@@ -1,18 +1,16 @@
 use crate::{
     constant::SEED_PREFIX_TEMPORARY,
     error::{TokenBridgeRelayerError, TokenBridgeRelayerResult},
-    message::RelayerMessage,
+    message::{PostedRelayerMessage, RelayerMessage},
     state::{PeerState, TbrConfigState},
     utils::create_native_check,
 };
 use anchor_lang::prelude::*;
-use anchor_spl::token::{Mint, Token, TokenAccount};
+use anchor_spl::token::{spl_token::native_mint, Mint, Token, TokenAccount};
 use wormhole_anchor_sdk::{
     token_bridge::{self, program::TokenBridge},
     wormhole::{self, program::Wormhole},
 };
-
-type PostedRelayerMessage = token_bridge::PostedTransferWith<RelayerMessage>;
 
 #[derive(Accounts)]
 #[instruction(vaa_hash: [u8; 32])]
@@ -158,8 +156,8 @@ pub struct CompleteTransfer<'info> {
 
 pub fn complete_transfer(ctx: Context<CompleteTransfer>) -> Result<()> {
     let RelayerMessage::V0 {
-        gas_dropoff_amount,
         recipient,
+        gas_dropoff_amount,
         unwrap_intent,
     } = *ctx.accounts.vaa.message().data();
 
@@ -169,19 +167,7 @@ pub fn complete_transfer(ctx: Context<CompleteTransfer>) -> Result<()> {
         TokenBridgeRelayerError::InvalidRecipient
     );
 
-    // Also, it must be a known peer:
-    require_keys_eq!(
-        Pubkey::find_program_address(
-            &[
-                PeerState::SEED_PREFIX,
-                ctx.accounts.vaa.meta.emitter_chain.to_be_bytes().as_ref(),
-                ctx.accounts.vaa.data().from_address().as_ref(),
-            ],
-            ctx.program_id
-        )
-        .0,
-        ctx.accounts.peer.key()
-    );
+    ctx.accounts.peer.check_origin(&ctx.accounts.vaa)?;
 
     let signer_seeds: [&[_]; 1] = [
         // "redeemer"
@@ -197,24 +183,40 @@ pub fn complete_transfer(ctx: Context<CompleteTransfer>) -> Result<()> {
         token_bridge_complete_wrapped(&ctx, &signer_seeds)?;
     }
 
-    // Redeem the gas dropoff:
+    redeem_gas(&ctx, gas_dropoff_amount)?;
 
-    // Denormalize the gas_dropoff_amount:
-    let gas_dropoff_amount = gas_dropoff_amount as u64 * 1_000;
+    if unwrap_intent && ctx.accounts.mint.key() == native_mint::ID {
+        // Here the user wants to get the wrapped SOL back as SOL.
+        /* //=====
+        // Transfer all lamports to the payer.
+        anchor_spl::token::close_account(CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            anchor_spl::token::CloseAccount {
+                account: ctx.accounts.temporary_account.to_account_info(),
+                destination: ctx.accounts.payer.to_account_info(),
+                authority: ctx.accounts.config.to_account_info(),
+            },
+            &[config_seeds],
+        ))?;
 
-    // Transfer lamports from the payer to the recipient if the
-    // gas_dropoff_amount is nonzero:
-    if gas_dropoff_amount > 0 {
-        anchor_lang::system_program::transfer(
-            CpiContext::new(
-                ctx.accounts.system_program.to_account_info(),
-                anchor_lang::system_program::Transfer {
-                    from: ctx.accounts.payer.to_account_info(),
-                    to: ctx.accounts.recipient.to_account_info(),
-                },
-            ),
-            gas_dropoff_amount,
-        )?;
+        // If the payer is a relayer, we need to send the expected lamports
+        // to the recipient, less the relayer fee.
+        if ctx.accounts.payer.key() != ctx.accounts.recipient.key() {
+            system_program::transfer(
+                CpiContext::new(
+                    ctx.accounts.system_program.to_account_info(),
+                    Transfer {
+                        from: ctx.accounts.payer.to_account_info(),
+                        to: ctx.accounts.recipient.to_account_info(),
+                    },
+                ),
+                amount - denormalized_relayer_fee,
+            )
+        } else {
+            Ok(())
+        }
+        //=====
+        */
     }
 
     // Finish instruction by closing tmp_token_account.
@@ -321,4 +323,28 @@ fn is_native(ctx: &Context<CompleteTransfer>) -> TokenBridgeRelayerResult<bool> 
         msg!("Could not determine whether it is a native or wrapped transfer");
         e
     })
+}
+
+/// If the transfer includes a gas dropoff, the gas will be transferred to the recipient.
+fn redeem_gas(ctx: &Context<CompleteTransfer>, gas_dropoff_amount: u32) -> Result<()> {
+    // Denormalize the gas_dropoff_amount.
+    // Since it is transferred as Klamports, we need to convert it to lamports:
+    let gas_dropoff_amount = u64::from(gas_dropoff_amount) * 1_000;
+
+    // Transfer lamports from the payer to the recipient if the
+    // gas_dropoff_amount is nonzero:
+    if gas_dropoff_amount > 0 {
+        anchor_lang::system_program::transfer(
+            CpiContext::new(
+                ctx.accounts.system_program.to_account_info(),
+                anchor_lang::system_program::Transfer {
+                    from: ctx.accounts.payer.to_account_info(),
+                    to: ctx.accounts.recipient.to_account_info(),
+                },
+            ),
+            gas_dropoff_amount,
+        )?;
+    }
+
+    Ok(())
 }

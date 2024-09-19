@@ -1,10 +1,13 @@
-use crate::error::TokenBridgeRelayerError;
+use crate::{error::TokenBridgeRelayerError, message::PostedRelayerMessage};
 use anchor_lang::prelude::*;
 
 /// A peer chain. Nothing is stored in it for now.
 #[account]
 #[derive(InitSpace)]
-pub struct PeerState {}
+pub struct PeerState {
+    pub chain: u16,
+    pub address: [u8; 32],
+}
 
 /// The config for a single chain.
 #[account]
@@ -40,4 +43,21 @@ impl ChainConfigState {
 
     /// Value `b"chainconfig"`.
     pub const SEED_PREFIX: &'static [u8; 11] = b"chainconfig";
+}
+
+impl PeerState {
+    /// Checks that the peer matches the sender information from the VAA.
+    pub fn check_origin(&self, vaa: &PostedRelayerMessage) -> Result<()> {
+        require_eq!(
+            self.chain,
+            vaa.meta.emitter_chain,
+            TokenBridgeRelayerError::InvalidSendingPeer
+        );
+        require!(
+            &self.address == vaa.data().from_address(),
+            TokenBridgeRelayerError::InvalidSendingPeer
+        );
+
+        Ok(())
+    }
 }

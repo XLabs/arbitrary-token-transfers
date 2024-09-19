@@ -57,13 +57,21 @@ pub struct RegisterPeer<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn register_peer(ctx: Context<RegisterPeer>, peer_address: [u8; 32]) -> Result<()> {
+pub fn register_peer(
+    ctx: Context<RegisterPeer>,
+    chain_id: u16,
+    peer_address: [u8; 32],
+) -> Result<()> {
     // If it is the first peer for this chain, make it canonical:
     if ctx.accounts.chain_config.is_uninitialized() {
         let canonical_peer = &mut ctx.accounts.chain_config;
         canonical_peer.canonical_peer = peer_address;
         canonical_peer.paused_outbound_transfers = true;
     }
+
+    let peer = &mut ctx.accounts.peer;
+    peer.chain = chain_id;
+    peer.address = peer_address;
 
     Ok(())
 }

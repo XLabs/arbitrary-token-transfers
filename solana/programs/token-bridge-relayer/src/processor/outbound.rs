@@ -306,33 +306,6 @@ pub fn transfer_tokens(
     ))
 }
 
-fn normalize_amounts(
-    mint: &Account<Mint>,
-    transferred_amount: u64,
-    gas_dropoff_amount: u64,
-) -> Result<(u64, u32)> {
-    // Token Bridge program truncates amounts to 8 decimals, so there will
-    // be a residual amount if decimals of the SPL is >8. We need to take
-    // into account how much will actually be bridged:
-    let truncated_amount = token_bridge::truncate_amount(transferred_amount, mint.decimals);
-    require!(
-        truncated_amount > 0,
-        TokenBridgeRelayerError::ZeroBridgeAmount
-    );
-
-    // Normalize the dropoff amount:
-    //FIXME: it should not be the mint decimals
-    let normalized_dropoff_amount = (gas_dropoff_amount / 1_000_000)
-        .try_into()
-        .map_err(|_| TokenBridgeRelayerError::Overflow)?;
-    require!(
-        gas_dropoff_amount == 0 || normalized_dropoff_amount > 0,
-        TokenBridgeRelayerError::InvalidToNativeAmount
-    );
-
-    Ok((truncated_amount, normalized_dropoff_amount))
-}
-
 fn token_bridge_transfer_native(
     ctx: &mut Context<OutboundTransfer>,
     transferred_amount: u64,

@@ -814,7 +814,7 @@
       ],
       "args": [
         {
-          "name": "_chain_id",
+          "name": "chain_id",
           "type": "u16"
         },
         {
@@ -2251,73 +2251,58 @@
     },
     {
       "code": 6005,
-      "name": "ZeroBridgeAmount",
-      "msg": "ZeroBridgeAmount"
-    },
-    {
-      "code": 6006,
       "name": "FeeExceedingMaximum",
       "msg": "FeeExceedingMaximum"
     },
     {
-      "code": 6007,
-      "name": "InvalidToNativeAmount",
-      "msg": "InvalidToNativeAmount"
-    },
-    {
-      "code": 6008,
+      "code": 6006,
       "name": "InvalidTransferToAddress",
       "msg": "InvalidTransferToAddress"
     },
     {
-      "code": 6009,
+      "code": 6007,
       "name": "InvalidTransferToChain",
       "msg": "InvalidTransferToChain"
     },
     {
-      "code": 6010,
-      "name": "InvalidTransferTokenChain",
-      "msg": "InvalidTransferTokenChain"
-    },
-    {
-      "code": 6011,
+      "code": 6008,
       "name": "WrongFeeRecipient",
       "msg": "WrongFeeRecipient"
     },
     {
-      "code": 6012,
-      "name": "Overflow",
-      "msg": "Overflow"
-    },
-    {
-      "code": 6013,
+      "code": 6009,
       "name": "WronglySetOptionalAccounts",
       "msg": "WronglySetOptionalAccounts"
     },
     {
-      "code": 6014,
+      "code": 6010,
       "name": "WrongMintAuthority",
       "msg": "WrongMintAuthority"
     },
     {
-      "code": 6015,
+      "code": 6011,
       "name": "InvalidRecipient",
       "msg": "InvalidRecipient"
     },
     {
-      "code": 6016,
+      "code": 6012,
       "name": "AlreadyRedeemed",
       "msg": "AlreadyRedeemed"
     },
     {
-      "code": 6017,
+      "code": 6013,
       "name": "EvmChainPriceNotSet",
       "msg": "EvmChainPriceNotSet"
     },
     {
-      "code": 6018,
+      "code": 6014,
       "name": "PausedTransfers",
       "msg": "PausedTransfers"
+    },
+    {
+      "code": 6015,
+      "name": "InvalidSendingPeer",
+      "msg": "InvalidSendingPeer"
     }
   ],
   "types": [
@@ -2408,7 +2393,21 @@
       ],
       "type": {
         "kind": "struct",
-        "fields": []
+        "fields": [
+          {
+            "name": "chain",
+            "type": "u16"
+          },
+          {
+            "name": "address",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        ]
       }
     },
     {

@@ -1543,6 +1543,7 @@ __metadata:
     "@wormhole-foundation/sdk-solana-tokenbridge": "npm:^0.10.7"
     "@xlabs/solana-price-oracle-sdk": "npm:^0.0.4"
     borsh: "npm:^2.0.0"
+    common-arbitrary-token-transfer: "workspace:^"
     tsup: "npm:^8.2.4"
     tsx: "npm:4.19.1"
     typescript: "npm:5.6.2"
@@ -2237,6 +2238,21 @@ __metadata:
   checksum: 10c0/84a76c08fe6cc08c9c93f62ac573d2907d8e79138999312c92d4155bc2325d487d64d13f669b2000c9f8caf70493c1be2dac74fec3c51d5a04f8bc3ae1830bab
   languageName: node
   linkType: hard
+
+"common-arbitrary-token-transfer@workspace:^, common-arbitrary-token-transfer@workspace:sdk/common":
+  version: 0.0.0-use.local
+  resolution: "common-arbitrary-token-transfer@workspace:sdk/common"
+  dependencies:
+    "@types/bn.js": "npm:^5.1.5"
+    "@types/node": "npm:20.16.5"
+    "@wormhole-foundation/sdk-base": "npm:^0.10.7"
+    "@wormhole-foundation/sdk-definitions": "npm:^0.10.7"
+    bn.js: "npm:^5.2.1"
+    tsup: "npm:^8.2.4"
+    tsx: "npm:4.19.1"
+    typescript: "npm:5.6.2"
+  languageName: unknown
+  linkType: soft
 
 "concat-map@npm:0.0.1":
   version: 0.0.1
@@ -4780,7 +4796,6 @@ __metadata:
     "@types/chai": "npm:^4.3.19"
     "@types/mocha": "npm:8.*"
     "@wormhole-foundation/sdk-base": "npm:^0.10.7"
-    "@wormhole-foundation/sdk-solana": "npm:^0.10.7"
     "@wormhole-foundation/sdk-solana-core": "npm:^0.10.7"
     "@wormhole-foundation/sdk-solana-tokenbridge": "npm:^0.10.7"
     "@xlabs-xyz/solana-arbitrary-token-transfers": "workspace:^"

@@ -2257,73 +2257,58 @@ export type TokenBridgeRelayer = {
     },
     {
       "code": 6005,
-      "name": "zeroBridgeAmount",
-      "msg": "zeroBridgeAmount"
-    },
-    {
-      "code": 6006,
       "name": "feeExceedingMaximum",
       "msg": "feeExceedingMaximum"
     },
     {
-      "code": 6007,
-      "name": "invalidToNativeAmount",
-      "msg": "invalidToNativeAmount"
-    },
-    {
-      "code": 6008,
+      "code": 6006,
       "name": "invalidTransferToAddress",
       "msg": "invalidTransferToAddress"
     },
     {
-      "code": 6009,
+      "code": 6007,
       "name": "invalidTransferToChain",
       "msg": "invalidTransferToChain"
     },
     {
-      "code": 6010,
-      "name": "invalidTransferTokenChain",
-      "msg": "invalidTransferTokenChain"
-    },
-    {
-      "code": 6011,
+      "code": 6008,
       "name": "wrongFeeRecipient",
       "msg": "wrongFeeRecipient"
     },
     {
-      "code": 6012,
-      "name": "overflow",
-      "msg": "overflow"
-    },
-    {
-      "code": 6013,
+      "code": 6009,
       "name": "wronglySetOptionalAccounts",
       "msg": "wronglySetOptionalAccounts"
     },
     {
-      "code": 6014,
+      "code": 6010,
       "name": "wrongMintAuthority",
       "msg": "wrongMintAuthority"
     },
     {
-      "code": 6015,
+      "code": 6011,
       "name": "invalidRecipient",
       "msg": "invalidRecipient"
     },
     {
-      "code": 6016,
+      "code": 6012,
       "name": "alreadyRedeemed",
       "msg": "alreadyRedeemed"
     },
     {
-      "code": 6017,
+      "code": 6013,
       "name": "evmChainPriceNotSet",
       "msg": "evmChainPriceNotSet"
     },
     {
-      "code": 6018,
+      "code": 6014,
       "name": "pausedTransfers",
       "msg": "pausedTransfers"
+    },
+    {
+      "code": 6015,
+      "name": "invalidSendingPeer",
+      "msg": "invalidSendingPeer"
     }
   ],
   "types": [
@@ -2414,7 +2399,21 @@ export type TokenBridgeRelayer = {
       ],
       "type": {
         "kind": "struct",
-        "fields": []
+        "fields": [
+          {
+            "name": "chain",
+            "type": "u16"
+          },
+          {
+            "name": "address",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        ]
       }
     },
     {
