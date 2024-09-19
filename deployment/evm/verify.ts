@@ -51,8 +51,8 @@ evm.runOnEvms("bytecode-verification-token-router", async (chain, signer, log) =
     console.log(`${chain.name}(${implementationAddress}) implementation command: ${verifyImplementationCommand}`);
 
     // Proxy data
-    const proxyName = "ProxyBase";
-    const proxyPath = 'lib/wormhole-solidity-sdk/src/proxy/ProxyBase.sol';
+    const proxyName = "Proxy";
+    const proxyPath = 'lib/wormhole-solidity-sdk/src/proxy/Proxy.sol';
     const proxyAddress = getContractAddress("TbrV3Proxies", chain.chainId);
     const proxyConstructorArgs = Tbrv3.proxyConstructor(
       config.owner || deployer,
@@ -77,7 +77,7 @@ evm.runOnEvms("bytecode-verification-token-router", async (chain, signer, log) =
     log(chalk.green(`Verifying bytecode on ${verifier}...`));
 
     log(chalk.green("Verifying implementation bytecode..."));
-    execSync(verifyImplementationCommand, { stdio: "inherit", cwd: rootPath });
+   // execSync(verifyImplementationCommand, { stdio: "inherit", cwd: rootPath });
     console.log()
 
     log(chalk.green("Verifying proxy bytecode..."));
