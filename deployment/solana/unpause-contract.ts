@@ -1,12 +1,11 @@
-
-import { TbrClient } from "@xlabs-xyz/solana-arbitrary-token-transfers";
-import { runOnSolana, ledgerSignAndSend, getConnection, SolanaSigner } from "../helpers/solana.js";
-import { SolanaChainInfo, LoggerFn } from "../helpers/interfaces.js";
+import { SolanaTokenBridgeRelayer } from '@xlabs-xyz/solana-arbitrary-token-transfers';
+import { runOnSolana, ledgerSignAndSend, getConnection, SolanaSigner } from '../helpers/solana.js';
+import { SolanaChainInfo, LoggerFn } from '../helpers/interfaces.js';
 import { dependencies } from '../helpers/env.js';
 import { PublicKey } from '@solana/web3.js';
 
-runOnSolana("unpause-contract", unpauseContract).catch((e) => {
-  console.error("Error executing script: ", e);
+runOnSolana('unpause-contract', unpauseContract).catch((e) => {
+  console.error('Error executing script: ', e);
 });
 
 async function unpauseContract(
@@ -17,19 +16,18 @@ async function unpauseContract(
   const signerKey = new PublicKey(await signer.getAddress());
   const connection = getConnection(chain);
   const solanaDependencies = dependencies.find((d) => d.chainId === chain.chainId);
-  if (solanaDependencies === undefined ) {
+  if (solanaDependencies === undefined) {
     throw new Error(`No dependencies found for chain ${chain.chainId}`);
   }
-  const tbr = new TbrClient({ connection }, {
-    tokenBridgeProgramId: new PublicKey(solanaDependencies.tokenBridge),
-    wormholeProgramId: new PublicKey(solanaDependencies.wormhole),
-  });
-
-  const initializeIx = await tbr.setPauseForOutboundTransfers(
-    signerKey,
-    "Sepolia",
-    false,
+  const tbr = new SolanaTokenBridgeRelayer(
+    { connection },
+    {
+      tokenBridgeProgramId: new PublicKey(solanaDependencies.tokenBridge),
+      wormholeProgramId: new PublicKey(solanaDependencies.wormhole),
+    },
   );
+
+  const initializeIx = await tbr.setPauseForOutboundTransfers(signerKey, 'Sepolia', false);
 
   await ledgerSignAndSend(connection, [initializeIx], []);
 }

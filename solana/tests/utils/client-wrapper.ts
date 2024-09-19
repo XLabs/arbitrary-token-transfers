@@ -2,17 +2,19 @@ import { AnchorProvider, BN } from '@coral-xyz/anchor';
 import { PublicKey, TransactionSignature } from '@solana/web3.js';
 import { Chain } from '@wormhole-foundation/sdk-base';
 import {
-  TbrClient,
+  SolanaTokenBridgeRelayer,
   ReadTbrAccounts,
   TransferNativeParameters,
   TransferWrappedParameters,
   UniversalAddress,
   VaaMessage,
 } from '@xlabs-xyz/solana-arbitrary-token-transfers';
-import { sendAndConfirmIx } from './helpers.js';
+import { sendAndConfirmIx, wormholeProgramId, tokenBridgeProgramId } from './helpers.js';
+import { SolanaWormholeCore } from '@wormhole-foundation/sdk-solana-core';
+import { SolanaAutomaticTokenBridge } from '@wormhole-foundation/sdk-solana-tokenbridge';
 
-export class ClientWrapper {
-  private readonly client: TbrClient;
+export class TbrWrapper {
+  private readonly client: SolanaTokenBridgeRelayer;
   readonly provider: AnchorProvider;
   readonly logs: { [key: string]: string[] };
   readonly logsSubscriptionId: number;
@@ -24,9 +26,9 @@ export class ClientWrapper {
   ) {
     this.provider = provider;
     if (accountType === 'regular') {
-      this.client = new TbrClient(provider, params);
+      this.client = new SolanaTokenBridgeRelayer(provider, params);
     } else {
-      this.client = new TbrClient({ connection: provider.connection }, params);
+      this.client = new SolanaTokenBridgeRelayer({ connection: provider.connection }, params);
     }
     this.logs = {};
 
@@ -164,7 +166,7 @@ export class ClientWrapper {
     recipient: PublicKey,
   ): Promise<TransactionSignature> {
     return sendAndConfirmIx(
-      this.client.completeNativeTransfer(this.publicKey, vaa, recipientTokenAccount, recipient),
+      this.client.completeNativeTransfer(this.publicKey, vaa, recipientTokenAccount),
       this.provider,
     );
   }
@@ -175,12 +177,44 @@ export class ClientWrapper {
     recipient: PublicKey,
   ): Promise<TransactionSignature> {
     return sendAndConfirmIx(
-      this.client.completeWrappedTransfer(this.publicKey, vaa, recipientTokenAccount, recipient),
+      this.client.completeWrappedTransfer(this.publicKey, vaa, recipientTokenAccount),
       this.provider,
     );
   }
 
-  async relayingFee(chain: Chain, dropoffAmount: number): Promise<BN> {
-    return this.client.relayingFee(this.publicKey, chain, dropoffAmount);
+  async relayingFee(chain: Chain, dropoffAmount: number): Promise<number> {
+    return this.client.relayingFee(chain, dropoffAmount);
+  }
+}
+
+export class WormholeCoreWrapper {
+  public readonly provider: AnchorProvider;
+  public readonly client: SolanaWormholeCore<'Mainnet', 'Solana'>;
+
+  constructor(provider: AnchorProvider) {
+    this.provider = provider;
+    this.client = new SolanaWormholeCore('Mainnet', 'Solana', provider.connection, {
+      tokenBridge: tokenBridgeProgramId.toString(),
+    });
+  }
+
+  async initialize() {
+    //todo
+  }
+}
+
+export class TokenBridgeWrapper {
+  public readonly provider: AnchorProvider;
+  public readonly client: SolanaAutomaticTokenBridge<'Mainnet', 'Solana'>;
+
+  constructor(provider: AnchorProvider) {
+    this.provider = provider;
+    this.client = new SolanaAutomaticTokenBridge('Mainnet', 'Solana', provider.connection, {
+      coreBridge: wormholeProgramId.toString(),
+    });
+  }
+
+  async initialize() {
+    //todo
   }
 }

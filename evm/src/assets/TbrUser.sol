@@ -106,7 +106,7 @@ abstract contract TbrUser is TbrBase {
     uint offset,
     uint256 unallocatedBalance,
     uint commandIndex
-  ) internal returns (uint256, uint256) {
+  ) internal returns (uint256, uint256, uint256) {
     uint16 targetChain; bytes32 recipient; uint32 gasDropoff; uint256 tokenAmount;
     (targetChain, recipient, gasDropoff, tokenAmount, offset) = _parseSharedParams(data, offset);
     address rawToken; bool unwrapIntent;
@@ -115,18 +115,18 @@ abstract contract TbrUser is TbrBase {
     IERC20 token = IERC20(rawToken);
     offset = _acquireTokens(data, offset, token, tokenAmount);
     
-    (bytes32 peer, uint256 fee) =
+    (bytes32 peer, uint256 fee, uint256 wormholeFee) =
       _getAndCheckTransferParams(targetChain, recipient, tokenAmount, gasDropoff, commandIndex);
 
-    if (fee > unallocatedBalance)
+    if (fee + wormholeFee > unallocatedBalance)
       revert FeesInsufficient(msg.value, commandIndex);
 
-    _bridgeOut(token, targetChain, peer, recipient, tokenAmount, gasDropoff, fee, unwrapIntent);
+    _bridgeOut(token, targetChain, peer, recipient, tokenAmount, gasDropoff, fee, wormholeFee, unwrapIntent);
 
     // Return the fee that must be sent to the fee recipient.
     // TODO: should we return the sequence to the caller too?
     // We shouldn't do so until we can efficiently allocate the memory for the result though.
-    return (fee, offset);
+    return (fee, wormholeFee, offset);
   }
 
   function _transferGasTokenWithRelay(
@@ -134,17 +134,17 @@ abstract contract TbrUser is TbrBase {
     uint offset,
     uint256 unallocatedBalance,
     uint commandIndex
-  ) internal returns (uint256, uint256) {
+  ) internal returns (uint256, uint256, uint256) {
     if (address(gasToken) == address(0))
       revert GasTokenNotSupported();
 
     uint16 targetChain; bytes32 recipient; uint32 gasDropoff; uint256 tokenAmount;
     (targetChain, recipient, gasDropoff, tokenAmount, offset) = _parseSharedParams(data, offset);
 
-    (bytes32 peer, uint256 fee) =
+    (bytes32 peer, uint256 fee, uint256 wormholeFee) =
       _getAndCheckTransferParams(targetChain, recipient, tokenAmount, gasDropoff, commandIndex);
 
-    if (fee + tokenAmount > unallocatedBalance)
+    if (fee + tokenAmount + wormholeFee > unallocatedBalance)
       revert FeesInsufficient(msg.value, commandIndex);
 
     // Tokenize
@@ -153,10 +153,10 @@ abstract contract TbrUser is TbrBase {
       gasToken.deposit{value: tokenAmount}();
 
     IERC20 token = IERC20(address(gasToken));
-    _bridgeOut(token, targetChain, peer, recipient, tokenAmount, gasDropoff, fee, false);
+    _bridgeOut(token, targetChain, peer, recipient, tokenAmount, gasDropoff, wormholeFee, fee, false);
 
     // Return the fee that must be sent to the fee recipient.
-    return (fee, offset);
+    return (fee, tokenAmount + wormholeFee, offset);
   }
 
   function _parseSharedParams(
@@ -251,7 +251,7 @@ abstract contract TbrUser is TbrBase {
     uint256 tokenAmount,
     uint32 gasDropoff,
     uint commandIndex
-  ) internal view returns (bytes32, uint256) {
+  ) internal view returns (bytes32, uint256, uint256) {
     (bytes32 peer, uint32 baseFee, uint32 maxGasDropoff, bool paused, bool txSizeSensitive) =
       _getTargetChainData(targetChain);
 
@@ -270,36 +270,46 @@ abstract contract TbrUser is TbrBase {
     if (tokenAmount == 0)
       revert InvalidTokenAmount();
 
-    uint256 fee = _quoteRelay(targetChain, gasDropoff, baseFee, txSizeSensitive);
+    (uint256 fee, uint256 wormholeFee) = _quoteRelay(targetChain, gasDropoff, baseFee, txSizeSensitive);
 
-    return (peer, fee);
+    return (peer, fee, wormholeFee);
   }
 
-  //returns fee in gas tokens with 18 decimals (i.e. wei)
+  /**
+   * @return fee in gas tokens with 18 decimals (i.e. wei)
+   * @return wormhole fee in gas tokens with 18 decimals (i.e. wei)
+   */
   function _quoteRelay(
     uint16 targetChain,
     uint32 gasDropoff,
     uint32 baseFee,
     bool txSizeSensitive
-  ) view internal returns (uint256) {
+  ) view internal returns (uint256, uint256) {
+    uint wormholeFee = wormholeCore.messageFee();
     if (targetChain == CHAIN_ID_SOLANA)
-      return _solanaTransactionQuote(
-        gasDropoff,
-        SOLANA_RELAY_SPAWNED_ACCOUNTS,
-        SOLANA_RELAY_TOTAL_SIZE,
-        baseFee
+      return (
+        _solanaTransactionQuote(
+          gasDropoff,
+          SOLANA_RELAY_SPAWNED_ACCOUNTS,
+          SOLANA_RELAY_TOTAL_SIZE,
+          baseFee
+        ),
+        wormholeFee
       );
 
     if (txSizeSensitive)
-      return _evmTransactionWithTxSizeQuote(
-        targetChain,
-        gasDropoff,
-        EVM_RELAY_GAS_COST,
-        baseFee,
-        EVM_RELAY_TX_SIZE
+      return (
+          _evmTransactionWithTxSizeQuote(
+            targetChain,
+            gasDropoff,
+            EVM_RELAY_GAS_COST,
+            baseFee,
+            EVM_RELAY_TX_SIZE
+          ),
+          wormholeFee
       );
 
-    return _evmTransactionQuote(targetChain, gasDropoff, EVM_RELAY_GAS_COST, baseFee);
+    return (_evmTransactionQuote(targetChain, gasDropoff, EVM_RELAY_GAS_COST, baseFee), wormholeFee);
   }
 
   function _bridgeOut(
@@ -309,13 +319,14 @@ abstract contract TbrUser is TbrBase {
     bytes32 recipient,
     uint256 tokenAmount,
     uint32 gasDropoff,
+    uint256 wormholeFee,
     uint256 fee,
     bool unwrapIntent
   ) private {
     bytes memory tbrMessage = _tbrv3Message(recipient, gasDropoff, unwrapIntent);
     // Perform call to token bridge.
     SafeERC20.safeApprove(token, address(tokenBridge), tokenAmount);
-    uint64 sequence = tokenBridge.transferTokensWithPayload(
+    uint64 sequence = tokenBridge.transferTokensWithPayload{value: wormholeFee}(
       address(token),
       tokenAmount,
       targetChain,
@@ -424,8 +435,8 @@ abstract contract TbrUser is TbrBase {
     if (gasDropoff > maxGasDropoff)
       revert GasDropoffRequestedExceedsMaximum(maxGasDropoff, commandIndex);
 
-
-    uint totalFee = _quoteRelay(chainId, gasDropoff, baseFee, txSizeSensitive) / _TOTAL_FEE_DIVISOR;
+    (uint relayFee, uint wormholeFee) = _quoteRelay(chainId, gasDropoff, baseFee, txSizeSensitive);
+    uint totalFee = (relayFee + wormholeFee) / _TOTAL_FEE_DIVISOR;
     if (totalFee > type(uint64).max)
       revert FeeTooLarge(totalFee, commandIndex);
 

@@ -1,5 +1,5 @@
 import { BN } from '@coral-xyz/anchor';
-import { TbrClient } from '@xlabs-xyz/solana-arbitrary-token-transfers';
+import { SolanaTokenBridgeRelayer } from '@xlabs-xyz/solana-arbitrary-token-transfers';
 import { runOnSolana, ledgerSignAndSend, getConnection, SolanaSigner } from '../helpers/solana.js';
 import { SolanaChainInfo, LoggerFn } from '../helpers/interfaces.js';
 import { dependencies } from '../helpers/env.js';
@@ -22,10 +22,13 @@ async function configureSolanaTbr(
   if (solanaDependencies === undefined) {
     throw new Error(`No dependencies found for chain ${chain.chainId}`);
   }
-  const tbr = new TbrClient({ connection }, {
-    tokenBridgeProgramId: new PublicKey(solanaDependencies.tokenBridge),
-    wormholeProgramId: new PublicKey(solanaDependencies.wormhole),
-  });
+  const tbr = new SolanaTokenBridgeRelayer(
+    { connection },
+    {
+      tokenBridgeProgramId: new PublicKey(solanaDependencies.tokenBridge),
+      wormholeProgramId: new PublicKey(solanaDependencies.wormhole),
+    },
+  );
 
   const config = await getChainConfig<SolanaTbrV3Config>('tbr-v3', chain.chainId);
 
@@ -49,9 +52,7 @@ async function configureSolanaTbr(
     evmTxSize !== BigInt(contractConfig.evmTransactionSize.toString()) ||
     evmTxGas !== BigInt(contractConfig.evmTransactionGas.toString())
   ) {
-    log(
-      `Updating EVM Transaction config.`
-    )
+    log(`Updating EVM Transaction config.`);
     const ix = await tbr.updateEvmTransactionConfig(
       signerKey,
       new BN(evmTxGas.toString()),

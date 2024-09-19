@@ -78,7 +78,7 @@ contract TbrExposer is Tbr {
     uint32 gasDropoff,
     uint32 baseFee,
     bool txSizeSensitive
-  ) public view returns (uint256) {
+  ) public view returns (uint256, uint256) {
     return _quoteRelay(chainId, gasDropoff, baseFee, txSizeSensitive);
   }
 
