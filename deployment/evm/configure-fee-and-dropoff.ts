@@ -3,6 +3,7 @@ import {
   evm,
   getChainConfig,
   getContractAddress,
+  loadTbrPeers,
 } from "../helpers/index.js";
 import { chainIdToChain } from "@wormhole-foundation/sdk-base";
 import { SupportedChains, Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
@@ -15,14 +16,24 @@ import { EvmTbrV3Config } from "../config/config.types.js";
 evm.runOnEvms("configure-fee-and-dropoff", async (chain, signer, log) => {
   const tbrv3ProxyAddress = getContractAddress("TbrV3Proxies", chain.chainId);
   const tbrv3 = new Tbrv3(signer.provider!, chain.network, tbrv3ProxyAddress);
-  const config = await getChainConfig<EvmTbrV3Config>("tbr-v3", chain.chainId);
-  const deployedTbrv3s = contracts["TbrV3Proxies"].filter((tbr) => tbr.chainId !== chain.chainId);
-  const desiredRelayFee = Number(config.relayFee);
+  const peers = loadTbrPeers(chain);
 
-  const currentRelayFee = await tbrv3.relayFee(chain.name as SupportedChains);
-  if (currentRelayFee.fee !== desiredRelayFee) {
-    log(`Updating relay fee: ${desiredRelayFee}`);
-    const partialTx = tbrv3.updateRelayFee(chain.name as SupportedChains, desiredRelayFee);
+  const relayFeeUpdates: Map<SupportedChains, number> = new Map();
+  for (const otherTbrv3 of peers) {
+    const otherTbrv3Chain = chainIdToChain(otherTbrv3.chainId) as SupportedChains;
+    const peerChainCfg = await getChainConfig<EvmTbrV3Config>("tbr-v3", otherTbrv3.chainId);
+    const desiredRelayFee = Number(peerChainCfg.relayFee);
+
+    const currentRelayFee = await tbrv3.relayFee(otherTbrv3Chain as SupportedChains);
+    if (currentRelayFee.fee !== desiredRelayFee) {
+      log(`Will updaterelay fee for ${otherTbrv3Chain}: ${peerChainCfg.maxGasDropoff}`);
+      relayFeeUpdates.set(otherTbrv3Chain, desiredRelayFee);
+    }
+  }  
+
+  if (relayFeeUpdates.size !== 0) {
+    log("Updating relay fee");
+    const partialTx = tbrv3.updateRelayFees(relayFeeUpdates);
     const { error, receipt } = await evm.sendTx(signer, { ...partialTx, data: ethers.hexlify(partialTx.data) });
     if (error) {
       log("Error updating relay fee: ", error);
@@ -34,7 +45,7 @@ evm.runOnEvms("configure-fee-and-dropoff", async (chain, signer, log) => {
   }
 
   const updateMaxGasDropoff: Map<SupportedChains, number> = new Map();
-  for (const otherTbrv3 of deployedTbrv3s) {
+  for (const otherTbrv3 of peers) {
     const otherTbrv3Chain = chainIdToChain(otherTbrv3.chainId) as SupportedChains;
     const peerChainCfg = await getChainConfig<EvmTbrV3Config>("tbr-v3", otherTbrv3.chainId);
     const desiredMaxGasDropoff = Number(peerChainCfg.maxGasDropoff);

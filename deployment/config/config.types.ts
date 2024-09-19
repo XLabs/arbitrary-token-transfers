@@ -4,7 +4,15 @@ export type BaseTbrV3Config = ChainConfig & {
   owner?: string;
   admin?: string;
   feeRecipient?: string;
+  /**
+   * base fee that peers will set for this chain
+   * specified in usd
+   */
   relayFee: number;
+  /**
+   * max gas dropoff that peers will set for this chain
+   * specified in gas token (i.e. eth, avax, ...)
+   */
   maxGasDropoff: string;  
 }
 

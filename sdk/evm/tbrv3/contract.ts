@@ -283,8 +283,10 @@ export class Tbrv3 {
     ));
   }
 
-  updateRelayFee(chain: SupportedChains, fee: number): TbrPartialTx {
-    return this.governanceTx([{ command: "UpdateBaseFee", chain, value: fee }]);
+  updateRelayFees(fees: Map<SupportedChains, number>): TbrPartialTx {
+    return this.governanceTx(Array.from(fees).map(
+      ([chain, maxDropoff]) => ({ command: "UpdateBaseFee", value: maxDropoff, chain: chain as SupportedChains })
+    )); 
   }
 
   updateAdmin(authorized: boolean, admin: EvmAddress): TbrPartialTx {
