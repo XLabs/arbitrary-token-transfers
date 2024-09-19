@@ -1,7 +1,7 @@
 import { execSync } from "child_process";
 import path from "path";
 import chalk from "chalk";
-import { getContractAddress, verificationApiKeys, evm, getChainConfig, getDependencyAddress } from "../helpers";
+import { getContractAddress, loadVerificationApiKeys, evm, getChainConfig, getDependencyAddress } from "../helpers";
 import { EvmTbrV3Config } from "../config/config.types";
 import { Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
 import { encoding } from "@wormhole-foundation/sdk-base";
@@ -11,7 +11,7 @@ evm.runOnEvms("bytecode-verification-token-router", async (chain, signer, log) =
   // The root path of the foundry project
   const rootPath = path.resolve('../evm/');
 
-  const verifiers = verificationApiKeys[chain.chainId];
+  const verifiers = loadVerificationApiKeys()[chain.chainId];
   if (!verifiers) {
     log(chalk.red(`No verifiers found for chain ${chain.chainId}`));
     return;
