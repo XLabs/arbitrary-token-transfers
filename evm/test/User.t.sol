@@ -76,12 +76,17 @@ contract UserTest is TbrTestBase {
     uint32 gasDropoff,
     bytes32 recipient,
     uint256 feeQuote,
-    uint256 unallocatedBalance
+    uint256 unallocatedBalance,
+    uint256 wormholeFee
   ) public {
+    // use a bound max value in order to prevent overflow
+    uint boundMaxValue = 1e12;
+    wormholeFee = bound(wormholeFee, 1, boundMaxValue);
+    feeQuote = bound(feeQuote, 1, boundMaxValue);
     vm.assume(tokenAmount > 0 && tokenAmount <= type(uint56).max);
     vm.assume(recipient != bytes32(0));
     vm.assume(gasDropoff < MAX_GAS_DROPOFF_AMOUNT);
-    vm.assume(unallocatedBalance >= feeQuote);
+    vm.assume(unallocatedBalance >= feeQuote + wormholeFee);
     deal(address(this), unallocatedBalance);
     deal(address(usdt), address(this), tokenAmount);
     SafeERC20.safeApprove(usdt, address(tbr), tokenAmount);
@@ -99,8 +104,8 @@ contract UserTest is TbrTestBase {
 
     uint64 sequence = 1;
     vm.mockCall(
-      address(wormhole), 
-      abi.encodeWithSelector(wormhole.publishMessage.selector), 
+      address(wormholeCore), 
+      abi.encodeWithSelector(wormholeCore.publishMessage.selector), 
       abi.encode(sequence)
     );
 
@@ -108,6 +113,14 @@ contract UserTest is TbrTestBase {
       address(oracle), 
       abi.encodeWithSelector(IPriceOracle.get1959.selector), 
       abi.encode(abi.encodePacked(uint256(feeQuote)))
+    );
+
+    vm.mockCall(
+      address(wormholeCore), 
+      abi.encodeWithSelector(
+        wormholeCore.messageFee.selector
+      ),
+      abi.encode(uint256(wormholeFee))
     );
 
     vm.expectCall(
@@ -118,6 +131,7 @@ contract UserTest is TbrTestBase {
 
     vm.expectCall(
       address(tokenBridge),
+      wormholeFee,
       abi.encodeWithSelector(
         tokenBridge.transferTokensWithPayload.selector,
         address(usdt),
@@ -149,7 +163,7 @@ contract UserTest is TbrTestBase {
       unallocatedBalance
     );
 
-    assertEq(address(this).balance, initialCallerBalance - feeQuote);
+    assertEq(address(this).balance, initialCallerBalance - feeQuote - wormholeFee);
     assertEq(address(feeRecipient).balance, initialFeeRecipientBalance + feeQuote);
   }
 
@@ -158,12 +172,17 @@ contract UserTest is TbrTestBase {
     uint32 gasDropoff,
     bytes32 recipient,
     uint256 feeQuote,
+    uint256 wormholeFee,
     uint256 unallocatedBalance
   ) public {
+    // use a bound max value in order to prevent overflow
+    uint boundMaxValue = 1e12;
+    wormholeFee = bound(wormholeFee, 1, boundMaxValue);
+    feeQuote = bound(feeQuote, 1, boundMaxValue);
     vm.assume(tokenAmount > 0);
     vm.assume(recipient != bytes32(0));
     vm.assume(gasDropoff < MAX_GAS_DROPOFF_AMOUNT);
-    vm.assume(unallocatedBalance < feeQuote);
+    vm.assume(unallocatedBalance < feeQuote + wormholeFee);
     deal(address(this), unallocatedBalance);
     deal(address(usdt), address(this), tokenAmount);
     SafeERC20.safeApprove(usdt, address(tbr), tokenAmount);
@@ -176,6 +195,14 @@ contract UserTest is TbrTestBase {
       address(oracle), 
       abi.encodeWithSelector(IPriceOracle.get1959.selector), 
       abi.encode(abi.encodePacked(uint256(feeQuote)))
+    );
+
+    vm.mockCall(
+      address(wormholeCore), 
+      abi.encodeWithSelector(
+        wormholeCore.messageFee.selector
+      ),
+      abi.encode(uint256(wormholeFee))
     );
 
     vm.expectRevert(
@@ -228,8 +255,8 @@ contract UserTest is TbrTestBase {
 
     uint64 sequence = 1;
     vm.mockCall(
-      address(wormhole), 
-      abi.encodeWithSelector(wormhole.publishMessage.selector), 
+      address(wormholeCore), 
+      abi.encodeWithSelector(wormholeCore.publishMessage.selector), 
       abi.encode(sequence)
     );
 
@@ -610,7 +637,6 @@ contract UserTest is TbrTestBase {
     uint16 targetChain = SOLANA_CHAIN_ID;
     uint commandIndex = 0;
 
-    // Mock the quote returned by the oracle
     uint feeQuote = 100;
     vm.mockCall(
       address(oracle), 
@@ -618,10 +644,19 @@ contract UserTest is TbrTestBase {
       abi.encode(abi.encodePacked(uint256(feeQuote)))
     );
 
+    uint fakeWormholeFee = 100;
+    vm.mockCall(
+      address(wormholeCore), 
+      abi.encodeWithSelector(
+        wormholeCore.messageFee.selector
+      ),
+      abi.encode(uint256(fakeWormholeFee))
+    );
+
     tbrExposer.exposedSetCanonicalPeer(SOLANA_CHAIN_ID, SOLANA_CANONICAL_PEER);
     tbrExposer.exposedSetMaxGasDropoff(SOLANA_CHAIN_ID, MAX_GAS_DROPOFF_AMOUNT);
 
-    (bytes32 peer, uint256 fee) = tbrExposer.exposed_getAndCheckTransferParams(
+    (bytes32 peer, uint256 fee, uint256 wormholeFee) = tbrExposer.exposed_getAndCheckTransferParams(
       targetChain, 
       recipient, 
       tokenAmount, 
@@ -631,6 +666,7 @@ contract UserTest is TbrTestBase {
 
     assertEq(peer, SOLANA_CANONICAL_PEER);
     assertEq(fee, feeQuote);
+    assertEq(wormholeFee, fakeWormholeFee);
   }
 
   function testGetAndCheckTransferParams_TargetChainNotSupported(
@@ -726,9 +762,9 @@ contract UserTest is TbrTestBase {
     vm.assume(tokenAmount > 0);
     vm.assume(gasDropoff < MAX_GAS_DROPOFF_AMOUNT);
 
-    uint16 targetChain = SOLANA_CHAIN_ID;
     uint commandIndex = 0;
     bytes32 recipient = bytes32(0);
+    uint16 targetChain = SOLANA_CHAIN_ID;
 
     tbrExposer.exposedSetCanonicalPeer(SOLANA_CHAIN_ID, SOLANA_CANONICAL_PEER);
     tbrExposer.exposedSetMaxGasDropoff(SOLANA_CHAIN_ID, MAX_GAS_DROPOFF_AMOUNT);
@@ -751,9 +787,9 @@ contract UserTest is TbrTestBase {
     vm.assume(recipient != bytes32(0));
     vm.assume(gasDropoff < MAX_GAS_DROPOFF_AMOUNT);
 
-    uint16 targetChain = SOLANA_CHAIN_ID;
     uint commandIndex = 0;
     uint256 tokenAmount = 0;
+    uint16 targetChain = SOLANA_CHAIN_ID;
 
     tbrExposer.exposedSetCanonicalPeer(SOLANA_CHAIN_ID, SOLANA_CANONICAL_PEER);
     tbrExposer.exposedSetMaxGasDropoff(SOLANA_CHAIN_ID, MAX_GAS_DROPOFF_AMOUNT);
@@ -774,7 +810,6 @@ contract UserTest is TbrTestBase {
     uint256 feeQuote = 1e6;
     uint64 expectedFee = uint64(feeQuote) / 1e6;
 
-    // Mock the quote returned by the oracle
     vm.mockCall(
       address(oracle), 
       abi.encodeWithSelector(IPriceOracle.get1959.selector), 

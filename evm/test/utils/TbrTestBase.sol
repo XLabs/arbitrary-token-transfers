@@ -37,7 +37,7 @@ contract TbrTestBase is Test {
   bool         immutable gasErc20TokenizationIsExplicit;
   
   IERC20       immutable usdt;
-  IWormhole    immutable wormhole;
+  IWormhole    immutable wormholeCore;
 
   address     tbrImplementation;
   PriceOracle priceOracle;
@@ -56,7 +56,7 @@ contract TbrTestBase is Test {
     gasErc20TokenizationIsExplicit = true;
 
     usdt          = IERC20(vm.envAddress("TEST_USDT_ADDRESS"));
-    wormhole      = IWormhole(vm.envAddress("TEST_WORMHOLE_ADDRESS"));
+    wormholeCore  = IWormhole(vm.envAddress("TEST_WORMHOLE_ADDRESS"));
   }
 
   function _setUp1() internal virtual { }

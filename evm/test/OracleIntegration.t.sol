@@ -22,33 +22,60 @@ contract OracleIntegrationTest is TbrTestBase {
     );
   }
   
-  function testQuoteRelay_evmTransactionQuote() public view {
+  function testQuoteRelay_evmTransactionQuote() public {
     uint32 gasDropoff = 1000;
     uint16 chainId = EVM_CHAIN_ID;
     bool txCommitEthereum = false;
     uint256 expectedQuote = 400000002000000000;
 
-    uint256 quote = tbrExposer.exposedQuoteRelay(chainId, gasDropoff, RELAY_FEE_AMOUNT, txCommitEthereum);
+    uint fakeWormholeFee = 100;
+    vm.mockCall(
+      address(wormholeCore), 
+      abi.encodeWithSelector(
+        wormholeCore.messageFee.selector
+      ),
+      abi.encode(uint256(fakeWormholeFee))
+    );
+
+    (uint256 quote, ) = tbrExposer.exposedQuoteRelay(chainId, gasDropoff, RELAY_FEE_AMOUNT, txCommitEthereum);
     assertEq(quote, expectedQuote);
   } 
 
-  function testQuoteRelay_evmTransactionWithTxSizeQuote() public view {
+  function testQuoteRelay_evmTransactionWithTxSizeQuote() public {
     uint32 gasDropoff = 1000;
     uint16 chainId = EVM_CHAIN_ID;
     bool txCommitEthereum = true;
     uint256 expectedQuote = 401000002000000000;
 
-    uint256 quote = tbrExposer.exposedQuoteRelay(chainId, gasDropoff, RELAY_FEE_AMOUNT, txCommitEthereum);
+    uint fakeWormholeFee = 100;
+    vm.mockCall(
+      address(wormholeCore), 
+      abi.encodeWithSelector(
+        wormholeCore.messageFee.selector
+      ),
+      abi.encode(uint256(fakeWormholeFee))
+    );
+
+    (uint256 quote, ) = tbrExposer.exposedQuoteRelay(chainId, gasDropoff, RELAY_FEE_AMOUNT, txCommitEthereum);
     assertEq(quote, expectedQuote);
   } 
 
-  function testQuoteRelay_solanaTransactionQuote() public view {
+  function testQuoteRelay_solanaTransactionQuote() public {
     uint32 gasDropoff = 1000;
     uint16 chainId = SOLANA_CHAIN_ID;
     bool txCommitEthereum = false;
     uint256 expectedQuote = 1004000000002000000000;
 
-    uint256 quote = tbrExposer.exposedQuoteRelay(chainId, gasDropoff, RELAY_FEE_AMOUNT, txCommitEthereum);
+    uint fakeWormholeFee = 100;
+    vm.mockCall(
+      address(wormholeCore), 
+      abi.encodeWithSelector(
+        wormholeCore.messageFee.selector
+      ),
+      abi.encode(uint256(fakeWormholeFee))
+    );
+
+    (uint256 quote, ) = tbrExposer.exposedQuoteRelay(chainId, gasDropoff, RELAY_FEE_AMOUNT, txCommitEthereum);
     assertEq(quote, expectedQuote);
   } 
 }
