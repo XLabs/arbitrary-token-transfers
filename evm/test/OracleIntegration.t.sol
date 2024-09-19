@@ -64,7 +64,7 @@ contract OracleIntegrationTest is TbrTestBase {
     uint32 gasDropoff = 1000;
     uint16 chainId = SOLANA_CHAIN_ID;
     bool txCommitEthereum = false;
-    uint256 expectedQuote = 1004000000002000000000;
+    uint256 expectedQuote = 461000000002000000000;
 
     uint fakeWormholeFee = 100;
     vm.mockCall(

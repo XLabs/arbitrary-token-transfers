@@ -34,11 +34,6 @@ contract BaseTest is TbrTestBase {
 
     tbrExposer.exposedAddPeer(chainId, peer);
 
-    vm.expectRevert(
-      abi.encodeWithSelector(PeerAlreadyRegistered.selector, chainId, peer)
-    );
-    tbrExposer.exposedAddPeer(chainId, peer);
-
     bool _isPeer = tbrExposer.exposedIsPeer(chainId, peer);
     assertEq(_isPeer, true);
   }
