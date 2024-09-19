@@ -2,6 +2,7 @@ import {
   evm,
   getContractAddress,
   getEnv,
+  getEnvOrDefault,
 } from '../helpers';
 import { ethers } from 'ethers';
 import { getProvider, getSigner, sendTx } from '../helpers/evm';
@@ -23,11 +24,21 @@ async function run() {
   try {
     const sourceChain = getEnv('SOURCE_CHAIN');
     const inputToken = getEnv('INPUT_TOKEN');
+    const inputAmountInAtomic = BigInt(getEnvOrDefault('INPUT_AMOUNT', "1000"));
+    const unwrapIntent = getEnvOrDefault('UNWRAP_INTENT', "false") === 'true';
+    const configuredGasDropoff = Number(getEnvOrDefault('GAS_DROPOFF', "0"));
+
+    console.log({
+      sourceChain,
+      inputToken,
+      inputAmountInAtomic,
+      unwrapIntent,
+      configuredGasDropoff,
+    })
 
     const chain = chains.find((chain) => chain.chainId === Number(sourceChain));
 
     console.log(`Operating chain: ${inspect(chain)}`);
-    console.log(`Input token: ${inputToken}`);
 
     if (!chain) {
       throw new Error(`Unsupported chainId: ${sourceChain}`);
@@ -58,30 +69,34 @@ async function run() {
               throw new Error(`Chain ${targetChain.name} is not supported`);
             }
 
+            const gasDropoff = chainToPlatform(targetChain.name as Chain) === "Evm" ? configuredGasDropoff : 0;
 
-            console.log("executing");
+            console.log({
+              chain: targetChain.name,
+              gasDropoff,
+            })
+
             const feeEstimation = (
               await tbrv3.relayingFee({
                 targetChain: targetChain.name as SupportedChains,
-                gasDropoff: 0,
+                gasDropoff,
               })
             )[0];
 
-            console.log("executed");
-            console.log(`Fee estimation: ${inspect(feeEstimation)}`);
+            console.log(`Fee estimation ${chain.name}->${targetChain.name}: ${inspect(feeEstimation)}`);
 
             return {
               args: {
                 method: 'TransferTokenWithRelay',
                 acquireMode: { mode: 'Preapproved' },
-                inputAmountInAtomic: 1000n, 
-                gasDropoff: 0,
+                inputAmountInAtomic, 
+                gasDropoff,
                 recipient: {
                   chain: targetChain.name as Chain,
                   address: toUniversal(targetChain.name as Chain, address),
                 },
                 inputToken,
-                unwrapIntent: false,
+                unwrapIntent,
               },
               feeEstimation,
             } as Transfer;
