@@ -64,8 +64,6 @@ function tbrChainState(uint16 targetChain) view returns (ChainData storage) {
 }
 
 error PeerIsZeroAddress();
-error PeerAlreadyRegistered(uint16 chainId, bytes32 peer);
-error CannotRemoveCanonicalPeer();
 error InvalidChainId();
 error ChainNoSupportedByTokenBridge(uint16 chainId);
 /**
@@ -133,9 +131,8 @@ abstract contract TbrBase is PriceOracleIntegration {
       revert ChainNoSupportedByTokenBridge(targetChain);
 
     ChainData storage data = tbrChainState(targetChain);
-    bool isAlreadyPeer = data.peers[peer];
-    if (isAlreadyPeer)
-      revert PeerAlreadyRegistered(targetChain, peer);
+    if (data.canonicalPeer == bytes32(0))
+      data.canonicalPeer = peer;
 
     data.peers[peer] = true;
   }
@@ -153,23 +150,11 @@ abstract contract TbrBase is PriceOracleIntegration {
   }
 
   function _setCanonicalPeer(uint16 targetChain, bytes32 peer) internal {
-    if (targetChain == 0 || targetChain == whChainId)
-      revert InvalidChainId();
-
-    if (peer == bytes32(0))
-      revert PeerIsZeroAddress();
-
-    bytes32 bridgeContractOnPeerChain = tokenBridge.bridgeContracts(targetChain);
-    if (bridgeContractOnPeerChain == bytes32(0))
-      revert ChainNoSupportedByTokenBridge(targetChain);
-
     ChainData storage data = tbrChainState(targetChain);
     bool isAlreadyPeer = data.peers[peer];
     if (!isAlreadyPeer)
-      data.peers[peer] = true;
-
-    bytes32 currentCanonicalPeer = data.canonicalPeer;
-    if (currentCanonicalPeer != peer)
+      _addPeer(targetChain, peer);
+    else if (data.canonicalPeer != peer)
       data.canonicalPeer = peer;
   }
 
