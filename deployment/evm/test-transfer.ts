@@ -54,7 +54,7 @@ async function run() {
         .filter((targetChain) => chain.chainId !== targetChain.chainId)
         .map(async (targetChain) => {
           try {
-            console.log(`Creating transfer for ${chain.name}->${targetChain.name}`);
+            console.log(`Creating transfer for ${chain.name} -> ${targetChain.name}`);
 
             const address = chainToPlatform(targetChain.name as Chain) === "Evm" ? await signer.getAddress() : getEnv('SOLANA_RECIPIENT_ADDRESS');
 
@@ -96,7 +96,7 @@ async function run() {
                   address: toUniversal(targetChain.name as Chain, address),
                 },
                 inputToken,
-                unwrapIntent,
+                unwrapIntent: getEnv("TEST_UNWRAP_INTENT") === "true",
               },
               feeEstimation,
             } as Transfer;
@@ -123,6 +123,7 @@ async function run() {
       throw new Error('No transfers to execute');
     }
 
+    console.log(`Executing ${transfers.length} transfers`, transfers);
     const { to, value, data } = tbrv3.transferWithRelay(...transfers);
 
     const { receipt, error } = await sendTx(signer, {

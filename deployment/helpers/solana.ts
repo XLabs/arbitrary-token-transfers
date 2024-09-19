@@ -111,7 +111,7 @@ export function getConnection(chain: SolanaChainInfo) {
 
 export async function ledgerSignAndSend(connection: Connection, instructions: TransactionInstruction[], signers: Keypair[]) {
   const deployerSigner = await getSigner();
-  deployerSigner.signTransaction
+
   const deployerPk = new PublicKey(await deployerSigner.getAddress());
 
   const tx = new Transaction();
