@@ -42,14 +42,6 @@ contract UserTest is TbrTestBase {
   }
 
   function _setUp1() internal override {
-    // Mock the bridge contract address on target chain returned
-    bytes32 targetTokenBridge = makeBytes32("targetTokenBridge");
-    vm.mockCall(
-      address(tokenBridge), 
-      abi.encodeWithSelector(ITokenBridge.bridgeContracts.selector), 
-      abi.encode(targetTokenBridge)
-    );
-
     // Solana chain setup
     executeGovernanceCommand(
       abi.encodePacked(UPDATE_CANONICAL_PEER, SOLANA_CHAIN_ID, SOLANA_CANONICAL_PEER)
@@ -78,7 +70,6 @@ contract UserTest is TbrTestBase {
       abi.encodePacked(UPDATE_BASE_FEE, EVM_CHAIN_ID, RELAY_FEE_AMOUNT)
     );
   }
-  
 
   function testTransferTokenWithRelay(
     uint256 tokenAmount, 
@@ -87,7 +78,7 @@ contract UserTest is TbrTestBase {
     uint256 feeQuote,
     uint256 unallocatedBalance
   ) public {
-    vm.assume(tokenAmount > 0);
+    vm.assume(tokenAmount > 0 && tokenAmount <= type(uint56).max);
     vm.assume(recipient != bytes32(0));
     vm.assume(gasDropoff < MAX_GAS_DROPOFF_AMOUNT);
     vm.assume(unallocatedBalance >= feeQuote);
@@ -108,8 +99,8 @@ contract UserTest is TbrTestBase {
 
     uint64 sequence = 1;
     vm.mockCall(
-      address(tokenBridge), 
-      abi.encodeWithSelector(tokenBridge.transferTokensWithPayload.selector), 
+      address(wormhole), 
+      abi.encodeWithSelector(wormhole.publishMessage.selector), 
       abi.encode(sequence)
     );
 
@@ -215,8 +206,10 @@ contract UserTest is TbrTestBase {
     uint256 feeQuote,
     uint256 unallocatedBalance
   ) public {
-    tokenAmount = bound(tokenAmount, 1, 1e12);
-    feeQuote = bound(feeQuote, 1, 1e12);
+    // use a bound max value in order to prevent overflow
+    uint boundMaxValue = 1e12;
+    tokenAmount = bound(tokenAmount, 1, boundMaxValue);
+    feeQuote = bound(feeQuote, 1, boundMaxValue);
     vm.assume(recipient != bytes32(0));
     vm.assume(gasDropoff < MAX_GAS_DROPOFF_AMOUNT);
     vm.assume(unallocatedBalance >= feeQuote + tokenAmount);
@@ -235,8 +228,8 @@ contract UserTest is TbrTestBase {
 
     uint64 sequence = 1;
     vm.mockCall(
-      address(tokenBridge), 
-      abi.encodeWithSelector(tokenBridge.transferTokensWithPayload.selector), 
+      address(wormhole), 
+      abi.encodeWithSelector(wormhole.publishMessage.selector), 
       abi.encode(sequence)
     );
 
@@ -276,7 +269,7 @@ contract UserTest is TbrTestBase {
       unallocatedBalance
     );
 
-    assertEq(address(this).balance, initialCallerBalance - feeQuote);
+    assertEq(address(this).balance, initialCallerBalance - (feeQuote + tokenAmount));
     assertEq(address(feeRecipient).balance, initialFeeRecipientBalance + feeQuote);
   }
 
@@ -287,8 +280,10 @@ contract UserTest is TbrTestBase {
     uint256 feeQuote,
     uint256 unallocatedBalance
   ) public {
-    tokenAmount = bound(tokenAmount, 1, 1e12);
-    feeQuote = bound(feeQuote, 1, 1e12);
+    // use a bound max value in order to prevent overflow
+    uint boundMaxValue = 1e12;
+    tokenAmount = bound(tokenAmount, 1, boundMaxValue);
+    feeQuote = bound(feeQuote, 1, boundMaxValue);
     vm.assume(recipient != bytes32(0));
     vm.assume(gasDropoff < MAX_GAS_DROPOFF_AMOUNT);
     vm.assume(unallocatedBalance < feeQuote + tokenAmount);
@@ -319,7 +314,7 @@ contract UserTest is TbrTestBase {
       ),
       unallocatedBalance
     );
-  } 
+  }  
 
   function testParseSharedParams(
     uint16 targetChain,
