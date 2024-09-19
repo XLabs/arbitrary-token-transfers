@@ -12,6 +12,7 @@ uint8 constant TRANSFER_TOKEN_WITH_RELAY_ID = 0;
 uint8 constant TRANSFER_GAS_TOKEN_WITH_RELAY_ID = 1;
 uint8 constant COMPLETE_TRANSFER_ID = 2;
 uint8 constant GOVERNANCE_ID = 3;
+uint8 constant ACQUIRE_OWNERSHIP_ID = 4;
 
 // Query commands
 
@@ -37,8 +38,7 @@ uint8 constant UPDATE_ADMIN_ID = 12;
 uint8 constant UPDATE_CANONICAL_PEER_ID = 13;
 uint8 constant UPGRADE_CONTRACT_ID = 14;
 uint8 constant PROPOSE_OWNERSHIP_TRANSFER_ID = 15;
-uint8 constant ACQUIRE_OWNERSHIP_ID = 16;
-uint8 constant RELINQUISH_OWNERSHIP_ID = 17;
+uint8 constant RELINQUISH_OWNERSHIP_ID = 16;
 
 // Query commands
 
