@@ -38,7 +38,7 @@ async function sendTestTransaction(
     gasDropoffAmount: gasDropoffAmount,
     maxFeeSol: maxFeeSol.toNumber(),
     unwrapIntent,
-  })
+  });
 
   await Promise.all(
     chains.map(async (targetChain) => {
@@ -68,10 +68,10 @@ async function sendTestTransaction(
         recipientAddress: toUniversal(targetChain.name as Chain, evmAddress).toUint8Array(),
         mint: new PublicKey(getEnv('TRANSFER_MINT')),
         tokenAccount: new PublicKey(getEnv('TRANSFER_TOKEN_ACCOUNT')),
-        transferredAmount: new BN(1000),
+        transferredAmount,
         gasDropoffAmount,
-        maxFeeKlamports: new BN(5000),
-        unwrapIntent: false,
+        maxFeeKlamports: new BN(getEnvOrDefault("MAX_FEE_KLAMPORTS", "5000000")),
+        unwrapIntent,
       };
 
       const transferIx = await tbr.transferNativeTokens(signerKey, params);

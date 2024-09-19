@@ -94,7 +94,7 @@ async function run() {
                   address: toUniversal(targetChain.name as Chain, address),
                 },
                 inputToken,
-                unwrapIntent: getEnv("TEST_UNWRAP_INTENT") === "true",
+                unwrapIntent: getEnvOrDefault("TEST_UNWRAP_INTENT", "false") === "true",
               },
               feeEstimation,
             } as Transfer;
