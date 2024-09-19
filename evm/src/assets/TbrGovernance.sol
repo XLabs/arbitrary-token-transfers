@@ -83,10 +83,10 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
     else
       revert NotAuthorized();
 
-    uint8 commandCount;
+    uint commandCount;
     (commandCount, offset) = commands.asUint8CdUnchecked(offset);
 
-    for (uint8 i = 0; i < commandCount; i++) {
+    for (uint i = 0; i < commandCount; ++i) {
       uint8 command;
       (command, offset) = commands.asUint8CdUnchecked(offset);
 

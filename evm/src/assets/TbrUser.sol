@@ -22,11 +22,55 @@ uint8 constant ACQUIRE_PERMIT2PERMIT = 3;
 
 // How many accounts are created by a relay on Solana.
 // Chosen by fair dice roll.
-// TODO: measure this.
-uint8 constant SOLANA_RELAY_SPAWNED_ACCOUNTS = 4;
+// TODO: double check this.
+uint8 constant SOLANA_RELAY_SPAWNED_ACCOUNTS = 3; //signatureSet, PostedVAA, ATA
 // Size of all accounts created during a relay to Solana.
-// TODO: measure this.
-uint32 constant SOLANA_RELAY_TOTAL_SIZE = 1000;
+// TODO: double check this.
+uint32 constant SOLANA_RELAY_TOTAL_SIZE =
+  //signatureSet
+  // see here: https://github.com/wormhole-foundation/wormhole/blob/91ec4d1dc01f8b690f0492815407505fb4587520/solana/bridge/program/src/accounts/signature_set.rs#L17
+   4 + //signatureSet vec length
+  19 + //signatureSet bool vec for 19 guardians
+  32 + //vaa hash
+   4 + //guardianSet
+  //PostedVAA
+  // see here: https://github.com/wormhole-foundation/wormhole/blob/91ec4d1dc01f8b690f0492815407505fb4587520/solana/bridge/program/src/accounts/posted_vaa.rs#L39
+  // and here: https://github.com/wormhole-foundation/wormhole/blob/91ec4d1dc01f8b690f0492815407505fb4587520/solana/bridge/program/src/accounts/posted_message.rs#L46
+  // and here: https://github.com/wormhole-foundation/wormhole/blob/91ec4d1dc01f8b690f0492815407505fb4587520/solana/modules/token_bridge/program/src/messages.rs#L175
+   3 +//discriminator
+   1 + //vaa version
+   1 + //consistency level
+   4 + //vaa timestamp
+  32 + //signature account address
+   4 + //submission_time (waste)
+   4 + //nonce
+   8 + //sequence
+   2 + //emitterChain
+   4 + //payload vec length
+   1 + //payload id
+  32 + //token amount
+  32 + //token origin address
+   2 + //token origin chain
+  32 + //token bridge recipient address
+   2 + //recipient chain
+  32 + //from(=peer) address
+   1 + //tbrv3 version
+  32 + //recipient address
+   4 + //gas dropoff
+   1 + //unwrap intent*/ +
+  //ATA (should sum up to 165)
+  // see here https://github.com/solana-labs/solana-program-library/blob/6d92f4537a8dc278285abd66d93e7d49caaca0c5/token/program/src/state.rs#L89
+  32 + //associated mint
+  32 + //owner
+   8 + //amount
+   4 + //COption prefix (0 or 1, 4 bytes, waste) - see https://github.com/solana-labs/solana-program-library/blob/6d92f4537a8dc278285abd66d93e7d49caaca0c5/token/program/src/state.rs#L267
+  32 + //delegate COption<Pubkey>
+   1 + //account state enum
+   4 + //COoption prefix 
+   8 + //is_native COption<u64>
+   8 + //delegated amount
+   4 + //COoption prefix 
+  32; //close authority COption<Pubkey>
 
 // Gas cost of a single `complete transfer` method execution.
 // TODO: measure this.
@@ -121,7 +165,7 @@ abstract contract TbrUser is TbrBase {
     if (fee + wormholeFee > unallocatedBalance)
       revert FeesInsufficient(msg.value, commandIndex);
 
-    _bridgeOut(token, targetChain, peer, recipient, tokenAmount, gasDropoff, wormholeFee, fee, unwrapIntent);
+    _bridgeOut(token, targetChain, peer, recipient, tokenAmount, gasDropoff, unwrapIntent, fee, wormholeFee);
 
     // Return the fee that must be sent to the fee recipient.
     // TODO: should we return the sequence to the caller too?
@@ -153,7 +197,7 @@ abstract contract TbrUser is TbrBase {
       gasToken.deposit{value: tokenAmount}();
 
     IERC20 token = IERC20(address(gasToken));
-    _bridgeOut(token, targetChain, peer, recipient, tokenAmount, gasDropoff, wormholeFee, fee, false);
+    _bridgeOut(token, targetChain, peer, recipient, tokenAmount, gasDropoff, false, fee, wormholeFee);
 
     // Return the fee that must be sent to the fee recipient.
     return (fee, tokenAmount + wormholeFee, offset);
@@ -270,7 +314,8 @@ abstract contract TbrUser is TbrBase {
     if (tokenAmount == 0)
       revert InvalidTokenAmount();
 
-    (uint256 fee, uint256 wormholeFee) = _quoteRelay(targetChain, gasDropoff, baseFee, txSizeSensitive);
+    (uint256 fee, uint256 wormholeFee) =
+      _quoteRelay(targetChain, gasDropoff, baseFee, txSizeSensitive);
 
     return (peer, fee, wormholeFee);
   }
@@ -319,9 +364,9 @@ abstract contract TbrUser is TbrBase {
     bytes32 recipient,
     uint256 tokenAmount,
     uint32 gasDropoff,
-    uint256 wormholeFee,
+    bool unwrapIntent,
     uint256 fee,
-    bool unwrapIntent
+    uint256 wormholeFee
   ) private {
     bytes memory tbrMessage = _tbrv3Message(recipient, gasDropoff, unwrapIntent);
     // Perform call to token bridge.
@@ -356,10 +401,6 @@ abstract contract TbrUser is TbrBase {
     );
   }
 
-  /**
-   * Redeems a TB transfer VAA.
-   * Gas dropoff is reported to dispatcher so that any excedent can be refunded to the sender.
-   */
   function _completeTransfer(
     bytes calldata data,
     uint offset,
@@ -389,7 +430,6 @@ abstract contract TbrUser is TbrBase {
     // Some tokens might implement distributed supply expansion / contraction. Doing the above would let us support those.
 
     // Perform redeem in TB
-    // TODO: ignore return value? The gas savings might be very low.
     tokenBridge.completeTransferWithPayload(vaa);
 
     IERC20 token = IERC20(tokenBridge.wrappedAsset(tokenOriginChain, tokenOriginAddress));
