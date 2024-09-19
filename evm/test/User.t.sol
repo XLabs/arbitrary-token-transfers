@@ -44,30 +44,30 @@ contract UserTest is TbrTestBase {
   function _setUp1() internal override {
     // Solana chain setup
     executeGovernanceCommand(
-      abi.encodePacked(UPDATE_CANONICAL_PEER, SOLANA_CHAIN_ID, SOLANA_CANONICAL_PEER)
+      abi.encodePacked(UPDATE_CANONICAL_PEER_ID, SOLANA_CHAIN_ID, SOLANA_CANONICAL_PEER)
     );
     executeGovernanceCommand(
-      abi.encodePacked(UPDATE_MAX_GAS_DROPOFF, SOLANA_CHAIN_ID, MAX_GAS_DROPOFF_AMOUNT)
+      abi.encodePacked(UPDATE_MAX_GAS_DROPOFF_ID, SOLANA_CHAIN_ID, MAX_GAS_DROPOFF_AMOUNT)
     );
     executeGovernanceCommand(
-      abi.encodePacked(UPDATE_TX_SIZE_SENSITIVE, SOLANA_CHAIN_ID, bool(false))
+      abi.encodePacked(UPDATE_TX_SIZE_SENSITIVE_ID, SOLANA_CHAIN_ID, bool(false))
     );
     executeGovernanceCommand(
-      abi.encodePacked(UPDATE_BASE_FEE, SOLANA_CHAIN_ID, RELAY_FEE_AMOUNT)
+      abi.encodePacked(UPDATE_BASE_FEE_ID, SOLANA_CHAIN_ID, RELAY_FEE_AMOUNT)
     );
 
     // EVM chain setup
     executeGovernanceCommand(
-      abi.encodePacked(UPDATE_CANONICAL_PEER, EVM_CHAIN_ID, EVM_CANONICAL_PEER)
+      abi.encodePacked(UPDATE_CANONICAL_PEER_ID, EVM_CHAIN_ID, EVM_CANONICAL_PEER)
     );
     executeGovernanceCommand(
-      abi.encodePacked(UPDATE_MAX_GAS_DROPOFF, EVM_CHAIN_ID, MAX_GAS_DROPOFF_AMOUNT)
+      abi.encodePacked(UPDATE_MAX_GAS_DROPOFF_ID, EVM_CHAIN_ID, MAX_GAS_DROPOFF_AMOUNT)
     );
     executeGovernanceCommand(
-      abi.encodePacked(UPDATE_TX_SIZE_SENSITIVE, EVM_CHAIN_ID, bool(true))
+      abi.encodePacked(UPDATE_TX_SIZE_SENSITIVE_ID, EVM_CHAIN_ID, bool(true))
     );
     executeGovernanceCommand(
-      abi.encodePacked(UPDATE_BASE_FEE, EVM_CHAIN_ID, RELAY_FEE_AMOUNT)
+      abi.encodePacked(UPDATE_BASE_FEE_ID, EVM_CHAIN_ID, RELAY_FEE_AMOUNT)
     );
   }
 

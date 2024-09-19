@@ -26,7 +26,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_QUERIES_ID, 
         commandCount, 
-        IMPLEMENTATION
+        IMPLEMENTATION_ID
       )
     ).asAddressUnchecked(0);
 
@@ -37,7 +37,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_ID, 
         commandCount, 
-        UPGRADE_CONTRACT, 
+        UPGRADE_CONTRACT_ID,
         address(upgradeTester)
       )
     );
@@ -50,7 +50,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_ID, 
         commandCount, 
-        UPGRADE_CONTRACT, 
+        UPGRADE_CONTRACT_ID,
         address(upgradeTester)
       )
     );
@@ -62,7 +62,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_ID, 
         commandCount, 
-        UPGRADE_CONTRACT, 
+        UPGRADE_CONTRACT_ID,
         address(upgradeTester)
       )
     );
@@ -78,7 +78,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_QUERIES_ID, 
         commandCount, 
-        IMPLEMENTATION
+        IMPLEMENTATION_ID
       )
     ).asAddressUnchecked(0);
     assertEq(restoredImplementation, implementation);
@@ -95,7 +95,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0,
         GOVERNANCE_ID,
         commandCount, 
-        PROPOSE_OWNERSHIP_TRANSFER, 
+        PROPOSE_OWNERSHIP_TRANSFER_ID,
         newOwner
       )
     );
@@ -107,7 +107,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_ID, 
         commandCount, 
-        PROPOSE_OWNERSHIP_TRANSFER, 
+        PROPOSE_OWNERSHIP_TRANSFER_ID,
         newOwner
       )
     );
@@ -119,8 +119,8 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_QUERIES_ID, 
         commandCount, 
-        OWNER, 
-        PENDING_OWNER
+        OWNER_ID,
+        PENDING_OWNER_ID
       )
     );
     (address owner_,        ) = getRes.asAddressUnchecked(0);
@@ -148,8 +148,8 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_QUERIES_ID, 
         commandCount, 
-        OWNER, 
-        PENDING_OWNER
+        OWNER_ID,
+        PENDING_OWNER_ID
       )
     );
     (owner_,        ) = getRes.asAddressUnchecked(0);
@@ -171,8 +171,8 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_ID, 
         commandCount, 
-        UPDATE_ADMIN, 
-        newAdmin,
+        UPDATE_ADMIN_ID,
+        newAdmin, 
         shouldBeAdmin
       )
     );
@@ -184,7 +184,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_ID, 
         commandCount, 
-        UPDATE_ADMIN, 
+        UPDATE_ADMIN_ID, 
         newAdmin,
         shouldBeAdmin
       )
@@ -196,7 +196,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_QUERIES_ID, 
         commandCount, 
-        IS_ADMIN,
+        IS_ADMIN_ID,
         newAdmin
       )
     ).asBoolUnchecked(0);
@@ -214,7 +214,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_ID, 
         commandCount, 
-        RELINQUISH_OWNERSHIP
+        RELINQUISH_OWNERSHIP_ID
       )
     );
 
@@ -229,8 +229,8 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_ID, 
         commandCount,
-        RELINQUISH_OWNERSHIP, 
-        UPDATE_ADMIN
+        RELINQUISH_OWNERSHIP_ID,
+        UPDATE_ADMIN_ID
       )
     );
 
@@ -241,7 +241,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_ID, 
         commandCount, 
-        RELINQUISH_OWNERSHIP
+        RELINQUISH_OWNERSHIP_ID
       )
     );
 
@@ -251,7 +251,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_QUERIES_ID, 
         commandCount,
-        OWNER
+        OWNER_ID
       )
     ).asAddressUnchecked(0);
 
@@ -270,7 +270,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_ID, 
         commandCount, 
-        ADD_PEER, 
+        ADD_PEER_ID,
         peerChain, 
         newPeer
       )
@@ -283,7 +283,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_ID, 
         commandCount, 
-        ADD_PEER, 
+        ADD_PEER_ID,
         peerChain, 
         newPeer
       )
@@ -295,7 +295,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_QUERIES_ID, 
         commandCount, 
-        IS_PEER,
+        IS_PEER_ID,
         peerChain,
         newPeer
       )
@@ -316,7 +316,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_ID, 
         commandCount, 
-        UPDATE_MAX_GAS_DROPOFF, 
+        UPDATE_MAX_GAS_DROPOFF_ID,
         targetChain,
         maxGasDropoff
       )
@@ -329,7 +329,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_ID, 
         commandCount, 
-        UPDATE_MAX_GAS_DROPOFF, 
+        UPDATE_MAX_GAS_DROPOFF_ID,
         targetChain,
         maxGasDropoff
       )
@@ -341,7 +341,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_QUERIES_ID, 
         commandCount, 
-        MAX_GAS_DROPOFF,
+        MAX_GAS_DROPOFF_ID,
         targetChain
       )
     ).asUint32Unchecked(0);
@@ -360,7 +360,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_ID, 
         commandCount, 
-        UPDATE_FEE_RECIPIENT, 
+        UPDATE_FEE_RECIPIENT_ID,
         newFeeRecipient
       )
     );
@@ -372,7 +372,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_ID, 
         commandCount, 
-        UPDATE_FEE_RECIPIENT, 
+        UPDATE_FEE_RECIPIENT_ID,
         newFeeRecipient
       )
     );
@@ -383,7 +383,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_QUERIES_ID, 
         commandCount, 
-        FEE_RECIPIENT
+        FEE_RECIPIENT_ID
       )
     ).asAddressUnchecked(0);
 
@@ -401,7 +401,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_ID, 
         commandCount, 
-        UPDATE_BASE_FEE, 
+        UPDATE_BASE_FEE_ID, 
         EVM_CHAIN_ID,
         newRelayFee
       )
@@ -414,7 +414,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_ID, 
         commandCount, 
-        UPDATE_BASE_FEE, 
+        UPDATE_BASE_FEE_ID, 
         EVM_CHAIN_ID,
         newRelayFee
       )
@@ -426,7 +426,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_QUERIES_ID, 
         commandCount, 
-        BASE_FEE,
+        BASE_FEE_ID,
         EVM_CHAIN_ID
       )
     ).asUint32Unchecked(0);
@@ -446,7 +446,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_ID, 
         commandCount, 
-        PAUSE_CHAIN, 
+        PAUSE_CHAIN_ID,
         paused,
         fakeChainId
       )
@@ -459,7 +459,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_ID, 
         commandCount, 
-        PAUSE_CHAIN, 
+        PAUSE_CHAIN_ID,
         fakeChainId,
         paused
       )
@@ -471,7 +471,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_QUERIES_ID, 
         commandCount, 
-        IS_CHAIN_PAUSED,
+        IS_CHAIN_PAUSED_ID,
         fakeChainId
       )
     ).asBoolUnchecked(0);
@@ -491,7 +491,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_ID, 
         commandCount, 
-        UPDATE_CANONICAL_PEER, 
+        UPDATE_CANONICAL_PEER_ID,
         peerChain,
         newCanonicalPeer
       )
@@ -504,7 +504,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_ID, 
         commandCount, 
-        UPDATE_CANONICAL_PEER, 
+        UPDATE_CANONICAL_PEER_ID,
         peerChain,
         newCanonicalPeer
       )
@@ -516,7 +516,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_QUERIES_ID, 
         commandCount, 
-        CANONICAL_PEER,
+        CANONICAL_PEER_ID,
         peerChain
       )
     ).asBytes32Unchecked(0);
@@ -541,8 +541,8 @@ contract GovernanceTest is TbrTestBase {
       DISPATCHER_PROTOCOL_VERSION0, 
       GOVERNANCE_ID, 
       commandCount, 
-      SWEEP_TOKENS, address(usdt), usdtAmount,
-      SWEEP_TOKENS, address(0), ethAmount
+      SWEEP_TOKENS_ID, address(usdt), usdtAmount,
+      SWEEP_TOKENS_ID, address(0), ethAmount
       )
     );
     assertEq(usdt.balanceOf(address(tbr)), 0);
@@ -562,7 +562,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_QUERIES_ID, 
         commandCount, 
-        IS_CHAIN_SUPPORTED, 
+        IS_CHAIN_SUPPORTED_ID,
         chainId
       )
     ).asBoolUnchecked(0);
@@ -575,7 +575,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_ID, 
         commandCount, 
-        UPDATE_CANONICAL_PEER, 
+        UPDATE_CANONICAL_PEER_ID,
         chainId, 
         fakePeer
       )
@@ -587,7 +587,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_QUERIES_ID, 
         commandCount, 
-        IS_CHAIN_SUPPORTED, 
+        IS_CHAIN_SUPPORTED_ID,
         chainId
       )
     ).asBoolUnchecked(0);
@@ -606,7 +606,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_ID, 
         commandCount, 
-        UPDATE_TX_SIZE_SENSITIVE, 
+        UPDATE_TX_SIZE_SENSITIVE_ID,
         chainId,
         txSensitive
       )
@@ -619,7 +619,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_ID, 
         commandCount, 
-        UPDATE_TX_SIZE_SENSITIVE, 
+        UPDATE_TX_SIZE_SENSITIVE_ID,
         chainId,
         txSensitive
       )
@@ -631,7 +631,7 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_QUERIES_ID, 
         commandCount, 
-        IS_TX_SIZE_SENSITIVE,
+        IS_TX_SIZE_SENSITIVE_ID,
         chainId
       )
     ).asBoolUnchecked(0);
