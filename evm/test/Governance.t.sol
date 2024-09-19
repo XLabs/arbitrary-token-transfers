@@ -4,17 +4,34 @@ pragma solidity ^0.8.25;
 
 import "wormhole-sdk/libraries/BytesParsing.sol";
 
-import { IdempotentUpgrade } from "wormhole-sdk/proxy/ProxyBase.sol";
-import { TbrTestBase } from "./utils/TbrTestBase.sol";
+import {IdempotentUpgrade} from "wormhole-sdk/proxy/ProxyBase.sol";
+import {TbrTestBase} from "./utils/TbrTestBase.sol";
 import {makeBytes32} from "./utils/utils.sol";
 import "./utils/UpgradeTester.sol";
 
+import {ChainIsNotRegistered} from "tbr/assets/TbrBase.sol";
 import "tbr/assets/TbrDispatcher.sol";
 import "tbr/assets/TbrGovernance.sol";
 import "tbr/assets/TbrIds.sol";
 
 contract GovernanceTest is TbrTestBase {
   using BytesParsing for bytes;
+
+  function addCanonicalPeer(uint16 peerChain) internal {
+    uint8 commandCount = 1;
+    vm.prank(owner);
+    invokeTbr(
+      abi.encodePacked(
+        tbr.exec768.selector, 
+        DISPATCHER_PROTOCOL_VERSION0, 
+        GOVERNANCE_ID, 
+        commandCount, 
+        UPDATE_CANONICAL_PEER_ID,
+        peerChain,
+        makeBytes32('peer')
+      )
+    );
+  }
 
   function testOwnerContractUpgrade() public {
     UpgradeTester upgradeTester = new UpgradeTester();
@@ -305,8 +322,8 @@ contract GovernanceTest is TbrTestBase {
   }
 
   function testUpdateMaxGasDropoff() public {
+    uint16 chainId = 1;
     uint32 maxGasDropoff = 1e6;
-    uint16 targetChain = 1;
     uint8 commandCount = 1;
 
     vm.expectRevert(NotAuthorized.selector);
@@ -317,11 +334,28 @@ contract GovernanceTest is TbrTestBase {
         GOVERNANCE_ID, 
         commandCount, 
         UPDATE_MAX_GAS_DROPOFF_ID,
-        targetChain,
+        chainId,
         maxGasDropoff
       )
     );
 
+    vm.prank(admin);
+    vm.expectRevert(
+      abi.encodeWithSelector(ChainIsNotRegistered.selector, chainId)
+    );
+    invokeTbr(
+      abi.encodePacked(
+        tbr.exec768.selector, 
+        DISPATCHER_PROTOCOL_VERSION0, 
+        GOVERNANCE_ID, 
+        commandCount, 
+        UPDATE_MAX_GAS_DROPOFF_ID,
+        chainId,
+        maxGasDropoff
+      )
+    );
+
+    addCanonicalPeer(chainId);
     vm.prank(admin);
     invokeTbr(
       abi.encodePacked(
@@ -330,7 +364,7 @@ contract GovernanceTest is TbrTestBase {
         GOVERNANCE_ID, 
         commandCount, 
         UPDATE_MAX_GAS_DROPOFF_ID,
-        targetChain,
+        chainId,
         maxGasDropoff
       )
     );
@@ -342,7 +376,7 @@ contract GovernanceTest is TbrTestBase {
         GOVERNANCE_QUERIES_ID, 
         commandCount, 
         MAX_GAS_DROPOFF_ID,
-        targetChain
+        chainId
       )
     ).asUint32Unchecked(0);
 
@@ -393,6 +427,7 @@ contract GovernanceTest is TbrTestBase {
   function testUpdateRelayFee() public {
     uint32 newRelayFee = 1e6;
     uint8 commandCount = 1;
+    uint16 chainId = EVM_CHAIN_ID;
 
     vm.expectRevert(NotAuthorized.selector);
     invokeTbr(
@@ -402,11 +437,28 @@ contract GovernanceTest is TbrTestBase {
         GOVERNANCE_ID, 
         commandCount, 
         UPDATE_BASE_FEE_ID, 
-        EVM_CHAIN_ID,
+        chainId,
         newRelayFee
       )
     );
 
+    vm.prank(admin);
+    vm.expectRevert(
+      abi.encodeWithSelector(ChainIsNotRegistered.selector, chainId)
+    );
+    invokeTbr(
+      abi.encodePacked(
+        tbr.exec768.selector, 
+        DISPATCHER_PROTOCOL_VERSION0, 
+        GOVERNANCE_ID, 
+        commandCount, 
+        UPDATE_BASE_FEE_ID, 
+        chainId,
+        newRelayFee
+      )
+    );
+
+    addCanonicalPeer(chainId);
     vm.prank(admin);
     invokeTbr(
       abi.encodePacked(
@@ -415,7 +467,7 @@ contract GovernanceTest is TbrTestBase {
         GOVERNANCE_ID, 
         commandCount, 
         UPDATE_BASE_FEE_ID, 
-        EVM_CHAIN_ID,
+        chainId,
         newRelayFee
       )
     );
@@ -427,7 +479,7 @@ contract GovernanceTest is TbrTestBase {
         GOVERNANCE_QUERIES_ID, 
         commandCount, 
         BASE_FEE_ID,
-        EVM_CHAIN_ID
+        chainId
       )
     ).asUint32Unchecked(0);
 
@@ -436,8 +488,8 @@ contract GovernanceTest is TbrTestBase {
 
   function testPauseChain() public {
     bool paused = true;
+    uint16 chainId = 1;
     uint8 commandCount = 1;
-    uint16 fakeChainId = 2;
 
     vm.expectRevert(NotAuthorized.selector);
     invokeTbr(
@@ -447,11 +499,28 @@ contract GovernanceTest is TbrTestBase {
         GOVERNANCE_ID, 
         commandCount, 
         PAUSE_CHAIN_ID,
-        paused,
-        fakeChainId
+        chainId,
+        paused
       )
     );
 
+    vm.prank(admin);
+    vm.expectRevert(
+      abi.encodeWithSelector(ChainIsNotRegistered.selector, chainId)
+    );
+    invokeTbr(
+      abi.encodePacked(
+        tbr.exec768.selector, 
+        DISPATCHER_PROTOCOL_VERSION0, 
+        GOVERNANCE_ID, 
+        commandCount, 
+        PAUSE_CHAIN_ID,
+        chainId,
+        paused
+      )
+    );
+
+    addCanonicalPeer(chainId);
     vm.prank(admin);
     invokeTbr(
       abi.encodePacked(
@@ -460,7 +529,7 @@ contract GovernanceTest is TbrTestBase {
         GOVERNANCE_ID, 
         commandCount, 
         PAUSE_CHAIN_ID,
-        fakeChainId,
+        chainId,
         paused
       )
     );
@@ -472,7 +541,7 @@ contract GovernanceTest is TbrTestBase {
         GOVERNANCE_QUERIES_ID, 
         commandCount, 
         IS_CHAIN_PAUSED_ID,
-        fakeChainId
+        chainId
       )
     ).asBoolUnchecked(0);
 
@@ -612,6 +681,23 @@ contract GovernanceTest is TbrTestBase {
       )
     );
 
+    vm.prank(admin);
+    vm.expectRevert(
+      abi.encodeWithSelector(ChainIsNotRegistered.selector, chainId)
+    );
+    invokeTbr(
+      abi.encodePacked(
+        tbr.exec768.selector, 
+        DISPATCHER_PROTOCOL_VERSION0, 
+        GOVERNANCE_ID, 
+        commandCount, 
+        UPDATE_TX_SIZE_SENSITIVE_ID,
+        chainId,
+        txSensitive
+      )
+    );
+
+    addCanonicalPeer(chainId);
     vm.prank(admin);
     invokeTbr(
       abi.encodePacked(

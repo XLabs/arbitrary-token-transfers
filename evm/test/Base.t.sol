@@ -10,8 +10,9 @@ import {makeBytes32} from "./utils/utils.sol";
 
 contract BaseTest is TbrTestBase {
 
-  function testAddPeer(bytes32 peer) public {
+  function testAddPeer(bytes32 peer, bytes32 anotherPeer) public {
     vm.assume(peer != bytes32(0));
+    vm.assume(anotherPeer != bytes32(0));
     uint16 chainId = SOLANA_CHAIN_ID;
     uint16 wrongChainId = 0;
     uint16 notSupportedChainId = 100;
@@ -35,7 +36,15 @@ contract BaseTest is TbrTestBase {
     tbrExposer.exposedAddPeer(chainId, peer);
 
     bool _isPeer = tbrExposer.exposedIsPeer(chainId, peer);
+    bytes32 canonicalPeer = tbrExposer.exposedGetCanonicalPeer(chainId);
     assertEq(_isPeer, true);
+    assertEq(canonicalPeer, peer);
+
+    tbrExposer.exposedAddPeer(chainId, anotherPeer);
+    _isPeer = tbrExposer.exposedIsPeer(chainId, anotherPeer);
+    canonicalPeer = tbrExposer.exposedGetCanonicalPeer(chainId);
+    assertEq(_isPeer, true);
+    assertEq(canonicalPeer, peer);
   }
 
   function testSetCanonicalPeer(bytes32 peer, bytes32 anotherPeer) public {

@@ -674,14 +674,8 @@ contract UserTest is TbrTestBase {
     uint256 tokenAmount,
     uint32 gasDropoff
   ) public {
-    vm.assume(recipient != bytes32(0));
-    vm.assume(tokenAmount > 0);
-    vm.assume(gasDropoff < MAX_GAS_DROPOFF_AMOUNT);
-
     uint16 targetChain = SOLANA_CHAIN_ID;
     uint commandIndex = 0;
-
-    tbrExposer.exposedSetMaxGasDropoff(SOLANA_CHAIN_ID, MAX_GAS_DROPOFF_AMOUNT);
 
     vm.expectRevert(
       abi.encodeWithSelector(TargetChainIsNotSupported.selector, targetChain)
@@ -701,15 +695,10 @@ contract UserTest is TbrTestBase {
     uint256 tokenAmount,
     uint32 gasDropoff
   ) public {
-    vm.assume(recipient != bytes32(0));
-    vm.assume(tokenAmount > 0);
-    vm.assume(gasDropoff < MAX_GAS_DROPOFF_AMOUNT);
-
     uint16 targetChain = SOLANA_CHAIN_ID;
     uint commandIndex = 0;
 
     tbrExposer.exposedSetCanonicalPeer(SOLANA_CHAIN_ID, SOLANA_CANONICAL_PEER);
-    tbrExposer.exposedSetMaxGasDropoff(SOLANA_CHAIN_ID, MAX_GAS_DROPOFF_AMOUNT);
     tbrExposer.exposedSetPause(SOLANA_CHAIN_ID, true);
 
     vm.expectRevert(
@@ -730,7 +719,6 @@ contract UserTest is TbrTestBase {
     uint256 tokenAmount,
     uint32 gasDropoff
   ) public {
-    vm.assume(recipient != bytes32(0));
     vm.assume(tokenAmount > 0);
     vm.assume(gasDropoff > MAX_GAS_DROPOFF_AMOUNT);
 
