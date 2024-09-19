@@ -3,6 +3,7 @@ import {
   evm,
   getChainConfig,
   getContractAddress,
+  loadTbrPeers,
 } from "../helpers/index.js";
 import { chainIdToChain } from "@wormhole-foundation/sdk-base";
 import { SupportedChains, Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
@@ -15,10 +16,10 @@ import { EvmTbrV3Config } from "../config/config.types.js";
 evm.runOnEvms("configure-fee-and-dropoff", async (chain, signer, log) => {
   const tbrv3ProxyAddress = getContractAddress("TbrV3Proxies", chain.chainId);
   const tbrv3 = new Tbrv3(signer.provider!, chain.network, tbrv3ProxyAddress);
-  const deployedTbrv3s = contracts["TbrV3Proxies"].filter((tbr) => tbr.chainId !== chain.chainId);
+  const peers = loadTbrPeers(chain);
 
   const relayFeeUpdates: Map<SupportedChains, number> = new Map();
-  for (const otherTbrv3 of deployedTbrv3s) {
+  for (const otherTbrv3 of peers) {
     const otherTbrv3Chain = chainIdToChain(otherTbrv3.chainId) as SupportedChains;
     const peerChainCfg = await getChainConfig<EvmTbrV3Config>("tbr-v3", otherTbrv3.chainId);
     const desiredRelayFee = Number(peerChainCfg.relayFee);
@@ -44,7 +45,7 @@ evm.runOnEvms("configure-fee-and-dropoff", async (chain, signer, log) => {
   }
 
   const updateMaxGasDropoff: Map<SupportedChains, number> = new Map();
-  for (const otherTbrv3 of deployedTbrv3s) {
+  for (const otherTbrv3 of peers) {
     const otherTbrv3Chain = chainIdToChain(otherTbrv3.chainId) as SupportedChains;
     const peerChainCfg = await getChainConfig<EvmTbrV3Config>("tbr-v3", otherTbrv3.chainId);
     const desiredMaxGasDropoff = Number(peerChainCfg.maxGasDropoff);
