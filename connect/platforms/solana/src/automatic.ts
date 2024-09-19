@@ -157,23 +157,24 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     const oraclePrices = await oracleClient.read.evmPrices(args.targetChain);
     const oracleConfig = await oracleClient.read.config();
 
+    // gasDropoff comes in base units
+    const gasDropoffMicroEth = args.gasDropoff / (10n**12n);
+
     const totalFeesMWei = BigInt(config.evmTransactionGas.toString()) * BigInt(oraclePrices.gasPrice)
       + BigInt(config.evmTransactionSize.toString()) * BigInt(oraclePrices.pricePerByte)
-      + args.gasDropoff * MWEI_PER_MICRO_ETH;
+      + gasDropoffMicroEth * MWEI_PER_MICRO_ETH;
 
     const totalFeesMicroUsd = totalFeesMWei * BigInt(oraclePrices.gasTokenPrice.toString()) / MWEI_PER_ETH
       + BigInt(chainConfig.relayerFeeMicroUsd.toString());
 
     const fee = KLAM_PER_SOL * totalFeesMicroUsd / BigInt(oracleConfig.solPrice.toString());
 
-    // const fee = await this.client.relayingFee(
-    //   new PublicKey(SolanaZeroAddress),
-    //   args.targetChain,
-    //   new BN(args.gasDropoff)
-    // );
+    const feeInBaseUnits = BigInt(
+      Number(fee) * LAMPORTS_PER_SOL / 1_000_000
+    );
 
     return {
-      fee: fee,
+      fee: feeInBaseUnits,
       isPaused: chainConfig.pausedOutboundTransfers,
     };
   }
