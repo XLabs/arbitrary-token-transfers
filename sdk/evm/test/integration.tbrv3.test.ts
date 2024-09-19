@@ -1,9 +1,9 @@
 import { expect } from "chai";
 import { before } from "mocha";
-import { SupportedChains, TbrPartialTx, Tbrv3 } from "../tbrv3/index.js";
+import { SupportedChains, TbrPartialTx, Tbrv3, BaseRelayingParams, RelayingFee, relayingFeesReturnLayout, baseRelayingConfigReturnLayout } from "../tbrv3/index.js";
 import { ethers } from "ethers";
 import { UniversalAddress } from "@wormhole-foundation/sdk-definitions";
-import { encoding } from "@wormhole-foundation/sdk-base";
+import { encoding, LayoutToType } from "@wormhole-foundation/sdk-base";
 import config from "../../../deployment/config/localnet/contracts.json" with { type: "json" };
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
 
@@ -15,6 +15,19 @@ const rpc = {
 }[env];
 let tbrv3: Tbrv3;
 let signer: ethers.Signer;
+
+// Type tests
+// Variables with names starting with `expected` should typecheck. Their type is the desired type.
+// They're put into standalone statements so that they're not reported by linters.
+
+let testRelayingFeeType: RelayingFee = {} as any;
+const expectedRelayingFeeType: LayoutToType<typeof relayingFeesReturnLayout> = testRelayingFeeType;
+expectedRelayingFeeType;
+
+let testBaseRelayingParamsType: BaseRelayingParams = {} as any;
+const expectedBaseRelayingParamsType: LayoutToType<typeof baseRelayingConfigReturnLayout> = testBaseRelayingParamsType;
+expectedBaseRelayingParamsType;
+
 
 const peers = [
   { chain: "Sepolia", peer: new UniversalAddress(ethers.Wallet.createRandom().address) },
