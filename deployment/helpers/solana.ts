@@ -74,8 +74,6 @@ export async function getSigner(): Promise<SolanaSigner> {
     if (!signer) {
       console.log("Creating wallet signer");
       const pk = Uint8Array.from(JSON.parse(privateKey));
-      console.log("pk", pk);
-      console.log(pk.length)
       const keypair = Keypair.fromSecretKey(pk);
       const wallet = new NodeWallet(keypair);
 
