@@ -172,8 +172,8 @@ contract GovernanceTest is TbrTestBase {
         GOVERNANCE_ID, 
         commandCount, 
         UPDATE_ADMIN, 
-        shouldBeAdmin,
-        newAdmin
+        newAdmin,
+        shouldBeAdmin
       )
     );
 
@@ -185,8 +185,8 @@ contract GovernanceTest is TbrTestBase {
         GOVERNANCE_ID, 
         commandCount, 
         UPDATE_ADMIN, 
-        shouldBeAdmin,
-        newAdmin
+        newAdmin,
+        shouldBeAdmin
       )
     );
 
@@ -221,7 +221,7 @@ contract GovernanceTest is TbrTestBase {
     commandCount = 2;
     vm.startPrank(owner);
     vm.expectRevert(
-      abi.encodeWithSelector(BytesParsing.LengthMismatch.selector, 3, 2)
+      abi.encodeWithSelector(BytesParsing.LengthMismatch.selector, 5, 4)
     );
     invokeTbr(
       abi.encodePacked(
@@ -402,6 +402,7 @@ contract GovernanceTest is TbrTestBase {
         GOVERNANCE_ID, 
         commandCount, 
         UPDATE_BASE_FEE, 
+        EVM_CHAIN_ID,
         newRelayFee
       )
     );
@@ -414,6 +415,7 @@ contract GovernanceTest is TbrTestBase {
         GOVERNANCE_ID, 
         commandCount, 
         UPDATE_BASE_FEE, 
+        EVM_CHAIN_ID,
         newRelayFee
       )
     );
@@ -424,7 +426,8 @@ contract GovernanceTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         GOVERNANCE_QUERIES_ID, 
         commandCount, 
-        BASE_FEE
+        BASE_FEE,
+        EVM_CHAIN_ID
       )
     ).asUint32Unchecked(0);
 

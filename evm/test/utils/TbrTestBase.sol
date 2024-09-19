@@ -2,20 +2,23 @@
 
 pragma solidity ^0.8.25;
 
-import "forge-std/Test.sol";
-import "wormhole-sdk/proxy/Proxy.sol";
-import "wormhole-sdk/libraries/BytesParsing.sol";
-import { reRevert } from "wormhole-sdk/Utils.sol";
-import "@openzeppelin/token/ERC20/IERC20.sol";
-import "wormhole-sdk/interfaces/ITokenBridge.sol";
+import {IWormhole} from "wormhole-sdk/interfaces/IWormhole.sol";
 import {IWETH} from "wormhole-sdk/interfaces/token/IWETH.sol";
-import {Tbr} from "tbr/Tbr.sol";
+import "wormhole-sdk/interfaces/ITokenBridge.sol";
+import "wormhole-sdk/libraries/BytesParsing.sol";
+import {reRevert} from "wormhole-sdk/Utils.sol";
+import "@openzeppelin/token/ERC20/IERC20.sol";
 import {IPermit2} from "permit2/IPermit2.sol";
-import "./TbrExposer.sol";
-import "price-oracle/PriceOracle.sol";
-import "price-oracle/assets/types/EvmFeeParams.sol";
+import "wormhole-sdk/proxy/Proxy.sol";
+
 import "price-oracle/assets/types/SolanaFeeParams.sol";
+import "price-oracle/assets/types/EvmFeeParams.sol";
 import "price-oracle/assets/types/ParamLibs.sol";
+import "price-oracle/PriceOracle.sol";
+import {Tbr} from "tbr/Tbr.sol";
+import "./TbrExposer.sol";
+
+import "forge-std/Test.sol";
 
 contract TbrTestBase is Test {
   using BytesParsing for bytes;
@@ -30,15 +33,16 @@ contract TbrTestBase is Test {
   IPermit2     immutable permit2;
   address      immutable oracle;
   ITokenBridge immutable tokenBridge;
-  IWETH        immutable initGasToken;
-  bool         immutable initGasErc20TokenizationIsExplicit;
+  IWETH        immutable gasToken;
+  bool         immutable gasErc20TokenizationIsExplicit;
   
   IERC20       immutable usdt;
+  IWormhole    immutable wormholeCore;
 
-  Tbr tbr;
+  address     tbrImplementation;
   PriceOracle priceOracle;
-  TbrExposer tbrExposer;
-  address tbrImplementation;
+  TbrExposer  tbrExposer;
+  Tbr         tbr;
 
   constructor() {
     owner         = makeAddr("owner");
@@ -48,21 +52,28 @@ contract TbrTestBase is Test {
     permit2       = IPermit2(makeAddr("permit2"));
     oracle        = makeAddr("oracle");
     tokenBridge   = ITokenBridge(vm.envAddress("TEST_TOKEN_BRIDGE_ADDRESS"));
-    initGasToken  = IWETH(vm.envAddress("TEST_WETH_ADDRESS"));
-    initGasErc20TokenizationIsExplicit = false;
+    gasToken      = IWETH(vm.envAddress("TEST_WETH_ADDRESS"));
+    gasErc20TokenizationIsExplicit = true;
 
     usdt          = IERC20(vm.envAddress("TEST_USDT_ADDRESS"));
+    wormholeCore  = IWormhole(vm.envAddress("TEST_WORMHOLE_ADDRESS"));
   }
 
   function _setUp1() internal virtual { }
 
   function setUp() public {
+    vm.mockCall(
+      oracle, 
+      abi.encodeWithSelector(priceOracle.get1959.selector), 
+      abi.encode(EVM_CHAIN_ID)
+    );
+
     tbrImplementation = address(new Tbr(
       permit2,
       tokenBridge,
       oracle,
-      initGasToken,
-      initGasErc20TokenizationIsExplicit
+      gasToken,
+      gasErc20TokenizationIsExplicit
     ));
 
     tbr = Tbr(payable(new Proxy(
@@ -78,8 +89,8 @@ contract TbrTestBase is Test {
       permit2,
       tokenBridge,
       oracle,
-      initGasToken,
-      initGasErc20TokenizationIsExplicit
+      gasToken,
+      gasErc20TokenizationIsExplicit
     );
 
     setUpOracle();

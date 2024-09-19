@@ -45,6 +45,7 @@ contract BaseTest is TbrTestBase {
 
   function testSetCanonicalPeer(bytes32 peer, bytes32 anotherPeer) public {
     vm.assume(peer != bytes32(0));
+    vm.assume(anotherPeer != bytes32(0));
     uint16 chainId = SOLANA_CHAIN_ID;
     uint16 wrongChainId = 0;
     uint16 notSupportedChainId = 100;
