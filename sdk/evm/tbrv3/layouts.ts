@@ -204,20 +204,23 @@ const governanceCommandLayout =
         peerChainItem,
         { name: "address", ...layoutItems.universalAddressItem }
       ]],
-      [[ 1, "SweepTokens"], [
+      [[ 1, "UpdateBaseFee"           ], [peerChainItem, { name: "value", ...baseFeeItem}]],
+      [[ 2, "UpdateMaxGasDropoff"     ], [peerChainItem, { name: "value", ...gasDropoffItem }]],
+      [[ 3, "UpdateTransferPause"     ], [peerChainItem, { name: "value", ...layoutItems.boolItem }]],
+      [[ 4, "UpdateTxSizeSensitive"   ], [peerChainItem, { name: "value", ...layoutItems.boolItem }]],
+
+      [[ 10, "SweepTokens"], [
         { name: "address", ...evmAddressItem },
         { name: "amount", ...layoutItems.amountItem }
       ]],
-      [[ 2, "UpdateMaxGasDropoff"     ], [peerChainItem, { name: "value", ...gasDropoffItem }]],
-      [[ 3, "UpdateFeeRecipient"      ], [{ name: "address",...evmAddressItem }]],
-      [[ 4, "UpdateBaseFee"           ], [peerChainItem, { name: "value", ...baseFeeItem}]],
-      [[ 5, "UpdateTransferPause"     ], [peerChainItem, { name: "value", ...layoutItems.boolItem }]],
-      [[ 6, "UpdateTxSizeSensitive"   ], [peerChainItem, { name: "value", ...layoutItems.boolItem }]],
-      [[ 7, "UpdateAdmin"             ], [{ name: "address",...evmAddressItem }, { name: "isAdmin", ...layoutItems.boolItem }]],
-      [[ 8, "UpdateCanonicalPeer"     ], [peerChainItem, { name: "address", ...layoutItems.universalAddressItem }]],
-      [[ 9, "UpgradeContract"         ], [{ name: "address",...evmAddressItem }]],
-      [[10, "ProposeOwnershipTransfer"], [{ name: "address",...evmAddressItem }]],
-      [[11, "RelinquishOwnership"     ], []],
+      [[ 11, "UpdateFeeRecipient"      ], [{ name: "address",...evmAddressItem }]],
+
+      // Only owner
+      [[ 12, "UpdateAdmin"             ], [{ name: "address",...evmAddressItem }, { name: "isAdmin", ...layoutItems.boolItem }]],
+      [[ 13, "UpdateCanonicalPeer"     ], [peerChainItem, { name: "address", ...layoutItems.universalAddressItem }]],
+      [[ 14, "UpgradeContract"         ], [{ name: "address",...evmAddressItem }]],
+      [[ 15, "ProposeOwnershipTransfer"], [{ name: "address",...evmAddressItem }]],
+      [[ 16, "RelinquishOwnership"     ], []],
     ]
   } as const satisfies Layout;
 
