@@ -32,7 +32,7 @@ async function run() {
   for (const result of results) {
     if (result.error) {
       console.error(
-        `Error deploying to chain ${result.chainId}: ${(result.error as any)?.stack ?? result.error}`
+        `Error deploying to chain ${result.chainId}: ${result.error}`
       );
     } else {
       console.log(`Successfully deployed to chain ${result.chainId}`);
@@ -76,12 +76,19 @@ async function deployRelayerImplementation(chain: EvmChainInfo, config: EvmTbrV3
   console.log("deployRelayerImplementation " + chain.chainId);
   const signer = await getSigner(chain);
 
-  const factory = new Tbr__factory(signer);
+  const contractInterface = Tbr__factory.createInterface();
+  const bytecode = Tbr__factory.bytecode;
 
-  const permit2 = getDependencyAddress("permit2", chain);
-  const tokenBridge = getDependencyAddress("tokenBridge", chain);
-  const oracle = getDependencyAddress("oracle", chain);
-  const initGasToken = getDependencyAddress("initGasToken", chain);
+  const factory = new ethers.ContractFactory(
+    contractInterface,
+    bytecode,
+    signer,
+  );
+
+  const permit2 = await getDependencyAddress("permit2", chain);
+  const tokenBridge = await getDependencyAddress("tokenBridge", chain);
+  const oracle = await getDependencyAddress("oracle", chain);
+  const initGasToken = await getDependencyAddress("initGasToken", chain);
 
   const contract = await factory.deploy(permit2, tokenBridge, oracle, initGasToken, config.initGasErc20TokenizationIsExplicit);
 
@@ -109,7 +116,7 @@ async function deployProxy(
   const signerAddress = await signer.getAddress();
   const { Tbrv3 } = await import("@xlabs-xyz/evm-arbitrary-token-transfers");
 
-  const proxyConstructorArgs = Tbrv3.proxyConstructor(
+  const proxyConstructorArgs = await Tbrv3.proxyConstructor(
     config.owner || signerAddress,
     config.admin || signerAddress,
     config.feeRecipient || signerAddress,
