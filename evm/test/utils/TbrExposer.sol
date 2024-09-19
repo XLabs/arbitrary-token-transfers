@@ -2,10 +2,11 @@
 
 pragma solidity ^0.8.25;
 
-import { Tbr } from "tbr/Tbr.sol";
+import {Tbr} from "tbr/Tbr.sol";
 import {ITokenBridge} from "wormhole-sdk/interfaces/ITokenBridge.sol";
 import {IWETH} from "wormhole-sdk/interfaces/token/IWETH.sol";
 import {IPermit2} from "permit2/IPermit2.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract TbrExposer is Tbr {
 
@@ -92,5 +93,37 @@ contract TbrExposer is Tbr {
 
   function exposedIsChainSupported(uint16 targetChain) public view returns (bool) {
     return _isChainSupported(targetChain);
+  }
+
+  function exposed_getAndCheckTransferParams(
+    uint16 targetChain,
+    bytes32 recipient,
+    uint256 tokenAmount,
+    uint32 gasDropoff,
+    uint commandIndex
+  ) public view returns (bytes32, uint256, uint256) {
+    return _getAndCheckTransferParams(targetChain, recipient, tokenAmount, gasDropoff, commandIndex);
+  }
+
+  function exposed_parseSharedParams(
+    bytes calldata data, 
+    uint offset
+  ) public pure returns (
+    uint16 targetChain,
+    bytes32 recipient,
+    uint32 gasDropoff,
+    uint256 inputAmount,
+    uint
+  ) {
+    return _parseSharedParams(data, offset);
+  }
+
+  function exposed_acquireTokens(
+    bytes calldata data,
+    uint offset,
+    IERC20 token, 
+    uint256 amount
+  ) public returns (uint) {
+    return _acquireTokens(data, offset, token, amount);
   }
 }
