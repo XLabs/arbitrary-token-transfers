@@ -3,7 +3,7 @@
 pragma solidity ^0.8.25;
 
 import {BytesParsing} from "wormhole-sdk/libraries/BytesParsing.sol";
-import {RawDispatcher} from "wormhole-sdk/RawDispatcher.sol";
+import {RawDispatcher} from "wormhole-sdk/dispatcher/RawDispatcher.sol";
 import {TbrGovernance} from "./TbrGovernance.sol";
 import {InvalidCommand} from "./TbrBase.sol";
 import {TbrUser} from "./TbrUser.sol";
@@ -36,12 +36,14 @@ abstract contract TbrDispatcher is RawDispatcher, TbrGovernance, TbrUser {
 
       if (command == TRANSFER_TOKEN_WITH_RELAY_ID) {
         uint256 fee; uint256 gasTokenSent;
-        (fee, gasTokenSent, offset) = _transferTokenWithRelay(data, offset, senderRefund, commandIndex);
+        (fee, gasTokenSent, offset) =
+          _transferTokenWithRelay(data, offset, senderRefund, commandIndex);
         fees += fee;
         senderRefund -= fee + gasTokenSent;
       } else if (command == TRANSFER_GAS_TOKEN_WITH_RELAY_ID) {
         uint256 fee; uint256 gasTokenSent;
-        (fee, gasTokenSent, offset) = _transferGasTokenWithRelay(data, offset, senderRefund, commandIndex);
+        (fee, gasTokenSent, offset) =
+          _transferGasTokenWithRelay(data, offset, senderRefund, commandIndex);
         fees += fee;
         senderRefund -= fee + gasTokenSent;
       } else if (command == COMPLETE_TRANSFER_ID) {

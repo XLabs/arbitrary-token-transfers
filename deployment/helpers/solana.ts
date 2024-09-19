@@ -53,7 +53,6 @@ export async function runOnSolana(scriptName: string, cb: SolanaScriptCb) {
     } catch (error) {
       log("Error: ", (error as any)?.stack || inspect(error, {depth: 5}));
     }
-    console.log();
   });
 
   await Promise.all(result);
@@ -74,8 +73,6 @@ export async function getSigner(): Promise<SolanaSigner> {
     if (!signer) {
       console.log("Creating wallet signer");
       const pk = Uint8Array.from(JSON.parse(privateKey));
-      console.log("pk", pk);
-      console.log(pk.length)
       const keypair = Keypair.fromSecretKey(pk);
       const wallet = new NodeWallet(keypair);
 
@@ -113,7 +110,7 @@ export function getConnection(chain: SolanaChainInfo) {
 
 export async function ledgerSignAndSend(connection: Connection, instructions: TransactionInstruction[], signers: Keypair[]) {
   const deployerSigner = await getSigner();
-  deployerSigner.signTransaction
+
   const deployerPk = new PublicKey(await deployerSigner.getAddress());
 
   const tx = new Transaction();
@@ -127,12 +124,17 @@ export async function ledgerSignAndSend(connection: Connection, instructions: Tr
 
   signers.forEach((signer) => tx.partialSign(signer));
 
-  await addSignature(tx, deployerSigner, deployerPk);
+  const signedTx = await addSignature(tx, deployerSigner, deployerPk);
 
-  return connection.sendRawTransaction(tx.serialize());
+  return connection.sendRawTransaction(signedTx.serialize());
 }
 
-async function addSignature(tx: Transaction, signer: SolanaSigner, signerPk: PublicKey) {
-  const signedByPayer = await signer.signTransaction(tx);
-  tx.addSignature(signerPk, signedByPayer);
+async function addSignature(tx: Transaction, signer: SolanaSigner, signerPk: PublicKey):Promise<Transaction> {
+  if (signer.type === "ledger"){
+    const signedByPayer = await signer.signTransaction(tx);
+    tx.addSignature(signerPk, signedByPayer);
+    return tx;
+  } else {
+    return await (signer.raw() as NodeWallet).signTransaction(tx);
+  }
 }

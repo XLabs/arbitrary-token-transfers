@@ -12,7 +12,7 @@ rm -rf evm/build-forge
 4. build:
 ```
 yarn
-yarn deployment build:evm
+yarn ./deployment build:evm
 ```
 5. deploy:
 ```

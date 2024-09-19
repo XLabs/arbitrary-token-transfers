@@ -1695,7 +1695,7 @@ __metadata:
     "@wormhole-foundation/sdk-definitions": "npm:0.10.7"
     "@wormhole-foundation/sdk-solana": "npm:0.10.7"
     "@xlabs-xyz/arbitrary-token-transfers-definitions": "workspace:^0.0.1-alpha1"
-    "@xlabs-xyz/solana-arbitrary-token-transfers": "workspace:^0.0.1-alpha3"
+    "@xlabs-xyz/solana-arbitrary-token-transfers": "workspace:*"
     tsup: "npm:^8.2.4"
     tsx: "npm:4.16.5"
     typescript: "npm:5.5.4"
@@ -1771,7 +1771,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xlabs-xyz/solana-arbitrary-token-transfers@workspace:*, @xlabs-xyz/solana-arbitrary-token-transfers@workspace:^, @xlabs-xyz/solana-arbitrary-token-transfers@workspace:^0.0.1-alpha3, @xlabs-xyz/solana-arbitrary-token-transfers@workspace:sdk/solana":
+"@xlabs-xyz/solana-arbitrary-token-transfers@workspace:*, @xlabs-xyz/solana-arbitrary-token-transfers@workspace:^, @xlabs-xyz/solana-arbitrary-token-transfers@workspace:sdk/solana":
   version: 0.0.0-use.local
   resolution: "@xlabs-xyz/solana-arbitrary-token-transfers@workspace:sdk/solana"
   dependencies:

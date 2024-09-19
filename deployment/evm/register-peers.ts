@@ -1,7 +1,7 @@
 import {
-  contracts,
   evm,
   getContractAddress,
+  loadTbrPeers,
 } from "../helpers/index.js";
 import { UniversalAddress } from "@wormhole-foundation/sdk-definitions";
 import { SolanaAddress } from "@wormhole-foundation/sdk-solana";
@@ -18,11 +18,7 @@ import { ethers } from "ethers";
 evm.runOnEvms("register-peers", async (chain, signer, log) => {
   const tbrv3ProxyAddress = getContractAddress("TbrV3Proxies", chain.chainId);
   const tbrv3 = new Tbrv3(signer.provider!, chain.network, tbrv3ProxyAddress);
-  const deployedTbrv3s = contracts["TbrV3Proxies"].filter((tbr) => tbr.chainId !== chain.chainId);
-  const solana = contracts["TbrV3"].find((tbr) => tbr.chainId === 1);
-  if (solana) {
-    deployedTbrv3s.push(solana);
-  }
+  const deployedTbrv3s = loadTbrPeers(chain)
 
   const addPeersCmd: { chain: SupportedChains, peer: UniversalAddress }[] = [];
   const updateCanonicalPeersCmd: Map<SupportedChains, UniversalAddress> = new Map();

@@ -8,7 +8,7 @@ import {
 } from '@solana/web3.js';
 import * as borsh from 'borsh';
 import { Chain, chainToChainId, encoding } from '@wormhole-foundation/sdk-base';
-import { VAA } from '@wormhole-foundation/sdk-definitions';
+import { VAA, UniversalAddress as SdkUniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import {
   getTransferNativeWithPayloadCpiAccounts,
   getTransferWrappedWithPayloadCpiAccounts,
@@ -85,6 +85,10 @@ export interface TransferWrappedParameters {
   gasDropoffAmount: number;
   maxFeeKlamports: BN;
   unwrapIntent: boolean;
+  token: {
+    chain: Chain,
+    address: SdkUniversalAddress,
+  }
 }
 
 export type TbrConfigAccount = IdlAccounts<TokenBridgeRelayer>['tbrConfigState'];
@@ -366,7 +370,11 @@ export class SolanaTokenBridgeRelayer {
 
     try {
       payerSequenceNumber = (await this.read.signerSequence(signer)).value;
-    } catch {}
+    } catch {
+      console.log("failed!!!");
+    }
+
+    console.log("payerSequenceNumber", payerSequenceNumber.toString());
 
     const tokenBridgeAccounts = transferNativeTokenBridgeAccounts({
       programId: this.program.programId,
@@ -415,6 +423,7 @@ export class SolanaTokenBridgeRelayer {
       gasDropoffAmount,
       maxFeeKlamports,
       unwrapIntent,
+      token
     } = params;
 
     const chainId = chainToChainId(recipientChain);
@@ -424,12 +433,13 @@ export class SolanaTokenBridgeRelayer {
     try {
       payerSequenceNumber = (await this.read.signerSequence(signer)).value;
     } catch {}
+
     const tokenBridgeAccounts = transferWrappedTokenBridgeAccounts({
       programId: this.program.programId,
       tokenBridgeProgramId: this.tokenBridgeProgramId,
       wormholeProgramId: this.wormholeProgramId,
-      tokenChain: chainId,
-      tokenAddress: Buffer.from(recipientAddress),
+      tokenChain: chainToChainId(token.chain),
+      tokenAddress: Buffer.from(token.address.toUint8Array()),
     });
 
     return this.program.methods
@@ -600,7 +610,7 @@ const pda = {
   ): PublicKey => {
     const buf = Buffer.alloc(8);
 
-    buf.writeBigInt64LE(BigInt(payerSequence.toString()), 0);
+    buf.writeBigInt64BE(BigInt(payerSequence.toString()), 0);
 
     return PublicKey.findProgramAddressSync(
       [Buffer.from('bridged'), payer.toBuffer(), buf],

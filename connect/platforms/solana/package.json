@@ -36,7 +36,7 @@
     "@wormhole-foundation/sdk-definitions": "0.10.7",
     "@wormhole-foundation/sdk-solana": "0.10.7",
     "@xlabs-xyz/arbitrary-token-transfers-definitions": "workspace:^0.0.1-alpha1",
-    "@xlabs-xyz/solana-arbitrary-token-transfers": "workspace:^0.0.1-alpha3"
+    "@xlabs-xyz/solana-arbitrary-token-transfers": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "20.14.14",

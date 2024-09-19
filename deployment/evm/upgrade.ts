@@ -8,7 +8,7 @@ import {
 } from "../helpers";
 import { EvmTbrV3Config } from "../config/config.types";
 import { ethers } from "ethers";
-import { Tbr__factory, Proxy__factory } from "../ethers-contracts/index.js";
+import { Tbr__factory } from "../ethers-contracts/index.js";
 import { getSigner, getProvider, sendTx } from "../helpers/evm";
 import { EvmAddress } from '@wormhole-foundation/sdk-evm';
 
@@ -39,7 +39,7 @@ async function run() {
     } else {
       console.log(`Successfully deployed to chain ${result.chainId}`);
 
-      writeDeployedContract(result.chainId, "TbrV3", result.implementation?.address ?? "", []);
+      writeDeployedContract(result.chainId, "TbrV3", result.implementation?.address ?? "", result.implementation?.constructorArgs ?? []);
     }
   }
 
@@ -66,7 +66,7 @@ async function upgradeTbrV3Relayer(chain: EvmChainInfo, config: EvmTbrV3Config) 
 }
 
 async function deployRelayerImplementation(chain: EvmChainInfo, config: EvmTbrV3Config) {
-  console.log("deployRelayerImplementation " + chain.chainId);
+  console.log("Deploying Relayer Implementation " + chain.chainId);
   const signer = await getSigner(chain);
 
   const contractInterface = Tbr__factory.createInterface();
@@ -96,7 +96,7 @@ async function deployRelayerImplementation(chain: EvmChainInfo, config: EvmTbrV3
   
   const address = await contract.getAddress();
   console.log("Successfully deployed implementation at " + address);
-  return { address, chainId: chain.chainId };
+  return { address, chainId: chain.chainId, constructorArgs: [ permit2, tokenBridge, oracle, initGasToken, config.initGasErc20TokenizationIsExplicit ] };
 }
 
 async function upgradeProxyWithNewImplementation(
@@ -104,7 +104,7 @@ async function upgradeProxyWithNewImplementation(
   config: EvmTbrV3Config,
   implementationAddress: string,
 ) {
-  console.log("deployRelayerProxy " + chain.chainId);
+  console.log("Upgrade Proxy with new implementation " + chain.chainId);
   const signer = await getSigner(chain);
   const signerAddress = await signer.getAddress();
   const { Tbrv3 } = await import("@xlabs-xyz/evm-arbitrary-token-transfers");
@@ -117,12 +117,17 @@ async function upgradeProxyWithNewImplementation(
 
   const tx = await tbr.upgradeContract(new EvmAddress(implementationAddress));
 
-  const receipt = await sendTx(signer, {
+  const {receipt, error } = await sendTx(signer, {
     ...tx,
     data: ethers.hexlify(tx.data),
   });
+  if (error) {
+    console.log("TX Failed to be included. Error", error);
+  }
 
-  console.log("Tx Receipt:", receipt);
+  else {
+    console.log("Tx Included!. TxHash: ", receipt!.hash);
+  }
 
   return { chainId: chain.chainId };
 }

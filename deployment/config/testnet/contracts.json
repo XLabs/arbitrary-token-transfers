@@ -2,18 +2,36 @@
   "TbrV3": [
     {
       "chainId": 10002,
-      "address": "0xB5dA8b3BE4c873efB84E68b332206Ae9f7bd7846",
-      "constructorArgs": []
+      "address": "0x07d3376F77139CBE24F39989A58221c8D16F1032",
+      "constructorArgs": [
+        "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+        "0xDB5492265f6038831E89f495670FF909aDe94bd9",
+        "0x466B4Daf328DE4C8b46b78a62867341ECBfA7bc6",
+        "0x7b79995e5f793a07bc00c21412e50ecae098e7f9",
+        true
+      ]
     },
     {
       "chainId": 10005,
-      "address": "0x7d5f71888899f87FAc247a69D71884398B704251",
-      "constructorArgs": []
+      "address": "0xc8D48E0D4AcdDdfd33273d1D37C41DcAcD1674E8",
+      "constructorArgs": [
+        "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+        "0x99737Ec4B815d816c49A385943baf0380e75c0Ac",
+        "0x82EA95b20845D3766830182952851B19FDA08f00",
+        "0x4200000000000000000000000000000000000006",
+        true
+      ]
     },
     {
       "chainId": 10004,
-      "address": "0x9181ef8e4f39895035e0Da705b0Ec109f9b11FA0",
-      "constructorArgs": []
+      "address": "0x166dbA9e12400DbbC4Df49087D2c360D6d3BA83c",
+      "constructorArgs": [
+        "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+        "0x86F55A04690fd7815A3D802bD587e83eA888B239",
+        "0xB1bde3578517ff5D704c6fFb4c1475047505aa17",
+        "0x4200000000000000000000000000000000000006",
+        true
+      ]
     },
     {
       "chainId": 1,

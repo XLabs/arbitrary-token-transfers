@@ -3,7 +3,7 @@ import { ChainsConfig, Contracts, isNative, VAA } from "@wormhole-foundation/sdk
 import '@wormhole-foundation/sdk-evm';
 import { EvmChains, EvmPlatform, EvmPlatformType, EvmUnsignedTransaction } from "@wormhole-foundation/sdk-evm";
 import { AcquireMode, AutomaticTokenBridgeV3, RelayingFee, RelayingFeesParams, tokenBridgeRelayerV3Chains, tokenBridgeRelayerV3Contracts, TransferParams } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
-import { BaseRelayingParamsReturn, RelayingFeesReturn, SupportedChains, Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
+import { BaseRelayingParams, BaseRelayingParamsReturn, RelayingFeesReturn, SupportedChains, Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
 import { Provider } from "ethers";
 
 const WHOLE_EVM_GAS_TOKEN_UNITS = 1e18;
@@ -160,7 +160,7 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
     };
   }
 
-  async baseRelayingParams(chain: SupportedChains): Promise<BaseRelayingParamsReturn> {
+  async baseRelayingParams(chain: SupportedChains): Promise<BaseRelayingParams> {
     const [params] = await this.tbr.baseRelayingParams(chain);
     return params;
   }

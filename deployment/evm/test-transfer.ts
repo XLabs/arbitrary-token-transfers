@@ -2,6 +2,7 @@ import {
   evm,
   getContractAddress,
   getEnv,
+  getEnvOrDefault,
 } from '../helpers';
 import { ethers } from 'ethers';
 import { getProvider, getSigner, sendTx } from '../helpers/evm';
@@ -23,11 +24,21 @@ async function run() {
   try {
     const sourceChain = getEnv('SOURCE_CHAIN');
     const inputToken = getEnv('INPUT_TOKEN');
+    const inputAmountInAtomic = BigInt(getEnvOrDefault('INPUT_AMOUNT', "1000"));
+    const unwrapIntent = getEnvOrDefault('UNWRAP_INTENT', "false") === 'true';
+    const gasDropoff = Number(getEnvOrDefault('GAS_DROPOFF', "0"));
+
+    console.log({
+      sourceChain,
+      inputToken,
+      inputAmountInAtomic,
+      unwrapIntent,
+      gasDropoff,
+    })
 
     const chain = chains.find((chain) => chain.chainId === Number(sourceChain));
 
     console.log(`Operating chain: ${inspect(chain)}`);
-    console.log(`Input token: ${inputToken}`);
 
     if (!chain) {
       throw new Error(`Unsupported chainId: ${sourceChain}`);
@@ -43,7 +54,7 @@ async function run() {
         .filter((targetChain) => chain.chainId !== targetChain.chainId)
         .map(async (targetChain) => {
           try {
-            console.log(`Creating transfer for ${chain.name}->${targetChain.name}`);
+            console.log(`Creating transfer for ${chain.name} -> ${targetChain.name}`);
 
             const address = chainToPlatform(targetChain.name as Chain) === "Evm" ? await signer.getAddress() : getEnv('SOLANA_RECIPIENT_ADDRESS');
 
@@ -58,30 +69,32 @@ async function run() {
               throw new Error(`Chain ${targetChain.name} is not supported`);
             }
 
+            console.log({
+              chain: targetChain.name,
+              gasDropoff,
+            })
 
-            console.log("executing");
             const feeEstimation = (
               await tbrv3.relayingFee({
                 targetChain: targetChain.name as SupportedChains,
-                gasDropoff: 0,
+                gasDropoff,
               })
             )[0];
 
-            console.log("executed");
-            console.log(`Fee estimation: ${inspect(feeEstimation)}`);
+            console.log(`Fee estimation ${chain.name}->${targetChain.name}: ${inspect(feeEstimation)}`);
 
             return {
               args: {
                 method: 'TransferTokenWithRelay',
                 acquireMode: { mode: 'Preapproved' },
-                inputAmountInAtomic: 1000n, 
-                gasDropoff: 0,
+                inputAmountInAtomic, 
+                gasDropoff,
                 recipient: {
                   chain: targetChain.name as Chain,
                   address: toUniversal(targetChain.name as Chain, address),
                 },
                 inputToken,
-                unwrapIntent: false,
+                unwrapIntent: getEnv("TEST_UNWRAP_INTENT") === "true",
               },
               feeEstimation,
             } as Transfer;
@@ -108,6 +121,7 @@ async function run() {
       throw new Error('No transfers to execute');
     }
 
+    console.log(`Executing ${transfers.length} transfers`, transfers);
     const { to, value, data } = tbrv3.transferWithRelay(...transfers);
 
     const { receipt, error } = await sendTx(signer, {
