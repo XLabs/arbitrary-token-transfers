@@ -315,7 +315,7 @@ abstract contract TbrUser is TbrBase {
     uint8 decimals = token.decimals();
     uint256 cleanedTokenAmount = deNormalizeAmount(normalizeAmount(tokenAmount, decimals), decimals);
 
-    if (tokenAmount == 0)
+    if (cleanedTokenAmount == 0)
       revert InvalidTokenAmount();
 
     (uint256 fee, uint256 wormholeFee) =
