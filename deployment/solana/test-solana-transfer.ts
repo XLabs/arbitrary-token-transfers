@@ -26,7 +26,7 @@ async function sendTestTransaction(
   const mint = new PublicKey(getEnv('TRANSFER_MINT'));
   const tokenAccount = new PublicKey(getEnv('TRANSFER_TOKEN_ACCOUNT'));
   const transferredAmount = new BN(getEnvOrDefault('TRANSFERRED_AMOUNT', "1000"));
-  const gasDropoffAmount = new BN(getEnvOrDefault('GAS_DROPOFF_AMOUNT', "0"));
+  const gasDropoffAmount = Number(getEnvOrDefault('GAS_DROPOFF_AMOUNT', "0"));
   const maxFeeSol = new BN(getEnvOrDefault('MAX_FEE_SOL', "5000"));
   const unwrapIntent = getEnvOrDefault('UNWRAP_INTENT', "false") === 'true';
 
@@ -35,7 +35,7 @@ async function sendTestTransaction(
     mint,
     tokenAccount,
     transferredAmount: transferredAmount.toNumber(),
-    gasDropoffAmount: gasDropoffAmount.toNumber(),
+    gasDropoffAmount: gasDropoffAmount,
     maxFeeSol: maxFeeSol.toNumber(),
     unwrapIntent,
   })
@@ -69,7 +69,7 @@ async function sendTestTransaction(
         mint: new PublicKey(getEnv('TRANSFER_MINT')),
         tokenAccount: new PublicKey(getEnv('TRANSFER_TOKEN_ACCOUNT')),
         transferredAmount: new BN(1000),
-        gasDropoffAmount: 0,
+        gasDropoffAmount,
         maxFeeKlamports: new BN(5000),
         unwrapIntent: false,
       };
