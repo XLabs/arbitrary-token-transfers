@@ -117,12 +117,17 @@ async function upgradeProxyWithNewImplementation(
 
   const tx = await tbr.upgradeContract(new EvmAddress(implementationAddress));
 
-  const receipt = await sendTx(signer, {
+  const {receipt, error } = await sendTx(signer, {
     ...tx,
     data: ethers.hexlify(tx.data),
   });
+  if (error) {
+    console.log("TX Failed to be included. Error", error);
+  }
 
-  console.log("Tx Receipt:", receipt);
+  else {
+    console.log("Tx Included!. TxHash: ", receipt!.hash);
+  }
 
   return { chainId: chain.chainId };
 }
