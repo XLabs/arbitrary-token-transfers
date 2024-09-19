@@ -77,7 +77,7 @@ evm.runOnEvms("bytecode-verification-token-router", async (chain, signer, log) =
     log(chalk.green(`Verifying bytecode on ${verifier}...`));
 
     log(chalk.green("Verifying implementation bytecode..."));
-   // execSync(verifyImplementationCommand, { stdio: "inherit", cwd: rootPath });
+    execSync(verifyImplementationCommand, { stdio: "inherit", cwd: rootPath });
     console.log()
 
     log(chalk.green("Verifying proxy bytecode..."));
