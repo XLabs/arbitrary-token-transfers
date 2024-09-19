@@ -28,7 +28,7 @@ contract BaseTest is TbrTestBase {
     tbrExposer.exposedAddPeer(chainId, wrongPeer);
 
     vm.expectRevert(
-      abi.encodeWithSelector(ChainNoSupportedByTokenBridge.selector, notSupportedChainId)
+      abi.encodeWithSelector(ChainNotSupportedByTokenBridge.selector, notSupportedChainId)
     );
     tbrExposer.exposedAddPeer(notSupportedChainId, peer);
 
@@ -57,7 +57,7 @@ contract BaseTest is TbrTestBase {
     tbrExposer.exposedSetCanonicalPeer(chainId, wrongPeer);
 
     vm.expectRevert(
-      abi.encodeWithSelector(ChainNoSupportedByTokenBridge.selector, notSupportedChainId)
+      abi.encodeWithSelector(ChainNotSupportedByTokenBridge.selector, notSupportedChainId)
     );
     tbrExposer.exposedSetCanonicalPeer(notSupportedChainId, peer);
 
