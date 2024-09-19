@@ -121,7 +121,7 @@ abstract contract TbrUser is TbrBase {
     if (fee + wormholeFee > unallocatedBalance)
       revert FeesInsufficient(msg.value, commandIndex);
 
-    _bridgeOut(token, targetChain, peer, recipient, tokenAmount, gasDropoff, fee, wormholeFee, unwrapIntent);
+    _bridgeOut(token, targetChain, peer, recipient, tokenAmount, gasDropoff, wormholeFee, fee, unwrapIntent);
 
     // Return the fee that must be sent to the fee recipient.
     // TODO: should we return the sequence to the caller too?

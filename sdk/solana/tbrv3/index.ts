@@ -598,8 +598,12 @@ const pda = {
     payer: PublicKey,
     payerSequence: BN,
   ): PublicKey => {
+    const buf = Buffer.alloc(8);
+
+    buf.writeBigInt64LE(BigInt(payerSequence.toString()), 0);
+
     return PublicKey.findProgramAddressSync(
-      [Buffer.from('bridged'), payer.toBuffer(), payerSequence.toBuffer()],
+      [Buffer.from('bridged'), payer.toBuffer(), buf],
       programId,
     )[0];
   },
@@ -640,6 +644,7 @@ function transferNativeTokenBridgeAccounts(params: {
   wormholeBridge: PublicKey;
   tokenBridgeEmitter: PublicKey;
   tokenBridgeSequence: PublicKey;
+  wormholeFeeCollector: PublicKey;
 } {
   const { programId, tokenBridgeProgramId, wormholeProgramId, mint } = params;
 
@@ -651,6 +656,7 @@ function transferNativeTokenBridgeAccounts(params: {
     wormholeBridge,
     tokenBridgeEmitter,
     tokenBridgeSequence,
+    wormholeFeeCollector,
   } = getTransferNativeWithPayloadCpiAccounts(
     programId,
     tokenBridgeProgramId,
@@ -670,6 +676,7 @@ function transferNativeTokenBridgeAccounts(params: {
     wormholeBridge,
     tokenBridgeEmitter,
     tokenBridgeSequence,
+    wormholeFeeCollector,
   };
 }
 
