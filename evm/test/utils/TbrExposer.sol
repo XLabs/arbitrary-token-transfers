@@ -102,7 +102,7 @@ contract TbrExposer is Tbr {
     uint256 tokenAmount,
     uint32 gasDropoff,
     uint commandIndex
-  ) public view returns (bytes32, uint256, uint256) {
+  ) public view returns (bytes32, uint256, uint256, uint256) {
     return _getAndCheckTransferParams(targetChain, recipient, token, tokenAmount, gasDropoff, commandIndex);
   }
 

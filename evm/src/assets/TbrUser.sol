@@ -159,13 +159,13 @@ abstract contract TbrUser is TbrBase {
     IERC20Metadata token = IERC20Metadata(rawToken);
     offset = _acquireTokens(data, offset, token, tokenAmount);
     
-    (bytes32 peer, uint256 fee, uint256 wormholeFee) =
+    (bytes32 peer, uint256 finalTokenAmount, uint256 fee, uint256 wormholeFee) =
       _getAndCheckTransferParams(targetChain, recipient, token, tokenAmount, gasDropoff, commandIndex);
 
     if (fee + wormholeFee > unallocatedBalance)
       revert FeesInsufficient(msg.value, commandIndex);
 
-    _bridgeOut(token, targetChain, peer, recipient, tokenAmount, gasDropoff, unwrapIntent, fee, wormholeFee);
+    _bridgeOut(token, targetChain, peer, recipient, finalTokenAmount, gasDropoff, unwrapIntent, fee, wormholeFee);
 
     // Return the fee that must be sent to the fee recipient.
     // TODO: should we return the sequence to the caller too?
@@ -185,22 +185,22 @@ abstract contract TbrUser is TbrBase {
     uint16 targetChain; bytes32 recipient; uint32 gasDropoff; uint256 tokenAmount;
     (targetChain, recipient, gasDropoff, tokenAmount, offset) = _parseSharedParams(data, offset);
 
-    (bytes32 peer, uint256 fee, uint256 wormholeFee) =
+    (bytes32 peer, uint256 finalTokenAmount, uint256 fee, uint256 wormholeFee) =
       _getAndCheckTransferParams(targetChain, recipient, IERC20Metadata(address(gasToken)), tokenAmount, gasDropoff, commandIndex);
 
-    if (fee + tokenAmount + wormholeFee > unallocatedBalance)
+    if (fee + finalTokenAmount + wormholeFee > unallocatedBalance)
       revert FeesInsufficient(msg.value, commandIndex);
 
     // Tokenize
     // Celo provides an ERC20 interface for its native token that doesn't require retokenization.
     if (gasErc20TokenizationIsExplicit)
-      gasToken.deposit{value: tokenAmount}();
+      gasToken.deposit{value: finalTokenAmount}();
 
     IERC20Metadata token = IERC20Metadata(address(gasToken));
-    _bridgeOut(token, targetChain, peer, recipient, tokenAmount, gasDropoff, false, fee, wormholeFee);
+    _bridgeOut(token, targetChain, peer, recipient, finalTokenAmount, gasDropoff, false, fee, wormholeFee);
 
     // Return the fee that must be sent to the fee recipient.
-    return (fee, tokenAmount + wormholeFee, offset);
+    return (fee, finalTokenAmount + wormholeFee, offset);
   }
 
   function _parseSharedParams(
@@ -296,7 +296,7 @@ abstract contract TbrUser is TbrBase {
     uint256 tokenAmount,
     uint32 gasDropoff,
     uint commandIndex
-  ) internal view returns (bytes32, uint256, uint256) {
+  ) internal view returns (bytes32, uint256, uint256, uint256) {
     (bytes32 peer, uint32 baseFee, uint32 maxGasDropoff, bool paused, bool txSizeSensitive) =
       _getTargetChainData(targetChain);
 
@@ -315,13 +315,13 @@ abstract contract TbrUser is TbrBase {
     uint8 decimals = token.decimals();
     uint256 cleanedTokenAmount = deNormalizeAmount(normalizeAmount(tokenAmount, decimals), decimals);
 
-    if (tokenAmount == 0 || cleanedTokenAmount != tokenAmount)
+    if (tokenAmount == 0)
       revert InvalidTokenAmount();
 
     (uint256 fee, uint256 wormholeFee) =
       _quoteRelay(targetChain, gasDropoff, baseFee, txSizeSensitive);
 
-    return (peer, fee, wormholeFee);
+    return (peer, cleanedTokenAmount, fee, wormholeFee);
   }
 
   function normalizeAmount(uint256 amount, uint8 decimals) internal pure returns(uint256) { unchecked {
@@ -387,8 +387,9 @@ abstract contract TbrUser is TbrBase {
     uint256 wormholeFee
   ) private {
     bytes memory tbrMessage = _tbrv3Message(recipient, gasDropoff, unwrapIntent);
+    // TODO: move this to a separate instruction.
+    SafeERC20.forceApprove(token, address(tokenBridge), type(uint256).max);
     // Perform call to token bridge.
-    SafeERC20.safeApprove(token, address(tokenBridge), tokenAmount);
     uint64 sequence = tokenBridge.transferTokensWithPayload{value: wormholeFee}(
       address(token),
       tokenAmount,
