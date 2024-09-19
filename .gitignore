@@ -12,6 +12,7 @@ ts-build/
 build-test/
 build-forge/
 ethers-contracts/
+solana/tests/solana_price_oracle.so
 
 # Ignore log files
 *.log

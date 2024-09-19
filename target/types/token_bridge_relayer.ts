@@ -2400,7 +2400,7 @@ export type TokenBridgeRelayer = {
           {
             "name": "gasTokenPrice",
             "docs": [
-              "The gas price in μusd/Mwei."
+              "The gas price in μusd/Token, typically ETH."
             ],
             "type": "u64"
           }

@@ -1,7 +1,7 @@
 [toolchain]
 
 [workspace]
-members = ["solana/programs/*"]
+members = ["solana/programs/*", "lib/relayer-infra-contracts/src/solana/programs/price-oracle"]
 types = "sdk/solana/tbrv3/idl"
 
 [features]
