@@ -56,7 +56,7 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
     // convert the fee and gas dropoff back from wei to eth
     // TODO: find a better way in order to avoid precision issues
     const fee = Number(params.fee || 0) / WHOLE_EVM_GAS_TOKEN_UNITS;
-    const gasDropoff = Number(params.gasDropOff || 0) / WHOLE_EVM_GAS_TOKEN_UNITS;
+    const gasDropoff = Number(params.gasDropOff?.amount || 0) / WHOLE_EVM_GAS_TOKEN_UNITS;
 
     const transferParams = await this.tbr.transferWithRelay({
       args: {

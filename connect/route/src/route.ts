@@ -220,7 +220,7 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
     const tbr = await request.fromChain.getProtocol('AutomaticTokenBridgeV3');
 
     const fee = Number(quote.relayFee?.amount.amount || 0);
-    const gasDropOff = Number(quote.params.options.gasDropOff?.amount || 0);
+    const gasDropOff = quote.params.options.gasDropOff || { amount: 0n, decimals: 0 };
 
     // TODO: how to specify chain specific args (e.g. acquireMode)?
     const transferTxs = tbr.transfer({
