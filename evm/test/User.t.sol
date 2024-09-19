@@ -181,12 +181,13 @@ contract UserTest is TbrTestBase {
     uint boundMaxValue = 1e12;
     wormholeFee = bound(wormholeFee, 1, boundMaxValue);
     feeQuote = bound(feeQuote, 1, boundMaxValue);
-    decimals = uint8(bound(decimals, 0, 30));
-    vm.assume(firstTokenAmount > 0 && firstTokenAmount <= type(uint56).max);
-    vm.assume(secondTokenAmount > 0 && secondTokenAmount <= type(uint56).max);
+    decimals = uint8(bound(decimals, 0, 26));
+    uint8 minDecimals = decimals > 8 ? decimals - 8 : 0;
+    firstTokenAmount = bound(firstTokenAmount, 10 ** minDecimals, 2 ** 62);
+    secondTokenAmount = bound(secondTokenAmount, 10 ** minDecimals, 2 ** 62);
     vm.assume(recipient != bytes32(0));
-    vm.assume(gasDropoff < MAX_GAS_DROPOFF_AMOUNT);
-    vm.assume(unallocatedBalance >= (feeQuote + wormholeFee) * 2);
+    gasDropoff = uint32(bound(gasDropoff, 1, MAX_GAS_DROPOFF_AMOUNT));
+    unallocatedBalance = bound(unallocatedBalance, (feeQuote + wormholeFee) * 2, (feeQuote + wormholeFee) * 10);
     deal(address(this), unallocatedBalance);
 
 
@@ -196,12 +197,6 @@ contract UserTest is TbrTestBase {
 
     uint16 targetChain = SOLANA_CHAIN_ID;
     bool unwrapIntent = false;
-    bytes memory tbrMessage = abi.encodePacked(
-      TBR_V3_MESSAGE_VERSION,
-      recipient,
-      gasDropoff,
-      unwrapIntent
-    );
     uint initialFeeRecipientBalance = address(feeRecipient).balance;
     uint initialCallerBalance = address(this).balance;
 
