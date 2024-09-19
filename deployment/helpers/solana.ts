@@ -53,7 +53,6 @@ export async function runOnSolana(scriptName: string, cb: SolanaScriptCb) {
     } catch (error) {
       log("Error: ", (error as any)?.stack || inspect(error, {depth: 5}));
     }
-    console.log();
   });
 
   await Promise.all(result);
@@ -125,12 +124,17 @@ export async function ledgerSignAndSend(connection: Connection, instructions: Tr
 
   signers.forEach((signer) => tx.partialSign(signer));
 
-  await addSignature(tx, deployerSigner, deployerPk);
+  const signedTx = await addSignature(tx, deployerSigner, deployerPk);
 
-  return connection.sendRawTransaction(tx.serialize());
+  return connection.sendRawTransaction(signedTx.serialize());
 }
 
-async function addSignature(tx: Transaction, signer: SolanaSigner, signerPk: PublicKey) {
-  const signedByPayer = await signer.signTransaction(tx);
-  tx.addSignature(signerPk, signedByPayer);
+async function addSignature(tx: Transaction, signer: SolanaSigner, signerPk: PublicKey):Promise<Transaction> {
+  if (signer.type === "ledger"){
+    const signedByPayer = await signer.signTransaction(tx);
+    tx.addSignature(signerPk, signedByPayer);
+    return tx;
+  } else {
+    return await (signer.raw() as NodeWallet).signTransaction(tx);
+  }
 }
