@@ -779,7 +779,7 @@ contract UserTest is TbrTestBase {
 
     (bytes32 peer, uint256 fee, uint256 wormholeFee) = tbrExposer.exposed_getAndCheckTransferParams(
       targetChain, 
-      recipient, 
+      recipient,
       tokenAmount, 
       gasDropoff, 
       commandIndex

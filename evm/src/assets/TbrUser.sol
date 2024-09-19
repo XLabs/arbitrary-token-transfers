@@ -7,7 +7,7 @@ import {BytesParsing} from "wormhole-sdk/libraries/BytesParsing.sol";
 import {fromUniversalAddress, reRevert} from "wormhole-sdk/Utils.sol";
 import {IWETH} from "wormhole-sdk/interfaces/token/IWETH.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IERC20Permit} from "@openzeppelin/token/ERC20/extensions/IERC20Permit.sol";
 import {ISignatureTransfer, IAllowanceTransfer} from "permit2/IPermit2.sol";
 import {TRANSFER_TOKEN_WITH_RELAY_ID, TRANSFER_GAS_TOKEN_WITH_RELAY_ID, COMPLETE_TRANSFER_ID, RELAY_FEE_ID, BASE_RELAYING_CONFIG_ID} from "./TbrIds.sol";
@@ -156,11 +156,11 @@ abstract contract TbrUser is TbrBase {
     address rawToken; bool unwrapIntent;
     (rawToken,     offset) = data.asAddressCdUnchecked(offset);
     (unwrapIntent, offset) = data.asBoolCdUnchecked(offset);
-    IERC20 token = IERC20(rawToken);
+    IERC20Metadata token = IERC20Metadata(rawToken);
     offset = _acquireTokens(data, offset, token, tokenAmount);
     
     (bytes32 peer, uint256 fee, uint256 wormholeFee) =
-      _getAndCheckTransferParams(targetChain, recipient, tokenAmount, gasDropoff, commandIndex);
+      _getAndCheckTransferParams(targetChain, recipient, token, tokenAmount, gasDropoff, commandIndex);
 
     if (fee + wormholeFee > unallocatedBalance)
       revert FeesInsufficient(msg.value, commandIndex);
@@ -186,7 +186,7 @@ abstract contract TbrUser is TbrBase {
     (targetChain, recipient, gasDropoff, tokenAmount, offset) = _parseSharedParams(data, offset);
 
     (bytes32 peer, uint256 fee, uint256 wormholeFee) =
-      _getAndCheckTransferParams(targetChain, recipient, tokenAmount, gasDropoff, commandIndex);
+      _getAndCheckTransferParams(targetChain, recipient, IERC20Metadata(address(gasToken)), tokenAmount, gasDropoff, commandIndex);
 
     if (fee + tokenAmount + wormholeFee > unallocatedBalance)
       revert FeesInsufficient(msg.value, commandIndex);
@@ -196,7 +196,7 @@ abstract contract TbrUser is TbrBase {
     if (gasErc20TokenizationIsExplicit)
       gasToken.deposit{value: tokenAmount}();
 
-    IERC20 token = IERC20(address(gasToken));
+    IERC20Metadata token = IERC20Metadata(address(gasToken));
     _bridgeOut(token, targetChain, peer, recipient, tokenAmount, gasDropoff, false, fee, wormholeFee);
 
     // Return the fee that must be sent to the fee recipient.
@@ -224,7 +224,7 @@ abstract contract TbrUser is TbrBase {
   function _acquireTokens(
     bytes calldata data,
     uint offset,
-    IERC20 token,
+    IERC20Metadata token,
     uint256 tokenAmount
   ) internal returns (uint) {
     // Acquire tokens
@@ -292,6 +292,7 @@ abstract contract TbrUser is TbrBase {
   function _getAndCheckTransferParams(
     uint16 targetChain,
     bytes32 recipient,
+    IERC20Metadata token,
     uint256 tokenAmount,
     uint32 gasDropoff,
     uint commandIndex
@@ -311,7 +312,10 @@ abstract contract TbrUser is TbrBase {
     if (recipient == bytes32(0))
       revert InvalidTokenRecipient();
 
-    if (tokenAmount == 0)
+    uint8 decimals = token.decimals();
+    uint256 cleanedTokenAmount = deNormalizeAmount(normalizeAmount(tokenAmount, decimals), decimals);
+
+    if (tokenAmount == 0 || cleanedTokenAmount != tokenAmount)
       revert InvalidTokenAmount();
 
     (uint256 fee, uint256 wormholeFee) =
@@ -319,6 +323,20 @@ abstract contract TbrUser is TbrBase {
 
     return (peer, fee, wormholeFee);
   }
+
+  function normalizeAmount(uint256 amount, uint8 decimals) internal pure returns(uint256) { unchecked {
+    if (decimals > 8) {
+      amount /= 10 ** (decimals - 8);
+    }
+    return amount;
+  }}
+
+  function deNormalizeAmount(uint256 amount, uint8 decimals) internal pure returns(uint256) { unchecked {
+    if (decimals > 8) {
+      amount *= 10 ** (decimals - 8);
+    }
+    return amount;
+  }}
 
   /**
    * @return fee in gas tokens with 18 decimals (i.e. wei)
@@ -358,7 +376,7 @@ abstract contract TbrUser is TbrBase {
   }
 
   function _bridgeOut(
-    IERC20 token,
+    IERC20Metadata token,
     uint16 targetChain,
     bytes32 peer,
     bytes32 recipient,
@@ -432,7 +450,7 @@ abstract contract TbrUser is TbrBase {
     // Perform redeem in TB
     tokenBridge.completeTransferWithPayload(vaa);
 
-    IERC20 token = IERC20(tokenBridge.wrappedAsset(tokenOriginChain, tokenOriginAddress));
+    IERC20Metadata token = IERC20Metadata(tokenBridge.wrappedAsset(tokenOriginChain, tokenOriginAddress));
 
     // If an unwrap is desired, unwrap and call recipient with full amount
     uint totalGasTokenAmount = gasDropoff;
