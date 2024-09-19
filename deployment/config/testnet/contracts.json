@@ -2,17 +2,17 @@
   "TbrV3": [
     {
       "chainId": 10002,
-      "address": "0xB5dA8b3BE4c873efB84E68b332206Ae9f7bd7846",
+      "address": "0x166dbA9e12400DbbC4Df49087D2c360D6d3BA83c",
       "constructorArgs": []
     },
     {
       "chainId": 10005,
-      "address": "0x7d5f71888899f87FAc247a69D71884398B704251",
+      "address": "0x803b54768f3059F4115dD00a8aaE1485b9dC7beD",
       "constructorArgs": []
     },
     {
       "chainId": 10004,
-      "address": "0x9181ef8e4f39895035e0Da705b0Ec109f9b11FA0",
+      "address": "0xB5dA8b3BE4c873efB84E68b332206Ae9f7bd7846",
       "constructorArgs": []
     },
     {

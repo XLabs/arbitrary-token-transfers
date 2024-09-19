@@ -366,7 +366,11 @@ export class SolanaTokenBridgeRelayer {
 
     try {
       payerSequenceNumber = (await this.read.signerSequence(signer)).value;
-    } catch {}
+    } catch {
+      console.log("failed!!!");
+    }
+
+    console.log("payerSequenceNumber", payerSequenceNumber.toString());
 
     const tokenBridgeAccounts = transferNativeTokenBridgeAccounts({
       programId: this.program.programId,
@@ -600,7 +604,7 @@ const pda = {
   ): PublicKey => {
     const buf = Buffer.alloc(8);
 
-    buf.writeBigInt64LE(BigInt(payerSequence.toString()), 0);
+    buf.writeBigInt64BE(BigInt(payerSequence.toString()), 0);
 
     return PublicKey.findProgramAddressSync(
       [Buffer.from('bridged'), payer.toBuffer(), buf],
