@@ -4,6 +4,6 @@
     "outDir": "../build-test",
     "rootDir": "../"
   },
-  "include": ["../tbrv3", "."],
+  "include": ["../tbrv3", ".", "../../../deployment/config/localnet"],
   "exclude": []
 }

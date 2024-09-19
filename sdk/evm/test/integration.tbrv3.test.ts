@@ -1,11 +1,10 @@
 import { expect } from "chai";
 import { before } from "mocha";
-import { SupportedChains, TbrPartialTx, Tbrv3 } from "../tbrv3/index.js";
+import { SupportedChains, TbrPartialTx, Tbrv3, BaseRelayingParams, RelayingFee, relayingFeesReturnLayout, baseRelayingConfigReturnLayout } from "../tbrv3/index.js";
 import { ethers } from "ethers";
 import { UniversalAddress } from "@wormhole-foundation/sdk-definitions";
-import { encoding } from "@wormhole-foundation/sdk-base";
-// @ts-expect-error
-import config from "../../../../deployment/config/localnet/contracts.json" with { type: "json" };
+import { encoding, LayoutToType } from "@wormhole-foundation/sdk-base";
+import config from "../../../deployment/config/localnet/contracts.json" with { type: "json" };
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
 
 const timeout = 20_000;
@@ -16,6 +15,19 @@ const rpc = {
 }[env];
 let tbrv3: Tbrv3;
 let signer: ethers.Signer;
+
+// Type tests
+// Variables with names starting with `expected` should typecheck. Their type is the desired type.
+// They're put into standalone statements so that they're not reported by linters.
+
+let testRelayingFeeType: RelayingFee = {} as any;
+const expectedRelayingFeeType: LayoutToType<typeof relayingFeesReturnLayout> = testRelayingFeeType;
+expectedRelayingFeeType;
+
+let testBaseRelayingParamsType: BaseRelayingParams = {} as any;
+const expectedBaseRelayingParamsType: LayoutToType<typeof baseRelayingConfigReturnLayout> = testBaseRelayingParamsType;
+expectedBaseRelayingParamsType;
+
 
 const peers = [
   { chain: "Sepolia", peer: new UniversalAddress(ethers.Wallet.createRandom().address) },
@@ -60,8 +72,8 @@ describe('TbrV3 SDK Integration test', () => {
   }).timeout(timeout);
 
   it("should update max gas dropoffs", async () => {
-    const expectedMaxGasDropoff = BigInt(Math.round(Math.random() * 1000));
-    const map: Map<SupportedChains, bigint> = new Map(peers.map(p => [p.chain as SupportedChains, expectedMaxGasDropoff]));
+    const expectedMaxGasDropoff = Math.round(Math.random() * 1000);
+    const map = new Map(peers.map(p => [p.chain as SupportedChains, expectedMaxGasDropoff]));
     const updateCanonicalPeerPartialTx = tbrv3.updateMaxGasDroppoffs(map);
 
     const result = await awaitTx(updateCanonicalPeerPartialTx);
@@ -74,13 +86,13 @@ describe('TbrV3 SDK Integration test', () => {
 
   it("should update relay fee", async () => {
     const expectedFee = Math.round(Math.random() * 1000);
-    const udpatedRelayerFeePartialTx = tbrv3.updateRelayFee(expectedFee);
+    const udpatedRelayerFeePartialTx = tbrv3.updateRelayFee("Ethereum", expectedFee);
 
     const result = await awaitTx(udpatedRelayerFeePartialTx);
 
     expect(result!.status).to.equal(1);
 
-    const fee = await tbrv3.relayFee();
+    const fee = await tbrv3.relayFee("Ethereum");
     expect(fee).to.equal(expectedFee);
   }).timeout(timeout);
 
@@ -107,7 +119,7 @@ describe('TbrV3 SDK Integration test', () => {
   // relaying queries
 
   it("should obtain relaying fee", async () => {
-    const relayingFee = await tbrv3.relayingFee({ targetChain: "Sepolia", gasDropoff: 1000n });
+    const relayingFee = await tbrv3.relayingFee({ targetChain: "Sepolia", gasDropoff: 1 });
     expect(relayingFee).to.not.be.undefined;
   }).timeout(timeout);
 
