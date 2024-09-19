@@ -25,7 +25,7 @@ evm.runOnEvms("configure-fee-and-dropoff", async (chain, signer, log) => {
 
     const currentRelayFee = await tbrv3.relayFee(otherTbrv3Chain as SupportedChains);
     if (currentRelayFee.fee !== desiredRelayFee) {
-      log(`Will update max gas dropoff for ${otherTbrv3Chain}: ${peerChainCfg.maxGasDropoff}`);
+      log(`Will updaterelay fee for ${otherTbrv3Chain}: ${peerChainCfg.maxGasDropoff}`);
       relayFeeUpdates.set(otherTbrv3Chain, desiredRelayFee);
     }
   }  

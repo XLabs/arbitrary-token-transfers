@@ -31,9 +31,9 @@ expectedBaseRelayingParamsType;
 
 const peers = [
   { chain: "Sepolia", peer: new UniversalAddress(ethers.Wallet.createRandom().address) },
-  { chain: "ArbitrumSepolia", peer: new UniversalAddress(ethers.Wallet.createRandom().address) },
+  { chain: "BaseSepolia", peer: new UniversalAddress(ethers.Wallet.createRandom().address) },
   { chain: "Solana", peer: new UniversalAddress(ethers.Wallet.createRandom().address) },
-];
+] as const;
 
 describe('TbrV3 SDK Integration test', () => {
 
@@ -48,7 +48,7 @@ describe('TbrV3 SDK Integration test', () => {
 
   // governance commands
   it.skip("should set peers", async () => { // skipped as it requires TB to be present
-    const expectedPeers = peers.map(p => ({ chain: p.chain as SupportedChains, peer: p.peer }));
+    const expectedPeers = peers.map(p => ({ chain: p.chain, peer: p.peer }));
     const addPeersPartialTx = tbrv3.addPeers(expectedPeers);
 
     const result = await awaitTx(addPeersPartialTx);
@@ -59,7 +59,7 @@ describe('TbrV3 SDK Integration test', () => {
   }).timeout(timeout);
 
   it.skip("should update canonical peer", async () => {  // skipped as it requires TB to be present
-    const map: Map<SupportedChains, UniversalAddress> = new Map(peers.map(p => [p.chain as SupportedChains, p.peer]));
+    const map: Map<SupportedChains, UniversalAddress> = new Map(peers.map(p => [p.chain, p.peer]));
     const updateCanonicalPeerPartialTx = tbrv3.updateCanonicalPeers(map);
 
     const result = await awaitTx(updateCanonicalPeerPartialTx);
@@ -67,32 +67,32 @@ describe('TbrV3 SDK Integration test', () => {
     expect(result).to.not.be.undefined;
     expect(result!.status).to.equal(1);
 
-    const canonicalPeer = await tbrv3.canonicalPeer(peers[0].chain as SupportedChains);
+    const canonicalPeer = await tbrv3.canonicalPeer(peers[0].chain);
     expect(canonicalPeer).to.be.equal(peers[0].peer);
   }).timeout(timeout);
 
   it("should update max gas dropoffs", async () => {
     const expectedMaxGasDropoff = Math.round(Math.random() * 1000);
-    const map = new Map(peers.map(p => [p.chain as SupportedChains, expectedMaxGasDropoff]));
+    const map = new Map(peers.map(p => [p.chain, expectedMaxGasDropoff]));
     const updateCanonicalPeerPartialTx = tbrv3.updateMaxGasDroppoffs(map);
 
     const result = await awaitTx(updateCanonicalPeerPartialTx);
 
     expect(result!.status).to.equal(1);
 
-    const maxGasDropoff = await tbrv3.maxGasDropoff(peers[0].chain as SupportedChains);
+    const maxGasDropoff = await tbrv3.maxGasDropoff(peers[0].chain);
     expect(maxGasDropoff).to.be.equal(expectedMaxGasDropoff);
   }).timeout(timeout);
 
   it("should update relay fee", async () => {
     const expectedFee = Math.round(Math.random() * 1000);
-    const udpatedRelayerFeePartialTx = tbrv3.updateRelayFee("Ethereum", expectedFee);
+    const udpatedRelayerFeePartialTx = tbrv3.updateRelayFees(new Map(peers.map(p => [p.chain, expectedFee])));
 
     const result = await awaitTx(udpatedRelayerFeePartialTx);
 
     expect(result!.status).to.equal(1);
 
-    const fee = await tbrv3.relayFee("Ethereum");
+    const fee = await tbrv3.relayFee(peers[0].chain);
     expect(fee).to.equal(expectedFee);
   }).timeout(timeout);
 
