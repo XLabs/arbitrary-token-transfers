@@ -2,8 +2,6 @@
 
 pragma solidity ^0.8.25;
 
-import {IERC20} from "@openzeppelin/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import {IWETH} from "wormhole-sdk/interfaces/token/IWETH.sol";
 import {IWormhole} from "wormhole-sdk/interfaces/IWormhole.sol";
 import {ITokenBridge} from "wormhole-sdk/interfaces/ITokenBridge.sol";
@@ -63,11 +61,22 @@ function tbrChainState(uint16 targetChain) view returns (ChainData storage) {
   return state.data[targetChain];
 }
 
+/**
+ * The peer provided is invalid.
+ */
 error PeerIsZeroAddress();
-error PeerAlreadyRegistered(uint16 chainId, bytes32 peer);
-error CannotRemoveCanonicalPeer();
+/**
+ * Chain id 0 is invalid.
+ */
 error InvalidChainId();
-error ChainNoSupportedByTokenBridge(uint16 chainId);
+/**
+ * The specified chain is not registered in the Token Bridge contract.
+ */
+error ChainNotSupportedByTokenBridge(uint16 chainId);
+/**
+ * This TBR instance doesn't have a peer in the specified chain.
+ */
+error ChainIsNotRegistered(uint16 chainId);
 /**
  * Payment to the target failed.
  */
@@ -107,13 +116,13 @@ abstract contract TbrBase is PriceOracleIntegration {
   function _getTargetChainData(
     uint16 targetChain
   ) internal view returns (bytes32, uint32, uint32, bool, bool) {
-    ChainData storage data = tbrChainState(targetChain);
+    ChainData storage state = tbrChainState(targetChain);
     return (
-      data.canonicalPeer,
-      data.baseFee,
-      data.maxGasDropoff,
-      data.paused,
-      data.txSizeSensitive
+      state.canonicalPeer,
+      state.baseFee,
+      state.maxGasDropoff,
+      state.paused,
+      state.txSizeSensitive
     );
   }
 
@@ -130,14 +139,13 @@ abstract contract TbrBase is PriceOracleIntegration {
 
     bytes32 bridgeContractOnPeerChain = tokenBridge.bridgeContracts(targetChain);
     if (bridgeContractOnPeerChain == bytes32(0))
-      revert ChainNoSupportedByTokenBridge(targetChain);
+      revert ChainNotSupportedByTokenBridge(targetChain);
 
-    ChainData storage data = tbrChainState(targetChain);
-    bool isAlreadyPeer = data.peers[peer];
-    if (isAlreadyPeer)
-      revert PeerAlreadyRegistered(targetChain, peer);
+    ChainData storage state = tbrChainState(targetChain);
+    if (state.canonicalPeer == bytes32(0))
+      state.canonicalPeer = peer;
 
-    data.peers[peer] = true;
+    state.peers[peer] = true;
   }
 
   function _isChainTxSizeSensitive(uint16 targetChain) internal view returns (bool) {
@@ -145,7 +153,11 @@ abstract contract TbrBase is PriceOracleIntegration {
   }
 
   function _setChainTxSizeSensitive(uint16 targetChain, bool txSizeSensitive) internal {
-    tbrChainState(targetChain).txSizeSensitive = txSizeSensitive;
+    ChainData storage state = tbrChainState(targetChain);
+    if (state.canonicalPeer == bytes32(0)) {
+      revert ChainIsNotRegistered(targetChain);
+    }
+    state.txSizeSensitive = txSizeSensitive;
   }
 
   function _getCanonicalPeer(uint16 targetChain) internal view returns (bytes32) {
@@ -153,24 +165,12 @@ abstract contract TbrBase is PriceOracleIntegration {
   }
 
   function _setCanonicalPeer(uint16 targetChain, bytes32 peer) internal {
-    if (targetChain == 0 || targetChain == whChainId)
-      revert InvalidChainId();
-
-    if (peer == bytes32(0))
-      revert PeerIsZeroAddress();
-
-    bytes32 bridgeContractOnPeerChain = tokenBridge.bridgeContracts(targetChain);
-    if (bridgeContractOnPeerChain == bytes32(0))
-      revert ChainNoSupportedByTokenBridge(targetChain);
-
-    ChainData storage data = tbrChainState(targetChain);
-    bool isAlreadyPeer = data.peers[peer];
+    ChainData storage state = tbrChainState(targetChain);
+    bool isAlreadyPeer = state.peers[peer];
     if (!isAlreadyPeer)
-      data.peers[peer] = true;
-
-    bytes32 currentCanonicalPeer = data.canonicalPeer;
-    if (currentCanonicalPeer != peer)
-      data.canonicalPeer = peer;
+      _addPeer(targetChain, peer);
+    else if (state.canonicalPeer != peer)
+      state.canonicalPeer = peer;
   }
 
   function _isChainSupported(uint16 targetChain) internal view returns (bool) {
@@ -182,7 +182,11 @@ abstract contract TbrBase is PriceOracleIntegration {
   }
 
   function _setBaseFee(uint16 targetChain, uint32 baseFee) internal {
-    tbrChainState(targetChain).baseFee = baseFee;
+    ChainData storage state = tbrChainState(targetChain);
+    if (state.canonicalPeer == bytes32(0)) {
+      revert ChainIsNotRegistered(targetChain);
+    }
+    state.baseFee = baseFee;
   }
 
   function _getMaxGasDropoff(uint16 targetChain) internal view returns (uint32) {
@@ -190,7 +194,11 @@ abstract contract TbrBase is PriceOracleIntegration {
   }
 
   function _setMaxGasDropoff(uint16 targetChain, uint32 maxGasDropoff) internal {
-    tbrChainState(targetChain).maxGasDropoff = maxGasDropoff;
+    ChainData storage state = tbrChainState(targetChain);
+    if (state.canonicalPeer == bytes32(0)) {
+      revert ChainIsNotRegistered(targetChain);
+    }
+    state.maxGasDropoff = maxGasDropoff;
   }
 
   /**
@@ -204,7 +212,11 @@ abstract contract TbrBase is PriceOracleIntegration {
    * @notice Set outbound transfers for a given chain
    */
   function _setPause(uint16 targetChain, bool paused) internal {
-    tbrChainState(targetChain).paused = paused;
+    ChainData storage state = tbrChainState(targetChain);
+    if (state.canonicalPeer == bytes32(0)) {
+      revert ChainIsNotRegistered(targetChain);
+    }
+    state.paused = paused;
   }
 
   function _transferEth(address to, uint256 amount) internal {

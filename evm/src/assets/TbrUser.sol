@@ -7,7 +7,7 @@ import {BytesParsing} from "wormhole-sdk/libraries/BytesParsing.sol";
 import {fromUniversalAddress, reRevert} from "wormhole-sdk/Utils.sol";
 import {IWETH} from "wormhole-sdk/interfaces/token/IWETH.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IERC20Permit} from "@openzeppelin/token/ERC20/extensions/IERC20Permit.sol";
 import {ISignatureTransfer, IAllowanceTransfer} from "permit2/IPermit2.sol";
 import {TRANSFER_TOKEN_WITH_RELAY_ID, TRANSFER_GAS_TOKEN_WITH_RELAY_ID, COMPLETE_TRANSFER_ID, RELAY_FEE_ID, BASE_RELAYING_CONFIG_ID} from "./TbrIds.sol";
@@ -22,11 +22,55 @@ uint8 constant ACQUIRE_PERMIT2PERMIT = 3;
 
 // How many accounts are created by a relay on Solana.
 // Chosen by fair dice roll.
-// TODO: measure this.
-uint8 constant SOLANA_RELAY_SPAWNED_ACCOUNTS = 4;
+// TODO: double check this.
+uint8 constant SOLANA_RELAY_SPAWNED_ACCOUNTS = 3; //signatureSet, PostedVAA, ATA
 // Size of all accounts created during a relay to Solana.
-// TODO: measure this.
-uint32 constant SOLANA_RELAY_TOTAL_SIZE = 1000;
+// TODO: double check this.
+uint32 constant SOLANA_RELAY_TOTAL_SIZE =
+  //signatureSet
+  // see here: https://github.com/wormhole-foundation/wormhole/blob/91ec4d1dc01f8b690f0492815407505fb4587520/solana/bridge/program/src/accounts/signature_set.rs#L17
+   4 + //signatureSet vec length
+  19 + //signatureSet bool vec for 19 guardians
+  32 + //vaa hash
+   4 + //guardianSet
+  //PostedVAA
+  // see here: https://github.com/wormhole-foundation/wormhole/blob/91ec4d1dc01f8b690f0492815407505fb4587520/solana/bridge/program/src/accounts/posted_vaa.rs#L39
+  // and here: https://github.com/wormhole-foundation/wormhole/blob/91ec4d1dc01f8b690f0492815407505fb4587520/solana/bridge/program/src/accounts/posted_message.rs#L46
+  // and here: https://github.com/wormhole-foundation/wormhole/blob/91ec4d1dc01f8b690f0492815407505fb4587520/solana/modules/token_bridge/program/src/messages.rs#L175
+   3 +//discriminator
+   1 + //vaa version
+   1 + //consistency level
+   4 + //vaa timestamp
+  32 + //signature account address
+   4 + //submission_time (waste)
+   4 + //nonce
+   8 + //sequence
+   2 + //emitterChain
+   4 + //payload vec length
+   1 + //payload id
+  32 + //token amount
+  32 + //token origin address
+   2 + //token origin chain
+  32 + //token bridge recipient address
+   2 + //recipient chain
+  32 + //from(=peer) address
+   1 + //tbrv3 version
+  32 + //recipient address
+   4 + //gas dropoff
+   1 + //unwrap intent*/ +
+  //ATA (should sum up to 165)
+  // see here https://github.com/solana-labs/solana-program-library/blob/6d92f4537a8dc278285abd66d93e7d49caaca0c5/token/program/src/state.rs#L89
+  32 + //associated mint
+  32 + //owner
+   8 + //amount
+   4 + //COption prefix (0 or 1, 4 bytes, waste) - see https://github.com/solana-labs/solana-program-library/blob/6d92f4537a8dc278285abd66d93e7d49caaca0c5/token/program/src/state.rs#L267
+  32 + //delegate COption<Pubkey>
+   1 + //account state enum
+   4 + //COoption prefix 
+   8 + //is_native COption<u64>
+   8 + //delegated amount
+   4 + //COoption prefix 
+  32; //close authority COption<Pubkey>
 
 // Gas cost of a single `complete transfer` method execution.
 // TODO: measure this.
@@ -112,16 +156,16 @@ abstract contract TbrUser is TbrBase {
     address rawToken; bool unwrapIntent;
     (rawToken,     offset) = data.asAddressCdUnchecked(offset);
     (unwrapIntent, offset) = data.asBoolCdUnchecked(offset);
-    IERC20 token = IERC20(rawToken);
+    IERC20Metadata token = IERC20Metadata(rawToken);
     offset = _acquireTokens(data, offset, token, tokenAmount);
     
-    (bytes32 peer, uint256 fee, uint256 wormholeFee) =
-      _getAndCheckTransferParams(targetChain, recipient, tokenAmount, gasDropoff, commandIndex);
+    (bytes32 peer, uint256 finalTokenAmount, uint256 fee, uint256 wormholeFee) =
+      _getAndCheckTransferParams(targetChain, recipient, token, tokenAmount, gasDropoff, commandIndex);
 
     if (fee + wormholeFee > unallocatedBalance)
       revert FeesInsufficient(msg.value, commandIndex);
 
-    _bridgeOut(token, targetChain, peer, recipient, tokenAmount, gasDropoff, wormholeFee, fee, unwrapIntent);
+    _bridgeOut(token, targetChain, peer, recipient, finalTokenAmount, gasDropoff, unwrapIntent, fee, wormholeFee);
 
     // Return the fee that must be sent to the fee recipient.
     // TODO: should we return the sequence to the caller too?
@@ -141,22 +185,22 @@ abstract contract TbrUser is TbrBase {
     uint16 targetChain; bytes32 recipient; uint32 gasDropoff; uint256 tokenAmount;
     (targetChain, recipient, gasDropoff, tokenAmount, offset) = _parseSharedParams(data, offset);
 
-    (bytes32 peer, uint256 fee, uint256 wormholeFee) =
-      _getAndCheckTransferParams(targetChain, recipient, tokenAmount, gasDropoff, commandIndex);
+    (bytes32 peer, uint256 finalTokenAmount, uint256 fee, uint256 wormholeFee) =
+      _getAndCheckTransferParams(targetChain, recipient, IERC20Metadata(address(gasToken)), tokenAmount, gasDropoff, commandIndex);
 
-    if (fee + tokenAmount + wormholeFee > unallocatedBalance)
+    if (fee + finalTokenAmount + wormholeFee > unallocatedBalance)
       revert FeesInsufficient(msg.value, commandIndex);
 
     // Tokenize
     // Celo provides an ERC20 interface for its native token that doesn't require retokenization.
     if (gasErc20TokenizationIsExplicit)
-      gasToken.deposit{value: tokenAmount}();
+      gasToken.deposit{value: finalTokenAmount}();
 
-    IERC20 token = IERC20(address(gasToken));
-    _bridgeOut(token, targetChain, peer, recipient, tokenAmount, gasDropoff, wormholeFee, fee, false);
+    IERC20Metadata token = IERC20Metadata(address(gasToken));
+    _bridgeOut(token, targetChain, peer, recipient, finalTokenAmount, gasDropoff, false, fee, wormholeFee);
 
     // Return the fee that must be sent to the fee recipient.
-    return (fee, tokenAmount + wormholeFee, offset);
+    return (fee, finalTokenAmount + wormholeFee, offset);
   }
 
   function _parseSharedParams(
@@ -180,7 +224,7 @@ abstract contract TbrUser is TbrBase {
   function _acquireTokens(
     bytes calldata data,
     uint offset,
-    IERC20 token,
+    IERC20Metadata token,
     uint256 tokenAmount
   ) internal returns (uint) {
     // Acquire tokens
@@ -248,10 +292,11 @@ abstract contract TbrUser is TbrBase {
   function _getAndCheckTransferParams(
     uint16 targetChain,
     bytes32 recipient,
+    IERC20Metadata token,
     uint256 tokenAmount,
     uint32 gasDropoff,
     uint commandIndex
-  ) internal view returns (bytes32, uint256, uint256) {
+  ) internal view returns (bytes32, uint256, uint256, uint256) {
     (bytes32 peer, uint32 baseFee, uint32 maxGasDropoff, bool paused, bool txSizeSensitive) =
       _getTargetChainData(targetChain);
 
@@ -267,13 +312,31 @@ abstract contract TbrUser is TbrBase {
     if (recipient == bytes32(0))
       revert InvalidTokenRecipient();
 
-    if (tokenAmount == 0)
+    uint8 decimals = token.decimals();
+    uint256 cleanedTokenAmount = deNormalizeAmount(normalizeAmount(tokenAmount, decimals), decimals);
+
+    if (cleanedTokenAmount == 0)
       revert InvalidTokenAmount();
 
-    (uint256 fee, uint256 wormholeFee) = _quoteRelay(targetChain, gasDropoff, baseFee, txSizeSensitive);
+    (uint256 fee, uint256 wormholeFee) =
+      _quoteRelay(targetChain, gasDropoff, baseFee, txSizeSensitive);
 
-    return (peer, fee, wormholeFee);
+    return (peer, cleanedTokenAmount, fee, wormholeFee);
   }
+
+  function normalizeAmount(uint256 amount, uint8 decimals) internal pure returns(uint256) { unchecked {
+    if (decimals > 8) {
+      amount /= 10 ** (decimals - 8);
+    }
+    return amount;
+  }}
+
+  function deNormalizeAmount(uint256 amount, uint8 decimals) internal pure returns(uint256) { unchecked {
+    if (decimals > 8) {
+      amount *= 10 ** (decimals - 8);
+    }
+    return amount;
+  }}
 
   /**
    * @return fee in gas tokens with 18 decimals (i.e. wei)
@@ -313,19 +376,20 @@ abstract contract TbrUser is TbrBase {
   }
 
   function _bridgeOut(
-    IERC20 token,
+    IERC20Metadata token,
     uint16 targetChain,
     bytes32 peer,
     bytes32 recipient,
     uint256 tokenAmount,
     uint32 gasDropoff,
-    uint256 wormholeFee,
+    bool unwrapIntent,
     uint256 fee,
-    bool unwrapIntent
+    uint256 wormholeFee
   ) private {
     bytes memory tbrMessage = _tbrv3Message(recipient, gasDropoff, unwrapIntent);
+    // TODO: move this to a separate instruction.
+    SafeERC20.forceApprove(token, address(tokenBridge), type(uint256).max);
     // Perform call to token bridge.
-    SafeERC20.safeApprove(token, address(tokenBridge), tokenAmount);
     uint64 sequence = tokenBridge.transferTokensWithPayload{value: wormholeFee}(
       address(token),
       tokenAmount,
@@ -356,10 +420,6 @@ abstract contract TbrUser is TbrBase {
     );
   }
 
-  /**
-   * Redeems a TB transfer VAA.
-   * Gas dropoff is reported to dispatcher so that any excedent can be refunded to the sender.
-   */
   function _completeTransfer(
     bytes calldata data,
     uint offset,
@@ -389,10 +449,9 @@ abstract contract TbrUser is TbrBase {
     // Some tokens might implement distributed supply expansion / contraction. Doing the above would let us support those.
 
     // Perform redeem in TB
-    // TODO: ignore return value? The gas savings might be very low.
     tokenBridge.completeTransferWithPayload(vaa);
 
-    IERC20 token = IERC20(tokenBridge.wrappedAsset(tokenOriginChain, tokenOriginAddress));
+    IERC20Metadata token = IERC20Metadata(tokenBridge.wrappedAsset(tokenOriginChain, tokenOriginAddress));
 
     // If an unwrap is desired, unwrap and call recipient with full amount
     uint totalGasTokenAmount = gasDropoff;

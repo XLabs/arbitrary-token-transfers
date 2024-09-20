@@ -43,3 +43,6 @@ target/*
 !target/idl/
 !target/types/
 .anchor/
+
+# keys
+verification-api-keys.json

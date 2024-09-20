@@ -2,12 +2,29 @@ import { chainToPlatform, FixedLengthArray, Layout, layout, LayoutItem, LayoutTo
 import { layoutItems, serialize, toNative, UniversalAddress, VAA } from "@wormhole-foundation/sdk-definitions";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
 import { ethers } from "ethers";
-import { baseRelayingConfigReturnLayout, commandCategoryLayout, evmAddressItem, execParamsLayout, gasDropoffItem, GovernanceCommand, GovernanceQuery, proxyConstructorLayout, queryCategoryLayout, queryParamsLayout, relayingFeesInputLayout, relayingFeesReturnLayout, SupportedChains, TBRv3Message, transferGasTokenWithRelayLayout, transferTokenWithRelayLayout } from "./layouts.js";
+import {
+  baseRelayingConfigReturnLayout,
+  commandCategoryLayout,
+  evmAddressItem,
+  execParamsLayout,
+  gasDropoffItem,
+  GovernanceCommand,
+  GovernanceQuery,
+  proxyConstructorLayout,
+  queryCategoryLayout,
+  queryParamsLayout,
+  relayingFeesInputLayout,
+  relayingFeesReturnLayout,
+  SupportedChains,
+  TBRv3Message,
+  transferGasTokenWithRelayLayout,
+  transferTokenWithRelayLayout,
+  RelayingFee,
+  RelayingFeesReturn,
+  BaseRelayingParamsReturn,
+} from "./layouts.js";
 
 const WHOLE_EVM_GAS_TOKEN_UNITS = 10 ** 18;
-
-type RelayingFeesReturn = LayoutToType<typeof relayingFeesReturnLayout>;
-type BaseRelayingParamsReturn = LayoutToType<typeof baseRelayingConfigReturnLayout>;
 
 
 type FixedArray<T extends Layout> = {
@@ -95,7 +112,7 @@ export interface Transfer {
    * Increasing this estimation won't affect the actual cost.
    * Excedent gas tokens will be returned to the caller of the contract.
    */
-  feeEstimation: RelayingFeesReturn;
+  feeEstimation: RelayingFee;
   args: TransferTokenWithRelayInput | TransferGasTokenWithRelayInput;
 };
 
@@ -199,7 +216,7 @@ export class Tbrv3 {
    * Each relay needs to be passed in as a separate argument.
    * The result is a list of quotes for the relays in the same order as they were passed in.
    */
-  async relayingFee(...args: RelayingFeesInput[]): Promise<readonly RelayingFeesReturn[]> {
+  async relayingFee(...args: RelayingFeesInput[]): Promise<RelayingFeesReturn> {
     if (args.length === 0) {
       throw new Error("At least one relay fee query should be specified.");
     }
@@ -224,7 +241,7 @@ export class Tbrv3 {
     return decodeQueryResponseLayout(relayingFeesReturnListLayout, ethers.getBytes(result));
   }
 
-  async baseRelayingParams(...chains: SupportedChains[]): Promise<readonly BaseRelayingParamsReturn[]> {
+  async baseRelayingParams(...chains: SupportedChains[]): Promise<BaseRelayingParamsReturn> {
     const queries = layout.serializeLayout(queryParamsLayout, {
       version: 0,
       queryCategories: chains.map((targetChain) => ({
@@ -266,8 +283,10 @@ export class Tbrv3 {
     ));
   }
 
-  updateRelayFee(chain: SupportedChains, fee: number): TbrPartialTx {
-    return this.governanceTx([{ command: "UpdateBaseFee", chain, value: fee }]);
+  updateRelayFees(fees: Map<SupportedChains, number>): TbrPartialTx {
+    return this.governanceTx(Array.from(fees).map(
+      ([chain, maxDropoff]) => ({ command: "UpdateBaseFee", value: maxDropoff, chain: chain as SupportedChains })
+    )); 
   }
 
   updateAdmin(authorized: boolean, admin: EvmAddress): TbrPartialTx {
@@ -309,6 +328,7 @@ export class Tbrv3 {
 
     return result;
   }
+
 
   async relayFee(chain: SupportedChains) {
     const result = await this.governanceQuery([{ query: "BaseFee", chain }]);

@@ -5,14 +5,12 @@ import { ChainConfig, ChainInfo, ContractsJson, Dependencies, DependenciesConfig
 import { getSigner } from "./evm.js";
 // TODO: support different env files
 import 'dotenv/config';
-import { ChainId, Token, contracts as connectDependencies, toChain } from "@wormhole-foundation/sdk-base";
-import { getTokensBySymbol } from "@wormhole-foundation/sdk-base/tokens";
+import { ChainId, contracts as connectDependencies, toChain } from "@wormhole-foundation/sdk-base";
 
 export const env = getEnv("ENV");
 export const contracts = loadContracts();
 export const dependencies = loadDependencies();
 export const ecosystemChains = loadEcosystem();
-export const verificationApiKeys = loadVerificationApiKeys();
 
 function loadJson<T>(filename: string): T {
   const fileContent = fs.readFileSync(
@@ -34,8 +32,16 @@ function loadEcosystem(): Ecosystem {
   return loadJson<Ecosystem>("ecosystem");
 }
 
-function loadVerificationApiKeys() {
+export function loadVerificationApiKeys() {
   return loadJson<VerificationApiKeys[]>("verification-api-keys");
+}
+
+export function getEnvOrDefault(env: string, defaultValue: string): string {
+  try{
+    return getEnv(env);
+  }catch(e){
+    return defaultValue;
+  }
 }
 
 export function getEnv(env: string): string {
@@ -154,6 +160,20 @@ export function getDeploymentArgs(contractName: string, whChainId: ChainId): Unc
   }
 
   return constructorArgs;
+}
+
+/**
+ * @param currentOperatingChain: the chain that the script is running on
+ * @returns peers: evm proxies and solana program
+ */
+export function loadTbrPeers(currentOperatingChain: ChainInfo) {
+  const deployedTbrv3s = contracts["TbrV3Proxies"].filter((tbr) => tbr.chainId !== currentOperatingChain.chainId);
+  const solana = contracts["TbrV3"].find((tbr) => tbr.chainId === 1);
+  if (solana) {
+    deployedTbrv3s.push(solana);
+  }
+
+  return deployedTbrv3s;
 }
 
 export function writeDeployedContract(whChainId: ChainId, contractName: string, address: string, constructorArgs: UncheckedConstructorArgs ) {

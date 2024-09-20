@@ -36,12 +36,14 @@ abstract contract TbrDispatcher is RawDispatcher, TbrGovernance, TbrUser {
 
       if (command == TRANSFER_TOKEN_WITH_RELAY_ID) {
         uint256 fee; uint256 gasTokenSent;
-        (fee, gasTokenSent, offset) = _transferTokenWithRelay(data, offset, senderRefund, commandIndex);
+        (fee, gasTokenSent, offset) =
+          _transferTokenWithRelay(data, offset, senderRefund, commandIndex);
         fees += fee;
         senderRefund -= fee + gasTokenSent;
       } else if (command == TRANSFER_GAS_TOKEN_WITH_RELAY_ID) {
         uint256 fee; uint256 gasTokenSent;
-        (fee, gasTokenSent, offset) = _transferGasTokenWithRelay(data, offset, senderRefund, commandIndex);
+        (fee, gasTokenSent, offset) =
+          _transferGasTokenWithRelay(data, offset, senderRefund, commandIndex);
         fees += fee;
         senderRefund -= fee + gasTokenSent;
       } else if (command == COMPLETE_TRANSFER_ID) {
@@ -51,6 +53,8 @@ abstract contract TbrDispatcher is RawDispatcher, TbrGovernance, TbrUser {
       }
       else if (command == GOVERNANCE_ID)
         offset = _batchGovernanceCommands(data, offset);
+      else if (command == ACQUIRE_OWNERSHIP_ID)
+        _acquireOwnership();
       else
         revert InvalidCommand(command, commandIndex);
 
