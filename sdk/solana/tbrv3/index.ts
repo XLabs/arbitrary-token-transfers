@@ -517,47 +517,33 @@ export class SolanaTokenBridgeRelayer {
 
 const chainSeed = (chain: Chain) => encoding.bignum.toBytes(chainToChainId(chain), 2);
 const pda = {
-  tbrConfig: (programId: PublicKey): PublicKey => {
-    return PublicKey.findProgramAddressSync([Buffer.from('config')], programId)[0];
-  },
+  tbrConfig: (programId: PublicKey) =>
+    PublicKey.findProgramAddressSync([Buffer.from('config')], programId)[0],
 
-  peer: (programId: PublicKey, chain: Chain, peerAddress: UniversalAddress): PublicKey => {
-    return PublicKey.findProgramAddressSync(
+  peer: (programId: PublicKey, chain: Chain, peerAddress: UniversalAddress) =>
+    PublicKey.findProgramAddressSync(
       [Buffer.from('peer'), chainSeed(chain), peerAddress.toUint8Array()],
       programId,
-    )[0];
-  },
+    )[0],
 
-  chainConfig: (programId: PublicKey, chain: Chain): PublicKey => {
-    return PublicKey.findProgramAddressSync(
-      [Buffer.from('chainconfig'), chainSeed(chain)],
-      programId,
-    )[0];
-  },
+  chainConfig: (programId: PublicKey, chain: Chain) =>
+    PublicKey.findProgramAddressSync([Buffer.from('chainconfig'), chainSeed(chain)], programId)[0],
 
-  signerSequence: (programId: PublicKey, signer: PublicKey): PublicKey => {
-    return PublicKey.findProgramAddressSync([Buffer.from('seq'), signer.toBuffer()], programId)[0];
-  },
+  signerSequence: (programId: PublicKey, signer: PublicKey) =>
+    PublicKey.findProgramAddressSync([Buffer.from('seq'), signer.toBuffer()], programId)[0],
 
-  admin: (programId: PublicKey, admin: PublicKey): PublicKey => {
-    return PublicKey.findProgramAddressSync([Buffer.from('admin'), admin.toBuffer()], programId)[0];
-  },
+  admin: (programId: PublicKey, admin: PublicKey) =>
+    PublicKey.findProgramAddressSync([Buffer.from('admin'), admin.toBuffer()], programId)[0],
 
   // Internal:
 
-  temporary: (programId: PublicKey, mint: PublicKey): PublicKey => {
-    return PublicKey.findProgramAddressSync([Buffer.from('tmp'), mint.toBuffer()], programId)[0];
-  },
+  temporary: (programId: PublicKey, mint: PublicKey) =>
+    PublicKey.findProgramAddressSync([Buffer.from('tmp'), mint.toBuffer()], programId)[0],
 
-  vaa: (programId: PublicKey, vaaHash: Uint8Array): PublicKey => {
-    return PublicKey.findProgramAddressSync([Buffer.from('PostedVAA'), vaaHash], programId)[0];
-  },
+  vaa: (programId: PublicKey, vaaHash: Uint8Array) =>
+    PublicKey.findProgramAddressSync([Buffer.from('PostedVAA'), vaaHash], programId)[0],
 
-  wormholeMessage: (
-    programId: PublicKey,
-    payer: PublicKey,
-    payerSequence: anchor.BN,
-  ): PublicKey => {
+  wormholeMessage: (programId: PublicKey, payer: PublicKey, payerSequence: anchor.BN) => {
     const buf = Buffer.alloc(8);
 
     buf.writeBigInt64BE(BigInt(payerSequence.toString()), 0);
