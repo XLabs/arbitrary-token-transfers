@@ -19,18 +19,13 @@ import { SolanaPriceOracleClient } from '@xlabs/solana-price-oracle-sdk';
 
 import { TokenBridgeRelayer } from './idl/token_bridge_relayer.js';
 import IDL from '../../../target/idl/token_bridge_relayer.json' with { type: 'json' };
-import { deserializeTbrV3Message } from 'common-arbitrary-token-transfer';
+import { deserializeTbrV3Message, VaaMessage } from 'common-arbitrary-token-transfer';
 
 // Export IDL
 export * from './idl/token_bridge_relayer.js';
 export const idl = IDL;
 export { SolanaPriceOracleClient } from '@xlabs/solana-price-oracle-sdk';
-
-/**
- * 32 bytes.
- */
-// TODO: is this intentional?
-export type VaaMessage = VAA<'TokenBridge:TransferWithPayload'>;
+export type { VaaMessage } from 'common-arbitrary-token-transfer';
 
 export interface WormholeAddress {
   chain: Chain;
