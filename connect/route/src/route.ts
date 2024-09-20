@@ -17,7 +17,7 @@ import {
   TransferState,
   Wormhole,
 } from "@wormhole-foundation/sdk-connect";
-import { toNative } from "@wormhole-foundation/sdk-definitions";
+import { TokenAddress, toNative } from "@wormhole-foundation/sdk-definitions";
 import "@xlabs-xyz/arbitrary-token-transfers-definitions";
 import { SupportedChains, tokenBridgeRelayerV3Chains, AcquireMode } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
 

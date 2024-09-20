@@ -8,6 +8,10 @@ export const supportedChainItem = layoutItems.chainItem({allowedChains: supporte
 
 export type SupportedChains = typeof supportedChains[number];
 
+export function isSupportedChain(chain: Chain): chain is SupportedChains {
+  return supportedChains.includes(chain);
+}
+
 const peerChainItem = {
   name: "chain", ...layoutItems.chainItem({ allowedChains: supportedChains }) 
 } as const satisfies NamedLayoutItem;

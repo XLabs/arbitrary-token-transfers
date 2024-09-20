@@ -1,9 +1,9 @@
-import { encoding, Network } from "@wormhole-foundation/sdk-base";
+import { decimals, encoding, Network } from "@wormhole-foundation/sdk-base";
 import { ChainsConfig, Contracts, isNative, VAA } from "@wormhole-foundation/sdk-definitions";
 import '@wormhole-foundation/sdk-evm';
 import { EvmChains, EvmPlatform, EvmPlatformType, EvmUnsignedTransaction } from "@wormhole-foundation/sdk-evm";
-import { AcquireMode, AutomaticTokenBridgeV3, RelayingFee, RelayingFeesParams, tokenBridgeRelayerV3Chains, tokenBridgeRelayerV3Contracts, TransferParams } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
-import { BaseRelayingParams, BaseRelayingParamsReturn, RelayingFeesReturn, SupportedChains, Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
+import { AcquireMode, AutomaticTokenBridgeV3, isSupportedChain, RelayingFee, RelayingFeesParams, tokenBridgeRelayerV3Contracts, TransferParams } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
+import { BaseRelayingParams, SupportedChains, Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
 import { Provider } from "ethers";
 
 const WHOLE_EVM_GAS_TOKEN_UNITS = 1e18;
@@ -51,23 +51,24 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
     const acquireTx = await this.acquire(params);
     if (acquireTx) yield acquireTx;
 
-    if (tokenBridgeRelayerV3Chains.has(params.recipient.chain)) throw new Error(`Unsupported destination chain ${params.recipient.chain}`);
+    const recipientChain = params.recipient.chain;
+    if (isSupportedChain(recipientChain)) throw new Error(`Unsupported destination chain ${recipientChain}`);
 
     // convert the fee and gas dropoff back from wei to eth
-    // TODO: find a better way in order to avoid precision issues
+    // TODO: find a better way in order to avoid precision issues (use sdk amount)
     const fee = Number(params.fee || 0) / WHOLE_EVM_GAS_TOKEN_UNITS;
-    const gasDropoff = Number(params.gasDropOff?.amount || 0) / WHOLE_EVM_GAS_TOKEN_UNITS;
+    const gasDropoff = Number(params.gasDropOff?.amount || 0) / this.getChainWholeUnit(recipientChain);
 
     const transferParams = await this.tbr.transferWithRelay({
       args: {
-        method: isNative(params.token) ? 'TransferGasTokenWithRelay' : 'TransferTokenWithRelay',
+        method: isNative(params.token.address) ? 'TransferGasTokenWithRelay' : 'TransferTokenWithRelay',
         acquireMode: params.acquireMode,
         gasDropoff,
         inputAmountInAtomic: params.amount,
         inputToken: params.token.address.toString(),
         recipient: {
           address: params.recipient.address.toUniversalAddress(),
-          chain: params.recipient.chain as any, // TODO: fix supported chain types
+          chain: recipientChain,
         },
         unwrapIntent: true // TODO: receive as option/param?
       },
@@ -95,13 +96,18 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
   async acquire(
     transfer: EvmTransferParams<C>
   ): Promise<EvmUnsignedTransaction<N, C> | void> {
+    const tokenAddress = transfer.token.address;
+    if (isNative(tokenAddress)) {
+      return;
+    }
+
     const mode = transfer.acquireMode;
 
     switch (mode.mode) {
       case 'Preapproved':
         const token = EvmPlatform.getTokenImplementation(
           this.provider,
-          transfer.token.address.toString()
+          tokenAddress.toNative(this.chain).toString()
         );
         const allowance = await token.allowance(
           transfer.sender.toString(),
@@ -144,14 +150,19 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
     );
   }
 
+  private getChainWholeUnit(chain: SupportedChains): number {
+    const destinationDecimals = decimals.nativeDecimals.get(chain);
+    if (!destinationDecimals) throw new Error(`Decimals not defined for chain ${chain}`);
+    return 10 ** destinationDecimals;
+  }
+
   async relayingFee(args: RelayingFeesParams): Promise<RelayingFee> {
     const [{ fee: rawFee, isPaused }] = await this.tbr.relayingFee({
       ...args,
-      gasDropoff: Number(args.gasDropoff) / WHOLE_EVM_GAS_TOKEN_UNITS
+      gasDropoff: Number(args.gasDropoff) / this.getChainWholeUnit(args.targetChain),
     });
 
     // convert from eth to wei since the ui needs it in base units
-    // TODO: find a better way in order to avoid precision issues
     const fee = BigInt(Math.floor(rawFee * WHOLE_EVM_GAS_TOKEN_UNITS))
 
     return {
