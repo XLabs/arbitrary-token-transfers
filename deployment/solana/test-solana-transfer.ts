@@ -1,7 +1,11 @@
-import { SolanaTokenBridgeRelayer } from '@xlabs-xyz/solana-arbitrary-token-transfers';
+import {
+  SolanaTokenBridgeRelayer,
+  TransferNativeParameters,
+  TransferWrappedParameters,
+} from '@xlabs-xyz/solana-arbitrary-token-transfers';
 import { dependencies, evm, getEnv, LoggerFn, SolanaChainInfo, getEnvOrDefault } from '../helpers';
 import { getConnection, ledgerSignAndSend, runOnSolana, SolanaSigner } from '../helpers/solana';
-import { PublicKey } from '@solana/web3.js';
+import { PublicKey, TransactionInstruction } from '@solana/web3.js';
 import { toUniversal } from '@wormhole-foundation/sdk-definitions';
 import { Chain } from '@wormhole-foundation/sdk-base';
 import * as anchor from '@coral-xyz/anchor';
@@ -48,6 +52,7 @@ async function sendTestTransaction(
   const mint = new PublicKey(getEnv('TRANSFER_MINT'));
   const tokenAccount = new PublicKey(getEnv('TRANSFER_TOKEN_ACCOUNT'));
   const maxFeeSol = new BN(getEnvOrDefault('MAX_FEE_SOL', '5000'));
+  const isSendingWrappedTokensEnabled = getEnvOrDefault('SEND_WRAPPED_TOKENS', 'false') === 'true';
 
   console.log({
     sourceChain: 'Solana',
@@ -81,19 +86,41 @@ async function sendTestTransaction(
       );
 
       const evmAddress = getEnv('RECIPIENT_EVM_ADDRESS');
+      const maxFeeKlamports = new BN(getEnvOrDefault('MAX_FEE_KLAMPORTS', '5000000'));
 
-      const params = {
-        recipientChain: targetChain.name as Chain,
-        recipientAddress: toUniversal(targetChain.name as Chain, evmAddress).toUint8Array(),
-        mint: new PublicKey(getEnv('TRANSFER_MINT')),
-        tokenAccount: new PublicKey(getEnv('TRANSFER_TOKEN_ACCOUNT')),
-        transferredAmount,
-        gasDropoffAmount,
-        maxFeeKlamports: new BN(getEnvOrDefault('MAX_FEE_KLAMPORTS', '5000000')),
-        unwrapIntent,
-      };
+      let transferIx: TransactionInstruction;
 
-      const transferIx = await tbr.transferNativeTokens(signerKey, params);
+      if (isSendingWrappedTokensEnabled) {
+        const tokenChain = getEnvOrDefault('TOKEN_CHAIN', 'Solana') as Chain;
+        const params = {
+          recipientChain: targetChain.name as Chain,
+          recipientAddress: toUniversal(targetChain.name as Chain, evmAddress).toUint8Array(),
+          userTokenAccount: new PublicKey(getEnv('TRANSFER_TOKEN_ACCOUNT')),
+          transferredAmount,
+          gasDropoffAmount,
+          maxFeeKlamports,
+          unwrapIntent,
+          token: {
+            chain: tokenChain,
+            address: toUniversal(tokenChain, getEnv('TRANSFER_MINT')),
+          },
+        } satisfies TransferWrappedParameters;
+
+        transferIx = await tbr.transferWrappedTokens(signerKey, params);
+      } else {
+        const params = {
+          recipientChain: targetChain.name as Chain,
+          recipientAddress: toUniversal(targetChain.name as Chain, evmAddress).toUint8Array(),
+          mint: new PublicKey(getEnv('TRANSFER_MINT')),
+          tokenAccount: new PublicKey(getEnv('TRANSFER_TOKEN_ACCOUNT')),
+          transferredAmount,
+          gasDropoffAmount,
+          maxFeeKlamports,
+          unwrapIntent,
+        } satisfies TransferNativeParameters;
+
+        transferIx = await tbr.transferNativeTokens(signerKey, params);
+      }
 
       const txSignature = await ledgerSignAndSend(connection, [transferIx], []);
       log(`Transaction sent: ${txSignature}`);

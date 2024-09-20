@@ -3,11 +3,10 @@ import {
   EvmChainInfo,
   getContractAddress,
   getEnv,
-  getEnvOrDefault,
   LoggerFn,
 } from '../helpers';
 import { ethers } from 'ethers';
-import { getProvider, getSigner, runOnEvms, sendTx } from '../helpers/evm';
+import { getProvider, runOnEvms, sendTx } from '../helpers/evm';
 import { SupportedChains, Tbrv3, Transfer } from '@xlabs-xyz/evm-arbitrary-token-transfers';
 import { toUniversal } from '@wormhole-foundation/sdk-definitions';
 import { Chain, chainToPlatform } from '@wormhole-foundation/sdk-base';
