@@ -90,6 +90,8 @@ pub fn confirm_owner_transfer_request(ctx: Context<ConfirmOwnerTransfer>) -> Res
     tbr_config.owner = ctx.accounts.new_owner.key();
     tbr_config.pending_owner = None;
 
+    ctx.accounts.new_owner_badge.bump = ctx.bumps.new_owner_badge;
+
     Ok(())
 }
 

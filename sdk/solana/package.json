@@ -16,7 +16,8 @@
     "ts-build"
   ],
   "scripts": {
-    "build": "tsc --noEmit -p ./tsconfig.json && tsup",
+    "build:ts": "tsc --noEmit -p ./tsconfig.json && tsup",
+    "build": "yarn run build:ts",
     "prettier": "prettier --write ."
   },
   "dependencies": {

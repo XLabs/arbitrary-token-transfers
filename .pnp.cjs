@@ -5457,6 +5457,7 @@ const RAW_RUNTIME_STATE =
           ["@types/chai", "npm:4.3.19"],\
           ["@types/mocha", "npm:8.2.3"],\
           ["@wormhole-foundation/sdk-base", "npm:0.10.7"],\
+          ["@wormhole-foundation/sdk-definitions", "npm:0.10.7"],\
           ["@wormhole-foundation/sdk-solana-core", "npm:0.10.7"],\
           ["@wormhole-foundation/sdk-solana-tokenbridge", "npm:0.10.7"],\
           ["@xlabs-xyz/solana-arbitrary-token-transfers", "workspace:sdk/solana"],\

@@ -1,4 +1,6 @@
 import anchor from '@coral-xyz/anchor';
+import { chainToChainId } from '@wormhole-foundation/sdk-base';
+import { UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import { PublicKey, SendTransactionError, Transaction } from '@solana/web3.js';
 import {
   assertResolveFailure,
@@ -9,12 +11,14 @@ import {
   assertEqChainConfigs,
 } from './utils/helpers.js';
 import { TbrWrapper, TokenBridgeWrapper, WormholeCoreWrapper } from './utils/client-wrapper.js';
-import { SolanaPriceOracleClient } from '@xlabs-xyz/solana-arbitrary-token-transfers';
+import { SolanaPriceOracleClient, uaToArray } from '@xlabs-xyz/solana-arbitrary-token-transfers';
 import { wormholeProgramId, tokenBridgeProgramId } from './utils/helpers.js';
 import { expect } from 'chai';
 
 const ETHEREUM = 'Ethereum';
+const ETHEREUM_ID = chainToChainId(ETHEREUM);
 const OASIS = 'Oasis';
+const OASIS_ID = chainToChainId(OASIS);
 
 describe('Token Bridge Relayer Program', () => {
   const clients = (['owner', 'owner', 'admin', 'admin', 'regular'] as const).map(
@@ -43,17 +47,14 @@ describe('Token Bridge Relayer Program', () => {
   const evmTransactionGas = new anchor.BN(321000);
   const evmTransactionSize = new anchor.BN(654000);
 
-  const ethereumPeer1 = Buffer.from(
-    'e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1',
-    'hex',
+  const ethereumPeer1 = new UniversalAddress(
+    Buffer.from('e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1', 'hex'),
   );
-  const ethereumPeer2 = Buffer.from(
-    'e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2',
-    'hex',
+  const ethereumPeer2 = new UniversalAddress(
+    Buffer.from('e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2', 'hex'),
   );
-  const oasisPeer = Buffer.from(
-    '0A51533333333333333333333333333333333333333333333333333333333333',
-    'hex',
+  const oasisPeer = new UniversalAddress(
+    Buffer.from('0A51533333333333333333333333333333333333333333333333333333333333', 'hex'),
   );
 
   before(async () => {
@@ -159,44 +160,44 @@ describe('Token Bridge Relayer Program', () => {
     it('Registers peers', async () => {
       await newOwnerClient.registerPeer(ETHEREUM, ethereumPeer1);
       assertEqChainConfigs(await unauthorizedClient.read.chainConfig(ETHEREUM), {
-        canonicalPeer: Array.from(ethereumPeer1),
+        canonicalPeer: uaToArray(ethereumPeer1),
         maxGasDropoffMicroToken: 0,
         pausedOutboundTransfers: true,
         relayerFeeMicroUsd: 0,
       });
-      expect(await unauthorizedClient.read.peer(ETHEREUM, ethereumPeer1)).deep.equal({
-        chain: ETHEREUM,
-        address: Array.from(ethereumPeer1),
+      expect(await unauthorizedClient.read.peer(ETHEREUM, ethereumPeer1)).deep.include({
+        chain: ETHEREUM_ID,
+        address: uaToArray(ethereumPeer1),
       });
 
       await adminClient1.registerPeer(ETHEREUM, ethereumPeer2);
       assertEqChainConfigs(await unauthorizedClient.read.chainConfig(ETHEREUM), {
-        canonicalPeer: Array.from(ethereumPeer1),
+        canonicalPeer: uaToArray(ethereumPeer1),
         maxGasDropoffMicroToken: 0,
         pausedOutboundTransfers: true,
         relayerFeeMicroUsd: 0,
       });
-      expect(await unauthorizedClient.read.peer(ETHEREUM, ethereumPeer2)).deep.equal({
-        chain: ETHEREUM,
-        address: Array.from(ethereumPeer2),
+      expect(await unauthorizedClient.read.peer(ETHEREUM, ethereumPeer2)).deep.include({
+        chain: ETHEREUM_ID,
+        address: uaToArray(ethereumPeer2),
       });
 
       await adminClient1.registerPeer(OASIS, oasisPeer);
       assertEqChainConfigs(await unauthorizedClient.read.chainConfig(OASIS), {
-        canonicalPeer: Array.from(oasisPeer),
+        canonicalPeer: uaToArray(oasisPeer),
         maxGasDropoffMicroToken: 0,
         pausedOutboundTransfers: true,
         relayerFeeMicroUsd: 0,
       });
       assertEqChainConfigs(await unauthorizedClient.read.chainConfig(ETHEREUM), {
-        canonicalPeer: Array.from(ethereumPeer1),
+        canonicalPeer: uaToArray(ethereumPeer1),
         maxGasDropoffMicroToken: 0,
         pausedOutboundTransfers: true,
         relayerFeeMicroUsd: 0,
       });
-      expect(await unauthorizedClient.read.peer(OASIS, oasisPeer)).deep.equal({
-        chain: OASIS,
-        address: Array.from(oasisPeer),
+      expect(await unauthorizedClient.read.peer(OASIS, oasisPeer)).deep.include({
+        chain: OASIS_ID,
+        address: uaToArray(oasisPeer),
       });
     });
 
@@ -204,7 +205,7 @@ describe('Token Bridge Relayer Program', () => {
       await newOwnerClient.updateCanonicalPeer(ETHEREUM, ethereumPeer2);
 
       assertEqChainConfigs(await unauthorizedClient.read.chainConfig(ETHEREUM), {
-        canonicalPeer: Array.from(ethereumPeer2),
+        canonicalPeer: uaToArray(ethereumPeer2),
         maxGasDropoffMicroToken: 0,
         pausedOutboundTransfers: true,
         relayerFeeMicroUsd: 0,
@@ -228,7 +229,10 @@ describe('Token Bridge Relayer Program', () => {
     it('Does not let unauthorized signers register or update a peer', async () => {
       // Unauthorized cannot register a peer:
       await assertResolveFailure(
-        unauthorizedClient.registerPeer(ETHEREUM, PublicKey.unique().toBuffer()),
+        unauthorizedClient.registerPeer(
+          ETHEREUM,
+          new UniversalAddress(PublicKey.unique().toBuffer()),
+        ),
         SendTransactionError,
       );
 
@@ -251,7 +255,7 @@ describe('Token Bridge Relayer Program', () => {
       ]);
 
       assertEqChainConfigs(await unauthorizedClient.read.chainConfig(ETHEREUM), {
-        canonicalPeer: Array.from(ethereumPeer2),
+        canonicalPeer: uaToArray(ethereumPeer2),
         maxGasDropoffMicroToken,
         pausedOutboundTransfers: false,
         relayerFeeMicroUsd,
