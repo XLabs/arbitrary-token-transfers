@@ -4,7 +4,6 @@ import { Chain } from '@wormhole-foundation/sdk-base';
 import { UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import {
   SolanaTokenBridgeRelayer,
-  ReadTbrAccounts,
   TransferNativeParameters,
   TransferWrappedParameters,
   VaaMessage,
@@ -42,7 +41,7 @@ export class TbrWrapper {
     return this.provider.publicKey;
   }
 
-  get read(): ReadTbrAccounts {
+  get read() {
     return this.client.read;
   }
 

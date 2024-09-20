@@ -8,7 +8,7 @@ import {
 } from '@solana/web3.js';
 import * as borsh from 'borsh';
 import { Chain, chainToChainId, encoding } from '@wormhole-foundation/sdk-base';
-import { VAA, UniversalAddress } from '@wormhole-foundation/sdk-definitions';
+import { UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import {
   getTransferNativeWithPayloadCpiAccounts,
   getTransferWrappedWithPayloadCpiAccounts,
@@ -58,22 +58,6 @@ export type PeerAccount = anchor.IdlAccounts<TokenBridgeRelayer>['peerState'];
 export type SignerSequenceAccount = anchor.IdlAccounts<TokenBridgeRelayer>['signerSequenceState'];
 export type AdminAccount = anchor.IdlAccounts<TokenBridgeRelayer>['adminState'];
 
-export interface TbrAddresses {
-  config(): PublicKey;
-  chainConfig(chain: Chain): PublicKey;
-  peer(chain: Chain, peerAddress: UniversalAddress): PublicKey;
-  signerSequence(signer: PublicKey): PublicKey;
-  adminBadge(signer: PublicKey): PublicKey;
-}
-
-export interface ReadTbrAccounts {
-  config(): Promise<TbrConfigAccount>;
-  chainConfig(chain: Chain): Promise<ChainConfigAccount>;
-  peer(chain: Chain, peerAddress: UniversalAddress): Promise<PeerAccount>;
-  signerSequence(signer: PublicKey): Promise<SignerSequenceAccount>;
-  adminBadge(signer: PublicKey): Promise<AdminAccount>;
-}
-
 /**
  * Transforms a `UniversalAddress` into an array of numbers `number[]`.
  */
@@ -102,7 +86,7 @@ export class SolanaTokenBridgeRelayer {
     return this.program.provider.connection;
   }
 
-  get address(): TbrAddresses {
+  get address() {
     return {
       config: () => pda.tbrConfig(this.program.programId),
       chainConfig: (chain: Chain) => pda.chainConfig(this.program.programId, chain),
@@ -113,7 +97,7 @@ export class SolanaTokenBridgeRelayer {
     };
   }
 
-  get read(): ReadTbrAccounts {
+  get read() {
     return {
       config: () => this.program.account.tbrConfigState.fetch(this.address.config()),
       chainConfig: (chain: Chain) =>
