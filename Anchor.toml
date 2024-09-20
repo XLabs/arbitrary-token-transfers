@@ -10,18 +10,22 @@ skip-lint = true
 
 [programs.localnet]
 token_bridge_relayer = "AttbEYJMSsnVRDcKY4AcX1GBcdPy9FzHcxTbKaMGGuLs"
+solana_price_oracle = "ATqjh2vkjogyVUUNmXQssQZNSFGgSA7Tm6P1UzEUg85s"
 
-[[test.genesis]]
-address = "ATqjh2vkjogyVUUNmXQssQZNSFGgSA7Tm6P1UzEUg85s" # Mainnet in lib.rs
-program = "solana/tests/solana_price_oracle.so"
+# [[test.genesis]]
+# address = "ATqjh2vkjogyVUUNmXQssQZNSFGgSA7Tm6P1UzEUg85s" # Mainnet in lib.rs
+# program = "lib/relayer-infra-contracts/src/solana/target/deploy/solana_price_oracle.so"
 
-[[test.genesis]]
-address = "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth" # Mainnet in lib.rs
-program = "solana/tests/bridge.so"                      # Wormhole Core program
+# [test]
+# startup_wait = 8000
 
-[[test.genesis]]
-address = "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb" # Mainnet in lib.rs
-program = "solana/tests/token_bridge.so"
+# [[test.genesis]]
+# address = "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth" # Mainnet in lib.rs
+# program = "solana/tests/bridge.so"                      # Wormhole Core program
+#
+# [[test.genesis]]
+# address = "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb" # Mainnet in lib.rs
+# program = "solana/tests/token_bridge.so"
 
 [registry]
 url = "https://api.apr.dev"
