@@ -37,7 +37,10 @@ export async function assertResolveFailure(
   throw new Error(`Did not fail. Result: ${result}`);
 }
 
-export function assertEqChainConfigs(left: ChainConfigAccount, right: ChainConfigAccount) {
+export function assertEqChainConfigs(
+  left: ChainConfigAccount,
+  right: Omit<ChainConfigAccount, 'bump'>,
+) {
   expect(Buffer.from(left.canonicalPeer).toString('hex')).equal(
     Buffer.from(right.canonicalPeer).toString('hex'),
   );
