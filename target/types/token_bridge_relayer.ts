@@ -670,7 +670,6 @@ export type TokenBridgeRelayer = {
         },
         {
           "name": "wormholeSender",
-          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -689,7 +688,6 @@ export type TokenBridgeRelayer = {
         },
         {
           "name": "wormholeRedeemer",
-          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -2199,32 +2197,6 @@ export type TokenBridgeRelayer = {
       ]
     },
     {
-      "name": "redeemerState",
-      "discriminator": [
-        196,
-        153,
-        54,
-        42,
-        174,
-        180,
-        3,
-        16
-      ]
-    },
-    {
-      "name": "senderState",
-      "discriminator": [
-        15,
-        38,
-        72,
-        105,
-        206,
-        169,
-        147,
-        163
-      ]
-    },
-    {
       "name": "signerSequenceState",
       "discriminator": [
         38,
@@ -2337,11 +2309,16 @@ export type TokenBridgeRelayer = {
     {
       "name": "adminState",
       "docs": [
-        "A peer chain. Nothing is stored in it for now."
+        "A badge indicating that an admin account is authorized."
       ],
       "type": {
         "kind": "struct",
-        "fields": []
+        "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
       }
     },
     {
@@ -2369,15 +2346,19 @@ export type TokenBridgeRelayer = {
             "type": "u32"
           },
           {
-            "name": "pausedOutboundTransfers",
-            "type": "bool"
-          },
-          {
             "name": "relayerFeeMicroUsd",
             "docs": [
               "The fee for the relayer, in μUSD."
             ],
             "type": "u32"
+          },
+          {
+            "name": "pausedOutboundTransfers",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
           }
         ]
       }
@@ -2423,10 +2404,6 @@ export type TokenBridgeRelayer = {
         "kind": "struct",
         "fields": [
           {
-            "name": "chain",
-            "type": "u16"
-          },
-          {
             "name": "address",
             "type": {
               "array": [
@@ -2434,6 +2411,14 @@ export type TokenBridgeRelayer = {
                 32
               ]
             }
+          },
+          {
+            "name": "chain",
+            "type": "u16"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
           }
         ]
       }
@@ -2487,26 +2472,6 @@ export type TokenBridgeRelayer = {
       }
     },
     {
-      "name": "redeemerState",
-      "docs": [
-        "Empty account. Exists only because the Wormhole program expects it."
-      ],
-      "type": {
-        "kind": "struct",
-        "fields": []
-      }
-    },
-    {
-      "name": "senderState",
-      "docs": [
-        "Empty account. Exists only because the Wormhole program expects it."
-      ],
-      "type": {
-        "kind": "struct",
-        "fields": []
-      }
-    },
-    {
       "name": "signerSequenceState",
       "docs": [
         "Adds a number to a user's message PDA seed, so that a different account is",
@@ -2557,6 +2522,18 @@ export type TokenBridgeRelayer = {
           {
             "name": "evmTransactionSize",
             "type": "u64"
+          },
+          {
+            "name": "senderBump",
+            "type": "u8"
+          },
+          {
+            "name": "redeemerBump",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
           }
         ]
       }

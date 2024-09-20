@@ -13,6 +13,10 @@ pub struct TbrConfigState {
 
     pub evm_transaction_gas: u64,
     pub evm_transaction_size: u64,
+
+    pub sender_bump: u8,
+    pub redeemer_bump: u8,
+    pub bump: u8,
 }
 
 impl TbrConfigState {
@@ -36,5 +40,5 @@ impl TbrConfigState {
     ///
     /// It has to stay with that value because that is what the token-bridge is
     /// looking for.
-    pub const SEED_PREFIX: &'static [u8; 6] = b"config";
+    pub const SEED_PREFIX: &'static [u8] = b"config";
 }

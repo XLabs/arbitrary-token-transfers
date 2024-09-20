@@ -34,10 +34,10 @@ describe('Token Bridge Relayer Program', () => {
   const oracleOwnerClient = new SolanaPriceOracleClient(oracleOwner.connection);
 
   const wormholeCoreOwner = newProvider();
-  const wormholeCoreClient = new WormholeCoreWrapper(wormholeCoreOwner);
+  //const wormholeCoreClient = new WormholeCoreWrapper(wormholeCoreOwner);
 
   const tokenBridgeOwner = newProvider();
-  const tokenBridgeClient = new TokenBridgeWrapper(tokenBridgeOwner);
+  //const tokenBridgeClient = new TokenBridgeWrapper(tokenBridgeOwner);
 
   const feeRecipient = PublicKey.unique();
   const evmTransactionGas = new anchor.BN(321000);
@@ -78,7 +78,7 @@ describe('Token Bridge Relayer Program', () => {
 
     // Wormhole Core Setup
     // ===================
-    await wormholeCoreClient.initialize();
+    //await wormholeCoreClient.initialize();
   });
 
   after(async () => {

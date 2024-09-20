@@ -19,7 +19,7 @@ pub struct QuoteQuery<'info> {
     /// This program's config.
     #[account(
         seeds = [TbrConfigState::SEED_PREFIX],
-        bump
+        bump = tbr_config.bump
     )]
     pub tbr_config: Box<Account<'info, TbrConfigState>>,
 
@@ -30,7 +30,7 @@ pub struct QuoteQuery<'info> {
             ChainConfigState::SEED_PREFIX,
             chain_id.to_be_bytes().as_ref(),
         ],
-        bump
+        bump = chain_config.bump
     )]
     pub chain_config: Box<Account<'info, ChainConfigState>>,
 

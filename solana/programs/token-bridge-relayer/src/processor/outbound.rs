@@ -2,7 +2,7 @@ use crate::{
     constant::{SEED_PREFIX_BRIDGED, SEED_PREFIX_TEMPORARY},
     error::{TokenBridgeRelayerError, TokenBridgeRelayerResult},
     message::RelayerMessage,
-    state::{ChainConfigState, SenderState, SignerSequenceState, TbrConfigState},
+    state::{ChainConfigState, SignerSequenceState, TbrConfigState},
     utils::{calculate_total_fee, create_native_check},
 };
 use anchor_lang::prelude::*;
@@ -35,7 +35,7 @@ pub struct OutboundTransfer<'info> {
     #[account(
         has_one = fee_recipient @ TokenBridgeRelayerError::WrongFeeRecipient,
         seeds = [TbrConfigState::SEED_PREFIX],
-        bump
+        bump = tbr_config.bump
     )]
     pub tbr_config: Box<Account<'info, TbrConfigState>>,
 
@@ -46,7 +46,7 @@ pub struct OutboundTransfer<'info> {
             ChainConfigState::SEED_PREFIX,
             recipient_chain.to_be_bytes().as_ref(),
         ],
-        bump
+        bump = chain_config.bump
     )]
     pub chain_config: Box<Account<'info, ChainConfigState>>,
 
@@ -161,10 +161,10 @@ pub struct OutboundTransfer<'info> {
     pub wormhole_message: AccountInfo<'info>,
 
     #[account(
-        seeds = [SenderState::SEED_PREFIX],
-        bump
+        seeds = [token_bridge::SEED_PREFIX_SENDER],
+        bump = tbr_config.sender_bump,
     )]
-    pub wormhole_sender: Account<'info, SenderState>,
+    pub wormhole_sender: UncheckedAccount<'info>,
 
     #[account(mut)]
     /// CHECK: Wormhole fee collector. Mutable.
@@ -202,7 +202,7 @@ pub fn transfer_tokens(
 
     let tbr_config_seeds = &[
         TbrConfigState::SEED_PREFIX.as_ref(),
-        &[ctx.bumps.tbr_config],
+        &[ctx.accounts.tbr_config.bump],
     ];
     let message_seeds = &[
         SEED_PREFIX_BRIDGED,
@@ -211,8 +211,8 @@ pub fn transfer_tokens(
         &[ctx.bumps.wormhole_message],
     ];
     let sender_seeds = &[
-        SenderState::SEED_PREFIX.as_ref(),
-        &[ctx.bumps.wormhole_sender],
+        token_bridge::SEED_PREFIX_SENDER.as_ref(),
+        &[ctx.accounts.tbr_config.sender_bump],
     ];
 
     let total_fees_klam = calculate_total_fee(

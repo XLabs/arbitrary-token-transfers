@@ -664,7 +664,6 @@
         },
         {
           "name": "wormhole_sender",
-          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -683,7 +682,6 @@
         },
         {
           "name": "wormhole_redeemer",
-          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -2193,32 +2191,6 @@
       ]
     },
     {
-      "name": "RedeemerState",
-      "discriminator": [
-        196,
-        153,
-        54,
-        42,
-        174,
-        180,
-        3,
-        16
-      ]
-    },
-    {
-      "name": "SenderState",
-      "discriminator": [
-        15,
-        38,
-        72,
-        105,
-        206,
-        169,
-        147,
-        163
-      ]
-    },
-    {
       "name": "SignerSequenceState",
       "discriminator": [
         38,
@@ -2331,11 +2303,16 @@
     {
       "name": "AdminState",
       "docs": [
-        "A peer chain. Nothing is stored in it for now."
+        "A badge indicating that an admin account is authorized."
       ],
       "type": {
         "kind": "struct",
-        "fields": []
+        "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
       }
     },
     {
@@ -2363,15 +2340,19 @@
             "type": "u32"
           },
           {
-            "name": "paused_outbound_transfers",
-            "type": "bool"
-          },
-          {
             "name": "relayer_fee_micro_usd",
             "docs": [
               "The fee for the relayer, in μUSD."
             ],
             "type": "u32"
+          },
+          {
+            "name": "paused_outbound_transfers",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
           }
         ]
       }
@@ -2417,10 +2398,6 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "chain",
-            "type": "u16"
-          },
-          {
             "name": "address",
             "type": {
               "array": [
@@ -2428,6 +2405,14 @@
                 32
               ]
             }
+          },
+          {
+            "name": "chain",
+            "type": "u16"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
           }
         ]
       }
@@ -2481,26 +2466,6 @@
       }
     },
     {
-      "name": "RedeemerState",
-      "docs": [
-        "Empty account. Exists only because the Wormhole program expects it."
-      ],
-      "type": {
-        "kind": "struct",
-        "fields": []
-      }
-    },
-    {
-      "name": "SenderState",
-      "docs": [
-        "Empty account. Exists only because the Wormhole program expects it."
-      ],
-      "type": {
-        "kind": "struct",
-        "fields": []
-      }
-    },
-    {
       "name": "SignerSequenceState",
       "docs": [
         "Adds a number to a user's message PDA seed, so that a different account is",
@@ -2551,6 +2516,18 @@
           {
             "name": "evm_transaction_size",
             "type": "u64"
+          },
+          {
+            "name": "sender_bump",
+            "type": "u8"
+          },
+          {
+            "name": "redeemer_bump",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
           }
         ]
       }

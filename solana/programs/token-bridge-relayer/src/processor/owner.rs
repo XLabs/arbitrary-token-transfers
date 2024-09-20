@@ -17,7 +17,7 @@ pub struct SubmitOwnerTransfer<'info> {
         mut,
         has_one = owner @ TokenBridgeRelayerError::OwnerOnly,
         seeds = [TbrConfigState::SEED_PREFIX],
-        bump
+        bump = tbr_config.bump
     )]
     pub tbr_config: Account<'info, TbrConfigState>,
 }
@@ -61,7 +61,7 @@ pub struct ConfirmOwnerTransfer<'info> {
         mut,
         close = previous_owner,
         seeds = [AdminState::SEED_PREFIX, previous_owner.key.to_bytes().as_ref()],
-        bump
+        bump = previous_owner_badge_to_delete.bump
     )]
     pub previous_owner_badge_to_delete: Account<'info, AdminState>,
 
@@ -71,7 +71,7 @@ pub struct ConfirmOwnerTransfer<'info> {
     #[account(
         mut,
         seeds = [TbrConfigState::SEED_PREFIX],
-        bump
+        bump = tbr_config.bump
     )]
     pub tbr_config: Account<'info, TbrConfigState>,
 
@@ -104,7 +104,7 @@ pub struct CancelOwnerTransfer<'info> {
         mut,
         has_one = owner @ TokenBridgeRelayerError::OwnerOnly,
         seeds = [TbrConfigState::SEED_PREFIX],
-        bump
+        bump = tbr_config.bump
     )]
     pub tbr_config: Account<'info, TbrConfigState>,
 }

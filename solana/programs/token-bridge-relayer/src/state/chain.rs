@@ -5,8 +5,9 @@ use anchor_lang::prelude::*;
 #[account]
 #[derive(InitSpace)]
 pub struct PeerState {
-    pub chain: u16,
     pub address: [u8; 32],
+    pub chain: u16,
+    pub bump: u8,
 }
 
 /// The config for a single chain.
@@ -16,14 +17,15 @@ pub struct ChainConfigState {
     pub canonical_peer: [u8; 32],
     /// The maximum amount of target token the user can ask a dropoff for, in µ-target-token.
     pub max_gas_dropoff_micro_token: u32,
-    pub paused_outbound_transfers: bool,
     /// The fee for the relayer, in μUSD.
     pub relayer_fee_micro_usd: u32,
+    pub paused_outbound_transfers: bool,
+    pub bump: u8,
 }
 
 impl PeerState {
     /// Value `b"peer"`.
-    pub const SEED_PREFIX: &'static [u8; 4] = b"peer";
+    pub const SEED_PREFIX: &'static [u8] = b"peer";
 }
 
 impl ChainConfigState {
@@ -42,7 +44,7 @@ impl ChainConfigState {
     }
 
     /// Value `b"chainconfig"`.
-    pub const SEED_PREFIX: &'static [u8; 11] = b"chainconfig";
+    pub const SEED_PREFIX: &'static [u8] = b"chainconfig";
 }
 
 impl PeerState {

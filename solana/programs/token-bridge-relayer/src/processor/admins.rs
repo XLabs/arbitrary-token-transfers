@@ -18,7 +18,7 @@ pub struct AddAdmin<'info> {
     #[account(
         has_one = owner @ TokenBridgeRelayerError::OwnerOnly,
         seeds = [TbrConfigState::SEED_PREFIX],
-        bump
+        bump = tbr_config.bump
     )]
     pub tbr_config: Account<'info, TbrConfigState>,
 
@@ -34,9 +34,9 @@ pub struct AddAdmin<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn add_admin(_ctx: Context<AddAdmin>, _new_admin: Pubkey) -> Result<()> {
-    // Nothing to do. The owner authorization is called as a constraint,
-    // and the account is allocated.
+pub fn add_admin(ctx: Context<AddAdmin>, _new_admin: Pubkey) -> Result<()> {
+    ctx.accounts.admin_badge.bump = ctx.bumps.admin_badge;
+
     Ok(())
 }
 
@@ -52,7 +52,7 @@ pub struct RemoveAdmin<'info> {
     /// If the signer is an admin, prove it with this PDA.
     #[account(
     seeds = [AdminState::SEED_PREFIX, signer.key.to_bytes().as_ref()],
-    bump
+    bump = admin_badge.bump
 )]
     pub admin_badge: Option<Account<'info, AdminState>>,
 
@@ -60,7 +60,7 @@ pub struct RemoveAdmin<'info> {
     /// in the context equals the owner role stored in the config.
     #[account(
         seeds = [TbrConfigState::SEED_PREFIX],
-        bump
+        bump = tbr_config.bump
     )]
     pub tbr_config: Account<'info, TbrConfigState>,
 
@@ -68,7 +68,7 @@ pub struct RemoveAdmin<'info> {
         mut,
         close = signer,
         seeds = [AdminState::SEED_PREFIX, admin_to_be_removed.to_bytes().as_ref()],
-        bump
+        bump = admin_badge_to_be_removed.bump
     )]
     pub admin_badge_to_be_removed: Account<'info, AdminState>,
 }

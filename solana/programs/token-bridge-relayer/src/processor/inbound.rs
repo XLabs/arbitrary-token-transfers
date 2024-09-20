@@ -2,7 +2,7 @@ use crate::{
     constant::SEED_PREFIX_TEMPORARY,
     error::{TokenBridgeRelayerError, TokenBridgeRelayerResult},
     message::{PostedRelayerMessage, RelayerMessage},
-    state::{PeerState, RedeemerState, TbrConfigState},
+    state::{PeerState, TbrConfigState},
     utils::create_native_check,
 };
 use anchor_lang::{prelude::*, system_program};
@@ -23,7 +23,7 @@ pub struct CompleteTransfer<'info> {
     /// This program's config.
     #[account(
         seeds = [TbrConfigState::SEED_PREFIX],
-        bump
+        bump = tbr_config.bump
     )]
     pub tbr_config: Box<Account<'info, TbrConfigState>>,
 
@@ -147,10 +147,10 @@ pub struct CompleteTransfer<'info> {
     pub token_bridge_wrapped_meta: Option<UncheckedAccount<'info>>,
 
     #[account(
-        seeds = [RedeemerState::SEED_PREFIX],
-        bump
+        seeds = [token_bridge::SEED_PREFIX_REDEEMER],
+        bump = tbr_config.redeemer_bump
     )]
-    pub wormhole_redeemer: Account<'info, RedeemerState>,
+    pub wormhole_redeemer: UncheckedAccount<'info>,
 
     /* Programs */
     pub system_program: Program<'info, System>,
@@ -169,11 +169,11 @@ pub fn complete_transfer(ctx: Context<CompleteTransfer>) -> Result<()> {
 
     let tbr_config_seeds = &[
         TbrConfigState::SEED_PREFIX.as_ref(),
-        &[ctx.bumps.tbr_config],
+        &[ctx.accounts.tbr_config.bump],
     ];
     let redeemer_seeds = &[
-        RedeemerState::SEED_PREFIX.as_ref(),
-        &[ctx.bumps.wormhole_redeemer],
+        token_bridge::SEED_PREFIX_REDEEMER.as_ref(),
+        &[ctx.accounts.tbr_config.redeemer_bump],
     ];
 
     // The intended recipient must agree with the recipient account:
@@ -297,9 +297,8 @@ fn redeem_gas(ctx: &Context<CompleteTransfer>, gas_dropoff_amount: u32) -> Resul
     // Since it is transferred as Klamports, we need to convert it to lamports:
     let gas_dropoff_amount = u64::from(gas_dropoff_amount) * 1_000;
 
-    // Transfer lamports from the payer to the recipient if the
-    // gas_dropoff_amount is nonzero:
-    if gas_dropoff_amount > 0 {
+    // Transfer lamports from the payer to the recipient if any and if they're different accounts:
+    if gas_dropoff_amount > 0 && ctx.accounts.payer.key != ctx.accounts.recipient.key {
         anchor_lang::system_program::transfer(
             CpiContext::new(
                 ctx.accounts.system_program.to_account_info(),
