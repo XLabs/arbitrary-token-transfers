@@ -61,10 +61,8 @@ jobs:
           anchor build
         working-directory: ./solana
         shell: bash
-      - run: find . -maxdepth 10 -name '*price_oracle.so'
-      - run: cp ./solana/src/solana/target/deploy/solana_price_oracle.so ./solana/tests/
       - name: Run Solana SDK tests
         run: |
+          anchor run setup-test
           anchor test
-        working-directory: ./solana
         shell: bash
