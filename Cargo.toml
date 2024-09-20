@@ -1,6 +1,7 @@
 [workspace]
 members = [
-    "solana/programs/*"
+    "solana/programs/*",
+    "lib/relayer-infra-contracts/src/solana/programs/price-oracle"
 ]
 resolver = "2"
 
