@@ -3,9 +3,11 @@
   "scripts": {
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
-    "build:devnet": "anchor build -- --features solana-devnet && rm ../sdk/solana/tbrv3/idl/token_bridge_relayer.json && cp ../target/idl/token_bridge_relayer.json ../sdk/solana/tbrv3/idl && cp ../lib/relayer-infra-contracts/src/solana/target/deploy/solana_price_oracle.so ./tests/",
-    "build": "anchor build && rm ../sdk/solana/tbrv3/idl/token_bridge_relayer.json && cp ../target/idl/token_bridge_relayer.json ../sdk/solana/tbrv3/idl && cp ../lib/relayer-infra-contracts/src/solana/target/deploy/solana_price_oracle.so ./tests/",
-    "clean": "rm -rf ../target/idl ../target/types",
+    "build:devnet": "anchor build -- --features solana-devnet && rm ../sdk/solana/tbrv3/idl/token_bridge_relayer.json && cp ../target/idl/token_bridge_relayer.json ../sdk/solana/tbrv3/idl && yarn run build:ts",
+    "build": "anchor build && rm ../sdk/solana/tbrv3/idl/token_bridge_relayer.json && cp ../target/idl/token_bridge_relayer.json ../sdk/solana/tbrv3/idl && yarn run build:ts",
+    "build:ts": "yarn run tsc --project ./tsconfig.json",
+    "clean:ts": "rm -rf ts-build/",
+    "clean": "yarn run clean:ts && rm -rf ../target/idl ../target/types",
     "test": "anchor test"
   },
   "type": "module",
