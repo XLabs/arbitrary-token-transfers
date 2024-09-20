@@ -8,7 +8,7 @@
     "build:ts": "yarn run tsc --project ./tsconfig.json",
     "clean:ts": "rm -rf ts-build/",
     "clean": "yarn run clean:ts && rm -rf ../target/idl ../target/types",
-    "test": "anchor test"
+    "test": "anchor run setup-test && anchor test"
   },
   "type": "module",
   "dependencies": {

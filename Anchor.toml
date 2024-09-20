@@ -1,7 +1,7 @@
 [toolchain]
 
 [workspace]
-members = ["solana/programs/*", "lib/relayer-infra-contracts/src/solana/programs/price-oracle"]
+members = ["solana/programs/*"]
 types = "sdk/solana/tbrv3/idl"
 
 [features]
@@ -10,11 +10,10 @@ skip-lint = true
 
 [programs.localnet]
 token_bridge_relayer = "AttbEYJMSsnVRDcKY4AcX1GBcdPy9FzHcxTbKaMGGuLs"
-solana_price_oracle = "ATqjh2vkjogyVUUNmXQssQZNSFGgSA7Tm6P1UzEUg85s"
 
-# [[test.genesis]]
-# address = "ATqjh2vkjogyVUUNmXQssQZNSFGgSA7Tm6P1UzEUg85s" # Mainnet in lib.rs
-# program = "lib/relayer-infra-contracts/src/solana/target/deploy/solana_price_oracle.so"
+[[test.genesis]]
+address = "ATqjh2vkjogyVUUNmXQssQZNSFGgSA7Tm6P1UzEUg85s" # Mainnet in lib.rs
+program = "lib/relayer-infra-contracts/src/solana/target/sbf-solana-solana/release/solana_price_oracle.so"
 
 # [test]
 # startup_wait = 8000
@@ -35,5 +34,5 @@ cluster = "Localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
-#test = "cargo build --release --target sbf-solana-solana -p solana-price-oracle && yarn ./solana build && yarn run mocha -t 1000000 solana/ts-build/tests/*.js"
+setup-test = "cargo build-sbf -- -p solana-price-oracle"
 test = "yarn ./solana build && yarn run mocha -t 1000000 solana/ts-build/tests/*.js"
