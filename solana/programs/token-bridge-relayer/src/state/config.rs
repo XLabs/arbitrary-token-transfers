@@ -37,8 +37,5 @@ impl TbrConfigState {
     }
 
     /// Value `b"config"`.
-    ///
-    /// It has to stay with that value because that is what the token-bridge is
-    /// looking for.
     pub const SEED_PREFIX: &'static [u8] = b"config";
 }
