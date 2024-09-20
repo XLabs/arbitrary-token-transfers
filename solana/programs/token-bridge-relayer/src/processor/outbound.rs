@@ -2,7 +2,7 @@ use crate::{
     constant::{SEED_PREFIX_BRIDGED, SEED_PREFIX_TEMPORARY},
     error::{TokenBridgeRelayerError, TokenBridgeRelayerResult},
     message::RelayerMessage,
-    state::{ChainConfigState, SenderState, SignerSequenceState, TbrConfigState},
+    state::{ChainConfigState, SignerSequenceState, TbrConfigState},
     utils::{calculate_total_fee, create_native_check},
 };
 use anchor_lang::prelude::*;
@@ -35,7 +35,7 @@ pub struct OutboundTransfer<'info> {
     #[account(
         has_one = fee_recipient @ TokenBridgeRelayerError::WrongFeeRecipient,
         seeds = [TbrConfigState::SEED_PREFIX],
-        bump
+        bump = tbr_config.bump
     )]
     pub tbr_config: Box<Account<'info, TbrConfigState>>,
 
@@ -46,7 +46,7 @@ pub struct OutboundTransfer<'info> {
             ChainConfigState::SEED_PREFIX,
             recipient_chain.to_be_bytes().as_ref(),
         ],
-        bump
+        bump = chain_config.bump
     )]
     pub chain_config: Box<Account<'info, ChainConfigState>>,
 
@@ -161,10 +161,10 @@ pub struct OutboundTransfer<'info> {
     pub wormhole_message: AccountInfo<'info>,
 
     #[account(
-        seeds = [SenderState::SEED_PREFIX],
-        bump
+        seeds = [token_bridge::SEED_PREFIX_SENDER],
+        bump = tbr_config.sender_bump,
     )]
-    pub wormhole_sender: Account<'info, SenderState>,
+    pub wormhole_sender: UncheckedAccount<'info>,
 
     #[account(mut)]
     /// CHECK: Wormhole fee collector. Mutable.
@@ -200,10 +200,19 @@ pub fn transfer_tokens(
 ) -> Result<()> {
     ctx.accounts.chain_config.transfer_allowed()?;
 
-    // Seeds:
-    let config_seed = &[
+    let tbr_config_seeds = &[
         TbrConfigState::SEED_PREFIX.as_ref(),
-        &[ctx.bumps.tbr_config],
+        &[ctx.accounts.tbr_config.bump],
+    ];
+    let message_seeds = &[
+        SEED_PREFIX_BRIDGED,
+        ctx.accounts.payer.key.as_ref(),
+        &ctx.accounts.payer_sequence.take_and_uptick(),
+        &[ctx.bumps.wormhole_message],
+    ];
+    let sender_seeds = &[
+        token_bridge::SEED_PREFIX_SENDER.as_ref(),
+        &[ctx.accounts.tbr_config.sender_bump],
     ];
 
     let total_fees_klam = calculate_total_fee(
@@ -252,7 +261,7 @@ pub fn transfer_tokens(
                 delegate: ctx.accounts.token_bridge_authority_signer.to_account_info(),
                 authority: ctx.accounts.tbr_config.to_account_info(),
             },
-            &[config_seed],
+            &[tbr_config_seeds],
         ),
         transferred_amount,
     )?;
@@ -260,29 +269,14 @@ pub fn transfer_tokens(
     let relayer_message =
         RelayerMessage::new(recipient_address, dropoff_amount_micro, unwrap_intent);
 
-    let payer_sequence = ctx.accounts.payer_sequence.take_and_uptick();
-    let signer_seeds: [&[_]; 2] = [
-        // "bridged"
-        &[
-            SEED_PREFIX_BRIDGED,
-            ctx.accounts.payer.key.as_ref(),
-            &payer_sequence,
-            &[ctx.bumps.wormhole_message],
-        ],
-        // "sender"
-        &[
-            SenderState::SEED_PREFIX.as_ref(),
-            &[ctx.bumps.wormhole_sender],
-        ],
-    ];
-
     if is_native(&ctx)? {
         token_bridge_transfer_native(
             &mut ctx,
             transferred_amount,
             recipient_chain,
             &relayer_message,
-            &signer_seeds,
+            message_seeds,
+            sender_seeds,
         )?;
     } else {
         token_bridge_transfer_wrapped(
@@ -290,7 +284,9 @@ pub fn transfer_tokens(
             transferred_amount,
             recipient_chain,
             &relayer_message,
-            &signer_seeds,
+            tbr_config_seeds,
+            message_seeds,
+            sender_seeds,
         )?;
     }
 
@@ -302,35 +298,26 @@ pub fn transfer_tokens(
             destination: ctx.accounts.payer.to_account_info(),
             authority: ctx.accounts.tbr_config.to_account_info(),
         },
-        &[config_seed],
+        &[tbr_config_seeds],
     ))
 }
 
-fn normalize_amounts(
-    mint: &Account<Mint>,
-    transferred_amount: u64,
-    gas_dropoff_amount: u64,
-) -> Result<(u64, u32)> {
-    // Token Bridge program truncates amounts to 8 decimals, so there will
-    // be a residual amount if decimals of the SPL is >8. We need to take
-    // into account how much will actually be bridged:
-    let truncated_amount = token_bridge::truncate_amount(transferred_amount, mint.decimals);
-    require!(
-        truncated_amount > 0,
-        TokenBridgeRelayerError::ZeroBridgeAmount
-    );
+fn is_native(ctx: &Context<OutboundTransfer>) -> TokenBridgeRelayerResult<bool> {
+    let check_native = create_native_check(ctx.accounts.mint.mint_authority);
 
-    // Normalize the dropoff amount:
-    //FIXME: it should not be the mint decimals
-    let normalized_dropoff_amount = (gas_dropoff_amount / 1_000_000)
-        .try_into()
-        .map_err(|_| TokenBridgeRelayerError::Overflow)?;
-    require!(
-        gas_dropoff_amount == 0 || normalized_dropoff_amount > 0,
-        TokenBridgeRelayerError::InvalidToNativeAmount
-    );
-
-    Ok((truncated_amount, normalized_dropoff_amount))
+    match (
+        &ctx.accounts.token_bridge_wrapped_meta,
+        &ctx.accounts.token_bridge_custody,
+        &ctx.accounts.token_bridge_custody_signer,
+    ) {
+        (None, Some(_), Some(_)) => check_native(true),
+        (Some(_), None, None) => check_native(false),
+        _ => Err(TokenBridgeRelayerError::WronglySetOptionalAccounts),
+    }
+    .map_err(|e| {
+        msg!("Could not determine whether it is a native or wrapped transfer");
+        e
+    })
 }
 
 fn token_bridge_transfer_native(
@@ -338,7 +325,8 @@ fn token_bridge_transfer_native(
     transferred_amount: u64,
     recipient_chain: u16,
     relayer_message: &RelayerMessage,
-    signer_seeds: &[&[&[u8]]],
+    message_seeds: &[&[u8]],
+    sender_seeds: &[&[u8]],
 ) -> Result<()> {
     let token_bridge_custody = ctx
         .accounts
@@ -374,7 +362,7 @@ fn token_bridge_transfer_native(
                 token_program: ctx.accounts.token_program.to_account_info(),
                 wormhole_program: ctx.accounts.wormhole_program.to_account_info(),
             },
-            signer_seeds,
+            &[message_seeds, sender_seeds],
         ),
         0,
         transferred_amount,
@@ -390,7 +378,9 @@ fn token_bridge_transfer_wrapped(
     transferred_amount: u64,
     recipient_chain: u16,
     relayer_message: &RelayerMessage,
-    signer_seeds: &[&[&[u8]]],
+    tbr_config_seeds: &[&[u8]],
+    message_seeds: &[&[u8]],
+    sender_seeds: &[&[u8]],
 ) -> Result<()> {
     let token_bridge_wrapped_meta = ctx
         .accounts
@@ -421,7 +411,7 @@ fn token_bridge_transfer_wrapped(
                 token_program: ctx.accounts.token_program.to_account_info(),
                 wormhole_program: ctx.accounts.wormhole_program.to_account_info(),
             },
-            signer_seeds,
+            &[tbr_config_seeds, message_seeds, sender_seeds],
         ),
         0,
         transferred_amount,
@@ -430,22 +420,4 @@ fn token_bridge_transfer_wrapped(
         relayer_message.try_to_vec()?,
         &crate::ID,
     )
-}
-
-fn is_native(ctx: &Context<OutboundTransfer>) -> TokenBridgeRelayerResult<bool> {
-    let check_native = create_native_check(ctx.accounts.mint.mint_authority);
-
-    match (
-        &ctx.accounts.token_bridge_wrapped_meta,
-        &ctx.accounts.token_bridge_custody,
-        &ctx.accounts.token_bridge_custody_signer,
-    ) {
-        (None, Some(_), Some(_)) => check_native(true),
-        (Some(_), None, None) => check_native(false),
-        _ => Err(TokenBridgeRelayerError::WronglySetOptionalAccounts),
-    }
-    .map_err(|e| {
-        msg!("Could not determine whether it is a native or wrapped transfer");
-        e
-    })
 }

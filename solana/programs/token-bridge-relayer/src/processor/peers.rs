@@ -17,7 +17,7 @@ pub struct RegisterPeer<'info> {
     /// Proof that the signer is an admin or the owner.
     #[account(
         seeds = [AdminState::SEED_PREFIX, signer.key.to_bytes().as_ref()],
-        bump
+        bump = admin_badge.bump
     )]
     pub admin_badge: Account<'info, AdminState>,
 
@@ -25,7 +25,7 @@ pub struct RegisterPeer<'info> {
     /// in the context equals an authorized pubkey specified in this account.
     #[account(
         seeds = [TbrConfigState::SEED_PREFIX],
-        bump
+        bump = tbr_config.bump
     )]
     pub tbr_config: Account<'info, TbrConfigState>,
 
@@ -57,13 +57,24 @@ pub struct RegisterPeer<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn register_peer(ctx: Context<RegisterPeer>, peer_address: [u8; 32]) -> Result<()> {
+pub fn register_peer(
+    ctx: Context<RegisterPeer>,
+    chain_id: u16,
+    peer_address: [u8; 32],
+) -> Result<()> {
     // If it is the first peer for this chain, make it canonical:
     if ctx.accounts.chain_config.is_uninitialized() {
         let canonical_peer = &mut ctx.accounts.chain_config;
         canonical_peer.canonical_peer = peer_address;
         canonical_peer.paused_outbound_transfers = true;
+        canonical_peer.bump = ctx.bumps.chain_config;
     }
+
+    *ctx.accounts.peer = PeerState {
+        address: peer_address,
+        chain: chain_id,
+        bump: ctx.bumps.peer,
+    };
 
     Ok(())
 }
@@ -83,7 +94,7 @@ pub struct UpdateCanonicalPeer<'info> {
     #[account(
         has_one = owner @ TokenBridgeRelayerError::OwnerOnly,
         seeds = [TbrConfigState::SEED_PREFIX],
-        bump
+        bump = tbr_config.bump
     )]
     pub tbr_config: Account<'info, TbrConfigState>,
 
@@ -93,7 +104,7 @@ pub struct UpdateCanonicalPeer<'info> {
             chain_id.to_be_bytes().as_ref(),
             peer_address.as_ref(),
         ],
-        bump
+        bump = peer.bump
     )]
     pub peer: Account<'info, PeerState>,
 
@@ -103,7 +114,7 @@ pub struct UpdateCanonicalPeer<'info> {
             ChainConfigState::SEED_PREFIX,
             chain_id.to_be_bytes().as_ref(),
         ],
-        bump
+        bump = chain_config.bump
     )]
     pub chain_config: Account<'info, ChainConfigState>,
 

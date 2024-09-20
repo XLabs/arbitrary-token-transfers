@@ -24,17 +24,9 @@ pub(crate) enum TokenBridgeRelayerError {
     #[msg("AlreadyTheCanonicalPeer")]
     AlreadyTheCanonicalPeer,
 
-    /// Nothing to transfer if amount is zero.
-    #[msg("ZeroBridgeAmount")]
-    ZeroBridgeAmount,
-
     /// Fee exceed what the user has set as a maximum.
     #[msg("FeeExceedingMaximum")]
     FeeExceedingMaximum,
-
-    /// Must be strictly zero or nonzero when normalized.
-    #[msg("InvalidToNativeAmount")]
-    InvalidToNativeAmount,
 
     /// Deserialized recipient must be this program or the redeemer PDA.
     #[msg("InvalidTransferToAddress")]
@@ -44,17 +36,9 @@ pub(crate) enum TokenBridgeRelayerError {
     #[msg("InvalidTransferToChain")]
     InvalidTransferToChain,
 
-    /// Deserialized recipient chain is invalid.
-    #[msg("InvalidTransferTokenChain")]
-    InvalidTransferTokenChain,
-
     /// The fee recipient account is not the one that was configured.
     #[msg("WrongFeeRecipient")]
     WrongFeeRecipient,
-
-    /// A number cannot fit in the bytes it should fit in.
-    #[msg("Overflow")]
-    Overflow,
 
     /// The optional accounts are wrongly set. Accounts used only in native
     /// transfers cannot be mixed with accounts used only in wrapped transfers.
@@ -84,4 +68,8 @@ pub(crate) enum TokenBridgeRelayerError {
     /// Transfers are paused for this chain.
     #[msg("PausedTransfers")]
     PausedTransfers,
+
+    /// The peer sending the transfer is not the right one.
+    #[msg("InvalidSendingPeer")]
+    InvalidSendingPeer,
 }

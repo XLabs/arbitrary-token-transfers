@@ -77,10 +77,10 @@ pub mod token_bridge_relayer {
     /// Owner or Admin.
     pub fn register_peer(
         ctx: Context<RegisterPeer>,
-        _chain_id: u16,
+        chain_id: u16,
         peer_address: [u8; 32],
     ) -> Result<()> {
-        processor::register_peer(ctx, peer_address)
+        processor::register_peer(ctx, chain_id, peer_address)
     }
 
     /// Set a different peer as canonical.

@@ -22,6 +22,9 @@
   },
   "references": [
     {
+      "path": "./sdk/common/tsconfig.json"
+    },
+    {
       "path": "./sdk/evm/tsconfig.json"
     },
     {
