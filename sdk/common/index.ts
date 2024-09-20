@@ -1,12 +1,14 @@
-import { CustomConversion, Layout, layout, LayoutItem } from '@wormhole-foundation/sdk-base';
+import {
+  CustomConversion,
+  Layout,
+  layout,
+  LayoutItem,
+  LayoutToType,
+} from '@wormhole-foundation/sdk-base';
 import { layoutItems, UniversalAddress, VAA } from '@wormhole-foundation/sdk-definitions';
 
 export type VaaMessage = VAA<'TokenBridge:TransferWithPayload'>;
-export interface TbrV3Payload {
-  recipient: UniversalAddress;
-  gasDropoff: number;
-  unwrapIntent: boolean;
-}
+export type TbrV3Payload = LayoutToType<typeof TBRv3Message>;
 
 export function deserializeTbrV3Message(vaa: VaaMessage): TbrV3Payload {
   return layout.deserializeLayout(TBRv3Message, vaa.payload.payload);
