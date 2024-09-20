@@ -9,6 +9,7 @@ import { PublicKey, TransactionInstruction } from '@solana/web3.js';
 import { toUniversal } from '@wormhole-foundation/sdk-definitions';
 import { Chain } from '@wormhole-foundation/sdk-base';
 import * as anchor from '@coral-xyz/anchor';
+import { inspect } from 'util';
 
 const BN = anchor.BN;
 const processName = 'att-solana-test-transfer';
@@ -22,6 +23,7 @@ async function run() {
     const promises = uniqueTestTransfers.map(async (testTransfer) => {
       try {
         if (testTransfer.isExecuted) return;
+
         await sendTestTransaction(
           chain,
           signer,
@@ -31,7 +33,7 @@ async function run() {
           testTransfer.unwrapIntent === 'true',
         );
       } catch (error) {
-        console.error(`Error executing script for test: ${testTransfer.id}`, error);
+        console.error(`Error executing script for test: ${inspect(testTransfer)}`, error);
       }
     });
     await Promise.allSettled(promises);
@@ -133,28 +135,24 @@ run().then(() => console.log('Done!'));
 // In future we can configurable mint address
 const uniqueTestTransfers = [
   {
-    id: 1,
     transferredAmount: '1000',
     gasDropoffAmount: '0',
     unwrapIntent: 'false',
     isExecuted: false,
   },
   {
-    id: 2,
     transferredAmount: '1000',
     gasDropoffAmount: '0',
     unwrapIntent: 'true',
     isExecuted: false,
   },
   {
-    id: 3,
     transferredAmount: '1000',
     gasDropoffAmount: '10',
     unwrapIntent: 'false',
     isExecuted: false,
   },
   {
-    id: 4,
     transferredAmount: '1000',
     gasDropoffAmount: '10',
     unwrapIntent: 'true',
@@ -162,14 +160,12 @@ const uniqueTestTransfers = [
   },
   // check if below cases makes sense
   {
-    id: 5,
     transferredAmount: '0',
     gasDropoffAmount: '10',
     unwrapIntent: 'true',
     isExecuted: false,
   },
   {
-    id: 6,
     transferredAmount: '0',
     gasDropoffAmount: '10',
     unwrapIntent: 'false',

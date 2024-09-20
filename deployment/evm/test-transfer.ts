@@ -25,6 +25,7 @@ async function run() {
     const promises = uniqueTestTransfers.map(async (testTransfer) => {
       try {
         if (testTransfer.isExecuted) return;
+
         await sendTestTransaction(
           chain,
           signer,
@@ -34,7 +35,7 @@ async function run() {
           testTransfer.unwrapIntent === 'true',
         );
       } catch (error) {
-        console.error(`Error executing script for test: ${testTransfer.id}`, error);
+        console.error(`Error executing script for test: ${inspect(testTransfer)}`, error);
       }
     });
     await Promise.allSettled(promises);
@@ -64,10 +65,6 @@ async function sendTestTransaction(
     });
 
     console.log(`Operating chain: ${inspect(chain)}`);
-
-    if (!chain) {
-      throw new Error(`Unsupported chainId: ${chain}`);
-    }
 
     const tbrv3ProxyAddress = getContractAddress('TbrV3Proxies', chain.chainId);
     const provider = getProvider(chain);
@@ -163,28 +160,24 @@ run().then(() => console.log('Done!'));
 
 const uniqueTestTransfers = [
   {
-    id: 1,
     transferredAmount: '1000',
     gasDropoffAmount: '0',
     unwrapIntent: 'false',
     isExecuted: false,
   },
   {
-    id: 2,
     transferredAmount: '1000',
     gasDropoffAmount: '0',
     unwrapIntent: 'true',
     isExecuted: false,
   },
   {
-    id: 3,
     transferredAmount: '1000',
     gasDropoffAmount: '10',
     unwrapIntent: 'false',
     isExecuted: false,
   },
   {
-    id: 4,
     transferredAmount: '1000',
     gasDropoffAmount: '10',
     unwrapIntent: 'true',
@@ -192,14 +185,12 @@ const uniqueTestTransfers = [
   },
   // check if below cases makes sense
   {
-    id: 5,
     transferredAmount: '0',
     gasDropoffAmount: '10',
     unwrapIntent: 'true',
     isExecuted: false,
   },
   {
-    id: 6,
     transferredAmount: '0',
     gasDropoffAmount: '10',
     unwrapIntent: 'false',
