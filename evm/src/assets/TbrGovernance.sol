@@ -76,10 +76,6 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
       isOwner = true;
     else if (_isAdmin(msg.sender))
       isOwner = false;
-    else if (msg.sender == state.pendingOwner) {
-      _updateRole(Role.Owner, msg.sender);
-      isOwner = true;
-    }
     else
       revert NotAuthorized();
 
@@ -260,6 +256,14 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
 
   function _isAdmin(address admin) internal view returns (bool) {
     return governanceState().admins[admin];
+  }
+
+  function _acquireOwnership() internal {
+    GovernanceState storage state = governanceState();
+    if (state.pendingOwner != msg.sender)
+      revert NotAuthorized();
+
+    _updateRole(Role.Owner, msg.sender);
   }
 
   // ---- private ----

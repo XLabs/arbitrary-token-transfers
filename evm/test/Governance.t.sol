@@ -101,8 +101,7 @@ contract GovernanceTest is TbrTestBase {
     assertEq(restoredImplementation, implementation);
   }
 
-  function testOwnershipTransfer() public {
-    address newOwner = makeAddr("newOwner");
+  function testOwnershipTransfer(address newOwner) public {
     uint8 commandCount = 1;
 
     vm.expectRevert(NotAuthorized.selector);
@@ -117,7 +116,7 @@ contract GovernanceTest is TbrTestBase {
       )
     );
 
-    vm.startPrank(owner);
+    vm.prank(owner);
     invokeTbr(
       abi.encodePacked(
         tbr.exec768.selector, 
@@ -146,15 +145,21 @@ contract GovernanceTest is TbrTestBase {
     assertEq(owner_,        owner);
     assertEq(pendingOwner_, newOwner);
 
-    commandCount = 0;
-    vm.startPrank(newOwner);
+    vm.expectRevert(NotAuthorized.selector);
     invokeTbr(
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_ID, 
-        commandCount, 
-        new bytes(0)
+        ACQUIRE_OWNERSHIP_ID
+      )
+    );
+
+    vm.prank(newOwner);
+    invokeTbr(
+      abi.encodePacked(
+        tbr.exec768.selector, 
+        DISPATCHER_PROTOCOL_VERSION0, 
+        ACQUIRE_OWNERSHIP_ID
       )
     );
 
@@ -176,8 +181,60 @@ contract GovernanceTest is TbrTestBase {
     assertEq(pendingOwner_, address(0));
   }
 
-  function testUpdateAdmin() public {
-    address newAdmin = makeAddr("newAdmin");
+  function testBatchAfterAcquire(address newOwner, bytes32 peer) public {
+    vm.assume(peer != bytes32(0));
+    uint8 commandCount = 1;
+    uint16 peerChain = 1;
+
+    vm.prank(owner);
+    invokeTbr(
+      abi.encodePacked(
+        tbr.exec768.selector, 
+        DISPATCHER_PROTOCOL_VERSION0, 
+        GOVERNANCE_ID, 
+        commandCount, 
+        PROPOSE_OWNERSHIP_TRANSFER_ID,
+        newOwner
+      )
+    );
+
+    vm.prank(newOwner);
+    invokeTbr(
+      abi.encodePacked(
+        tbr.exec768.selector, 
+        DISPATCHER_PROTOCOL_VERSION0, 
+        ACQUIRE_OWNERSHIP_ID,
+        GOVERNANCE_ID,
+        commandCount,
+        UPDATE_CANONICAL_PEER_ID,
+        peerChain,
+        peer
+      )
+    );
+
+    commandCount = 3;
+    bytes memory getRes = invokeTbr(
+      abi.encodePacked(
+        tbr.get1959.selector, 
+        DISPATCHER_PROTOCOL_VERSION0, 
+        GOVERNANCE_QUERIES_ID, 
+        commandCount, 
+        OWNER_ID,
+        PENDING_OWNER_ID,
+        CANONICAL_PEER_ID,
+        peerChain
+      )
+    );
+    (address owner_,        ) = getRes.asAddressUnchecked(0);
+    (address pendingOwner_, ) = getRes.asAddressUnchecked(20);
+    (bytes32 canonicalPeer, ) = getRes.asBytes32Unchecked(40);
+
+    assertEq(owner_, newOwner);
+    assertEq(pendingOwner_, address(0));
+    assertEq(canonicalPeer, peer);
+  }
+
+  function testUpdateAdmin(address newAdmin) public {
     uint8 commandCount = 1;
     bool shouldBeAdmin = true;
 
