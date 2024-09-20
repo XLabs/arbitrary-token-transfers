@@ -13,15 +13,18 @@ token_bridge_relayer = "AttbEYJMSsnVRDcKY4AcX1GBcdPy9FzHcxTbKaMGGuLs"
 
 [[test.genesis]]
 address = "ATqjh2vkjogyVUUNmXQssQZNSFGgSA7Tm6P1UzEUg85s" # Mainnet in lib.rs
-program = "solana/tests/solana_price_oracle.so"
+program = "lib/relayer-infra-contracts/src/solana/target/sbf-solana-solana/release/solana_price_oracle.so"
 
-[[test.genesis]]
-address = "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth" # Mainnet in lib.rs
-program = "solana/tests/bridge.so"                      # Wormhole Core program
+# [test]
+# startup_wait = 8000
 
-[[test.genesis]]
-address = "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb" # Mainnet in lib.rs
-program = "solana/tests/token_bridge.so"
+# [[test.genesis]]
+# address = "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth" # Mainnet in lib.rs
+# program = "solana/tests/bridge.so"                      # Wormhole Core program
+#
+# [[test.genesis]]
+# address = "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb" # Mainnet in lib.rs
+# program = "solana/tests/token_bridge.so"
 
 [registry]
 url = "https://api.apr.dev"
@@ -31,5 +34,5 @@ cluster = "Localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
-#test = "yarn run mocha -p ./solana/tsconfig.json -t 1000000 solana/tests/token-bridge-relayer.ts"
+setup-test = "cargo build-sbf -- -p solana-price-oracle"
 test = "yarn ./solana build && yarn run mocha -t 1000000 solana/ts-build/tests/*.js"
