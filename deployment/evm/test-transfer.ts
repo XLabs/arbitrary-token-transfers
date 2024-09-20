@@ -24,7 +24,7 @@ async function run() {
   await runOnEvms('send-test-transactions', async (chain, signer, logFn) => {
     const promises = uniqueTestTransfers.map(async (testTransfer) => {
       try {
-        if (testTransfer.isExecuted) return;
+        if (testTransfer.skip) return;
 
         await sendTestTransaction(
           chain,
@@ -163,37 +163,37 @@ const uniqueTestTransfers = [
     transferredAmount: '1000',
     gasDropoffAmount: '0',
     unwrapIntent: 'false',
-    isExecuted: false,
+    skip: false,
   },
   {
     transferredAmount: '1000',
     gasDropoffAmount: '0',
     unwrapIntent: 'true',
-    isExecuted: false,
+    skip: false,
   },
   {
     transferredAmount: '1000',
     gasDropoffAmount: '10',
     unwrapIntent: 'false',
-    isExecuted: false,
+    skip: false,
   },
   {
     transferredAmount: '1000',
     gasDropoffAmount: '10',
     unwrapIntent: 'true',
-    isExecuted: false,
+    skip: false,
   },
   // check if below cases makes sense
   {
     transferredAmount: '0',
     gasDropoffAmount: '10',
     unwrapIntent: 'true',
-    isExecuted: false,
+    skip: false,
   },
   {
     transferredAmount: '0',
     gasDropoffAmount: '10',
     unwrapIntent: 'false',
-    isExecuted: false,
+    skip: false,
   },
 ];
