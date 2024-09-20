@@ -1,26 +1,25 @@
 import { execSync } from "child_process";
 import path from "path";
 import chalk from "chalk";
-import { getContractAddress, verificationApiKeys, evm, getChainConfig, getDependencyAddress } from "../helpers";
+import { getContractAddress, loadVerificationApiKeys, evm, getChainConfig, getDependencyAddress } from "../helpers";
 import { EvmTbrV3Config } from "../config/config.types";
 import { Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
 import { encoding } from "@wormhole-foundation/sdk-base";
+import { ethers } from "ethers";
 
 evm.runOnEvms("bytecode-verification-token-router", async (chain, signer, log) => {
   // The root path of the foundry project
   const rootPath = path.resolve('../evm/');
 
-  const verifiers = verificationApiKeys[chain.chainId];
+  const verifiers = loadVerificationApiKeys()[chain.chainId];
   if (!verifiers) {
     log(chalk.red(`No verifiers found for chain ${chain.chainId}`));
     return;
   }
 
-  // This is to just have default values when json does not contain the required data
-  const deployer = "0x085AEF9C8a26cF4b95E7eF1Ebb27E62615fc881D";
-  const firstDeployedImpl: Record<string, string> = {
-    "Sepolia": "0x3ddc4d19D05Caf86F70BcF55BdDA5B683E56b2Ae"
-  }
+  const zero = ethers.ZeroAddress;
+  const ownerOverride = process.env[`OWNER_ADDRESS_${chain.name.toUpperCase()}`] ?? zero;
+  const implementationAddressOverride = process.env[`IMPLEMENTATION_ADDRESS_${chain.name.toUpperCase()}`] ?? zero;
 
   for (let [verifier, data] of Object.entries(verifiers)) {
     const apiKey = typeof data === 'string' ? data : data.key;
@@ -55,19 +54,21 @@ evm.runOnEvms("bytecode-verification-token-router", async (chain, signer, log) =
     const proxyPath = 'lib/wormhole-solidity-sdk/src/proxy/Proxy.sol';
     const proxyAddress = getContractAddress("TbrV3Proxies", chain.chainId);
     const proxyConstructorArgs = Tbrv3.proxyConstructor(
-      config.owner || deployer,
-      config.admin || deployer,
-      config.feeRecipient || deployer,
+      config.owner || ownerOverride,
+      config.admin || ownerOverride,
+      config.feeRecipient || ownerOverride,
     );
-    const proxyDeploymentArgs = [(firstDeployedImpl[chain.name] || implementationAddress), encoding.hex.encode(proxyConstructorArgs, true)];
+    // Implementation address might be different if upgrades have been executed
+    const proxyImplementationAddress = implementationAddressOverride === zero ? implementationAddress : implementationAddressOverride;
+    const proxyDeploymentArgs = [proxyImplementationAddress, encoding.hex.encode(proxyConstructorArgs, true)];
     const proxyConstructorSignature = "constructor(address,bytes)";
     const verifyProxyCommand = evm.getVerifyCommand({
       chain,
-      contractName: proxyName, 
+      contractName: proxyName,
       contractPath: proxyPath,
-      contractAddress: proxyAddress, 
-      constructorSignature: proxyConstructorSignature, 
-      constructorArgs: proxyDeploymentArgs, 
+      contractAddress: proxyAddress,
+      constructorSignature: proxyConstructorSignature,
+      constructorArgs: proxyDeploymentArgs,
       verifier,
       verifierUrl,
       apiKey

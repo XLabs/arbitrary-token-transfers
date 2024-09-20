@@ -11,7 +11,6 @@ export const env = getEnv("ENV");
 export const contracts = loadContracts();
 export const dependencies = loadDependencies();
 export const ecosystemChains = loadEcosystem();
-export const verificationApiKeys = loadVerificationApiKeys();
 
 function loadJson<T>(filename: string): T {
   const fileContent = fs.readFileSync(
@@ -33,7 +32,7 @@ function loadEcosystem(): Ecosystem {
   return loadJson<Ecosystem>("ecosystem");
 }
 
-function loadVerificationApiKeys() {
+export function loadVerificationApiKeys() {
   return loadJson<VerificationApiKeys[]>("verification-api-keys");
 }
 
