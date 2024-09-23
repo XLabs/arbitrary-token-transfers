@@ -31,9 +31,9 @@ pub struct AddAdmin<'info> {
 }
 
 pub fn add_admin(ctx: Context<AddAdmin>, new_admin: Pubkey) -> Result<()> {
-    ctx.accounts.admin_badge.set_inner( AdminState {
-        address: new_admin,
-    });
+    ctx.accounts
+        .admin_badge
+        .set_inner(AdminState { address: new_admin });
 
     Ok(())
 }
@@ -63,6 +63,6 @@ pub struct RemoveAdmin<'info> {
     pub admin_badge_to_be_removed: Account<'info, AdminState>,
 }
 
-pub fn remove_admin(ctx: Context<RemoveAdmin>) -> Result<()> {
+pub fn remove_admin(_ctx: Context<RemoveAdmin>) -> Result<()> {
     Ok(())
 }

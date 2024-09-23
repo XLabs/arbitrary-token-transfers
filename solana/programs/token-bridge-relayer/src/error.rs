@@ -40,14 +40,6 @@ pub(crate) enum TokenBridgeRelayerError {
     #[msg("FeeExceedingMaximum")]
     FeeExceedingMaximum,
 
-    /// Deserialized recipient must be this program or the redeemer PDA.
-    #[msg("InvalidTransferToAddress")]
-    InvalidTransferToAddress,
-
-    /// Deserialized token chain is invalid.
-    #[msg("InvalidTransferToChain")]
-    InvalidTransferToChain,
-
     /// The fee recipient account is not the one that was configured.
     #[msg("WrongFeeRecipient")]
     WrongFeeRecipient,
@@ -68,10 +60,6 @@ pub(crate) enum TokenBridgeRelayerError {
     /// Specified recipient has a bad chain ID or zero address.
     #[msg("InvalidRecipient")]
     InvalidRecipient,
-
-    /// Token Bridge program's transfer is already redeemed.
-    #[msg("AlreadyRedeemed")]
-    AlreadyRedeemed,
 
     /// The EVM token price is zero.
     #[msg("EvmChainPriceNotSet")]

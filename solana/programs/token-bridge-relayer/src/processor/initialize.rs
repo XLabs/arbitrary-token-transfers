@@ -1,9 +1,10 @@
 use crate::{
     error::TokenBridgeRelayerError,
-    state::{AdminState, TbrConfigState}
+    state::{AdminState, TbrConfigState},
 };
-use anchor_lang::solana_program::{program::invoke, bpf_loader_upgradeable};
 use anchor_lang::prelude::*;
+use anchor_lang::solana_program::{bpf_loader_upgradeable, program::invoke};
+use std::{iter::zip, ops::DerefMut};
 use wormhole_anchor_sdk::token_bridge;
 
 #[derive(Accounts)]
@@ -12,7 +13,7 @@ pub struct Initialize<'info> {
     /// Since we are passing on the upgarde authority, the original deployer is the only one
     /// who can initialize the program.
     #[account(mut)]
-    pub deployer: Signer<'info>, 
+    pub deployer: Signer<'info>,
 
     /// The designated owner of the program.
     pub owner: UncheckedAccount<'info>,
@@ -54,8 +55,8 @@ pub struct Initialize<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn initialize(
-    ctx: Context<Initialize>,
+pub fn initialize<'a, 'b, 'c, 'info>(
+    ctx: Context<'a, 'b, 'c, 'info, Initialize<'info>>,
     fee_recipient: Pubkey,
     admins: Vec<Pubkey>,
 ) -> Result<()> {
@@ -93,16 +94,15 @@ pub fn initialize(
         TokenBridgeRelayerError::AdminCountMismatch
     );
 
-    for i in 0..admins.len() {
-        let admin = admins[i];
-        let acc_info = &ctx.remaining_accounts[i];
-
-        require_eq!(
-            acc_info.key(),
+    for (admin, badge_acc_info) in zip(admins, ctx.remaining_accounts) {
+        require_keys_eq!(
+            badge_acc_info.key(),
             Pubkey::find_program_address(
                 &[AdminState::SEED_PREFIX, admin.to_bytes().as_ref()],
                 ctx.program_id
-            ).0, TokenBridgeRelayerError::AdminAddressMismatch
+            )
+            .0,
+            TokenBridgeRelayerError::AdminAddressMismatch
         );
 
         anchor_lang::system_program::create_account(
@@ -110,7 +110,7 @@ pub fn initialize(
                 ctx.accounts.system_program.to_account_info(),
                 anchor_lang::system_program::CreateAccount {
                     from: ctx.accounts.deployer.to_account_info(),
-                    to: *acc_info,
+                    to: badge_acc_info.clone(),
                 },
             ),
             Rent::get()?.minimum_balance(8 + AdminState::INIT_SPACE),
@@ -120,7 +120,7 @@ pub fn initialize(
 
         AdminState::try_serialize(
             &AdminState { address: admin },
-            &mut *acc_info.try_borrow_mut_data()?,
+            badge_acc_info.try_borrow_mut_data()?.deref_mut(),
         )?;
     }
 

@@ -107,9 +107,7 @@ pub struct UpdateCanonicalPeer<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn update_canonical_peer(
-    ctx: Context<UpdateCanonicalPeer>,
-) -> Result<()> {
+pub fn update_canonical_peer(ctx: Context<UpdateCanonicalPeer>) -> Result<()> {
     ctx.accounts.chain_config.canonical_peer = ctx.accounts.peer.address;
 
     Ok(())

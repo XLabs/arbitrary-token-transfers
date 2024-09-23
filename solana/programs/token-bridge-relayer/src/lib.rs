@@ -34,8 +34,8 @@ pub mod constant {
 pub mod token_bridge_relayer {
     use super::*;
 
-    pub fn initialize(
-        ctx: Context<Initialize>,
+    pub fn initialize<'a, 'b, 'c, 'info>(
+        ctx: Context<'a, 'b, 'c, 'info, Initialize<'info>>,
         fee_recipient: Pubkey,
         admins: Vec<Pubkey>,
     ) -> Result<()> {
@@ -92,9 +92,7 @@ pub mod token_bridge_relayer {
     /// # Authorization
     ///
     /// Owner.
-    pub fn update_canonical_peer(
-        ctx: Context<UpdateCanonicalPeer>
-    ) -> Result<()> {
+    pub fn update_canonical_peer(ctx: Context<UpdateCanonicalPeer>) -> Result<()> {
         processor::update_canonical_peer(ctx)
     }
 
@@ -130,10 +128,7 @@ pub mod token_bridge_relayer {
     /// # Authorization
     ///
     /// Owner or Admin.
-    pub fn update_relayer_fee(
-        ctx: Context<UpdateChainConfig>,
-        relayer_fee: u32,
-    ) -> Result<()> {
+    pub fn update_relayer_fee(ctx: Context<UpdateChainConfig>, relayer_fee: u32) -> Result<()> {
         processor::update_relayer_fee(ctx, relayer_fee)
     }
 
@@ -196,10 +191,7 @@ pub mod token_bridge_relayer {
     /* Helpers */
 
     /// Returns a quote for a transfer, in µUSD.
-    pub fn relaying_fee(
-        ctx: Context<QuoteQuery>,
-        dropoff_amount_micro: u32,
-    ) -> Result<u64> {
+    pub fn relaying_fee(ctx: Context<QuoteQuery>, dropoff_amount_micro: u32) -> Result<u64> {
         processor::relaying_fee(ctx, dropoff_amount_micro)
     }
 }

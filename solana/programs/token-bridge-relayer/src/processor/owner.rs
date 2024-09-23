@@ -1,9 +1,6 @@
 //! Everything about the owner or admin role transfer.
 
-use crate::{
-    error::TokenBridgeRelayerError,
-    state::TbrConfigState,
-};
+use crate::{error::TokenBridgeRelayerError, state::TbrConfigState};
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]

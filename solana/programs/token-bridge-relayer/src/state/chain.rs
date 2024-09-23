@@ -1,4 +1,3 @@
-use crate::{error::TokenBridgeRelayerError, message::PostedRelayerMessage};
 use anchor_lang::prelude::*;
 
 /// A peer chain. Nothing is stored in it for now.
