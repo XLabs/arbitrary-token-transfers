@@ -6,7 +6,7 @@
 	url = https://github.com/openzeppelin/openzeppelin-contracts
 [submodule "evm/lib/relayer-infra-contracts"]
 	path = lib/relayer-infra-contracts
-	url = git@github.com:XLabs/relayer-infra-contracts.git
+	url = https://github.com/XLabs/relayer-infra-contracts
 [submodule "evm/lib/permit2"]
 	path = evm/lib/permit2
 	url = https://github.com/Uniswap/permit2
