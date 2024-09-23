@@ -121,8 +121,10 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
       transaction.add(await this.client.transferNativeTokens(
         senderPk,
         {
-          recipientChain: params.recipient.chain,
-          recipientAddress: params.recipient.address.toUint8Array(),
+          recipient: {
+            chain: params.recipient.chain,
+            address: params.recipient.address.toUniversalAddress()
+          },
           transferredAmount: new BN(params.amount.toString()),
           maxFeeKlamports: new BN(params.fee.toString() || 0),
           gasDropoffAmount,
@@ -134,8 +136,10 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     } else {
       transaction.add(await this.client.transferWrappedTokens(
         senderPk, {
-        recipientChain: params.recipient.chain,
-        recipientAddress: params.recipient.address.toUint8Array(),
+        recipient: {
+          chain: params.recipient.chain,
+          address: params.recipient.address.toUniversalAddress(),
+        },
         userTokenAccount: ata,
         transferredAmount: new BN(params.amount.toString()),
         gasDropoffAmount,

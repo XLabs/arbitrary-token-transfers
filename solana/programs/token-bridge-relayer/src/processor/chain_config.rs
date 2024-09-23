@@ -11,7 +11,7 @@ pub struct UpdateChainConfig<'info> {
     /// Proof that the signer is an admin or the owner.
     #[account(
         seeds = [AdminState::SEED_PREFIX, signer.key.to_bytes().as_ref()],
-        bump
+        bump = admin_badge.bump
     )]
     pub admin_badge: Account<'info, AdminState>,
 
@@ -21,7 +21,7 @@ pub struct UpdateChainConfig<'info> {
             ChainConfigState::SEED_PREFIX,
             chain_id.to_be_bytes().as_ref(),
         ],
-        bump
+        bump = chain_config.bump
     )]
     pub chain_config: Account<'info, ChainConfigState>,
 
@@ -30,7 +30,7 @@ pub struct UpdateChainConfig<'info> {
     /// because we will update roles depending on the operation.
     #[account(
         seeds = [TbrConfigState::SEED_PREFIX],
-        bump
+        bump = tbr_config.bump
     )]
     pub tbr_config: Account<'info, TbrConfigState>,
 }

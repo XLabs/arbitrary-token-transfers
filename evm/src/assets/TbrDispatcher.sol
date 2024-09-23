@@ -53,6 +53,8 @@ abstract contract TbrDispatcher is RawDispatcher, TbrGovernance, TbrUser {
       }
       else if (command == GOVERNANCE_ID)
         offset = _batchGovernanceCommands(data, offset);
+      else if (command == ACQUIRE_OWNERSHIP_ID)
+        _acquireOwnership();
       else
         revert InvalidCommand(command, commandIndex);
 

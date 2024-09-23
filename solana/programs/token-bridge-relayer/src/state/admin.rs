@@ -1,11 +1,13 @@
 use anchor_lang::prelude::*;
 
-/// A peer chain. Nothing is stored in it for now.
+/// A badge indicating that an admin account is authorized.
 #[account]
 #[derive(InitSpace)]
-pub struct AdminState {}
+pub struct AdminState {
+    pub bump: u8,
+}
 
 impl AdminState {
     /// Value `b"admin"`.
-    pub const SEED_PREFIX: &'static [u8; 5] = b"admin";
+    pub const SEED_PREFIX: &'static [u8] = b"admin";
 }

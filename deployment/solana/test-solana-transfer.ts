@@ -1,48 +1,74 @@
-import { SolanaTokenBridgeRelayer, TransferNativeParameters } from '@xlabs-xyz/solana-arbitrary-token-transfers';
+import {
+  SolanaTokenBridgeRelayer,
+  TransferNativeParameters,
+  TransferWrappedParameters,
+} from '@xlabs-xyz/solana-arbitrary-token-transfers';
 import { dependencies, evm, getEnv, LoggerFn, SolanaChainInfo, getEnvOrDefault } from '../helpers';
 import { getConnection, ledgerSignAndSend, runOnSolana, SolanaSigner } from '../helpers/solana';
-import { PublicKey } from '@solana/web3.js';
+import { PublicKey, TransactionInstruction } from '@solana/web3.js';
 import { toUniversal } from '@wormhole-foundation/sdk-definitions';
 import { Chain } from '@wormhole-foundation/sdk-base';
 import * as anchor from '@coral-xyz/anchor';
+import { inspect } from 'util';
 
 const BN = anchor.BN;
+const processName = 'att-solana-test-transfer';
 
 const chains = evm.evmOperatingChains();
 
 async function run() {
-  runOnSolana('send-test-transaction', sendTestTransaction).catch((error) => {
-    console.error('Error executing script: ', error);
+  const start = process.hrtime.bigint();
+
+  await runOnSolana('send-test-transactions', async (chain, signer, logFn) => {
+    const promises = uniqueTestTransfers.map(async (testTransfer) => {
+      try {
+        if (testTransfer.skip) return;
+
+        await sendTestTransaction(
+          chain,
+          signer,
+          logFn,
+          new BN(testTransfer.transferredAmount),
+          Number(testTransfer.gasDropoffAmount),
+          testTransfer.unwrapIntent === 'true',
+        );
+      } catch (error) {
+        console.error(`Error executing script for test: ${inspect(testTransfer)}`, error);
+      }
+    });
+    await Promise.allSettled(promises);
   });
+
+  const timeMs = Number(process.hrtime.bigint() - start) / 1e6;
+  console.log(`Process ${processName} finished after ${timeMs} miliseconds`);
 }
 
 async function sendTestTransaction(
   chain: SolanaChainInfo,
   signer: SolanaSigner,
   log: LoggerFn,
+  transferredAmount: anchor.BN,
+  gasDropoffAmount: number,
+  unwrapIntent: boolean,
 ): Promise<void> {
-  const start = process.hrtime.bigint();
-
   const mint = new PublicKey(getEnv('TRANSFER_MINT'));
   const tokenAccount = new PublicKey(getEnv('TRANSFER_TOKEN_ACCOUNT'));
-  const transferredAmount = new BN(getEnvOrDefault('TRANSFERRED_AMOUNT', "1000"));
-  const gasDropoffAmount = new BN(getEnvOrDefault('GAS_DROPOFF_AMOUNT', "0"));
-  const maxFeeSol = new BN(getEnvOrDefault('MAX_FEE_SOL', "5000"));
-  const unwrapIntent = getEnvOrDefault('UNWRAP_INTENT', "false") === 'true';
+  const maxFeeSol = new BN(getEnvOrDefault('MAX_FEE_SOL', '5000'));
+  const isSendingWrappedTokensEnabled = getEnvOrDefault('SEND_WRAPPED_TOKENS', 'false') === 'true';
 
   console.log({
-   sourceChain: "Solana",
+    sourceChain: 'Solana',
     mint,
     tokenAccount,
     transferredAmount: transferredAmount.toNumber(),
-    gasDropoffAmount: gasDropoffAmount.toNumber(),
+    gasDropoffAmount: gasDropoffAmount,
     maxFeeSol: maxFeeSol.toNumber(),
     unwrapIntent,
-  })
+  });
 
   await Promise.all(
     chains.map(async (targetChain) => {
-      console.log(`Creating transfer for Solana->${targetChain.name}`);
+      log(`Creating transfer for Solana->${targetChain.name}`);
       const signerKey = new PublicKey(await signer.getAddress());
       const connection = getConnection(chain);
       const solanaDependencies = dependencies.find((d) => d.chainId === chain.chainId);
@@ -62,19 +88,45 @@ async function sendTestTransaction(
       );
 
       const evmAddress = getEnv('RECIPIENT_EVM_ADDRESS');
+      const maxFeeKlamports = new BN(getEnvOrDefault('MAX_FEE_KLAMPORTS', '5000000'));
 
-      const params: TransferNativeParameters = {
-        recipientChain: targetChain.name as Chain,
-        recipientAddress: toUniversal(targetChain.name as Chain, evmAddress).toUint8Array(),
-        mint: new PublicKey(getEnv('TRANSFER_MINT')),
-        tokenAccount: new PublicKey(getEnv('TRANSFER_TOKEN_ACCOUNT')),
-        transferredAmount: new BN(1000),
-        gasDropoffAmount: 0,
-        maxFeeKlamports: new BN(5000),
-        unwrapIntent: false,
-      };
+      let transferIx: TransactionInstruction;
 
-      const transferIx = await tbr.transferNativeTokens(signerKey, params);
+      if (isSendingWrappedTokensEnabled) {
+        const tokenChain = getEnvOrDefault('TOKEN_CHAIN', 'Solana') as Chain;
+        const params = {
+          recipient: {
+            chain: targetChain.name as Chain,
+            address: toUniversal(targetChain.name as Chain, evmAddress),
+          },
+          token: {
+            chain: tokenChain,
+            address: toUniversal(tokenChain, getEnv('TRANSFER_MINT')),
+          },
+          userTokenAccount: new PublicKey(getEnv('TRANSFER_TOKEN_ACCOUNT')),
+          transferredAmount,
+          gasDropoffAmount,
+          maxFeeKlamports,
+          unwrapIntent,
+        } satisfies TransferWrappedParameters;
+
+        transferIx = await tbr.transferWrappedTokens(signerKey, params);
+      } else {
+        const params = {
+          recipient: {
+            chain: targetChain.name as Chain,
+            address: toUniversal(targetChain.name as Chain, evmAddress),
+          },
+          mint: new PublicKey(getEnv('TRANSFER_MINT')),
+          tokenAccount: new PublicKey(getEnv('TRANSFER_TOKEN_ACCOUNT')),
+          transferredAmount,
+          gasDropoffAmount,
+          maxFeeKlamports,
+          unwrapIntent,
+        } satisfies TransferNativeParameters;
+
+        transferIx = await tbr.transferNativeTokens(signerKey, params);
+      }
 
       const txSignature = await ledgerSignAndSend(connection, [transferIx], []);
       log(`Transaction sent: ${txSignature}`);
@@ -83,3 +135,44 @@ async function sendTestTransaction(
 }
 
 run().then(() => console.log('Done!'));
+
+// In future we can make mint address configurable too
+const uniqueTestTransfers = [
+  {
+    transferredAmount: '1000',
+    gasDropoffAmount: '0',
+    unwrapIntent: 'false',
+    skip: false,
+  },
+  {
+    transferredAmount: '1000',
+    gasDropoffAmount: '0',
+    unwrapIntent: 'true',
+    skip: false,
+  },
+  {
+    transferredAmount: '1000',
+    gasDropoffAmount: '10',
+    unwrapIntent: 'false',
+    skip: false,
+  },
+  {
+    transferredAmount: '1000',
+    gasDropoffAmount: '10',
+    unwrapIntent: 'true',
+    skip: false,
+  },
+  // check if below cases makes sense
+  {
+    transferredAmount: '0',
+    gasDropoffAmount: '10',
+    unwrapIntent: 'true',
+    skip: false,
+  },
+  {
+    transferredAmount: '0',
+    gasDropoffAmount: '10',
+    unwrapIntent: 'false',
+    skip: false,
+  },
+];

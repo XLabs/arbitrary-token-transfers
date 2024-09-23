@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
-use wormhole_anchor_sdk::token_bridge;
 
 /// The program's main account.
 #[account]
@@ -14,6 +13,10 @@ pub struct TbrConfigState {
 
     pub evm_transaction_gas: u64,
     pub evm_transaction_size: u64,
+
+    pub sender_bump: u8,
+    pub redeemer_bump: u8,
+    pub bump: u8,
 }
 
 impl TbrConfigState {
@@ -33,9 +36,6 @@ impl TbrConfigState {
         self.pending_owner.as_ref() == Some(key)
     }
 
-    /// Value `b"redeemer"`.
-    ///
-    /// It has to stay with that value because that is what the token-bridge is
-    /// looking for.
-    pub const SEED_PREFIX: &'static [u8; 8] = token_bridge::SEED_PREFIX_REDEEMER;
+    /// Value `b"config"`.
+    pub const SEED_PREFIX: &'static [u8] = b"config";
 }

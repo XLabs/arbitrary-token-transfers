@@ -12,6 +12,7 @@ uint8 constant TRANSFER_TOKEN_WITH_RELAY_ID = 0;
 uint8 constant TRANSFER_GAS_TOKEN_WITH_RELAY_ID = 1;
 uint8 constant COMPLETE_TRANSFER_ID = 2;
 uint8 constant GOVERNANCE_ID = 3;
+uint8 constant ACQUIRE_OWNERSHIP_ID = 4;
 
 // Query commands
 

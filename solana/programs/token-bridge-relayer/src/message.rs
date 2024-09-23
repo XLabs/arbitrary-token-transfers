@@ -4,6 +4,9 @@ use wormhole_io::{Readable, Writeable};
 
 const PAYLOAD_ID_SIZE: usize = 1; // 1 byte
 
+pub type PostedRelayerMessage =
+    wormhole_anchor_sdk::token_bridge::PostedTransferWith<RelayerMessage>;
+
 #[derive(Clone, Copy)]
 pub enum RelayerMessage {
     V0 {

@@ -45,14 +45,12 @@
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
                 ]
               }
             ]
@@ -128,14 +126,12 @@
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
                 ]
               }
             ]
@@ -179,14 +175,12 @@
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
                 ]
               }
             ]
@@ -444,6 +438,26 @@
           "optional": true
         },
         {
+          "name": "wormhole_redeemer",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  100,
+                  101,
+                  101,
+                  109,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
+        },
+        {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
         },
@@ -561,14 +575,12 @@
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
                 ]
               }
             ]
@@ -639,14 +651,12 @@
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
                 ]
               }
             ]
@@ -654,7 +664,6 @@
         },
         {
           "name": "wormhole_sender",
-          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -664,6 +673,26 @@
                   101,
                   110,
                   100,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "wormhole_redeemer",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  100,
+                  101,
+                  101,
+                  109,
                   101,
                   114
                 ]
@@ -741,14 +770,12 @@
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
                 ]
               }
             ]
@@ -814,7 +841,7 @@
       ],
       "args": [
         {
-          "name": "_chain_id",
+          "name": "chain_id",
           "type": "u16"
         },
         {
@@ -859,14 +886,12 @@
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
                 ]
               }
             ]
@@ -1019,14 +1044,12 @@
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
                 ]
               }
             ]
@@ -1154,14 +1177,12 @@
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
                 ]
               }
             ]
@@ -1215,14 +1236,12 @@
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
                 ]
               }
             ]
@@ -1274,14 +1293,12 @@
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
                 ]
               }
             ]
@@ -1621,14 +1638,12 @@
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
                 ]
               }
             ]
@@ -1771,14 +1786,12 @@
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
                 ]
               }
             ]
@@ -1860,14 +1873,12 @@
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
                 ]
               }
             ]
@@ -1973,14 +1984,12 @@
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
                 ]
               }
             ]
@@ -2091,14 +2100,12 @@
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
                 ]
               }
             ]
@@ -2184,19 +2191,6 @@
       ]
     },
     {
-      "name": "SenderState",
-      "discriminator": [
-        15,
-        38,
-        72,
-        105,
-        206,
-        169,
-        147,
-        163
-      ]
-    },
-    {
       "name": "SignerSequenceState",
       "discriminator": [
         38,
@@ -2251,84 +2245,74 @@
     },
     {
       "code": 6005,
-      "name": "ZeroBridgeAmount",
-      "msg": "ZeroBridgeAmount"
-    },
-    {
-      "code": 6006,
       "name": "FeeExceedingMaximum",
       "msg": "FeeExceedingMaximum"
     },
     {
-      "code": 6007,
-      "name": "InvalidToNativeAmount",
-      "msg": "InvalidToNativeAmount"
-    },
-    {
-      "code": 6008,
+      "code": 6006,
       "name": "InvalidTransferToAddress",
       "msg": "InvalidTransferToAddress"
     },
     {
-      "code": 6009,
+      "code": 6007,
       "name": "InvalidTransferToChain",
       "msg": "InvalidTransferToChain"
     },
     {
-      "code": 6010,
-      "name": "InvalidTransferTokenChain",
-      "msg": "InvalidTransferTokenChain"
-    },
-    {
-      "code": 6011,
+      "code": 6008,
       "name": "WrongFeeRecipient",
       "msg": "WrongFeeRecipient"
     },
     {
-      "code": 6012,
-      "name": "Overflow",
-      "msg": "Overflow"
-    },
-    {
-      "code": 6013,
+      "code": 6009,
       "name": "WronglySetOptionalAccounts",
       "msg": "WronglySetOptionalAccounts"
     },
     {
-      "code": 6014,
+      "code": 6010,
       "name": "WrongMintAuthority",
       "msg": "WrongMintAuthority"
     },
     {
-      "code": 6015,
+      "code": 6011,
       "name": "InvalidRecipient",
       "msg": "InvalidRecipient"
     },
     {
-      "code": 6016,
+      "code": 6012,
       "name": "AlreadyRedeemed",
       "msg": "AlreadyRedeemed"
     },
     {
-      "code": 6017,
+      "code": 6013,
       "name": "EvmChainPriceNotSet",
       "msg": "EvmChainPriceNotSet"
     },
     {
-      "code": 6018,
+      "code": 6014,
       "name": "PausedTransfers",
       "msg": "PausedTransfers"
+    },
+    {
+      "code": 6015,
+      "name": "InvalidSendingPeer",
+      "msg": "InvalidSendingPeer"
     }
   ],
   "types": [
     {
       "name": "AdminState",
       "docs": [
-        "A peer chain. Nothing is stored in it for now."
+        "A badge indicating that an admin account is authorized."
       ],
       "type": {
         "kind": "struct",
-        "fields": []
+        "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
       }
     },
     {
@@ -2356,15 +2340,19 @@
             "type": "u32"
           },
           {
-            "name": "paused_outbound_transfers",
-            "type": "bool"
-          },
-          {
             "name": "relayer_fee_micro_usd",
             "docs": [
               "The fee for the relayer, in μUSD."
             ],
             "type": "u32"
+          },
+          {
+            "name": "paused_outbound_transfers",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
           }
         ]
       }
@@ -2394,7 +2382,7 @@
           {
             "name": "gas_token_price",
             "docs": [
-              "The gas price in μusd/Mwei."
+              "The gas price in μusd/Token, typically ETH."
             ],
             "type": "u64"
           }
@@ -2408,7 +2396,25 @@
       ],
       "type": {
         "kind": "struct",
-        "fields": []
+        "fields": [
+          {
+            "name": "address",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "chain",
+            "type": "u16"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
       }
     },
     {
@@ -2457,16 +2463,6 @@
             "type": "u64"
           }
         ]
-      }
-    },
-    {
-      "name": "SenderState",
-      "docs": [
-        "Empty account. Exists only because the Wormhole program expects it."
-      ],
-      "type": {
-        "kind": "struct",
-        "fields": []
       }
     },
     {
@@ -2520,6 +2516,18 @@
           {
             "name": "evm_transaction_size",
             "type": "u64"
+          },
+          {
+            "name": "sender_bump",
+            "type": "u8"
+          },
+          {
+            "name": "redeemer_bump",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
           }
         ]
       }

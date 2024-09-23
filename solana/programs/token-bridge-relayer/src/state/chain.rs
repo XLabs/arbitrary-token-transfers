@@ -1,10 +1,14 @@
-use crate::error::TokenBridgeRelayerError;
+use crate::{error::TokenBridgeRelayerError, message::PostedRelayerMessage};
 use anchor_lang::prelude::*;
 
 /// A peer chain. Nothing is stored in it for now.
 #[account]
 #[derive(InitSpace)]
-pub struct PeerState {}
+pub struct PeerState {
+    pub address: [u8; 32],
+    pub chain: u16,
+    pub bump: u8,
+}
 
 /// The config for a single chain.
 #[account]
@@ -13,14 +17,15 @@ pub struct ChainConfigState {
     pub canonical_peer: [u8; 32],
     /// The maximum amount of target token the user can ask a dropoff for, in µ-target-token.
     pub max_gas_dropoff_micro_token: u32,
-    pub paused_outbound_transfers: bool,
     /// The fee for the relayer, in μUSD.
     pub relayer_fee_micro_usd: u32,
+    pub paused_outbound_transfers: bool,
+    pub bump: u8,
 }
 
 impl PeerState {
     /// Value `b"peer"`.
-    pub const SEED_PREFIX: &'static [u8; 4] = b"peer";
+    pub const SEED_PREFIX: &'static [u8] = b"peer";
 }
 
 impl ChainConfigState {
@@ -39,5 +44,22 @@ impl ChainConfigState {
     }
 
     /// Value `b"chainconfig"`.
-    pub const SEED_PREFIX: &'static [u8; 11] = b"chainconfig";
+    pub const SEED_PREFIX: &'static [u8] = b"chainconfig";
+}
+
+impl PeerState {
+    /// Checks that the peer matches the sender information from the VAA.
+    pub fn check_origin(&self, vaa: &PostedRelayerMessage) -> Result<()> {
+        require_eq!(
+            self.chain,
+            vaa.meta.emitter_chain,
+            TokenBridgeRelayerError::InvalidSendingPeer
+        );
+        require!(
+            &self.address == vaa.data().from_address(),
+            TokenBridgeRelayerError::InvalidSendingPeer
+        );
+
+        Ok(())
+    }
 }

@@ -1,12 +1,11 @@
 import { AnchorProvider, BN } from '@coral-xyz/anchor';
 import { PublicKey, TransactionSignature } from '@solana/web3.js';
 import { Chain } from '@wormhole-foundation/sdk-base';
+import { UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import {
   SolanaTokenBridgeRelayer,
-  ReadTbrAccounts,
   TransferNativeParameters,
   TransferWrappedParameters,
-  UniversalAddress,
   VaaMessage,
 } from '@xlabs-xyz/solana-arbitrary-token-transfers';
 import { sendAndConfirmIx, wormholeProgramId, tokenBridgeProgramId } from './helpers.js';
@@ -42,7 +41,7 @@ export class TbrWrapper {
     return this.provider.publicKey;
   }
 
-  get read(): ReadTbrAccounts {
+  get read() {
     return this.client.read;
   }
 
