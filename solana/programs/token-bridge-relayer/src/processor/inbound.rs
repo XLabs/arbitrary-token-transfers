@@ -21,10 +21,6 @@ pub struct CompleteTransfer<'info> {
     pub payer: Signer<'info>,
 
     /// This program's config.
-    #[account(
-        seeds = [TbrConfigState::SEED_PREFIX],
-        bump = tbr_config.bump
-    )]
     pub tbr_config: Box<Account<'info, TbrConfigState>>,
 
     /// Mint info. This is the SPL token that will be bridged over to the
@@ -60,8 +56,6 @@ pub struct CompleteTransfer<'info> {
         ],
         seeds::program = wormhole_program.key(),
         bump,
-        constraint = vaa.data().to() == crate::ID @ TokenBridgeRelayerError::InvalidTransferToAddress,
-        constraint = vaa.data().to_chain() == wormhole::CHAIN_ID_SOLANA @ TokenBridgeRelayerError::InvalidTransferToChain,
     )]
     pub vaa: Account<'info, PostedRelayerMessage>,
 
@@ -83,15 +77,17 @@ pub struct CompleteTransfer<'info> {
     )]
     pub temporary_account: Account<'info, TokenAccount>,
 
+    #[account(
+        constraint = {
+            peer.address == *vaa.data().from_address()
+        } @ TokenBridgeRelayerError::InvalidSendingPeer
+    )]
     pub peer: Account<'info, PeerState>,
 
     /// CHECK: Token Bridge config. Read-only.
     pub token_bridge_config: UncheckedAccount<'info>,
 
-    #[account(
-        mut,
-        constraint = token_bridge_claim.data_is_empty() @ TokenBridgeRelayerError::AlreadyRedeemed
-    )]
+    #[account(mut)]
     /// CHECK: Token Bridge claim account. It stores a boolean, whose value
     /// is true if the bridged assets have been claimed. If the transfer has
     /// not been redeemed, this account will not exist yet.
@@ -99,11 +95,7 @@ pub struct CompleteTransfer<'info> {
     /// NOTE: The Token Bridge program's claim account is only initialized when
     /// a transfer is redeemed (and the boolean value `true` is written as
     /// its data).
-    ///
-    /// The Token Bridge program will automatically fail if this transfer
-    /// is redeemed again. But we choose to short-circuit the failure as the
-    /// first evaluation of this instruction.
-    pub token_bridge_claim: AccountInfo<'info>,
+    pub token_bridge_claim: UncheckedAccount<'info>,
 
     /// CHECK: Token Bridge foreign endpoint. This account should really be one
     /// endpoint per chain, but the PDA allows for multiple endpoints for each
@@ -181,8 +173,6 @@ pub fn complete_transfer(ctx: Context<CompleteTransfer>) -> Result<()> {
         ctx.accounts.recipient.key() == Pubkey::from(recipient),
         TokenBridgeRelayerError::InvalidRecipient
     );
-
-    ctx.accounts.peer.check_origin(&ctx.accounts.vaa)?;
 
     // The tokens are transferred into the temporary_account:
     if is_native(&ctx)? {

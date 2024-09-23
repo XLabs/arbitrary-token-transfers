@@ -11,22 +11,19 @@ use anchor_lang::prelude::*;
 )]
 pub struct RegisterPeer<'info> {
     /// Owner or admin of the program as set in the [`TbrConfig`] account.
-    #[account(mut)]
+    #[account(
+        mut,
+        constraint = {
+            tbr_config.is_owner_or_admin(&signer, &maybe_admin_badge)
+        } @ TokenBridgeRelayerError::OwnerOrAdminOnly
+    )]
     pub signer: Signer<'info>,
 
-    /// Proof that the signer is an admin or the owner.
-    #[account(
-        seeds = [AdminState::SEED_PREFIX, signer.key.to_bytes().as_ref()],
-        bump = admin_badge.bump
-    )]
-    pub admin_badge: Account<'info, AdminState>,
+    /// Proof that the signer is an admin.
+    pub maybe_admin_badge: Option<Account<'info, AdminState>>,
 
     /// Owner Config account. This program requires that the `signer` specified
     /// in the context equals an authorized pubkey specified in this account.
-    #[account(
-        seeds = [TbrConfigState::SEED_PREFIX],
-        bump = tbr_config.bump
-    )]
     pub tbr_config: Account<'info, TbrConfigState>,
 
     #[account(
@@ -64,26 +61,24 @@ pub fn register_peer(
 ) -> Result<()> {
     // If it is the first peer for this chain, make it canonical:
     if ctx.accounts.chain_config.is_uninitialized() {
-        let canonical_peer = &mut ctx.accounts.chain_config;
-        canonical_peer.canonical_peer = peer_address;
-        canonical_peer.paused_outbound_transfers = true;
-        canonical_peer.bump = ctx.bumps.chain_config;
+        ctx.accounts.chain_config.set_inner(ChainConfigState {
+            chain_id,
+            canonical_peer: peer_address,
+            paused_outbound_transfers: true,
+            max_gas_dropoff_micro_token: 0,
+            relayer_fee_micro_usd: 0,
+        });
     }
 
-    *ctx.accounts.peer = PeerState {
+    ctx.accounts.peer.set_inner(PeerState {
+        chain_id: chain_id,
         address: peer_address,
-        chain: chain_id,
-        bump: ctx.bumps.peer,
-    };
+    });
 
     Ok(())
 }
 
 #[derive(Accounts)]
-#[instruction(
-    chain_id: u16,
-    peer_address: [u8; 32],
-)]
 pub struct UpdateCanonicalPeer<'info> {
     /// Owner of the program as set in the [`TbrConfig`] account.
     #[account(mut)]
@@ -91,30 +86,21 @@ pub struct UpdateCanonicalPeer<'info> {
 
     /// Owner Config account. This program requires that the `owner` specified
     /// in the context equals the `owner` pubkey specified in this account.
-    #[account(
-        has_one = owner @ TokenBridgeRelayerError::OwnerOnly,
-        seeds = [TbrConfigState::SEED_PREFIX],
-        bump = tbr_config.bump
-    )]
+    #[account(has_one = owner @ TokenBridgeRelayerError::OwnerOnly)]
     pub tbr_config: Account<'info, TbrConfigState>,
 
     #[account(
-        seeds = [
-            PeerState::SEED_PREFIX,
-            chain_id.to_be_bytes().as_ref(),
-            peer_address.as_ref(),
-        ],
-        bump = peer.bump
+        constraint = {
+            peer.chain_id == chain_config.chain_id
+        } @ TokenBridgeRelayerError::ChainIdMismatch
     )]
     pub peer: Account<'info, PeerState>,
 
     #[account(
         mut,
-        seeds = [
-            ChainConfigState::SEED_PREFIX,
-            chain_id.to_be_bytes().as_ref(),
-        ],
-        bump = chain_config.bump
+        constraint = {
+            chain_config.canonical_peer != peer.address
+        } @ TokenBridgeRelayerError::AlreadyTheCanonicalPeer
     )]
     pub chain_config: Account<'info, ChainConfigState>,
 
@@ -123,18 +109,8 @@ pub struct UpdateCanonicalPeer<'info> {
 
 pub fn update_canonical_peer(
     ctx: Context<UpdateCanonicalPeer>,
-    peer_address: [u8; 32],
 ) -> Result<()> {
-    // Owner authorization verified in the context.
-
-    // Verify it is a different peer being set as canonical:
-    if ctx.accounts.chain_config.canonical_peer == peer_address {
-        Err(TokenBridgeRelayerError::AlreadyTheCanonicalPeer)?
-    }
-
-    // Update the field:
-    let chain_config = &mut ctx.accounts.chain_config;
-    chain_config.canonical_peer = peer_address;
+    ctx.accounts.chain_config.canonical_peer = ctx.accounts.peer.address;
 
     Ok(())
 }

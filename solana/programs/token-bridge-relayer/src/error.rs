@@ -4,6 +4,14 @@ pub type TokenBridgeRelayerResult<T> = std::result::Result<T, TokenBridgeRelayer
 
 #[error_code]
 pub(crate) enum TokenBridgeRelayerError {
+    /// The number of admin PDAs passed in initialize must match the number of remaining_accounts.
+    #[msg("AdminCountMismatch")]
+    AdminCountMismatch,
+
+    /// The provided admin PDA accounts in initialize must be derived from the passed admin pubkeys.
+    #[msg("AdminAddressMismatch")]
+    AdminAddressMismatch,
+
     /// Only the program's owner is permitted.
     #[msg("OwnerOnly")]
     OwnerOnly,
@@ -19,6 +27,10 @@ pub(crate) enum TokenBridgeRelayerError {
     /// Specified key is already the program's owner.
     #[msg("AlreadyTheOwner")]
     AlreadyTheOwner,
+
+    /// All chain IDs must be the same.
+    #[msg("ChainIdMismatch")]
+    ChainIdMismatch,
 
     /// Specified peer is already canonical.
     #[msg("AlreadyTheCanonicalPeer")]

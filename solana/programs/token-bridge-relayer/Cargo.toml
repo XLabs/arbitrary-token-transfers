@@ -41,5 +41,6 @@ wormhole-anchor-sdk = { git = "https://github.com/real-felix/wormhole-scaffoldin
     "token-bridge",
 ] }
 #wormhole-anchor-sdk = { path = "../../../../wormhole-scaffolding/solana/modules/wormhole-anchor-sdk/", features = ["token-bridge"] }
+#wormhole-solana-utils = { version = "0.3.0-alpha.1", features = ["anchor"]}
 
 wormhole-io = "0.1"

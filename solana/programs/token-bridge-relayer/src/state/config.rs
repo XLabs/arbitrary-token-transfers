@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+use crate::state::AdminState;
 
 /// The program's main account.
 #[account]
@@ -20,20 +21,13 @@ pub struct TbrConfigState {
 }
 
 impl TbrConfigState {
-    // /// Has any authority:
-    // /// - Owner
-    // /// - Admin
-    // pub fn is_owner_or_admin(&self, key: &Pubkey) -> bool {
-    //     key == &self.owner || key == &self.admin
-    // }
-
-    /// Has owner authority:
-    pub fn is_owner(&self, key: &Pubkey) -> bool {
-        key == &self.owner
-    }
-
-    pub fn is_pending_owner(&self, key: &Pubkey) -> bool {
-        self.pending_owner.as_ref() == Some(key)
+    pub fn is_owner_or_admin<'info>(
+        &self,
+        signer: &Signer<'info>,
+        maybe_admin_badge: &Option<Account<'info, AdminState>>
+    ) -> bool {
+        Some(signer.key()) == maybe_admin_badge.as_ref().map(|state| state.address) ||
+            signer.key() == self.owner
     }
 
     /// Value `b"config"`.

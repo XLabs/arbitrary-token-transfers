@@ -4,7 +4,7 @@ use anchor_lang::prelude::*;
 #[account]
 #[derive(InitSpace)]
 pub struct AdminState {
-    pub bump: u8,
+    pub address: Pubkey,
 }
 
 impl AdminState {

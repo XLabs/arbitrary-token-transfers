@@ -1,33 +1,40 @@
-use crate::state::{AdminState, TbrConfigState};
+use crate::{
+    error::TokenBridgeRelayerError,
+    state::{AdminState, TbrConfigState}
+};
+use anchor_lang::solana_program::{program::invoke, bpf_loader_upgradeable};
 use anchor_lang::prelude::*;
 use wormhole_anchor_sdk::token_bridge;
 
 #[derive(Accounts)]
+#[instruction(admin: Pubkey)]
 pub struct Initialize<'info> {
-    /// Owner of the program as set in the [`OwnerConfig`] account.
+    /// Since we are passing on the upgarde authority, the original deployer is the only one
+    /// who can initialize the program.
     #[account(mut)]
-    pub owner: Signer<'info>,
+    pub deployer: Signer<'info>, 
 
-    /// The admin badge for the owner.
-    #[account(
-        init,
-        payer = owner,
-        space = 8 + AdminState::INIT_SPACE,
-        seeds = [AdminState::SEED_PREFIX, owner.key.to_bytes().as_ref()],
-        bump
-    )]
-    pub admin_badge: Account<'info, AdminState>,
+    /// The designated owner of the program.
+    pub owner: UncheckedAccount<'info>,
 
     /// Owner Config account. This program requires that the `owner` specified
     /// in the context equals the pubkey specified in this account. Mutable.
     #[account(
         init,
-        payer = owner,
+        payer = deployer,
         space = 8 + TbrConfigState::INIT_SPACE,
         seeds = [TbrConfigState::SEED_PREFIX],
         bump
     )]
     pub tbr_config: Account<'info, TbrConfigState>,
+
+    #[account(
+        mut,
+        seeds = [crate::ID.as_ref()],
+        bump,
+        seeds::program = bpf_loader_upgradeable::ID,
+    )]
+    program_data: Account<'info, ProgramData>,
 
     #[account(
         seeds = [token_bridge::SEED_PREFIX_SENDER],
@@ -41,23 +48,81 @@ pub struct Initialize<'info> {
     )]
     pub wormhole_redeemer: UncheckedAccount<'info>,
 
+    #[account(address = bpf_loader_upgradeable::ID)]
+    pub bpf_loader_upgradeable: UncheckedAccount<'info>,
+
     pub system_program: Program<'info, System>,
 }
 
-pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
-    let owner = ctx.accounts.owner.key();
+pub fn initialize(
+    ctx: Context<Initialize>,
+    fee_recipient: Pubkey,
+    admins: Vec<Pubkey>,
+) -> Result<()> {
+    //We only update the upgrade authority if the program wasn't deployed by the designated owner
+    if Some(ctx.accounts.owner.key()) != ctx.accounts.program_data.upgrade_authority_address {
+        //This call fails for anyone but the deployer who must be the current update authority.
+        invoke(
+            &bpf_loader_upgradeable::set_upgrade_authority(
+                &ctx.program_id,
+                &ctx.accounts.deployer.key(),
+                Some(&ctx.accounts.owner.key()),
+            ),
+            &[
+                ctx.accounts.program_data.to_account_info(),
+                ctx.accounts.deployer.to_account_info(),
+                ctx.accounts.owner.to_account_info(),
+            ],
+        )?;
+    }
 
     *ctx.accounts.tbr_config = TbrConfigState {
-        owner,
+        owner: ctx.accounts.owner.key(),
         pending_owner: None,
-        fee_recipient: owner,
+        fee_recipient: fee_recipient,
         evm_transaction_size: 0,
         evm_transaction_gas: 0,
         sender_bump: ctx.bumps.wormhole_sender,
         redeemer_bump: ctx.bumps.wormhole_redeemer,
         bump: ctx.bumps.tbr_config,
     };
-    ctx.accounts.admin_badge.bump = ctx.bumps.admin_badge;
+
+    require_eq!(
+        admins.len(),
+        ctx.remaining_accounts.len(),
+        TokenBridgeRelayerError::AdminCountMismatch
+    );
+
+    for i in 0..admins.len() {
+        let admin = admins[i];
+        let acc_info = &ctx.remaining_accounts[i];
+
+        require_eq!(
+            acc_info.key(),
+            Pubkey::find_program_address(
+                &[AdminState::SEED_PREFIX, admin.to_bytes().as_ref()],
+                ctx.program_id
+            ).0, TokenBridgeRelayerError::AdminAddressMismatch
+        );
+
+        anchor_lang::system_program::create_account(
+            CpiContext::new(
+                ctx.accounts.system_program.to_account_info(),
+                anchor_lang::system_program::CreateAccount {
+                    from: ctx.accounts.deployer.to_account_info(),
+                    to: *acc_info,
+                },
+            ),
+            Rent::get()?.minimum_balance(8 + AdminState::INIT_SPACE),
+            (8 + AdminState::INIT_SPACE) as u64,
+            ctx.program_id,
+        )?;
+
+        AdminState::try_serialize(
+            &AdminState { address: admin },
+            &mut *acc_info.try_borrow_mut_data()?,
+        )?;
+    }
 
     Ok(())
 }
