@@ -97,7 +97,7 @@ contract TbrTestBase is Test {
     _setUp1();
   }
 
-  function invokeStaticTbr(bytes memory encoded) internal returns (bytes memory data) {
+  function invokeStaticTbr(bytes memory encoded) view internal returns (bytes memory data) {
     (bool success, bytes memory result) = address(tbr).staticcall(encoded);
     if (!success) {
       reRevert(result);
