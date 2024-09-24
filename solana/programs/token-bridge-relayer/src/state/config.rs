@@ -1,4 +1,3 @@
-use crate::state::AdminState;
 use anchor_lang::prelude::*;
 
 /// The program's main account.
@@ -21,15 +20,6 @@ pub struct TbrConfigState {
 }
 
 impl TbrConfigState {
-    pub fn is_owner_or_admin<'info>(
-        &self,
-        signer: &Signer<'info>,
-        maybe_admin_badge: &Option<Account<'info, AdminState>>,
-    ) -> bool {
-        Some(signer.key()) == maybe_admin_badge.as_ref().map(|state| state.address)
-            || signer.key() == self.owner
-    }
-
     /// Value `b"config"`.
     pub const SEED_PREFIX: &'static [u8] = b"config";
 }

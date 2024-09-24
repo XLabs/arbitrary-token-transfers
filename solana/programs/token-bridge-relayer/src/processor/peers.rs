@@ -1,6 +1,6 @@
 use crate::{
     error::TokenBridgeRelayerError,
-    state::{AdminState, ChainConfigState, PeerState, TbrConfigState},
+    state::{AuthBadgeState, ChainConfigState, PeerState, TbrConfigState},
 };
 use anchor_lang::prelude::*;
 
@@ -11,16 +11,12 @@ use anchor_lang::prelude::*;
 )]
 pub struct RegisterPeer<'info> {
     /// Owner or admin of the program as set in the [`TbrConfig`] account.
-    #[account(
-        mut,
-        constraint = {
-            tbr_config.is_owner_or_admin(&signer, &maybe_admin_badge)
-        } @ TokenBridgeRelayerError::OwnerOrAdminOnly
-    )]
+    #[account(mut)]
     pub signer: Signer<'info>,
 
-    /// Proof that the signer is an admin.
-    pub maybe_admin_badge: Option<Account<'info, AdminState>>,
+    /// Proof that the signer is authorized.
+    #[account(constraint = &auth_badge.address == signer.key @ TokenBridgeRelayerError::OwnerOrAdminOnly)]
+    pub auth_badge: Account<'info, AuthBadgeState>,
 
     /// Owner Config account. This program requires that the `signer` specified
     /// in the context equals an authorized pubkey specified in this account.

@@ -48,7 +48,7 @@ export type TokenBridgeRelayer = {
           ]
         },
         {
-          "name": "adminBadge",
+          "name": "authBadge",
           "writable": true,
           "pda": {
             "seeds": [
@@ -56,10 +56,14 @@ export type TokenBridgeRelayer = {
                 "kind": "const",
                 "value": [
                   97,
+                  117,
+                  116,
+                  104,
+                  98,
+                  97,
                   100,
-                  109,
-                  105,
-                  110
+                  103,
+                  101
                 ]
               },
               {
@@ -469,6 +473,32 @@ export type TokenBridgeRelayer = {
           "signer": true
         },
         {
+          "name": "authBadgeNewOwner",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  117,
+                  116,
+                  104,
+                  98,
+                  97,
+                  100,
+                  103,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authBadgePreviousOwner",
+          "writable": true
+        },
+        {
           "name": "tbrConfig",
           "docs": [
             "Program Config account. This program requires that the [`signer`] specified",
@@ -511,6 +541,28 @@ export type TokenBridgeRelayer = {
           "docs": [
             "The designated owner of the program."
           ]
+        },
+        {
+          "name": "authBadge",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  117,
+                  116,
+                  104,
+                  98,
+                  97,
+                  100,
+                  103,
+                  101
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "tbrConfig",
@@ -706,11 +758,10 @@ export type TokenBridgeRelayer = {
           "signer": true
         },
         {
-          "name": "maybeAdminBadge",
+          "name": "authBadge",
           "docs": [
-            "Proof that the signer is an admin."
-          ],
-          "optional": true
+            "Proof that the signer is authorized."
+          ]
         },
         {
           "name": "tbrConfig",
@@ -890,11 +941,10 @@ export type TokenBridgeRelayer = {
           "signer": true
         },
         {
-          "name": "maybeAdminBadge",
+          "name": "authBadge",
           "docs": [
-            "If the signer is an admin, prove it with this PDA."
-          ],
-          "optional": true
+            "Proof that the signer is authorized."
+          ]
         },
         {
           "name": "tbrConfig",
@@ -904,7 +954,7 @@ export type TokenBridgeRelayer = {
           ]
         },
         {
-          "name": "adminBadgeToBeRemoved",
+          "name": "authBadgeToBeRemoved",
           "writable": true
         }
       ],
@@ -939,11 +989,10 @@ export type TokenBridgeRelayer = {
           "signer": true
         },
         {
-          "name": "maybeAdminBadge",
+          "name": "authBadge",
           "docs": [
-            "Proof that the signer is an admin."
-          ],
-          "optional": true
+            "Proof that the signer is authorized."
+          ]
         },
         {
           "name": "chainConfig",
@@ -1385,11 +1434,10 @@ export type TokenBridgeRelayer = {
           "signer": true
         },
         {
-          "name": "maybeAdminBadge",
+          "name": "authBadge",
           "docs": [
-            "Proof that the signer is an admin."
-          ],
-          "optional": true
+            "Proof that the signer is authorized."
+          ]
         },
         {
           "name": "tbrConfig",
@@ -1440,11 +1488,10 @@ export type TokenBridgeRelayer = {
           "signer": true
         },
         {
-          "name": "maybeAdminBadge",
+          "name": "authBadge",
           "docs": [
-            "Proof that the signer is an admin."
-          ],
-          "optional": true
+            "Proof that the signer is authorized."
+          ]
         },
         {
           "name": "tbrConfig",
@@ -1492,11 +1539,10 @@ export type TokenBridgeRelayer = {
           "signer": true
         },
         {
-          "name": "maybeAdminBadge",
+          "name": "authBadge",
           "docs": [
-            "Proof that the signer is an admin."
-          ],
-          "optional": true
+            "Proof that the signer is authorized."
+          ]
         },
         {
           "name": "chainConfig",
@@ -1548,11 +1594,10 @@ export type TokenBridgeRelayer = {
           "signer": true
         },
         {
-          "name": "maybeAdminBadge",
+          "name": "authBadge",
           "docs": [
-            "Proof that the signer is an admin."
-          ],
-          "optional": true
+            "Proof that the signer is authorized."
+          ]
         },
         {
           "name": "chainConfig",
@@ -1577,16 +1622,16 @@ export type TokenBridgeRelayer = {
   ],
   "accounts": [
     {
-      "name": "adminState",
+      "name": "authBadgeState",
       "discriminator": [
-        190,
-        42,
-        124,
-        96,
-        242,
-        52,
-        141,
-        28
+        230,
+        136,
+        128,
+        117,
+        214,
+        51,
+        214,
+        152
       ]
     },
     {
@@ -1701,58 +1746,63 @@ export type TokenBridgeRelayer = {
     },
     {
       "code": 6006,
+      "name": "invalidPreviousOwnerBadge",
+      "msg": "invalidPreviousOwnerBadge"
+    },
+    {
+      "code": 6007,
       "name": "chainIdMismatch",
       "msg": "chainIdMismatch"
     },
     {
-      "code": 6007,
+      "code": 6008,
       "name": "alreadyTheCanonicalPeer",
       "msg": "alreadyTheCanonicalPeer"
     },
     {
-      "code": 6008,
+      "code": 6009,
       "name": "feeExceedingMaximum",
       "msg": "feeExceedingMaximum"
     },
     {
-      "code": 6009,
+      "code": 6010,
       "name": "wrongFeeRecipient",
       "msg": "wrongFeeRecipient"
     },
     {
-      "code": 6010,
+      "code": 6011,
       "name": "wronglySetOptionalAccounts",
       "msg": "wronglySetOptionalAccounts"
     },
     {
-      "code": 6011,
+      "code": 6012,
       "name": "wrongMintAuthority",
       "msg": "wrongMintAuthority"
     },
     {
-      "code": 6012,
+      "code": 6013,
       "name": "invalidRecipient",
       "msg": "invalidRecipient"
     },
     {
-      "code": 6013,
+      "code": 6014,
       "name": "evmChainPriceNotSet",
       "msg": "evmChainPriceNotSet"
     },
     {
-      "code": 6014,
+      "code": 6015,
       "name": "pausedTransfers",
       "msg": "pausedTransfers"
     },
     {
-      "code": 6015,
+      "code": 6016,
       "name": "invalidSendingPeer",
       "msg": "invalidSendingPeer"
     }
   ],
   "types": [
     {
-      "name": "adminState",
+      "name": "authBadgeState",
       "docs": [
         "A badge indicating that an admin account is authorized."
       ],

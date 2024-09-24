@@ -1,22 +1,18 @@
 use crate::{
     error::TokenBridgeRelayerError,
-    state::{AdminState, ChainConfigState, TbrConfigState},
+    state::{AuthBadgeState, ChainConfigState, TbrConfigState},
 };
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
 pub struct UpdateChainConfig<'info> {
     /// Owner as set in the [`TbrConfig`] account, or an admin.
-    #[account(
-        mut,
-        constraint = {
-            tbr_config.is_owner_or_admin(&signer, &maybe_admin_badge)
-        } @ TokenBridgeRelayerError::OwnerOrAdminOnly
-    )]
+    #[account(mut)]
     pub signer: Signer<'info>,
 
-    /// Proof that the signer is an admin.
-    pub maybe_admin_badge: Option<Account<'info, AdminState>>,
+    /// Proof that the signer is authorized.
+    #[account(constraint = &auth_badge.address == signer.key @ TokenBridgeRelayerError::OwnerOrAdminOnly)]
+    pub auth_badge: Account<'info, AuthBadgeState>,
 
     #[account(mut)]
     pub chain_config: Account<'info, ChainConfigState>,

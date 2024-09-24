@@ -42,7 +42,7 @@
           ]
         },
         {
-          "name": "admin_badge",
+          "name": "auth_badge",
           "writable": true,
           "pda": {
             "seeds": [
@@ -50,10 +50,14 @@
                 "kind": "const",
                 "value": [
                   97,
+                  117,
+                  116,
+                  104,
+                  98,
+                  97,
                   100,
-                  109,
-                  105,
-                  110
+                  103,
+                  101
                 ]
               },
               {
@@ -463,6 +467,32 @@
           "signer": true
         },
         {
+          "name": "auth_badge_new_owner",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  117,
+                  116,
+                  104,
+                  98,
+                  97,
+                  100,
+                  103,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "auth_badge_previous_owner",
+          "writable": true
+        },
+        {
           "name": "tbr_config",
           "docs": [
             "Program Config account. This program requires that the [`signer`] specified",
@@ -505,6 +535,28 @@
           "docs": [
             "The designated owner of the program."
           ]
+        },
+        {
+          "name": "auth_badge",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  117,
+                  116,
+                  104,
+                  98,
+                  97,
+                  100,
+                  103,
+                  101
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "tbr_config",
@@ -700,11 +752,10 @@
           "signer": true
         },
         {
-          "name": "maybe_admin_badge",
+          "name": "auth_badge",
           "docs": [
-            "Proof that the signer is an admin."
-          ],
-          "optional": true
+            "Proof that the signer is authorized."
+          ]
         },
         {
           "name": "tbr_config",
@@ -884,11 +935,10 @@
           "signer": true
         },
         {
-          "name": "maybe_admin_badge",
+          "name": "auth_badge",
           "docs": [
-            "If the signer is an admin, prove it with this PDA."
-          ],
-          "optional": true
+            "Proof that the signer is authorized."
+          ]
         },
         {
           "name": "tbr_config",
@@ -898,7 +948,7 @@
           ]
         },
         {
-          "name": "admin_badge_to_be_removed",
+          "name": "auth_badge_to_be_removed",
           "writable": true
         }
       ],
@@ -933,11 +983,10 @@
           "signer": true
         },
         {
-          "name": "maybe_admin_badge",
+          "name": "auth_badge",
           "docs": [
-            "Proof that the signer is an admin."
-          ],
-          "optional": true
+            "Proof that the signer is authorized."
+          ]
         },
         {
           "name": "chain_config",
@@ -1379,11 +1428,10 @@
           "signer": true
         },
         {
-          "name": "maybe_admin_badge",
+          "name": "auth_badge",
           "docs": [
-            "Proof that the signer is an admin."
-          ],
-          "optional": true
+            "Proof that the signer is authorized."
+          ]
         },
         {
           "name": "tbr_config",
@@ -1434,11 +1482,10 @@
           "signer": true
         },
         {
-          "name": "maybe_admin_badge",
+          "name": "auth_badge",
           "docs": [
-            "Proof that the signer is an admin."
-          ],
-          "optional": true
+            "Proof that the signer is authorized."
+          ]
         },
         {
           "name": "tbr_config",
@@ -1486,11 +1533,10 @@
           "signer": true
         },
         {
-          "name": "maybe_admin_badge",
+          "name": "auth_badge",
           "docs": [
-            "Proof that the signer is an admin."
-          ],
-          "optional": true
+            "Proof that the signer is authorized."
+          ]
         },
         {
           "name": "chain_config",
@@ -1542,11 +1588,10 @@
           "signer": true
         },
         {
-          "name": "maybe_admin_badge",
+          "name": "auth_badge",
           "docs": [
-            "Proof that the signer is an admin."
-          ],
-          "optional": true
+            "Proof that the signer is authorized."
+          ]
         },
         {
           "name": "chain_config",
@@ -1571,16 +1616,16 @@
   ],
   "accounts": [
     {
-      "name": "AdminState",
+      "name": "AuthBadgeState",
       "discriminator": [
-        190,
-        42,
-        124,
-        96,
-        242,
-        52,
-        141,
-        28
+        230,
+        136,
+        128,
+        117,
+        214,
+        51,
+        214,
+        152
       ]
     },
     {
@@ -1695,58 +1740,63 @@
     },
     {
       "code": 6006,
+      "name": "InvalidPreviousOwnerBadge",
+      "msg": "InvalidPreviousOwnerBadge"
+    },
+    {
+      "code": 6007,
       "name": "ChainIdMismatch",
       "msg": "ChainIdMismatch"
     },
     {
-      "code": 6007,
+      "code": 6008,
       "name": "AlreadyTheCanonicalPeer",
       "msg": "AlreadyTheCanonicalPeer"
     },
     {
-      "code": 6008,
+      "code": 6009,
       "name": "FeeExceedingMaximum",
       "msg": "FeeExceedingMaximum"
     },
     {
-      "code": 6009,
+      "code": 6010,
       "name": "WrongFeeRecipient",
       "msg": "WrongFeeRecipient"
     },
     {
-      "code": 6010,
+      "code": 6011,
       "name": "WronglySetOptionalAccounts",
       "msg": "WronglySetOptionalAccounts"
     },
     {
-      "code": 6011,
+      "code": 6012,
       "name": "WrongMintAuthority",
       "msg": "WrongMintAuthority"
     },
     {
-      "code": 6012,
+      "code": 6013,
       "name": "InvalidRecipient",
       "msg": "InvalidRecipient"
     },
     {
-      "code": 6013,
+      "code": 6014,
       "name": "EvmChainPriceNotSet",
       "msg": "EvmChainPriceNotSet"
     },
     {
-      "code": 6014,
+      "code": 6015,
       "name": "PausedTransfers",
       "msg": "PausedTransfers"
     },
     {
-      "code": 6015,
+      "code": 6016,
       "name": "InvalidSendingPeer",
       "msg": "InvalidSendingPeer"
     }
   ],
   "types": [
     {
-      "name": "AdminState",
+      "name": "AuthBadgeState",
       "docs": [
         "A badge indicating that an admin account is authorized."
       ],

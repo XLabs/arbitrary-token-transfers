@@ -56,7 +56,7 @@ export type TbrConfigAccount = anchor.IdlAccounts<TokenBridgeRelayer>['tbrConfig
 export type ChainConfigAccount = anchor.IdlAccounts<TokenBridgeRelayer>['chainConfigState'];
 export type PeerAccount = anchor.IdlAccounts<TokenBridgeRelayer>['peerState'];
 export type SignerSequenceAccount = anchor.IdlAccounts<TokenBridgeRelayer>['signerSequenceState'];
-export type AdminAccount = anchor.IdlAccounts<TokenBridgeRelayer>['adminState'];
+export type AuthBadgeAccount = anchor.IdlAccounts<TokenBridgeRelayer>['authBadgeState'];
 
 /**
  * Transforms a `UniversalAddress` into an array of numbers `number[]`.
@@ -93,7 +93,7 @@ export class SolanaTokenBridgeRelayer {
       peer: (chain: Chain, peerAddress: UniversalAddress) =>
         pda.peer(this.program.programId, chain, peerAddress),
       signerSequence: (signer: PublicKey) => pda.signerSequence(this.program.programId, signer),
-      adminBadge: (admin: PublicKey) => pda.admin(this.program.programId, admin),
+      authBadge: (admin: PublicKey) => pda.admin(this.program.programId, admin),
     };
   }
 
@@ -106,8 +106,8 @@ export class SolanaTokenBridgeRelayer {
         this.program.account.peerState.fetch(this.address.peer(chain, peerAddress)),
       signerSequence: (signer: PublicKey) =>
         this.program.account.signerSequenceState.fetch(this.address.signerSequence(signer)),
-      adminBadge: (admin: PublicKey) =>
-        this.program.account.adminState.fetch(this.address.adminBadge(admin)),
+      authBadge: (admin: PublicKey) =>
+        this.program.account.authBadgeState.fetch(this.address.authBadge(admin)),
     };
   }
 
@@ -127,12 +127,30 @@ export class SolanaTokenBridgeRelayer {
 
   /* Initialize */
 
-  async initialize(owner: PublicKey): Promise<web3.TransactionInstruction> {
+  async initialize({
+    deployer,
+    owner,
+    feeRecipient,
+    admins,
+  }: {
+    deployer: PublicKey;
+    owner: PublicKey;
+    feeRecipient: PublicKey;
+    admins: PublicKey[];
+  }): Promise<web3.TransactionInstruction> {
+    const authBadges = admins.map((key) => ({
+      pubkey: this.address.authBadge(key),
+      isSigner: false,
+      isWritable: true,
+    }));
+
     return this.program.methods
-      .initialize()
+      .initialize(feeRecipient, admins)
       .accounts({
+        deployer,
         owner,
       })
+      .remainingAccounts(authBadges)
       .instruction();
   }
 
@@ -151,13 +169,14 @@ export class SolanaTokenBridgeRelayer {
   }
 
   async confirmOwnerTransferRequest(newOwner: PublicKey): Promise<web3.TransactionInstruction> {
-    const previousOwner = (await this.read.config()).owner;
+    const authBadgePreviousOwner = this.address.authBadge((await this.read.config()).owner);
 
     return this.program.methods
       .confirmOwnerTransferRequest()
       .accounts({
         newOwner,
-        previousOwner,
+        authBadgePreviousOwner,
+        tbrConfig: this.address.config(),
       })
       .instruction();
   }
@@ -165,8 +184,9 @@ export class SolanaTokenBridgeRelayer {
   async cancelOwnerTransferRequest(owner: PublicKey): Promise<web3.TransactionInstruction> {
     return this.program.methods
       .cancelOwnerTransferRequest()
-      .accounts({
+      .accountsStrict({
         owner,
+        tbrConfig: this.address.config(),
       })
       .instruction();
   }
@@ -177,7 +197,7 @@ export class SolanaTokenBridgeRelayer {
       .accountsStrict({
         owner,
         tbrConfig: this.address.config(),
-        adminBadge: this.address.adminBadge(newAdmin),
+        authBadge: this.address.authBadge(newAdmin),
         systemProgram: SystemProgram.programId,
       })
       .instruction();
@@ -188,12 +208,12 @@ export class SolanaTokenBridgeRelayer {
     adminToRemove: PublicKey,
   ): Promise<web3.TransactionInstruction> {
     return this.program.methods
-      .removeAdmin(adminToRemove)
+      .removeAdmin()
       .accountsStrict({
         signer,
-        adminBadge: this.address.adminBadge(signer),
+        authBadge: this.address.authBadge(signer),
         tbrConfig: this.address.config(),
-        adminBadgeToBeRemoved: this.address.adminBadge(adminToRemove),
+        authBadgeToBeRemoved: this.address.authBadge(adminToRemove),
       })
       .instruction();
   }
@@ -209,7 +229,7 @@ export class SolanaTokenBridgeRelayer {
       .registerPeer(chainToChainId(chain), uaToArray(peerAddress))
       .accountsStrict({
         signer,
-        adminBadge: this.address.adminBadge(signer),
+        authBadge: this.address.authBadge(signer),
         tbrConfig: this.address.config(),
         peer: this.address.peer(chain, peerAddress),
         chainConfig: this.address.chainConfig(chain),
@@ -224,7 +244,7 @@ export class SolanaTokenBridgeRelayer {
     peerAddress: UniversalAddress,
   ): Promise<web3.TransactionInstruction> {
     return this.program.methods
-      .updateCanonicalPeer(chainToChainId(chain), uaToArray(peerAddress))
+      .updateCanonicalPeer()
       .accountsStrict({
         owner: signer,
         tbrConfig: this.address.config(),
@@ -243,10 +263,10 @@ export class SolanaTokenBridgeRelayer {
     paused: boolean,
   ): Promise<web3.TransactionInstruction> {
     return this.program.methods
-      .setPauseForOutboundTransfers(chainToChainId(chain), paused)
+      .setPauseForOutboundTransfers(paused)
       .accountsStrict({
         signer,
-        adminBadge: this.address.adminBadge(signer),
+        authBadge: this.address.authBadge(signer),
         chainConfig: this.address.chainConfig(chain),
         tbrConfig: this.address.config(),
       })
@@ -259,10 +279,10 @@ export class SolanaTokenBridgeRelayer {
     maxGasDropoff: number,
   ): Promise<web3.TransactionInstruction> {
     return this.program.methods
-      .updateMaxGasDropoff(chainToChainId(chain), maxGasDropoff)
+      .updateMaxGasDropoff(maxGasDropoff)
       .accountsStrict({
         signer,
-        adminBadge: this.address.adminBadge(signer),
+        authBadge: this.address.authBadge(signer),
         chainConfig: this.address.chainConfig(chain),
         tbrConfig: this.address.config(),
       })
@@ -275,10 +295,10 @@ export class SolanaTokenBridgeRelayer {
     relayerFee: number,
   ): Promise<web3.TransactionInstruction> {
     return this.program.methods
-      .updateRelayerFee(chainToChainId(chain), relayerFee)
+      .updateRelayerFee(relayerFee)
       .accountsStrict({
         signer,
-        adminBadge: this.address.adminBadge(signer),
+        authBadge: this.address.authBadge(signer),
         chainConfig: this.address.chainConfig(chain),
         tbrConfig: this.address.config(),
       })
@@ -295,6 +315,8 @@ export class SolanaTokenBridgeRelayer {
       .updateFeeRecipient(newFeeRecipient)
       .accounts({
         signer,
+        authBadge: this.address.authBadge(signer),
+        tbrConfig: this.address.config(),
       })
       .instruction();
   }
@@ -308,6 +330,8 @@ export class SolanaTokenBridgeRelayer {
       .updateEvmTransactionConfig(evmTransactionGas, evmTransactionSize)
       .accounts({
         signer,
+        authBadge: this.address.authBadge(signer),
+        tbrConfig: this.address.config(),
       })
       .instruction();
   }
@@ -340,7 +364,6 @@ export class SolanaTokenBridgeRelayer {
 
     return this.program.methods
       .transferTokens(
-        chainToChainId(recipient.chain),
         uaToArray(recipient.address),
         transferredAmount,
         unwrapIntent,
@@ -394,7 +417,6 @@ export class SolanaTokenBridgeRelayer {
 
     return this.program.methods
       .transferTokens(
-        chainId,
         uaToArray(recipient.address),
         transferredAmount,
         unwrapIntent,
@@ -496,7 +518,7 @@ export class SolanaTokenBridgeRelayer {
     assertProvider(this.program.provider);
 
     const tx = await this.program.methods
-      .relayingFee(chainToChainId(chain), dropoffAmount)
+      .relayingFee(dropoffAmount)
       .accountsStrict({
         payer: this.program.provider.publicKey,
         tbrConfig: this.address.config(),
@@ -533,7 +555,7 @@ const pda = {
     PublicKey.findProgramAddressSync([Buffer.from('seq'), signer.toBuffer()], programId)[0],
 
   admin: (programId: PublicKey, admin: PublicKey) =>
-    PublicKey.findProgramAddressSync([Buffer.from('admin'), admin.toBuffer()], programId)[0],
+    PublicKey.findProgramAddressSync([Buffer.from('authbadge'), admin.toBuffer()], programId)[0],
 
   // Internal:
 

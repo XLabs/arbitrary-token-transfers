@@ -60,8 +60,24 @@ export class TbrWrapper {
     }
   }
 
-  async initialize(): Promise<TransactionSignature> {
-    return sendAndConfirmIx(this.client.initialize(this.provider.publicKey), this.provider);
+  static async initialize(args: {
+    owner: PublicKey;
+    feeRecipient: PublicKey;
+    admins: PublicKey[];
+  }): Promise<TransactionSignature> {
+    const provider = AnchorProvider.env();
+    const client = new SolanaTokenBridgeRelayer(provider, {
+      tokenBridgeProgramId: PublicKey.default,
+      wormholeProgramId: PublicKey.default,
+    });
+
+    return sendAndConfirmIx(
+      client.initialize({
+        deployer: provider.publicKey,
+        ...args,
+      }),
+      provider,
+    );
   }
 
   async submitOwnerTransferRequest(newOwner: PublicKey): Promise<TransactionSignature> {

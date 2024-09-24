@@ -1,6 +1,6 @@
 use crate::{
     error::TokenBridgeRelayerError,
-    state::{AdminState, TbrConfigState},
+    state::{AuthBadgeState, TbrConfigState},
 };
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::{bpf_loader_upgradeable, program::invoke};
@@ -17,6 +17,15 @@ pub struct Initialize<'info> {
 
     /// The designated owner of the program.
     pub owner: UncheckedAccount<'info>,
+
+    #[account(
+        init,
+        payer = deployer,
+        space = 8 + AuthBadgeState::INIT_SPACE,
+        seeds = [AuthBadgeState::SEED_PREFIX],
+        bump
+    )]
+    pub auth_badge: Account<'info, AuthBadgeState>,
 
     /// Owner Config account. This program requires that the `owner` specified
     /// in the context equals the pubkey specified in this account. Mutable.
@@ -60,8 +69,13 @@ pub fn initialize<'a, 'b, 'c, 'info>(
     fee_recipient: Pubkey,
     admins: Vec<Pubkey>,
 ) -> Result<()> {
+    msg!(
+        "Authority: {:?}",
+        &ctx.accounts.program_data.to_account_info().data.borrow()[0..50]
+    );
     //We only update the upgrade authority if the program wasn't deployed by the designated owner
     if Some(ctx.accounts.owner.key()) != ctx.accounts.program_data.upgrade_authority_address {
+        msg!("Setting program authority to the owner...");
         //This call fails for anyone but the deployer who must be the current update authority.
         invoke(
             &bpf_loader_upgradeable::set_upgrade_authority(
@@ -75,18 +89,23 @@ pub fn initialize<'a, 'b, 'c, 'info>(
                 ctx.accounts.owner.to_account_info(),
             ],
         )?;
+        msg!("Program authority set to the owner");
     }
 
-    *ctx.accounts.tbr_config = TbrConfigState {
+    ctx.accounts.tbr_config.set_inner(TbrConfigState {
         owner: ctx.accounts.owner.key(),
         pending_owner: None,
-        fee_recipient: fee_recipient,
+        fee_recipient,
         evm_transaction_size: 0,
         evm_transaction_gas: 0,
         sender_bump: ctx.bumps.wormhole_sender,
         redeemer_bump: ctx.bumps.wormhole_redeemer,
         bump: ctx.bumps.tbr_config,
-    };
+    });
+
+    ctx.accounts.auth_badge.set_inner(AuthBadgeState {
+        address: ctx.accounts.owner.key(),
+    });
 
     require_eq!(
         admins.len(),
@@ -98,7 +117,7 @@ pub fn initialize<'a, 'b, 'c, 'info>(
         require_keys_eq!(
             badge_acc_info.key(),
             Pubkey::find_program_address(
-                &[AdminState::SEED_PREFIX, admin.to_bytes().as_ref()],
+                &[AuthBadgeState::SEED_PREFIX, admin.to_bytes().as_ref()],
                 ctx.program_id
             )
             .0,
@@ -113,13 +132,13 @@ pub fn initialize<'a, 'b, 'c, 'info>(
                     to: badge_acc_info.clone(),
                 },
             ),
-            Rent::get()?.minimum_balance(8 + AdminState::INIT_SPACE),
-            (8 + AdminState::INIT_SPACE) as u64,
+            Rent::get()?.minimum_balance(8 + AuthBadgeState::INIT_SPACE),
+            (8 + AuthBadgeState::INIT_SPACE) as u64,
             ctx.program_id,
         )?;
 
-        AdminState::try_serialize(
-            &AdminState { address: admin },
+        AuthBadgeState::try_serialize(
+            &AuthBadgeState { address: admin },
             badge_acc_info.try_borrow_mut_data()?.deref_mut(),
         )?;
     }

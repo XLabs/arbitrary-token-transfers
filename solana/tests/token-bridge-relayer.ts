@@ -21,7 +21,7 @@ const OASIS = 'Oasis';
 const OASIS_ID = chainToChainId(OASIS);
 
 describe('Token Bridge Relayer Program', () => {
-  const clients = (['owner', 'owner', 'admin', 'admin', 'regular'] as const).map(
+  const clients = (['owner', 'owner', 'admin', 'admin', 'admin', 'regular'] as const).map(
     (typeAccount) =>
       new TbrWrapper(
         newProvider(),
@@ -32,7 +32,14 @@ describe('Token Bridge Relayer Program', () => {
         typeAccount,
       ),
   );
-  const [ownerClient, newOwnerClient, adminClient1, adminClient2, unauthorizedClient] = clients;
+  const [
+    ownerClient,
+    newOwnerClient,
+    adminClient1,
+    adminClient2,
+    adminClient3,
+    unauthorizedClient,
+  ] = clients;
 
   const oracleOwner = newProvider();
   const oracleOwnerClient = new SolanaPriceOracleClient(oracleOwner.connection);
@@ -88,7 +95,11 @@ describe('Token Bridge Relayer Program', () => {
   });
 
   it('Is initialized!', async () => {
-    await ownerClient.initialize();
+    await TbrWrapper.initialize({
+      feeRecipient,
+      owner: ownerClient.publicKey,
+      admins: [adminClient1.publicKey, adminClient2.publicKey],
+    });
 
     const config = await unauthorizedClient.read.config();
     assertEqKeys(config.owner, ownerClient.publicKey);
@@ -123,11 +134,11 @@ describe('Token Bridge Relayer Program', () => {
 
     it('Only the owner can add an admin', async () => {
       // At first, the admin doesn't exist:
-      await assertResolveFailure(unauthorizedClient.read.adminBadge(adminClient1.publicKey));
+      await assertResolveFailure(unauthorizedClient.read.authBadge(adminClient1.publicKey));
 
       // After being added, it exists:
       await newOwnerClient.addAdmin(adminClient1.publicKey);
-      await unauthorizedClient.read.adminBadge(adminClient1.publicKey);
+      await unauthorizedClient.read.authBadge(adminClient1.publicKey);
 
       // An admin cannot add another one:
       await assertResolveFailure(
@@ -137,11 +148,11 @@ describe('Token Bridge Relayer Program', () => {
 
       // ... but the owner can:
       await newOwnerClient.addAdmin(adminClient2.publicKey);
-      await unauthorizedClient.read.adminBadge(adminClient2.publicKey);
+      await unauthorizedClient.read.authBadge(adminClient2.publicKey);
 
       // On the contrary, an admin can remove another one:
       await adminClient1.removeAdmin(adminClient2.publicKey);
-      await assertResolveFailure(unauthorizedClient.read.adminBadge(adminClient2.publicKey));
+      await assertResolveFailure(unauthorizedClient.read.authBadge(adminClient2.publicKey));
     });
 
     it('Unauthorized cannot add or remove an admin', async () => {
@@ -160,6 +171,7 @@ describe('Token Bridge Relayer Program', () => {
     it('Registers peers', async () => {
       await newOwnerClient.registerPeer(ETHEREUM, ethereumPeer1);
       assertEqChainConfigs(await unauthorizedClient.read.chainConfig(ETHEREUM), {
+        chainId: ETHEREUM_ID,
         canonicalPeer: uaToArray(ethereumPeer1),
         maxGasDropoffMicroToken: 0,
         pausedOutboundTransfers: true,
@@ -172,6 +184,7 @@ describe('Token Bridge Relayer Program', () => {
 
       await adminClient1.registerPeer(ETHEREUM, ethereumPeer2);
       assertEqChainConfigs(await unauthorizedClient.read.chainConfig(ETHEREUM), {
+        chainId: ETHEREUM_ID,
         canonicalPeer: uaToArray(ethereumPeer1),
         maxGasDropoffMicroToken: 0,
         pausedOutboundTransfers: true,
@@ -184,12 +197,14 @@ describe('Token Bridge Relayer Program', () => {
 
       await adminClient1.registerPeer(OASIS, oasisPeer);
       assertEqChainConfigs(await unauthorizedClient.read.chainConfig(OASIS), {
+        chainId: OASIS_ID,
         canonicalPeer: uaToArray(oasisPeer),
         maxGasDropoffMicroToken: 0,
         pausedOutboundTransfers: true,
         relayerFeeMicroUsd: 0,
       });
       assertEqChainConfigs(await unauthorizedClient.read.chainConfig(ETHEREUM), {
+        chainId: ETHEREUM_ID,
         canonicalPeer: uaToArray(ethereumPeer1),
         maxGasDropoffMicroToken: 0,
         pausedOutboundTransfers: true,
@@ -205,6 +220,7 @@ describe('Token Bridge Relayer Program', () => {
       await newOwnerClient.updateCanonicalPeer(ETHEREUM, ethereumPeer2);
 
       assertEqChainConfigs(await unauthorizedClient.read.chainConfig(ETHEREUM), {
+        chainId: ETHEREUM_ID,
         canonicalPeer: uaToArray(ethereumPeer2),
         maxGasDropoffMicroToken: 0,
         pausedOutboundTransfers: true,
@@ -255,6 +271,7 @@ describe('Token Bridge Relayer Program', () => {
       ]);
 
       assertEqChainConfigs(await unauthorizedClient.read.chainConfig(ETHEREUM), {
+        chainId: ETHEREUM_ID,
         canonicalPeer: uaToArray(ethereumPeer2),
         maxGasDropoffMicroToken,
         pausedOutboundTransfers: false,

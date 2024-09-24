@@ -1,6 +1,9 @@
 //! Everything about the owner or admin role transfer.
 
-use crate::{error::TokenBridgeRelayerError, state::TbrConfigState};
+use crate::{
+    error::TokenBridgeRelayerError,
+    state::{AuthBadgeState, TbrConfigState},
+};
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
@@ -44,6 +47,23 @@ pub struct ConfirmOwnerTransfer<'info> {
         } @ TokenBridgeRelayerError::PendingOwnerOnly,
     )]
     pub new_owner: Signer<'info>,
+
+    #[account(
+        init,
+        payer = new_owner,
+        space = 8 + AuthBadgeState::INIT_SPACE,
+        seeds = [AuthBadgeState::SEED_PREFIX],
+        bump
+    )]
+    pub auth_badge_new_owner: Account<'info, AuthBadgeState>,
+
+    #[account(
+        mut,
+        constraint = &auth_badge_previous_owner.address == &tbr_config.owner
+            @ TokenBridgeRelayerError::InvalidPreviousOwnerBadge,
+        close = new_owner,
+    )]
+    pub auth_badge_previous_owner: Account<'info, AuthBadgeState>,
 
     /// Program Config account. This program requires that the [`signer`] specified
     /// in the context equals a pubkey specified in this account. Mutable,

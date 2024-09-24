@@ -27,7 +27,13 @@ async function initializeSolanaTbr(
     },
   );
 
-  const initializeIx = await tbr.initialize(signerKey);
+  const tmpError = () => { throw new Error('TODO: add this field'); };
+  const initializeIx = await tbr.initialize({
+    deployer: signerKey,
+    owner: tmpError(),
+    feeRecipient: tmpError(),
+    admins: tmpError(),
+  });
 
   await ledgerSignAndSend(connection, [initializeIx], []);
 }

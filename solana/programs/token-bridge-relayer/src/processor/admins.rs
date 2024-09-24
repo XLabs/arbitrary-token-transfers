@@ -1,6 +1,6 @@
 use crate::{
     error::TokenBridgeRelayerError,
-    state::{AdminState, TbrConfigState},
+    state::{AuthBadgeState, TbrConfigState},
 };
 use anchor_lang::prelude::*;
 
@@ -21,19 +21,19 @@ pub struct AddAdmin<'info> {
     #[account(
         init,
         payer = owner,
-        space = 8 + AdminState::INIT_SPACE,
-        seeds = [AdminState::SEED_PREFIX, new_admin.to_bytes().as_ref()],
+        space = 8 + AuthBadgeState::INIT_SPACE,
+        seeds = [AuthBadgeState::SEED_PREFIX, new_admin.to_bytes().as_ref()],
         bump
     )]
-    pub admin_badge: Account<'info, AdminState>,
+    pub auth_badge: Account<'info, AuthBadgeState>,
 
     pub system_program: Program<'info, System>,
 }
 
 pub fn add_admin(ctx: Context<AddAdmin>, new_admin: Pubkey) -> Result<()> {
     ctx.accounts
-        .admin_badge
-        .set_inner(AdminState { address: new_admin });
+        .auth_badge
+        .set_inner(AuthBadgeState { address: new_admin });
 
     Ok(())
 }
@@ -41,16 +41,12 @@ pub fn add_admin(ctx: Context<AddAdmin>, new_admin: Pubkey) -> Result<()> {
 #[derive(Accounts)]
 pub struct RemoveAdmin<'info> {
     /// The signer can be the owner or an admin.
-    #[account(
-        mut,
-        constraint = {
-            tbr_config.is_owner_or_admin(&signer, &maybe_admin_badge)
-        } @ TokenBridgeRelayerError::OwnerOrAdminOnly
-    )]
+    #[account(mut)]
     pub signer: Signer<'info>,
 
-    /// If the signer is an admin, prove it with this PDA.
-    pub maybe_admin_badge: Option<Account<'info, AdminState>>,
+    /// Proof that the signer is authorized.
+    #[account(constraint = &auth_badge.address == signer.key @ TokenBridgeRelayerError::OwnerOrAdminOnly)]
+    pub auth_badge: Account<'info, AuthBadgeState>,
 
     /// Program Config account. This program requires that the [`owner`] specified
     /// in the context equals the owner role stored in the config.
@@ -60,7 +56,7 @@ pub struct RemoveAdmin<'info> {
         mut,
         close = signer,
     )]
-    pub admin_badge_to_be_removed: Account<'info, AdminState>,
+    pub auth_badge_to_be_removed: Account<'info, AuthBadgeState>,
 }
 
 pub fn remove_admin(_ctx: Context<RemoveAdmin>) -> Result<()> {

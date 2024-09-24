@@ -28,6 +28,10 @@ pub(crate) enum TokenBridgeRelayerError {
     #[msg("AlreadyTheOwner")]
     AlreadyTheOwner,
 
+    /// The correct auth badge for the previous owner must be provided.
+    #[msg("InvalidPreviousOwnerBadge")]
+    InvalidPreviousOwnerBadge,
+
     /// All chain IDs must be the same.
     #[msg("ChainIdMismatch")]
     ChainIdMismatch,

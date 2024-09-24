@@ -38,9 +38,7 @@ pub struct OutboundTransfer<'info> {
     /// canonical peer.
     #[account(
         mut,
-        constraint = {
-            !chain_config.paused_outbound_transfers
-        } @ TokenBridgeRelayerError::PausedTransfers
+        constraint = (!chain_config.paused_outbound_transfers) @ TokenBridgeRelayerError::PausedTransfers
     )]
     pub chain_config: Box<Account<'info, ChainConfigState>>,
 
