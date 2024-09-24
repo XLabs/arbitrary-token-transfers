@@ -69,12 +69,18 @@ Run `yarn ./sdk/solana build`
 
 Run `yarn ./deployment build:evm`. This will build the evm contracts typechain and bring them over the `deployment` dir.
 
-### Test
+## Tests
 
-```
-export TEST_WORMHOLE_ADDRESS=0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B
-export TEST_WETH_ADDRESS=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2
-export TEST_USDT_ADDRESS=0xdAC17F958D2ee523a2206206994597C13D831ec7
-export TEST_TOKEN_BRIDGE_ADDRESS=0x3ee18B2214AFF97000D974cf647E7C347E8fa585
-forge test --fork-url <eth-mainnet-rpc>
-```
+### Running tests for EVM Contracts
+
+- Make a copy of the `.env.evm-test.sample` file contents into its own file
+
+  ```bash
+  $ cp .env.evm-test.sample .env.evm-test
+  ```
+
+- Run the test
+
+  ```bash
+  $ yarn test:evm <eth-mainnet-rpc>
+  ```
