@@ -4,7 +4,7 @@
   "scripts": {
     "build": "forge build && typechain --target=ethers-v6 --out-dir=./ethers-contracts ../evm/build-forge/*.sol/!(*.dbg).json --show-stack-traces",
     "clean": "forge clean && rm -rf ./ethers-contracts",
-    "test": "forge test"
+    "test": "bash -c 'source ../.env.evm-test && forge test --fork-url ${0}'"
   },
   "dependencies": {
     "@typechain/ethers-v6": "^0.5.1",
