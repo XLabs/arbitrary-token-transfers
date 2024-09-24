@@ -12,7 +12,7 @@ pub struct UpdateTbrConfig<'info> {
     /// Proof that the signer is an admin or the owner.
     #[account(
         seeds = [AdminState::SEED_PREFIX, signer.key.to_bytes().as_ref()],
-        bump
+        bump = admin_badge.bump
     )]
     pub admin_badge: Account<'info, AdminState>,
 
@@ -22,7 +22,7 @@ pub struct UpdateTbrConfig<'info> {
     #[account(
         mut,
         seeds = [TbrConfigState::SEED_PREFIX],
-        bump
+        bump = tbr_config.bump
     )]
     pub tbr_config: Account<'info, TbrConfigState>,
 }

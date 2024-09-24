@@ -95,24 +95,28 @@ async function sendTestTransaction(
       if (isSendingWrappedTokensEnabled) {
         const tokenChain = getEnvOrDefault('TOKEN_CHAIN', 'Solana') as Chain;
         const params = {
-          recipientChain: targetChain.name as Chain,
-          recipientAddress: toUniversal(targetChain.name as Chain, evmAddress).toUint8Array(),
+          recipient: {
+            chain: targetChain.name as Chain,
+            address: toUniversal(targetChain.name as Chain, evmAddress),
+          },
+          token: {
+            chain: tokenChain,
+            address: toUniversal(tokenChain, getEnv('TRANSFER_MINT')),
+          },
           userTokenAccount: new PublicKey(getEnv('TRANSFER_TOKEN_ACCOUNT')),
           transferredAmount,
           gasDropoffAmount,
           maxFeeKlamports,
           unwrapIntent,
-          token: {
-            chain: tokenChain,
-            address: toUniversal(tokenChain, getEnv('TRANSFER_MINT')),
-          },
         } satisfies TransferWrappedParameters;
 
         transferIx = await tbr.transferWrappedTokens(signerKey, params);
       } else {
         const params = {
-          recipientChain: targetChain.name as Chain,
-          recipientAddress: toUniversal(targetChain.name as Chain, evmAddress).toUint8Array(),
+          recipient: {
+            chain: targetChain.name as Chain,
+            address: toUniversal(targetChain.name as Chain, evmAddress),
+          },
           mint: new PublicKey(getEnv('TRANSFER_MINT')),
           tokenAccount: new PublicKey(getEnv('TRANSFER_TOKEN_ACCOUNT')),
           transferredAmount,

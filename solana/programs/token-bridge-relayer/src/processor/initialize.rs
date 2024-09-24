@@ -1,5 +1,6 @@
-use crate::state::{AdminState, SenderState, TbrConfigState};
+use crate::state::{AdminState, TbrConfigState};
 use anchor_lang::prelude::*;
+use wormhole_anchor_sdk::token_bridge;
 
 #[derive(Accounts)]
 pub struct Initialize<'info> {
@@ -29,25 +30,34 @@ pub struct Initialize<'info> {
     pub tbr_config: Account<'info, TbrConfigState>,
 
     #[account(
-        init,
-        payer = owner,
-        space = 8 + SenderState::INIT_SPACE,
-        seeds = [SenderState::SEED_PREFIX],
+        seeds = [token_bridge::SEED_PREFIX_SENDER],
         bump
     )]
-    pub wormhole_sender: Account<'info, SenderState>,
+    pub wormhole_sender: UncheckedAccount<'info>,
+
+    #[account(
+        seeds = [token_bridge::SEED_PREFIX_REDEEMER],
+        bump
+    )]
+    pub wormhole_redeemer: UncheckedAccount<'info>,
 
     pub system_program: Program<'info, System>,
 }
 
 pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
     let owner = ctx.accounts.owner.key();
-    let tbr_config = &mut ctx.accounts.tbr_config;
 
-    tbr_config.owner = owner;
-    tbr_config.pending_owner = None;
-    tbr_config.fee_recipient = owner;
-    tbr_config.evm_transaction_size = 0;
+    *ctx.accounts.tbr_config = TbrConfigState {
+        owner,
+        pending_owner: None,
+        fee_recipient: owner,
+        evm_transaction_size: 0,
+        evm_transaction_gas: 0,
+        sender_bump: ctx.bumps.wormhole_sender,
+        redeemer_bump: ctx.bumps.wormhole_redeemer,
+        bump: ctx.bumps.tbr_config,
+    };
+    ctx.accounts.admin_badge.bump = ctx.bumps.admin_badge;
 
     Ok(())
 }

@@ -57,7 +57,7 @@ async function configureSolanaTbr(
       const ix = await tbr.registerPeer(
         signerKey,
         chainIdToChain(tbrDeployment.chainId),
-        peerUniversalAddress.address,
+        peerUniversalAddress,
       );
       const tx = await ledgerSignAndSend(connection, [ix], []);
       log(`Register succeeded on tx: ${tx}`);
@@ -71,7 +71,7 @@ async function configureSolanaTbr(
         const ix = await tbr.updateCanonicalPeer(
           signerKey,
           chainIdToChain(tbrDeployment.chainId),
-          peerUniversalAddress.address,
+          peerUniversalAddress,
         );
         const tx = await ledgerSignAndSend(connection, [ix], []);
         log(`Update succeeded on tx: ${tx}`);

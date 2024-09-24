@@ -8,7 +8,6 @@
     "outDir": "ts-build"
   },
   "include": [
-    "tbrv3",
-    "tbrv3/**/*.json"
+    "index.ts"
   ]
 }
