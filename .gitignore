@@ -19,6 +19,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Ignore cache files
+cache/
+
 # Yarn
 .yarn/*
 !.yarn/cache
@@ -34,9 +37,6 @@ tmp/
 # Sublime text project files
 *.sublime-project
 *.sublime-workspace
-
-# Ignore cache files
-cache/
 
 # Solana
 target/*

@@ -13,7 +13,7 @@ token_bridge_relayer = "AttbEYJMSsnVRDcKY4AcX1GBcdPy9FzHcxTbKaMGGuLs"
 
 [[test.genesis]]
 address = "ATqjh2vkjogyVUUNmXQssQZNSFGgSA7Tm6P1UzEUg85s" # Mainnet in lib.rs
-program = "lib/relayer-infra-contracts/src/solana/target/sbf-solana-solana/release/solana_price_oracle.so"
+program = "target/sbf-solana-solana/release/solana_price_oracle.so"
 
 # [test]
 # startup_wait = 8000
@@ -34,5 +34,5 @@ cluster = "Localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
-setup-test = "cargo build-sbf -- -p solana-price-oracle"
+setup-test = "cargo build-sbf -- -p solana-price-oracle --target-dir target"
 test = "yarn ./solana build && yarn run mocha -t 1000000 solana/ts-build/tests/*.js"
