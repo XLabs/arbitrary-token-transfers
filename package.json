@@ -6,8 +6,8 @@
   "scripts": {
     "build": "tsc --build tsconfig.json && yarn workspaces foreach --all run build",
     "build:ts": "tsc --build tsconfig.json && yarn workspaces foreach --all run build:ts",
-    "build:all-devnet": "yarn ./solana build:devnet && yarn ./evm build && yarn sdk/solana build && yarn sdk/evm build && yarn ./deployment build:evm && yarn ./solana build:ts",
-    "build:all-mainnet": "yarn ./solana build && yarn ./evm build && yarn sdk/solana build && yarn sdk/evm build && yarn ./deployment build:evm && yarn ./solana build:ts",
+    "build:all-devnet": "yarn ./solana build:devnet && yarn ./evm build && yarn sdk/common build && yarn sdk/solana build && yarn sdk/evm build && yarn ./deployment build:evm && yarn ./solana build:ts",
+    "build:all-mainnet": "yarn ./solana build && yarn ./evm build && yarn sdk/common build && yarn sdk/solana build && yarn sdk/evm build && yarn ./deployment build:evm && yarn ./solana build:ts",
     "clean": "yarn workspaces foreach --all --exclude ./solana run clean && yarn ./solana run clean:ts",
     "clean:all": "yarn workspaces foreach --all run clean",
     "test:evm": "yarn ./evm test",
