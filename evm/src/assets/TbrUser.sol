@@ -12,6 +12,7 @@ import {IERC20Permit} from "@openzeppelin/token/ERC20/extensions/IERC20Permit.so
 import {ISignatureTransfer, IAllowanceTransfer} from "permit2/IPermit2.sol";
 import {TRANSFER_TOKEN_WITH_RELAY_ID, TRANSFER_GAS_TOKEN_WITH_RELAY_ID, COMPLETE_TRANSFER_ID, RELAY_FEE_ID, BASE_RELAYING_CONFIG_ID} from "./TbrIds.sol";
 import {TbrBase, InvalidCommand} from "./TbrBase.sol";
+import {GasDropoff, BaseFee} from "price-oracle/PriceOracleIntegration.sol";
 
 uint8 constant TBR_V3_MESSAGE_VERSION = 0;
 
@@ -352,10 +353,10 @@ abstract contract TbrUser is TbrBase {
     if (targetChain == CHAIN_ID_SOLANA)
       return (
         _solanaTransactionQuote(
-          gasDropoff,
+          GasDropoff.wrap(gasDropoff),
           SOLANA_RELAY_SPAWNED_ACCOUNTS,
           SOLANA_RELAY_TOTAL_SIZE,
-          baseFee
+          BaseFee.wrap(baseFee)
         ),
         wormholeFee
       );
@@ -364,15 +365,15 @@ abstract contract TbrUser is TbrBase {
       return (
           _evmTransactionWithTxSizeQuote(
             targetChain,
-            gasDropoff,
+            GasDropoff.wrap(gasDropoff),
             EVM_RELAY_GAS_COST,
-            baseFee,
+            BaseFee.wrap(baseFee),
             EVM_RELAY_TX_SIZE
           ),
           wormholeFee
       );
 
-    return (_evmTransactionQuote(targetChain, gasDropoff, EVM_RELAY_GAS_COST, baseFee), wormholeFee);
+    return (_evmTransactionQuote(targetChain, GasDropoff.wrap(gasDropoff), EVM_RELAY_GAS_COST, BaseFee.wrap(baseFee)), wormholeFee);
   }
 
   function _bridgeOut(

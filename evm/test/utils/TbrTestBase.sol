@@ -97,6 +97,15 @@ contract TbrTestBase is Test {
     _setUp1();
   }
 
+  function invokeStaticTbr(bytes memory encoded) view internal returns (bytes memory data) {
+    (bool success, bytes memory result) = address(tbr).staticcall(encoded);
+    if (!success) {
+      reRevert(result);
+    }
+    (uint length,) = result.asUint256Unchecked(32);
+    (data,) = result.sliceUnchecked(64, length);
+  }
+
   function invokeTbr(bytes memory encoded) internal returns (bytes memory data) {
     (bool success, bytes memory result) = address(tbr).call(encoded);
     if (!success) {
