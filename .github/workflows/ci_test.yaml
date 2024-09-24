@@ -27,6 +27,12 @@ jobs:
           cache: "yarn"
           cache-dependency-path: |
             ./yarn.lock
+      - name: Checkout relayer-infra-contracts
+        uses: actions/checkout@v3
+        with:
+          repository: xlabs/relayer-infra-contracts
+          path: lib/relayer-infra-contracts
+          ssh-key: '${{ secrets.RELAYER_INFRA_CONTRACTS }}'
 
       # Taken from https://github.com/metaDAOproject/setup-anchor/blob/main/action.yml#L25-L40
       - name: Cache Solana CLI tools
@@ -45,7 +51,9 @@ jobs:
       - name: Install Anchor
         run: npm i -g @coral-xyz/anchor-cli@0.30.1
         shell: bash
-
+      - name: Create keypair
+        run: solana-keygen new --no-bip39-passphrase
+        shell: bash
       - name: Setup private package access
         run: |
           yarn config set npmScopes.xlabs.npmAlwaysAuth true
@@ -55,14 +63,13 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Build Solana programs
-        run: |
-          eval `ssh-agent -s`
-          ssh-add - <<< '${{ secrets.RELAYER_INFRA_CONTRACTS }}'
-          anchor build
+        run: anchor build
         working-directory: ./solana
         shell: bash
+ 
       - name: Run Solana SDK tests
         run: |
+          yarn ./sdk/common build:ts && yarn ./sdk/solana build:ts && yarn ./solana build:ts
           anchor run setup-test
           anchor test
         shell: bash

@@ -10,5 +10,8 @@
   "include": [
     "tbrv3",
     "tbrv3/**/*.json"
+  ],
+  "references": [
+    { "path": "../common" }
   ]
 }
