@@ -270,7 +270,7 @@ export const commandCategoryLayout = {
     [[0x62, "SweepTokens"], [
       { name: "address", ...evmAddressItem },
       { name: "amount", ...layoutItems.amountItem }
-    ] /*sweepTokensLayout*/],
+    ]],
   ],
 } as const;
 export type CommandCategory = LayoutToType<typeof commandCategoryLayout>;
