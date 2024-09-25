@@ -3,6 +3,7 @@
 pragma solidity ^0.8.25;
 
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ISignatureTransfer, IAllowanceTransfer } from "permit2/IPermit2.sol";
 import { ITokenBridge } from "wormhole-sdk/interfaces/ITokenBridge.sol";
 import { BytesParsing } from "wormhole-sdk/libraries/BytesParsing.sol";
@@ -71,7 +72,7 @@ contract UserTest is TbrTestBase {
     );
   }
 
-  function testTransferTokenWithRelay(
+  function testTransferTokenWithRelaySimple(
     uint256 tokenAmount,
     uint32 gasDropoff,
     bytes32 recipient,
@@ -144,9 +145,100 @@ contract UserTest is TbrTestBase {
       1
     );
 
+    vm.expectEmit(address(usdt));
+    emit IERC20.Approval(address(tbr), address(tokenBridge), type(uint256).max);
+
     vm.expectEmit(address(tbr));
     emit TransferRequested(address(this), sequence, gasDropoff, feeQuote);
 
+    invokeTbr(
+      abi.encodePacked(
+        tbr.exec768.selector,
+        DISPATCHER_PROTOCOL_VERSION0,
+        APPROVE_TOKEN_ID,
+        usdt,
+        TRANSFER_TOKEN_WITH_RELAY_ID,
+        targetChain,
+        recipient,
+        gasDropoff,
+        tokenAmount,
+        usdt,
+        unwrapIntent,
+        ACQUIRE_PREAPPROVED
+      ),
+      unallocatedBalance
+    );
+
+    assertEq(address(this).balance, initialCallerBalance - feeQuote - wormholeFee);
+    assertEq(address(feeRecipient).balance, initialFeeRecipientBalance + feeQuote);
+  }
+
+  function testTransferTokenWithRelay_InsufficientAllowance(
+    uint256 tokenAmount,
+    uint32 gasDropoff,
+    bytes32 recipient,
+    uint256 feeQuote,
+    uint256 unallocatedBalance,
+    uint256 wormholeFee
+  ) public {
+    // use a bound max value in order to prevent overflow
+    uint boundMaxValue = 1e12;
+    wormholeFee = bound(wormholeFee, 1, boundMaxValue);
+    feeQuote = bound(feeQuote, 1, boundMaxValue);
+    tokenAmount = bound(tokenAmount, 1, type(uint56).max);
+    vm.assume(recipient != bytes32(0));
+    gasDropoff = uint32(bound(gasDropoff, 0, MAX_GAS_DROPOFF_AMOUNT));
+    unallocatedBalance = bound(unallocatedBalance, feeQuote + wormholeFee, (feeQuote + wormholeFee) * 10);
+    deal(address(this), unallocatedBalance);
+    deal(address(usdt), address(this), tokenAmount);
+    SafeERC20.safeApprove(usdt, address(tbr), tokenAmount);
+
+    uint16 targetChain = SOLANA_CHAIN_ID;
+    bool unwrapIntent = false;
+    bytes memory tbrMessage = abi.encodePacked(
+      TBR_V3_MESSAGE_VERSION,
+      recipient,
+      gasDropoff,
+      unwrapIntent
+    );
+
+    uint64 sequence = 1;
+    vm.mockCall(
+      address(wormholeCore),
+      abi.encodeWithSelector(wormholeCore.publishMessage.selector),
+      abi.encode(sequence)
+    );
+
+    vm.mockCall(
+      address(oracle),
+      abi.encodeWithSelector(IPriceOracle.get1959.selector),
+      abi.encode(abi.encodePacked(uint256(feeQuote)))
+    );
+
+    vm.mockCall(
+      address(wormholeCore),
+      abi.encodeWithSelector(
+        wormholeCore.messageFee.selector
+      ),
+      abi.encode(uint256(wormholeFee))
+    );
+
+    vm.expectCall(
+      address(tokenBridge),
+      wormholeFee,
+      abi.encodeWithSelector(
+        tokenBridge.transferTokensWithPayload.selector,
+        usdt,
+        tokenAmount,
+        targetChain,
+        SOLANA_CANONICAL_PEER,
+        0,
+        tbrMessage
+      ),
+      1
+    );
+
+    vm.expectRevert("SafeERC20: low-level call failed");
     invokeTbr(
       abi.encodePacked(
         tbr.exec768.selector,
@@ -156,15 +248,12 @@ contract UserTest is TbrTestBase {
         recipient,
         gasDropoff,
         tokenAmount,
-        address(usdt),
+        usdt,
         unwrapIntent,
         ACQUIRE_PREAPPROVED
       ),
       unallocatedBalance
     );
-
-    assertEq(address(this).balance, initialCallerBalance - feeQuote - wormholeFee);
-    assertEq(address(feeRecipient).balance, initialFeeRecipientBalance + feeQuote);
   }
 
   function testTransferTokenWithRelayDoubleTransfer(
@@ -223,6 +312,9 @@ contract UserTest is TbrTestBase {
       abi.encode(uint256(wormholeFee))
     );
 
+    vm.expectEmit(address(token));
+    emit IERC20.Approval(address(tbr), address(tokenBridge), type(uint256).max);
+
     vm.expectEmit(address(tbr));
     emit TransferRequested(address(this), sequence, gasDropoff, feeQuote);
 
@@ -230,12 +322,14 @@ contract UserTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector,
         DISPATCHER_PROTOCOL_VERSION0,
+        APPROVE_TOKEN_ID,
+        token,
         TRANSFER_TOKEN_WITH_RELAY_ID,
         targetChain,
         recipient,
         gasDropoff,
         firstTokenAmount,
-        address(token),
+        token,
         unwrapIntent,
         ACQUIRE_PREAPPROVED
       ),
@@ -277,7 +371,7 @@ contract UserTest is TbrTestBase {
         recipient,
         gasDropoff,
         secondTokenAmount,
-        address(token),
+        token,
         unwrapIntent,
         ACQUIRE_PREAPPROVED
       ),
@@ -404,6 +498,9 @@ contract UserTest is TbrTestBase {
       1
     );
 
+    vm.expectEmit(address(gasToken));
+    emit IERC20.Approval(address(tbr), address(tokenBridge), type(uint256).max);
+
     vm.expectEmit(address(tbr));
     emit TransferRequested(address(this), sequence, gasDropoff, feeQuote);
 
@@ -411,6 +508,8 @@ contract UserTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector,
         DISPATCHER_PROTOCOL_VERSION0,
+        APPROVE_TOKEN_ID,
+        gasToken,
         TRANSFER_GAS_TOKEN_WITH_RELAY_ID,
         targetChain,
         recipient,
@@ -424,6 +523,76 @@ contract UserTest is TbrTestBase {
     uint256 dust = tokenAmount - finalTokenAmount;
     assertEq(address(this).balance, initialCallerBalance + dust - feeQuote - tokenAmount, "balance of caller is incorrect");
     assertEq(address(feeRecipient).balance, initialFeeRecipientBalance + feeQuote, "balance of fee recipient is incorrect");
+  }
+
+  function testTransferGasTokenWithRelay_InsufficientAllowance(
+    uint256 tokenAmount,
+    uint32 gasDropoff,
+    bytes32 recipient,
+    uint256 feeQuote,
+    uint256 unallocatedBalance
+  ) public {
+    // use a bound max value in order to prevent overflow
+    uint8 decimals = IERC20Metadata(address(gasToken)).decimals();
+    uint8 minDecimals = decimals <= 8 ? 0 : decimals - 8;
+    uint boundMaxValue = 10 ** (minDecimals + 6);
+    tokenAmount = bound(tokenAmount, 10 ** minDecimals, boundMaxValue);
+    gasDropoff = uint32(bound(gasDropoff, 1, MAX_GAS_DROPOFF_AMOUNT));
+    feeQuote = bound(feeQuote, 1, boundMaxValue);
+    unallocatedBalance = bound(unallocatedBalance, feeQuote + tokenAmount, (feeQuote + tokenAmount) * 5);
+    vm.assume(recipient != bytes32(0));
+    deal(address(this), unallocatedBalance);
+
+    uint16 targetChain = SOLANA_CHAIN_ID;
+    bool unwrapIntent = false;
+    bytes memory tbrMessage = abi.encodePacked(
+      TBR_V3_MESSAGE_VERSION,
+      recipient,
+      gasDropoff,
+      unwrapIntent
+    );
+
+    uint64 sequence = 1;
+    vm.mockCall(
+      address(wormholeCore),
+      abi.encodeWithSelector(wormholeCore.publishMessage.selector),
+      abi.encode(sequence)
+    );
+
+    vm.mockCall(
+      address(oracle),
+      abi.encodeWithSelector(IPriceOracle.get1959.selector),
+      abi.encode(abi.encodePacked(uint256(feeQuote)))
+    );
+
+    uint256 finalTokenAmount = discardInsignificantBits(tokenAmount, IERC20Metadata(address(gasToken)).decimals());
+    vm.expectCall(
+      address(tokenBridge),
+      abi.encodeWithSelector(
+        tokenBridge.transferTokensWithPayload.selector,
+        address(gasToken),
+        finalTokenAmount,
+        targetChain,
+        SOLANA_CANONICAL_PEER,
+        0,
+        tbrMessage
+      ),
+      1
+    );
+
+    vm.expectRevert("SafeERC20: low-level call failed");
+    invokeTbr(
+      abi.encodePacked(
+        tbr.exec768.selector,
+        DISPATCHER_PROTOCOL_VERSION0,
+        TRANSFER_GAS_TOKEN_WITH_RELAY_ID,
+        targetChain,
+        recipient,
+        gasDropoff,
+        tokenAmount
+      ),
+      unallocatedBalance
+    );
   }
 
   function testTransferGasTokenWithRelay_FeesInsufficient(
