@@ -264,7 +264,7 @@ export class Tbrv3 {
     const methods = layout.serializeLayout(execParamsLayout, {
       version: 0,
       commandCategories: commands.map(arg => ({
-        commandCategory: 'GovernanceCommands',
+        commandCategory: 'ConfigCommands',
         commands
       }) satisfies LayoutToType<typeof commandCategoryLayout>),
     })

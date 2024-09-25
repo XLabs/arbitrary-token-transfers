@@ -268,7 +268,10 @@ export const commandCategoryLayout = {
     [[0, "TransferTokenWithRelay"], transferTokenWithRelayLayout],
     [[1, "TransferGasTokenWithRelay" ], transferGasTokenWithRelayLayout],
     [[2, "CompleteTransfer"], [{ name: "vaa", binary: "bytes", lengthSize: 2 }]],
-    [[3, "GovernanceCommands"], subArrayLayout("commands", governanceCommandLayout)],
+    [[3, "ConfigCommands"], subArrayLayout("commands", governanceCommandLayout)],
+    [[0x60, "RoleCommands"], [] /*subArrayLayout("commands", roleCommandLayout)*/],
+    [[0x61, "UpgradeCommands"], [] /*subArrayLayout("commands", upgradeCommandLayout)*/],
+    [[0x62, "SweepTokens"], [] /*sweepTokensLayout*/],
   ],
 } as const;
 export type CommandCategory = LayoutToType<typeof commandCategoryLayout>;
@@ -281,6 +284,8 @@ export const queryCategoryLayout = {
     [[0x80, "RelayFee"], relayingFeesInputLayout],
     [[0x81, "BaseRelayingConfig"], baseRelayingConfigInputLayout],
     [[0x82, "GovernanceQueries"], subArrayLayout("queries", governanceQueryLayout)],
+    [[0xe0, "RoleQueries"], [] /*subArrayLayout("queries", roleQueryLayout)*/],
+    [[0xe1, "UpgradeQueries"], [] /*subArrayLayout("queries", upgradeQueryLayout)*/],
   ],
 } as const;
 export type QueryCategory = LayoutToType<typeof queryCategoryLayout>;
