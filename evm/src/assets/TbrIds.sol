@@ -12,6 +12,7 @@ uint8 constant TRANSFER_TOKEN_WITH_RELAY_ID = 0x00;
 uint8 constant TRANSFER_GAS_TOKEN_WITH_RELAY_ID = 0x01;
 uint8 constant COMPLETE_TRANSFER_ID = 0x02;
 uint8 constant CONFIG_ID = 0x03;
+uint8 constant APPROVE_TOKEN_ID = 0x04;
 
 // Query commands
 

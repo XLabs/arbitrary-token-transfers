@@ -10,7 +10,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IERC20Permit} from "@openzeppelin/token/ERC20/extensions/IERC20Permit.sol";
 import {ISignatureTransfer, IAllowanceTransfer} from "permit2/IPermit2.sol";
-import {TRANSFER_TOKEN_WITH_RELAY_ID, TRANSFER_GAS_TOKEN_WITH_RELAY_ID, COMPLETE_TRANSFER_ID, RELAY_FEE_ID, BASE_RELAYING_CONFIG_ID} from "./TbrIds.sol";
+import {TRANSFER_TOKEN_WITH_RELAY_ID, TRANSFER_GAS_TOKEN_WITH_RELAY_ID, COMPLETE_TRANSFER_ID, RELAY_FEE_ID, BASE_RELAYING_CONFIG_ID, APPROVE_TOKEN_ID} from "./TbrIds.sol";
 import {TbrBase, InvalidCommand} from "./TbrBase.sol";
 import {GasDropoff, BaseFee} from "price-oracle/PriceOracleIntegration.sol";
 
@@ -388,9 +388,7 @@ abstract contract TbrUser is TbrBase {
     uint256 wormholeFee
   ) private {
     bytes memory tbrMessage = _tbrv3Message(recipient, gasDropoff, unwrapIntent);
-    // TODO: move this to a separate instruction.
-    SafeERC20.forceApprove(token, address(tokenBridge), type(uint256).max);
-    // Perform call to token bridge.
+    // Perform call to token bridge. This requires previous approval of the tokens.
     uint64 sequence = tokenBridge.transferTokensWithPayload{value: wormholeFee}(
       address(token),
       tokenAmount,
@@ -402,6 +400,22 @@ abstract contract TbrUser is TbrBase {
 
     emit TransferRequested(msg.sender, sequence, gasDropoff, fee);
   }
+
+  function _approveToken(
+    bytes calldata data,
+    uint offset,
+    uint commandIndex
+  ) internal returns (uint256) { unchecked {
+    if (data.length < offset + 20)
+      revert InvalidCommand(APPROVE_TOKEN_ID, commandIndex);
+    address token;
+    uint retOffset;
+    (token, retOffset) = data.asAddressCdUnchecked(offset);
+
+    SafeERC20.forceApprove(IERC20Metadata(token), address(tokenBridge), type(uint256).max);
+
+    return retOffset;
+  }}
 
   function _tbrv3Message(
     bytes32 recipient,
