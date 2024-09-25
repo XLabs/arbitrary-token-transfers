@@ -26,7 +26,7 @@ contract OracleIntegrationTest is TbrTestBase {
     uint32 gasDropoff = 1000;
     uint16 chainId = EVM_CHAIN_ID;
     bool txCommitEthereum = false;
-    uint256 expectedQuote = 400000002000000000;
+    uint256 expectedQuote = 401000001000000000;
 
     uint fakeWormholeFee = 100;
     vm.mockCall(
@@ -45,7 +45,7 @@ contract OracleIntegrationTest is TbrTestBase {
     uint32 gasDropoff = 1000;
     uint16 chainId = EVM_CHAIN_ID;
     bool txCommitEthereum = true;
-    uint256 expectedQuote = 401000002000000000;
+    uint256 expectedQuote = 402000001000000000;
 
     uint fakeWormholeFee = 100;
     vm.mockCall(
@@ -64,7 +64,7 @@ contract OracleIntegrationTest is TbrTestBase {
     uint32 gasDropoff = 1000;
     uint16 chainId = SOLANA_CHAIN_ID;
     bool txCommitEthereum = false;
-    uint256 expectedQuote = 461000000002000000000;
+    uint256 expectedQuote = 461001000001000000000;
 
     uint fakeWormholeFee = 100;
     vm.mockCall(

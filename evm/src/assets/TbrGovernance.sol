@@ -10,7 +10,7 @@ import {TbrBase} from "./TbrBase.sol";
 import "./TbrIds.sol";
 
 //rationale for different roles (owner, admin):
-// * owner should be a mulit-sig / ultra cold wallet that is only activated in exceptional
+// * owner should be a multi-sig / ultra cold wallet that is only activated in exceptional
 //     circumstances.
 // * admin should also be either a cold wallet or Admin contract. In either case,
 //     the expectation is that multiple, slightly less trustworthy parties than the owner will

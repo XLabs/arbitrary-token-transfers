@@ -94,7 +94,8 @@ abstract contract TbrBase is PriceOracleIntegration {
   ITokenBridge internal immutable tokenBridge;
   IWETH        internal immutable gasToken;
   /**
-   * If true, the contract will call `deposit()` or `withdraw()` to convert from the native gas token to the ERC20 token and viceversa.
+   * If true, the contract will call `deposit()` or `withdraw()`
+   * to convert from the native gas token to the ERC20 token and viceversa.
    */
   bool         internal immutable gasErc20TokenizationIsExplicit;
 
