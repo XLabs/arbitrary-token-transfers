@@ -127,6 +127,10 @@ export const transferTokenWithRelayLayout = [
   acquireModeItem,
 ] as const satisfies Layout;
 
+export const approveTokenLayout = [
+  { name: "inputToken", ...evmAddressItem },
+] as const satisfies Layout;
+
 export const relayingFeesInputLayout = [
   { name: "targetChain", ...supportedChainItem },
   { name: "gasDropoff", ...gasDropoffItem },
@@ -265,6 +269,8 @@ export const commandCategoryLayout = {
     [[0x01, "TransferGasTokenWithRelay" ], transferGasTokenWithRelayLayout],
     [[0x02, "CompleteTransfer"], [{ name: "vaa", binary: "bytes", lengthSize: 2 }]],
     [[0x03, "ConfigCommands"], subArrayLayout("commands", governanceCommandLayout)],
+    [[0x04, "ApproveToken"], approveTokenLayout],
+
     [[0x60, "RoleCommands"], [] /*subArrayLayout("commands", roleCommandLayout)*/],
     [[0x61, "AcquireOwnership"], [] /*subArrayLayout("commands", roleCommandLayout)*/],
     [[0x62, "UpgradeCommands"], [] /*subArrayLayout("commands", upgradeCommandLayout)*/],
