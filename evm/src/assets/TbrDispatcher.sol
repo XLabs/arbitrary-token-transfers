@@ -51,7 +51,7 @@ abstract contract TbrDispatcher is RawDispatcher, TbrGovernance, TbrUser {
         (gasDropoffSpent, offset) = _completeTransfer(data, offset, senderRefund, commandIndex);
         senderRefund -= gasDropoffSpent;
       }
-      else if (command == GOVERNANCE_ID)
+      else if (command == CONFIG_ID)
         offset = _batchConfigCommands(data, offset);
       else if (command == ACQUIRE_OWNERSHIP_ID)
         _acquireOwnership();
@@ -87,7 +87,7 @@ abstract contract TbrDispatcher is RawDispatcher, TbrGovernance, TbrUser {
         (result, offset) = _relayFee(data, offset, queryIndex);
       else if (query == BASE_RELAYING_CONFIG_ID)
         (result, offset) = _baseRelayingConfig(data, offset, queryIndex);
-      else if (query == GOVERNANCE_QUERIES_ID)
+      else if (query == CONFIG_QUERIES_ID)
         (result, offset) = _batchGovernanceQueries(data, offset);
       else
         revert InvalidCommand(query, queryIndex);

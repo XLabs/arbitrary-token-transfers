@@ -8,17 +8,18 @@ uint8 constant DISPATCHER_PROTOCOL_VERSION0 = 0;
 
 // Execute commands
 
-uint8 constant TRANSFER_TOKEN_WITH_RELAY_ID = 0;
-uint8 constant TRANSFER_GAS_TOKEN_WITH_RELAY_ID = 1;
-uint8 constant COMPLETE_TRANSFER_ID = 2;
-uint8 constant GOVERNANCE_ID = 3;
-uint8 constant ACQUIRE_OWNERSHIP_ID = 4;
+uint8 constant TRANSFER_TOKEN_WITH_RELAY_ID = 0x00;
+uint8 constant TRANSFER_GAS_TOKEN_WITH_RELAY_ID = 0x01;
+uint8 constant COMPLETE_TRANSFER_ID = 0x02;
+uint8 constant CONFIG_ID = 0x03;
+
+uint8 constant ACQUIRE_OWNERSHIP_ID = 0x61;
 
 // Query commands
 
 uint8 constant RELAY_FEE_ID = 0x80;
 uint8 constant BASE_RELAYING_CONFIG_ID = 0x81;
-uint8 constant GOVERNANCE_QUERIES_ID = 0x82;
+uint8 constant CONFIG_QUERIES_ID = 0x82;
 
 // ----------- Governance Ids -----------
 

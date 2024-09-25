@@ -34,7 +34,7 @@ contract UserTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector,
         DISPATCHER_PROTOCOL_VERSION0,
-        GOVERNANCE_ID,
+        CONFIG_ID,
         commandCount,
         command
       )
