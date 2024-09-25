@@ -54,7 +54,8 @@ abstract contract TbrDispatcher is RawDispatcher, TbrConfig, TbrUser, AccessCont
         uint256 gasDropoffSpent;
         (gasDropoffSpent, offset) = _completeTransfer(data, offset, senderRefund, commandIndex);
         senderRefund -= gasDropoffSpent;
-      }
+      } else if (command == APPROVE_TOKEN_ID)
+        offset = _approveToken(data, offset, commandIndex);
       else if (command == CONFIG_ID)
         offset = _batchConfigCommands(data, offset);
       else if (command == ACCESS_CONTROL_ID)
