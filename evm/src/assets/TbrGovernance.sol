@@ -69,7 +69,7 @@ abstract contract TbrGovernance is TbrBase, ProxyBase {
 
   // ---- externals ----
 
-  function _batchGovernanceCommands(bytes calldata commands, uint offset) internal returns (uint) {
+  function _batchConfigCommands(bytes calldata commands, uint offset) internal returns (uint) {
     GovernanceState storage state = governanceState();
     bool isOwner;
     if (msg.sender == state.owner) //check highest privilege level first

@@ -52,7 +52,7 @@ abstract contract TbrDispatcher is RawDispatcher, TbrGovernance, TbrUser {
         senderRefund -= gasDropoffSpent;
       }
       else if (command == GOVERNANCE_ID)
-        offset = _batchGovernanceCommands(data, offset);
+        offset = _batchConfigCommands(data, offset);
       else if (command == ACQUIRE_OWNERSHIP_ID)
         _acquireOwnership();
       else
