@@ -266,8 +266,9 @@ export const commandCategoryLayout = {
     [[0x02, "CompleteTransfer"], [{ name: "vaa", binary: "bytes", lengthSize: 2 }]],
     [[0x03, "ConfigCommands"], subArrayLayout("commands", governanceCommandLayout)],
     [[0x60, "RoleCommands"], [] /*subArrayLayout("commands", roleCommandLayout)*/],
-    [[0x61, "UpgradeCommands"], [] /*subArrayLayout("commands", upgradeCommandLayout)*/],
-    [[0x62, "SweepTokens"], [
+    [[0x61, "AcquireOwnership"], [] /*subArrayLayout("commands", roleCommandLayout)*/],
+    [[0x62, "UpgradeCommands"], [] /*subArrayLayout("commands", upgradeCommandLayout)*/],
+    [[0x63, "SweepTokens"], [
       { name: "address", ...evmAddressItem },
       { name: "amount", ...layoutItems.amountItem }
     ]],
@@ -284,7 +285,7 @@ export const queryCategoryLayout = {
     [[0x81, "BaseRelayingConfig"], baseRelayingConfigInputLayout],
     [[0x82, "GovernanceQueries"], subArrayLayout("queries", governanceQueryLayout)],
     [[0xe0, "RoleQueries"], [] /*subArrayLayout("queries", roleQueryLayout)*/],
-    [[0xe1, "UpgradeQueries"], [] /*subArrayLayout("queries", upgradeQueryLayout)*/],
+    [[0xe2, "UpgradeQueries"], [] /*subArrayLayout("queries", upgradeQueryLayout)*/],
   ],
 } as const;
 export type QueryCategory = LayoutToType<typeof queryCategoryLayout>;

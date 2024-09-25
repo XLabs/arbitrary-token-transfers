@@ -24,7 +24,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_ID, 
+        CONFIG_ID,
         commandCount, 
         UPDATE_CANONICAL_PEER_ID,
         peerChain,
@@ -41,7 +41,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_QUERIES_ID, 
+        CONFIG_QUERIES_ID,
         commandCount, 
         IMPLEMENTATION_ID
       )
@@ -52,7 +52,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_ID, 
+        CONFIG_ID,
         commandCount, 
         UPGRADE_CONTRACT_ID,
         address(upgradeTester)
@@ -65,7 +65,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_ID, 
+        CONFIG_ID,
         commandCount, 
         UPGRADE_CONTRACT_ID,
         address(upgradeTester)
@@ -77,7 +77,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_ID, 
+        CONFIG_ID,
         commandCount, 
         UPGRADE_CONTRACT_ID,
         address(upgradeTester)
@@ -93,7 +93,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_QUERIES_ID, 
+        CONFIG_QUERIES_ID,
         commandCount, 
         IMPLEMENTATION_ID
       )
@@ -109,7 +109,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0,
-        GOVERNANCE_ID,
+        CONFIG_ID,
         commandCount, 
         PROPOSE_OWNERSHIP_TRANSFER_ID,
         newOwner
@@ -121,7 +121,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_ID, 
+        CONFIG_ID,
         commandCount, 
         PROPOSE_OWNERSHIP_TRANSFER_ID,
         newOwner
@@ -133,7 +133,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_QUERIES_ID, 
+        CONFIG_QUERIES_ID,
         commandCount, 
         OWNER_ID,
         PENDING_OWNER_ID
@@ -168,7 +168,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_QUERIES_ID, 
+        CONFIG_QUERIES_ID,
         commandCount, 
         OWNER_ID,
         PENDING_OWNER_ID
@@ -191,7 +191,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_ID, 
+        CONFIG_ID,
         commandCount, 
         PROPOSE_OWNERSHIP_TRANSFER_ID,
         newOwner
@@ -204,7 +204,7 @@ contract GovernanceTest is TbrTestBase {
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
         ACQUIRE_OWNERSHIP_ID,
-        GOVERNANCE_ID,
+        CONFIG_ID,
         commandCount,
         UPDATE_CANONICAL_PEER_ID,
         peerChain,
@@ -217,7 +217,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_QUERIES_ID, 
+        CONFIG_QUERIES_ID,
         commandCount, 
         OWNER_ID,
         PENDING_OWNER_ID,
@@ -243,7 +243,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_ID, 
+        CONFIG_ID,
         commandCount, 
         UPDATE_ADMIN_ID,
         newAdmin, 
@@ -256,7 +256,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_ID, 
+        CONFIG_ID,
         commandCount, 
         UPDATE_ADMIN_ID, 
         newAdmin,
@@ -268,7 +268,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_QUERIES_ID, 
+        CONFIG_QUERIES_ID,
         commandCount, 
         IS_ADMIN_ID,
         newAdmin
@@ -286,7 +286,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_ID, 
+        CONFIG_ID,
         commandCount, 
         RELINQUISH_OWNERSHIP_ID
       )
@@ -301,7 +301,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_ID, 
+        CONFIG_ID,
         commandCount,
         RELINQUISH_OWNERSHIP_ID,
         UPDATE_ADMIN_ID
@@ -313,7 +313,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_ID, 
+        CONFIG_ID,
         commandCount, 
         RELINQUISH_OWNERSHIP_ID
       )
@@ -323,7 +323,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_QUERIES_ID, 
+        CONFIG_QUERIES_ID,
         commandCount,
         OWNER_ID
       )
@@ -342,7 +342,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_ID, 
+        CONFIG_ID,
         commandCount, 
         ADD_PEER_ID,
         peerChain, 
@@ -355,7 +355,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_ID, 
+        CONFIG_ID,
         commandCount, 
         ADD_PEER_ID,
         peerChain, 
@@ -367,7 +367,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_QUERIES_ID, 
+        CONFIG_QUERIES_ID,
         commandCount, 
         IS_PEER_ID,
         peerChain,
@@ -388,7 +388,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_ID, 
+        CONFIG_ID,
         commandCount, 
         UPDATE_MAX_GAS_DROPOFF_ID,
         chainId,
@@ -404,7 +404,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_ID, 
+        CONFIG_ID,
         commandCount, 
         UPDATE_MAX_GAS_DROPOFF_ID,
         chainId,
@@ -418,7 +418,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_ID, 
+        CONFIG_ID,
         commandCount, 
         UPDATE_MAX_GAS_DROPOFF_ID,
         chainId,
@@ -430,7 +430,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_QUERIES_ID, 
+        CONFIG_QUERIES_ID,
         commandCount, 
         MAX_GAS_DROPOFF_ID,
         chainId
@@ -449,7 +449,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_ID, 
+        CONFIG_ID,
         commandCount, 
         UPDATE_FEE_RECIPIENT_ID,
         newFeeRecipient
@@ -461,7 +461,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_ID, 
+        CONFIG_ID,
         commandCount, 
         UPDATE_FEE_RECIPIENT_ID,
         newFeeRecipient
@@ -472,7 +472,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_QUERIES_ID, 
+        CONFIG_QUERIES_ID,
         commandCount, 
         FEE_RECIPIENT_ID
       )
@@ -491,7 +491,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_ID, 
+        CONFIG_ID,
         commandCount, 
         UPDATE_BASE_FEE_ID, 
         chainId,
@@ -507,7 +507,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_ID, 
+        CONFIG_ID,
         commandCount, 
         UPDATE_BASE_FEE_ID, 
         chainId,
@@ -521,7 +521,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_ID, 
+        CONFIG_ID,
         commandCount, 
         UPDATE_BASE_FEE_ID, 
         chainId,
@@ -533,7 +533,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_QUERIES_ID, 
+        CONFIG_QUERIES_ID,
         commandCount, 
         BASE_FEE_ID,
         chainId
@@ -553,7 +553,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_ID, 
+        CONFIG_ID,
         commandCount, 
         PAUSE_CHAIN_ID,
         chainId,
@@ -569,7 +569,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_ID, 
+        CONFIG_ID,
         commandCount, 
         PAUSE_CHAIN_ID,
         chainId,
@@ -583,7 +583,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_ID, 
+        CONFIG_ID,
         commandCount, 
         PAUSE_CHAIN_ID,
         chainId,
@@ -595,7 +595,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_QUERIES_ID, 
+        CONFIG_QUERIES_ID,
         commandCount, 
         IS_CHAIN_PAUSED_ID,
         chainId
@@ -615,7 +615,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_ID, 
+        CONFIG_ID,
         commandCount, 
         UPDATE_CANONICAL_PEER_ID,
         peerChain,
@@ -628,7 +628,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_ID, 
+        CONFIG_ID,
         commandCount, 
         UPDATE_CANONICAL_PEER_ID,
         peerChain,
@@ -640,7 +640,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_QUERIES_ID, 
+        CONFIG_QUERIES_ID,
         commandCount, 
         CANONICAL_PEER_ID,
         peerChain
@@ -665,7 +665,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
       tbr.exec768.selector, 
       DISPATCHER_PROTOCOL_VERSION0, 
-      GOVERNANCE_ID, 
+      CONFIG_ID,
       commandCount, 
       SWEEP_TOKENS_ID, address(usdt), usdtAmount,
       SWEEP_TOKENS_ID, address(0), ethAmount
@@ -686,7 +686,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_QUERIES_ID, 
+        CONFIG_QUERIES_ID,
         commandCount, 
         IS_CHAIN_SUPPORTED_ID,
         chainId
@@ -699,7 +699,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_ID, 
+        CONFIG_ID,
         commandCount, 
         UPDATE_CANONICAL_PEER_ID,
         chainId, 
@@ -711,7 +711,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_QUERIES_ID, 
+        CONFIG_QUERIES_ID,
         commandCount, 
         IS_CHAIN_SUPPORTED_ID,
         chainId
@@ -730,7 +730,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_ID, 
+        CONFIG_ID,
         commandCount, 
         UPDATE_TX_SIZE_SENSITIVE_ID,
         chainId,
@@ -746,7 +746,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_ID, 
+        CONFIG_ID,
         commandCount, 
         UPDATE_TX_SIZE_SENSITIVE_ID,
         chainId,
@@ -760,7 +760,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_ID, 
+        CONFIG_ID,
         commandCount, 
         UPDATE_TX_SIZE_SENSITIVE_ID,
         chainId,
@@ -772,7 +772,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_QUERIES_ID, 
+        CONFIG_QUERIES_ID,
         commandCount, 
         IS_TX_SIZE_SENSITIVE_ID,
         chainId
@@ -796,7 +796,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_ID, 
+        CONFIG_ID,
         commandCount, 
         fakeCommand
       )
@@ -817,7 +817,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        GOVERNANCE_QUERIES_ID, 
+        CONFIG_QUERIES_ID,
         commandCount, 
         fakeQuery
       )
