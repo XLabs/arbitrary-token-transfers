@@ -1,4 +1,4 @@
-import { chainToPlatform, FixedLengthArray, Layout, layout, LayoutItem, LayoutToType, Network, ProperLayout } from "@wormhole-foundation/sdk-base";
+import { BytesLayoutItem, Chain, chainToPlatform, FixedLengthArray, Layout, layout, LayoutItem, LayoutToType, Network, ProperLayout } from "@wormhole-foundation/sdk-base";
 import { layoutItems, serialize, toNative, UniversalAddress, VAA } from "@wormhole-foundation/sdk-definitions";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
 import { ethers } from "ethers";
@@ -22,6 +22,8 @@ import {
   RelayingFee,
   RelayingFeesReturn,
   BaseRelayingParamsReturn,
+  TokenBridgeAllowances,
+  allowanceTokenBridgeReturnLayout,
 } from "./layouts.js";
 
 const WHOLE_EVM_GAS_TOKEN_UNITS = 10 ** 18;
@@ -82,7 +84,18 @@ export interface TbrPartialTx {
 }
 
 
-export type RelayingFeesInput = LayoutToType<typeof relayingFeesInputLayout>;
+export interface RelayingFeesInput {
+  /**
+   * Token addresses involved in the transfers.
+   * Must be hex encoded and '0x' prefixed.
+   */
+  tokens: string[];
+  /**
+   * Transfer parameters.
+   * There should be one of these per transfer request.
+   */
+  transferRequests: LayoutToType<typeof relayingFeesInputLayout>[];
+};
 export type TransferTokenWithRelayInput = LayoutToType<typeof transferTokenWithRelayLayout> & {readonly method: "TransferTokenWithRelay";};
 export type TransferGasTokenWithRelayInput = LayoutToType<typeof transferGasTokenWithRelayLayout> & {readonly method: "TransferGasTokenWithRelay";};
 export type NetworkMain = Exclude<Network, "Devnet">;
@@ -118,10 +131,52 @@ export interface Transfer {
 
 export class Tbrv3 {
 
-  readonly address: string;
-
-  constructor(public readonly provider: ethers.Provider, public readonly network: NetworkMain, address: string = Tbrv3.addresses[network]) {
+  constructor(
+    public readonly provider: ethers.Provider,
+    public readonly network: NetworkMain,
+    public readonly address: string = Tbrv3.addresses[network],
+    private readonly gasToken: string,
+  ) {
     this.address = address;
+
+  }
+
+  static connect(
+    provider: ethers.Provider,
+    network: NetworkMain,
+    chain: Chain,
+    gasToken?: string,
+    address?: string,
+  ) {
+    if (address === undefined && this.addresses[network] === "TBD") {
+      throw new Error(`Tbrv3 address needs to be provided for network ${network}`);
+    }
+
+    const defaultGasToken = this.gasTokens[network][chain];
+    if (gasToken === undefined) {
+      if (defaultGasToken === undefined) {
+        throw new Error(`Gas token address needs to be provided for network ${network} and chain ${chain}`);
+      }
+      gasToken = defaultGasToken;
+    } else if (defaultGasToken !== undefined && gasToken.toLowerCase() !== defaultGasToken?.toLowerCase()) {
+      throw new Error(`Unexpected gas token address ${gasToken} for network ${network} and chain ${chain}`);
+    }
+
+    return new Tbrv3(provider, network, address, gasToken);
+  }
+
+  /**
+   * @deprecated This method will be removed soon. The sdk won't use ethers directly anymore.
+   */
+  static fromRpcUrlStatic(rpc: string, network: NetworkMain, chain: Chain, gasToken?: string, address?: string): Tbrv3 {
+    return this.connect(new ethers.JsonRpcProvider(rpc, undefined, {staticNetwork: true}), network, chain, gasToken, address);
+  }
+
+  /**
+   * @deprecated This method will be removed soon. The sdk won't use ethers directly anymore.
+   */
+  static fromRpcUrl(rpc: string, network: NetworkMain, chain: Chain, gasToken?: string, address?: string): Tbrv3 {
+    return this.connect(new ethers.JsonRpcProvider(rpc), network, chain, gasToken, address);
   }
 
   static readonly addresses: Record<NetworkMain, string> = {
@@ -129,16 +184,26 @@ export class Tbrv3 {
     Testnet: "TBD",
   }
 
-  transferWithRelay(...transfers: Transfer[]): TbrPartialTx {
+  // TODO: fill these out
+  static readonly gasTokens: Record<NetworkMain, Partial<Record<Chain, string>>> = {
+    Mainnet: {},
+    Testnet: {},
+  }
+
+  transferWithRelay(allowances: TokenBridgeAllowances, ...transfers: Transfer[]): TbrPartialTx {
     if (transfers.length === 0) {
       throw new Error("At least one transfer should be specified.");
     }
 
+    const requiredAllowances: Record<string, bigint> = {};
+    for (const token of Object.keys(allowances)) {
+      requiredAllowances[token] = 0n;
+    }
     // TODO: decide if we want to check that requested gas dropoff doesn't exceed max gas dropoff per transfer
     // Here we need to batch `this.baseRelayingParams` per target chain together with the relaying fee per transfer
 
     let value: bigint = 0n;
-    const methodCalls = [];
+    const transferCalls: LayoutToType<typeof commandCategoryLayout>[] = [];
     for (const [i, transfer] of transfers.entries()) {
       if (transfer.feeEstimation.isPaused) {
         throw new Error(`Relays to chain ${transfer.args.recipient.chain} are paused. Found in transfer ${i + 1}.`);
@@ -149,18 +214,31 @@ export class Tbrv3 {
 
       if (transfer.args.method === "TransferGasTokenWithRelay") {
         value += transfer.args.inputAmountInAtomic;
+        requiredAllowances[this.gasToken] += transfer.args.inputAmountInAtomic;
+        transferCalls.push({...transfer.args, commandCategory: transfer.args.method});
+      } else {
+        requiredAllowances[transfer.args.inputToken.toLowerCase()] = transfer.args.inputAmountInAtomic;
+        transferCalls.push({...transfer.args, commandCategory: transfer.args.method});
       }
 
-      methodCalls.push(transfer.args);
+    }
+
+    const approveCalls: LayoutToType<typeof commandCategoryLayout>[] = [];
+    for (const [token, requiredAllowance] of Object.entries(requiredAllowances)) {
+      if (!(token in allowances)) {
+        throw new Error(`Token ${token} missing from the allowance queries.`);
+      }
+      if (requiredAllowance > allowances[token]) {
+        approveCalls.push({
+          commandCategory: "ApproveToken",
+          inputToken: token,
+        });
+      }
     }
 
     const methods = layout.serializeLayout(execParamsLayout, {
       version: 0,
-      commandCategories: methodCalls.map((call): LayoutToType<typeof commandCategoryLayout> => {
-        return call.method === 'TransferTokenWithRelay'
-          ? { commandCategory: 'TransferTokenWithRelay', ...call }
-          : { commandCategory: 'TransferGasTokenWithRelay', ...call };
-      })
+      commandCategories: approveCalls.concat(transferCalls),
     });
     const data = Tbrv3.encodeExecute(methods);
 
@@ -211,24 +289,36 @@ export class Tbrv3 {
   }
 
   /**
-   * Queries TBR contract on the relaying fees needed.
+   * Queries TBR contract to prepare instructions for a transfer request.
+   * In particular, it queries:
+   *   the relaying fees needed
+   *   the allowance towards the token bridge for each token
+   * With these two, a transaction to transfer tokens can be built.
    * Many relays can be quoted at once.
-   * Each relay needs to be passed in as a separate argument.
    * The result is a list of quotes for the relays in the same order as they were passed in.
    */
-  async relayingFee(...args: RelayingFeesInput[]): Promise<RelayingFeesReturn> {
-    if (args.length === 0) {
+  async relayingFee({tokens, transferRequests}: RelayingFeesInput): Promise<RelayingFeesReturn> {
+    if (transferRequests.length === 0) {
       throw new Error("At least one relay fee query should be specified.");
     }
+    if (tokens.length === 0) {
+      throw new Error("At least one token should be specified.");
+    }
+
+    const relayFeeQueries = transferRequests.map(arg => ({
+      queryCategory: "RelayFee",
+      targetChain: arg.targetChain,
+      gasDropoff: arg.gasDropoff,
+    }) satisfies LayoutToType<typeof queryCategoryLayout>);
+
+    const allowanceQueries = filterTokens(tokens).map(token => ({
+      queryCategory: "AllowanceTokenBridge",
+      inputToken: token,
+    }) satisfies LayoutToType<typeof queryCategoryLayout>);
 
     const queries = layout.serializeLayout(queryParamsLayout, {
       version: 0,
-      queryCategories:
-        args.map(arg => ({
-          queryCategory: "RelayFee",
-          targetChain: arg.targetChain,
-          gasDropoff: arg.gasDropoff,
-        }) satisfies LayoutToType<typeof queryCategoryLayout>)
+      queryCategories: (relayFeeQueries as LayoutToType<typeof queryCategoryLayout>[]).concat(allowanceQueries),
     });
 
     const calldata = Tbrv3.encodeQuery(queries);
@@ -237,8 +327,25 @@ export class Tbrv3 {
       to: this.address,
     });
 
-    const relayingFeesReturnListLayout = fixedLengthArrayLayout(args.length, relayingFeesReturnLayout);
-    return decodeQueryResponseLayout(relayingFeesReturnListLayout, ethers.getBytes(result));
+    const relayFeesReturnListLayout = fixedLengthArrayLayout(relayFeeQueries.length, relayingFeesReturnLayout);
+    const allowancesListLayout = fixedLengthArrayLayout(allowanceQueries.length, allowanceTokenBridgeReturnLayout);
+    const responseLayout = {
+      binary: "bytes",
+      layout: [
+        {name: "feeEstimations", ...relayFeesReturnListLayout},
+        {name: "allowances", ...allowancesListLayout},
+      ]
+    } as const satisfies BytesLayoutItem;
+    const response = decodeQueryResponseLayout(responseLayout, ethers.getBytes(result));
+    const allowances: Record<string, bigint> = {};
+    for (const [i, {allowance}] of response.allowances.entries()) {
+      allowances[allowanceQueries[i].inputToken] = allowance;
+    }
+
+    return {
+      allowances,
+      feeEstimations: response.feeEstimations
+    };
   }
 
   async baseRelayingParams(...chains: SupportedChains[]): Promise<BaseRelayingParamsReturn> {
@@ -437,10 +544,6 @@ export class Tbrv3 {
     return layout.serializeLayout(proxyConstructorLayout, initConfig);
   }
 
-  static fromRpcUrl(rpc: string, network: NetworkMain, address?: string): Tbrv3 {
-    return new Tbrv3(new ethers.JsonRpcProvider(rpc), network, address);
-  }
-
 }
 
 function fixedLengthArrayLayout<const T extends ProperLayout>(length: number, layout: T): FixedArray<T> {
@@ -473,3 +576,6 @@ function decodeQueryResponseLayout<const T extends Layout>(tbrLayout: T, value: 
   return response;
 }
 
+function filterTokens(tokens: string[]): string[] {
+  return [...new Set(tokens.map(token => token.toLowerCase())).values()];
+}
