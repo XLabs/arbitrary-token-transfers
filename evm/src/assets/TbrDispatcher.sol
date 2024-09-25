@@ -3,7 +3,7 @@
 pragma solidity ^0.8.25;
 
 import {BytesParsing} from "wormhole-sdk/libraries/BytesParsing.sol";
-import {RawDispatcher} from "wormhole-sdk/dispatcher/RawDispatcher.sol";
+import {RawDispatcher} from "wormhole-sdk/RawDispatcher.sol";
 import {TbrGovernance} from "./TbrGovernance.sol";
 import {InvalidCommand} from "./TbrBase.sol";
 import {TbrUser} from "./TbrUser.sol";

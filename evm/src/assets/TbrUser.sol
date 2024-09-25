@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.25;
 
-import {CHAIN_ID_SOLANA} from "wormhole-sdk/Chains.sol";
+import {CHAIN_ID_SOLANA} from "wormhole-sdk/constants/Chains.sol";
 import {BytesParsing} from "wormhole-sdk/libraries/BytesParsing.sol";
 import {fromUniversalAddress, reRevert} from "wormhole-sdk/Utils.sol";
 import {IWETH} from "wormhole-sdk/interfaces/token/IWETH.sol";
