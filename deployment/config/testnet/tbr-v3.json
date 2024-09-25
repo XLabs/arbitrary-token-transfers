@@ -10,35 +10,35 @@
   },
   {
     "chainId": 14,
-    "initGasErc20TokenizationIsExplicit": true,
+    "initGasErc20TokenizationIsExplicit": false,
     "relayFee": 1,
     "maxGasDropoff": 0.1,
     "txSizeSensitive": true
   },
   {
     "chainId": 10002,
-    "initGasErc20TokenizationIsExplicit": false,
+    "initGasErc20TokenizationIsExplicit": true,
     "relayFee": 1,
     "maxGasDropoff": 0.1,
     "txSizeSensitive": false
   },
   {
     "chainId": 10003,
-    "initGasErc20TokenizationIsExplicit": false,
+    "initGasErc20TokenizationIsExplicit": true,
     "relayFee": 1000,
     "maxGasDropoff": 0.1,
     "txSizeSensitive": false
   },
   {
     "chainId": 10004,
-    "initGasErc20TokenizationIsExplicit": false,
+    "initGasErc20TokenizationIsExplicit": true,
     "relayFee": 1000,
     "maxGasDropoff": 0.1,
     "txSizeSensitive": false
   },
   {
     "chainId": 10005,
-    "initGasErc20TokenizationIsExplicit": false,
+    "initGasErc20TokenizationIsExplicit": true,
     "relayFee": 1000,
     "maxGasDropoff": 0.1,
     "txSizeSensitive": false
