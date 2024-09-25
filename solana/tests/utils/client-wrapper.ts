@@ -70,6 +70,7 @@ export class TbrWrapper {
       tokenBridgeProgramId: PublicKey.default,
       wormholeProgramId: PublicKey.default,
     });
+    console.log('provider key', provider.publicKey);
 
     return sendAndConfirmIx(
       client.initialize({

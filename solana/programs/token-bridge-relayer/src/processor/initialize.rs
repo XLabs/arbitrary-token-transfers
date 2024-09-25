@@ -71,7 +71,7 @@ pub fn initialize<'a, 'b, 'c, 'info>(
 ) -> Result<()> {
     msg!(
         "Authority: {:?}",
-        &ctx.accounts.program_data.to_account_info().data.borrow()[0..50]
+        ctx.accounts.program_data.upgrade_authority_address
     );
     //We only update the upgrade authority if the program wasn't deployed by the designated owner
     if Some(ctx.accounts.owner.key()) != ctx.accounts.program_data.upgrade_authority_address {
