@@ -55,7 +55,7 @@ abstract contract TbrDispatcher is RawDispatcher, TbrConfig, TbrUser, AccessCont
         (gasDropoffSpent, offset) = _completeTransfer(data, offset, senderRefund, commandIndex);
         senderRefund -= gasDropoffSpent;
       } else if (command == APPROVE_TOKEN_ID)
-        offset = _approveToken(data, offset, commandIndex);
+        offset = _approveToken(data, offset);
       else if (command == CONFIG_ID)
         offset = _batchConfigCommands(data, offset);
       else if (command == ACCESS_CONTROL_ID)
@@ -104,6 +104,8 @@ abstract contract TbrDispatcher is RawDispatcher, TbrConfig, TbrUser, AccessCont
         (result, offset) = _batchAccessControlQueries(data, offset);
       else if (query == IMPLEMENTATION_ID)
         result = abi.encodePacked(_getImplementation());
+      else if (query == ALLOWANCE_TOKEN_BRIDGE_ID)
+        (result, offset) = _allowanceTokenBridge(data, offset);
       else
         revert InvalidCommand(query, queryIndex);
 
