@@ -403,11 +403,8 @@ abstract contract TbrUser is TbrBase {
 
   function _approveToken(
     bytes calldata data,
-    uint offset,
-    uint commandIndex
+    uint offset
   ) internal returns (uint256) { unchecked {
-    if (data.length < offset + 20)
-      revert InvalidCommand(APPROVE_TOKEN_ID, commandIndex);
     address token;
     uint retOffset;
     (token, retOffset) = data.asAddressCdUnchecked(offset);
@@ -434,6 +431,17 @@ abstract contract TbrUser is TbrBase {
       unwrapIntent
     );
   }
+
+  function _allowanceTokenBridge(
+    bytes calldata data,
+    uint offset
+  ) internal view returns (bytes memory, uint) { unchecked {
+    address token; uint retOffset;
+    (token, retOffset) = data.asAddressCdUnchecked(offset);
+    uint256 allowance = IERC20Metadata(token).allowance(address(this), address(tokenBridge));
+
+    return (abi.encodePacked(allowance), retOffset);
+  }}
 
   function _completeTransfer(
     bytes calldata data,
