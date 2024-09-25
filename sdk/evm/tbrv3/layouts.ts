@@ -200,27 +200,23 @@ const governanceCommandLayout =
     idSize: 1,
     idTag: "command",
     layouts: [
-      [[ 0, "AddPeer"], [
+      [[ 0x00, "AddPeer"], [
         peerChainItem,
         { name: "address", ...layoutItems.universalAddressItem }
       ]],
-      [[ 1, "UpdateBaseFee"           ], [peerChainItem, { name: "value", ...baseFeeItem}]],
-      [[ 2, "UpdateMaxGasDropoff"     ], [peerChainItem, { name: "value", ...gasDropoffItem }]],
-      [[ 3, "UpdateTransferPause"     ], [peerChainItem, { name: "value", ...layoutItems.boolItem }]],
-      [[ 4, "UpdateTxSizeSensitive"   ], [peerChainItem, { name: "value", ...layoutItems.boolItem }]],
+      [[ 0x01, "UpdateBaseFee"           ], [peerChainItem, { name: "value", ...baseFeeItem}]],
+      [[ 0x02, "UpdateMaxGasDropoff"     ], [peerChainItem, { name: "value", ...gasDropoffItem }]],
+      [[ 0x03, "UpdateTransferPause"     ], [peerChainItem, { name: "value", ...layoutItems.boolItem }]],
+      [[ 0x04, "UpdateTxSizeSensitive"   ], [peerChainItem, { name: "value", ...layoutItems.boolItem }]],
 
-      [[ 10, "SweepTokens"], [
-        { name: "address", ...evmAddressItem },
-        { name: "amount", ...layoutItems.amountItem }
-      ]],
-      [[ 11, "UpdateFeeRecipient"      ], [{ name: "address",...evmAddressItem }]],
+      [[ 0x0b, "UpdateFeeRecipient"      ], [{ name: "address",...evmAddressItem }]],
 
       // Only owner
-      [[ 12, "UpdateAdmin"             ], [{ name: "address",...evmAddressItem }, { name: "isAdmin", ...layoutItems.boolItem }]],
-      [[ 13, "UpdateCanonicalPeer"     ], [peerChainItem, { name: "address", ...layoutItems.universalAddressItem }]],
-      [[ 14, "UpgradeContract"         ], [{ name: "address",...evmAddressItem }]],
-      [[ 15, "ProposeOwnershipTransfer"], [{ name: "address",...evmAddressItem }]],
-      [[ 16, "RelinquishOwnership"     ], []],
+      [[ 0x0c, "UpdateAdmin"             ], [{ name: "address",...evmAddressItem }, { name: "isAdmin", ...layoutItems.boolItem }]],
+      [[ 0x0d, "UpdateCanonicalPeer"     ], [peerChainItem, { name: "address", ...layoutItems.universalAddressItem }]],
+      [[ 0x0e, "UpgradeContract"         ], [{ name: "address",...evmAddressItem }]],
+      [[ 0x0f, "ProposeOwnershipTransfer"], [{ name: "address",...evmAddressItem }]],
+      [[ 0x10, "RelinquishOwnership"     ], []],
     ]
   } as const satisfies Layout;
 
@@ -265,13 +261,16 @@ export const commandCategoryLayout = {
   idSize: 1,
   idTag: "commandCategory",
   layouts: [
-    [[0, "TransferTokenWithRelay"], transferTokenWithRelayLayout],
-    [[1, "TransferGasTokenWithRelay" ], transferGasTokenWithRelayLayout],
-    [[2, "CompleteTransfer"], [{ name: "vaa", binary: "bytes", lengthSize: 2 }]],
-    [[3, "ConfigCommands"], subArrayLayout("commands", governanceCommandLayout)],
+    [[0x00, "TransferTokenWithRelay"], transferTokenWithRelayLayout],
+    [[0x01, "TransferGasTokenWithRelay" ], transferGasTokenWithRelayLayout],
+    [[0x02, "CompleteTransfer"], [{ name: "vaa", binary: "bytes", lengthSize: 2 }]],
+    [[0x03, "ConfigCommands"], subArrayLayout("commands", governanceCommandLayout)],
     [[0x60, "RoleCommands"], [] /*subArrayLayout("commands", roleCommandLayout)*/],
     [[0x61, "UpgradeCommands"], [] /*subArrayLayout("commands", upgradeCommandLayout)*/],
-    [[0x62, "SweepTokens"], [] /*sweepTokensLayout*/],
+    [[0x62, "SweepTokens"], [
+      { name: "address", ...evmAddressItem },
+      { name: "amount", ...layoutItems.amountItem }
+    ] /*sweepTokensLayout*/],
   ],
 } as const;
 export type CommandCategory = LayoutToType<typeof commandCategoryLayout>;
