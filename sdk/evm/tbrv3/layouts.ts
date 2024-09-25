@@ -131,6 +131,14 @@ export const approveTokenLayout = [
   { name: "inputToken", ...evmAddressItem },
 ] as const satisfies Layout;
 
+export const allowanceTokenBridgeReturnLayout = [
+  { name: "allowance", ...layoutItems.amountItem },
+] as const satisfies Layout;
+/**
+ * Token address => allowance.
+ */
+export type TokenBridgeAllowances = Readonly<Record<string, bigint>>;
+
 export const relayingFeesInputLayout = [
   { name: "targetChain", ...supportedChainItem },
   { name: "gasDropoff", ...gasDropoffItem },
@@ -149,7 +157,17 @@ export interface RelayingFee {
    */
   readonly fee: number;
 }
-export type RelayingFeesReturn = readonly RelayingFee[];
+
+export interface RelayingFeesReturn {
+  /**
+   * Allowances of the TBRv3 contract towards the Token Bridge contract.
+   */
+  allowances: TokenBridgeAllowances;
+  /**
+   * Fee estimation for each transfer.
+   */
+  feeEstimations: readonly RelayingFee[];
+}
 
 export const relayingFeesReturnLayout = [
   { name: "isPaused", ...layoutItems.boolItem },
@@ -290,6 +308,7 @@ export const queryCategoryLayout = {
     [[0x80, "RelayFee"], relayingFeesInputLayout],
     [[0x81, "BaseRelayingConfig"], baseRelayingConfigInputLayout],
     [[0x82, "GovernanceQueries"], subArrayLayout("queries", governanceQueryLayout)],
+    [[0x83, "AllowanceTokenBridge"], approveTokenLayout],
     [[0xe0, "RoleQueries"], [] /*subArrayLayout("queries", roleQueryLayout)*/],
     [[0xe2, "UpgradeQueries"], [] /*subArrayLayout("queries", upgradeQueryLayout)*/],
   ],
