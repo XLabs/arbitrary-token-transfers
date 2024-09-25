@@ -5,7 +5,7 @@
     "experimentalDecorators": true,
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "lib": ["ES2023"],
+    "lib": ["ES2023", "DOM"],
     "outDir": "ts-build",
     "rootDir": ".",
     "sourceRoot": "./src"
