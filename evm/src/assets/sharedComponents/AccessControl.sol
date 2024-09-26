@@ -60,7 +60,7 @@ abstract contract AccessControl {
     bool isOwner;
     if (msg.sender == state.owner) //check highest privilege level first
       isOwner = true;
-    else if (!state.isAdmin[msg.sender])
+    else if (state.isAdmin[msg.sender])
       isOwner = false;
     else
       revert NotAuthorized();
