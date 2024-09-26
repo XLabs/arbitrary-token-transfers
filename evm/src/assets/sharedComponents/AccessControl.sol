@@ -148,6 +148,7 @@ abstract contract AccessControl {
     if (state.pendingOwner != msg.sender)
       revert NotAuthorized();
 
+    state.pendingOwner = address(0);
     _updateOwner(msg.sender);
   }
 
