@@ -89,12 +89,12 @@ export interface RelayingFeesInput {
    * Token addresses involved in the transfers.
    * Must be hex encoded and '0x' prefixed.
    */
-  tokens: string[];
+  readonly tokens: readonly string[];
   /**
    * Transfer parameters.
    * There should be one of these per transfer request.
    */
-  transferRequests: LayoutToType<typeof relayingFeesInputLayout>[];
+  readonly transferRequests: readonly LayoutToType<typeof relayingFeesInputLayout>[];
 };
 export type TransferTokenWithRelayInput = LayoutToType<typeof transferTokenWithRelayLayout> & {readonly method: "TransferTokenWithRelay";};
 export type TransferGasTokenWithRelayInput = LayoutToType<typeof transferGasTokenWithRelayLayout> & {readonly method: "TransferGasTokenWithRelay";};
@@ -576,6 +576,6 @@ function decodeQueryResponseLayout<const T extends Layout>(tbrLayout: T, value: 
   return response;
 }
 
-function filterTokens(tokens: string[]): string[] {
+function filterTokens(tokens: readonly string[]): string[] {
   return [...new Set(tokens.map(token => token.toLowerCase())).values()];
 }
