@@ -14,7 +14,7 @@ uint8 constant SWEEP_TOKENS_ID = 0x63;
 uint8 constant ACCESS_CONTROL_QUERIES_ID = 0xe0;
 uint8 constant IMPLEMENTATION_ID = 0xe1;
 
-// ----------- Governance Ids -----------
+// ----------- Access Control Ids -----------
 
 // Execute commands
 
