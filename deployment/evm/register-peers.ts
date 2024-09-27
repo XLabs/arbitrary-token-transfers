@@ -17,7 +17,7 @@ import { ethers } from "ethers";
  */
 evm.runOnEvms("register-peers", async (chain, signer, log) => {
   const tbrv3ProxyAddress = getContractAddress("TbrV3Proxies", chain.chainId);
-  const tbrv3 = new Tbrv3(signer.provider!, chain.network, tbrv3ProxyAddress);
+  const tbrv3 = Tbrv3.connect(signer.provider!, chain.network, chainIdToChain(chain.chainId), tbrv3ProxyAddress);
   const deployedTbrv3s = loadTbrPeers(chain)
 
   const addPeersCmd: { chain: SupportedChains, peer: UniversalAddress }[] = [];
@@ -44,7 +44,7 @@ evm.runOnEvms("register-peers", async (chain, signer, log) => {
 
   if (updateCanonicalPeersCmd.size !== 0) {
     log("updating canonical peers");
-    const partialTx = await tbrv3.updateCanonicalPeers(updateCanonicalPeersCmd);
+    const partialTx = tbrv3.updateCanonicalPeers(updateCanonicalPeersCmd);
     const { error, receipt } = await evm.sendTx(signer, { ...partialTx, data: ethers.hexlify(partialTx.data) });
     if (error) {
       log("Error updating canonical peers: ", error);
@@ -58,7 +58,7 @@ evm.runOnEvms("register-peers", async (chain, signer, log) => {
 
   if (addPeersCmd.length !== 0) {
     log("adding peers");
-    const partialTx = await tbrv3.addPeers(addPeersCmd);
+    const partialTx = tbrv3.addPeers(addPeersCmd);
     const { error, receipt } = await evm.sendTx(signer, { ...partialTx, data: ethers.hexlify(partialTx.data) });
     if (error) {
       log("Error adding peers: ", error);

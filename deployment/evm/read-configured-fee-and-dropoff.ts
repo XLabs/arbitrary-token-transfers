@@ -13,17 +13,17 @@ import {
     console.log(`Operating chain: ${chain.name}`);
 
     const tbrv3ProxyAddress = getContractAddress("TbrV3Proxies", chain.chainId);
-    const tbrv3 = new Tbrv3(signer.provider!, chain.network, tbrv3ProxyAddress);
+    const tbrv3 = Tbrv3.connect(signer.provider!, chain.network, chainIdToChain(chain.chainId), tbrv3ProxyAddress);
     const deployedTbrv3s = contracts["TbrV3Proxies"];
   
     for (const otherTbrv3 of deployedTbrv3s){
         const otherTbrv3Chain = chainIdToChain(otherTbrv3.chainId) as SupportedChains;
-        
+
         const currentRelayFee = await tbrv3.relayFee(otherTbrv3Chain);
 
         log(`Current relay fee for ${otherTbrv3Chain}: ${currentRelayFee.fee}`);
     }
-    
+
     for (const otherTbrv3 of deployedTbrv3s) {
       const otherTbrv3Chain = chainIdToChain(otherTbrv3.chainId) as SupportedChains;
   

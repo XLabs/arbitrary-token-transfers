@@ -1,5 +1,4 @@
 import {
-  contracts,
   evm,
   getChainConfig,
   getContractAddress,
@@ -15,7 +14,7 @@ import { EvmTbrV3Config } from "../config/config.types.js";
  */
 evm.runOnEvms("configure-fee-and-dropoff", async (chain, signer, log) => {
   const tbrv3ProxyAddress = getContractAddress("TbrV3Proxies", chain.chainId);
-  const tbrv3 = new Tbrv3(signer.provider!, chain.network, tbrv3ProxyAddress);
+  const tbrv3 = Tbrv3.connect(signer.provider!, chain.network, "Sepolia", tbrv3ProxyAddress);
   const peers = loadTbrPeers(chain);
 
   const relayFeeUpdates: Map<SupportedChains, number> = new Map();
@@ -29,7 +28,7 @@ evm.runOnEvms("configure-fee-and-dropoff", async (chain, signer, log) => {
       log(`Will updaterelay fee for ${otherTbrv3Chain}: ${peerChainCfg.maxGasDropoff}`);
       relayFeeUpdates.set(otherTbrv3Chain, desiredRelayFee);
     }
-  }  
+  }
 
   if (relayFeeUpdates.size !== 0) {
     log("Updating relay fee");
@@ -71,5 +70,5 @@ evm.runOnEvms("configure-fee-and-dropoff", async (chain, signer, log) => {
   } else {
     log("No max gas dropoff to update");
   }
-  
+
 });
