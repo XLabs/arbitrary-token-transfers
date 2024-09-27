@@ -2,11 +2,16 @@
 
 pragma solidity ^0.8.25;
 
-import {TbrTestBase} from "./utils/TbrTestBase.sol";
-import "./utils/TbrExposer.sol";
-import "tbr/assets/TbrBase.sol";
-import "./utils/Receiver.sol";
-import {makeBytes32} from "./utils/utils.sol";
+import { 
+  ChainIsNotRegistered, 
+  InvalidChainId,
+  PeerIsZeroAddress,
+  ChainNotSupportedByTokenBridge
+} from "tbr/assets/TbrBase.sol";
+import { TbrTestBase } from "./utils/TbrTestBase.sol";
+import { TbrExposer } from"./utils/TbrExposer.sol";
+import { Receiver } from "./utils/Receiver.sol";
+import { makeBytes32 } from "./utils/utils.sol";
 
 contract BaseTest is TbrTestBase {
 

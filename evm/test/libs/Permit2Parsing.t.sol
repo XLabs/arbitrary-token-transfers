@@ -2,8 +2,8 @@
 
 pragma solidity ^0.8.25;
 
-import {Permit2Parsing} from "tbr/assets/TbrUser.sol";
-import "wormhole-sdk/libraries/BytesParsing.sol";
+import { Permit2Parsing } from "tbr/assets/TbrUser.sol";
+import { BytesParsing } from "wormhole-sdk/libraries/BytesParsing.sol";
 import "forge-std/Test.sol";
 
 contract Permit2ParsingTest is Test {

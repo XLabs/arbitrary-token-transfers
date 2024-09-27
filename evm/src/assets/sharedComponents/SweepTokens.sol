@@ -15,7 +15,7 @@ abstract contract SweepTokens {
     uint offset
   ) internal returns (uint) {
     AccessControlState storage state = accessControlState();
-    if (msg.sender != state.owner || !state.isAdmin[msg.sender]) 
+    if (msg.sender != state.owner && !state.isAdmin[msg.sender]) 
       revert NotAuthorized();
 
     address token;
