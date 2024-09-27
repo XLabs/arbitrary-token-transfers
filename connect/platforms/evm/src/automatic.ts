@@ -1,4 +1,4 @@
-import { decimals, encoding, Network } from "@wormhole-foundation/sdk-base";
+import { chainToPlatform, decimals, encoding, Network } from "@wormhole-foundation/sdk-base";
 import { ChainsConfig, Contracts, isNative, VAA } from "@wormhole-foundation/sdk-definitions";
 import '@wormhole-foundation/sdk-evm';
 import { EvmChains, EvmPlatform, EvmPlatformType, EvmUnsignedTransaction } from "@wormhole-foundation/sdk-evm";
@@ -56,6 +56,7 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
 
     // convert the fee and gas dropoff back from wei to eth
     // TODO: find a better way in order to avoid precision issues (use sdk amount)
+    
     const fee = Number(params.fee || 0) / WHOLE_EVM_GAS_TOKEN_UNITS;
     const gasDropoff = Number(params.gasDropOff?.amount || 0) / this.getChainWholeUnit(recipientChain);
 
@@ -151,7 +152,7 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
   }
 
   private getChainWholeUnit(chain: SupportedChains): number {
-    const destinationDecimals = decimals.nativeDecimals.get(chain);
+    const destinationDecimals = decimals.nativeDecimals.get(chainToPlatform(chain));
     if (!destinationDecimals) throw new Error(`Decimals not defined for chain ${chain}`);
     return 10 ** destinationDecimals;
   }

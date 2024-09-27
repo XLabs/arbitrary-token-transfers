@@ -17,6 +17,7 @@ import {
   TransferState,
   Wormhole,
 } from "@wormhole-foundation/sdk-connect";
+import { UniversalOrNative } from "@wormhole-foundation/sdk-definitions";
 import { TokenAddress, toNative } from "@wormhole-foundation/sdk-definitions";
 import "@xlabs-xyz/arbitrary-token-transfers-definitions";
 import { SupportedChains, tokenBridgeRelayerV3Chains, AcquireMode } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
@@ -24,6 +25,7 @@ import { SupportedChains, tokenBridgeRelayerV3Chains, AcquireMode } from "@xlabs
 interface TransferOptions {
   nativeGas: number; // this is a percentage
   acquireMode: AcquireMode;
+  unwrapIntent: boolean;
 }
 
 interface ValidatedTransferOptions extends TransferOptions {
@@ -52,15 +54,12 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
     return [...(chains || [])];
   }
 
-  // get the list of source tokens that are possible to send
   static async supportedSourceTokens(fromChain: ChainContext<Network>): Promise<TokenId[]> {
-    // TODO: verify if there's any restriction as to which tokens can be sent
     return Object.values(fromChain.config.tokenMap!).map((td) =>
       Wormhole.tokenId(td.chain, td.address),
     );
   }
 
-  // get the list of destination tokens that may be received on the destination chain
   static async supportedDestinationTokens<N extends Network>(
     sourceToken: TokenId,
     fromChain: ChainContext<N>,
@@ -164,11 +163,22 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
       const srcNativeDecimals = await request.fromChain.getDecimals('native');
       const dstNativeDecimals = await request.toChain.getDecimals('native');
 
-      const dstToken = await TokenTransfer.lookupDestinationToken(
+      let dstToken = await TokenTransfer.lookupDestinationToken(
         request.fromChain,
         request.toChain,
         request.source.id
       );
+
+      // if the destination token is the chain's wrapped gas token
+      // and the intent is to unwrap, set the destination token to the native token
+      const dstWrapped = await request.toChain.getNativeWrappedTokenId();
+      const dstIsWrapped = dstToken.address !== 'native'
+        && dstWrapped.address !== 'native'
+        && dstToken.address.equals(dstWrapped.address.toUniversalAddress());
+      if (dstIsWrapped && params.options.unwrapIntent) {
+        dstToken = { address: 'native', chain: targetChain };
+      }
+
       const dstTokenDecimals = await request.toChain.getDecimals(dstToken.address);
 
       // recall that the token bridge normalizes to 8 decimals for tokens above that
@@ -186,7 +196,7 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
         },
         destinationToken: {
           amount: dstAmount,
-          token: request.destination.id
+          token: dstToken
         },
         params,
         destinationNativeGas: {
@@ -266,7 +276,8 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
       nativeGas: 0,
       acquireMode: {
         mode: 'Preapproved'
-      }
+      },
+      unwrapIntent: true
     };
   }
 }

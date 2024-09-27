@@ -21,8 +21,8 @@
     "prettier": "prettier --write ."
   },
   "dependencies": {
-    "@wormhole-foundation/sdk-base": "^0.10.7",
-    "@wormhole-foundation/sdk-definitions": "^0.10.7",
+    "@wormhole-foundation/sdk-base": "^0.10.9",
+    "@wormhole-foundation/sdk-definitions": "^0.10.9",
     "bn.js": "^5.2.1"
   },
   "devDependencies": {
