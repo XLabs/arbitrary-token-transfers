@@ -45,9 +45,8 @@ abstract contract AccessControl {
     address owner,
     address admin
   ) internal {
-    AccessControlState storage state = accessControlState();
-    state.owner          = owner;
-    state.isAdmin[admin] = true;
+    accessControlState().owner = owner;
+    _updateAdmins(admin, true);
   }
 
   // ---- internals ----
@@ -76,18 +75,18 @@ abstract contract AccessControl {
         //administration relinquishment must be the last command in the batch
         commands.checkLength(offset);
       }
+      else if (command == UPDATE_ADMIN_ID) {
+        bool authorization;
+        address newAdmin;
+        (authorization, offset) = commands.asBoolCdUnchecked(offset);
+        (newAdmin, offset) = commands.asAddressCdUnchecked(offset);
+        _updateAdmins(newAdmin, authorization);
+      }
       else {
         if (!isOwner)
           revert NotAuthorized();
 
-        if (command == UPDATE_ADMIN_ID) {
-          bool authorization;
-          address newAdmin;
-          (authorization, offset) = commands.asBoolCdUnchecked(offset);
-          (newAdmin, offset) = commands.asAddressCdUnchecked(offset);
-          _updateAdmins(newAdmin, authorization);
-        }
-        else if (command == PROPOSE_OWNERSHIP_TRANSFER_ID) {
+        if (command == PROPOSE_OWNERSHIP_TRANSFER_ID) {
           address newOwner;
           (newOwner, offset) = commands.asAddressCdUnchecked(offset);
 
@@ -122,8 +121,14 @@ abstract contract AccessControl {
       if (query == IS_ADMIN_ID) {
         address admin;
         (admin, offset) = queries.asAddressCdUnchecked(offset);
-        ret = abi.encodePacked(ret, isAdmin(admin));
-      } else {
+        ret = abi.encodePacked(ret, state.isAdmin[admin]);
+      } 
+      else if (query == ADMINS_ID) {
+        ret = abi.encodePacked(ret, state.admins.length);
+        for (uint j = 0; j < state.admins.length; ++j)
+          ret = abi.encodePacked(ret, state.admins[j]);
+      }
+      else {
         address addr;
         if (query == OWNER_ID)
           addr = state.owner;
@@ -161,7 +166,24 @@ abstract contract AccessControl {
   }
 
   function _updateAdmins(address admin, bool authorization) private {
-    accessControlState().isAdmin[admin] = authorization;
+    AccessControlState storage state = accessControlState();
+    if (state.isAdmin[admin] == authorization)
+      return;
+
+    state.isAdmin[admin] = authorization;
+
+    if (authorization)
+      state.admins.push(admin);
+    else {
+      for (uint i = 0; i < state.admins.length; ++i) {
+        if (state.admins[i] == admin) {
+          state.admins[i] = state.admins[state.admins.length - 1];
+          state.admins.pop();
+          break;
+        }
+      }
+    }
+
     emit AdminsUpdated(admin, authorization, block.timestamp);
   }
 }
