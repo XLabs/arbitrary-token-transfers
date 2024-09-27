@@ -13,30 +13,41 @@
     },
     {
       "chainId": 10005,
-      "address": "0xc8D48E0D4AcdDdfd33273d1D37C41DcAcD1674E8",
+      "address": "0x8899B06745dDF4E6A8244884adA36C88529513Cd",
       "constructorArgs": [
         "0x000000000022D473030F116dDEE9F6B43aC78BA3",
         "0x99737Ec4B815d816c49A385943baf0380e75c0Ac",
-        "0x82EA95b20845D3766830182952851B19FDA08f00",
+        "0x28AE4263188569050bf07be244096caa5Df1a79A",
         "0x4200000000000000000000000000000000000006",
         true
       ]
     },
     {
       "chainId": 10004,
-      "address": "0x166dbA9e12400DbbC4Df49087D2c360D6d3BA83c",
+      "address": "0x515E26B32f3EFb16D40b00b4317CB1D2e9B4D18E",
       "constructorArgs": [
         "0x000000000022D473030F116dDEE9F6B43aC78BA3",
         "0x86F55A04690fd7815A3D802bD587e83eA888B239",
-        "0xB1bde3578517ff5D704c6fFb4c1475047505aa17",
+        "0xbeA923D6693Ca71889Dec69946F450F00E1a868a",
         "0x4200000000000000000000000000000000000006",
         true
       ]
     },
     {
       "chainId": 1,
-      "address": "AttbEYJMSsnVRDcKY4AcX1GBcdPy9FzHcxTbKaMGGuLs",
+      "address": "ATT7enfWTMV4dDTe2NQ2yBaTByuXXwrYRznsioQEUW6r",
       "constructorArgs": []
+    },
+    {
+      "chainId": 14,
+      "address": "0x5b5dfD8781A83314196DC458329d4d0525Cd10d4",
+      "constructorArgs": [
+        "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+        "0x05ca6037eC51F8b712eD2E6Fa72219FEaE74E153",
+        "0x1EA112f9bE384F19D11c883732150De6Bf718E03",
+        "0xF194afDf50B03e69Bd7D057c1Aa9e10c9954E4C9",
+        true
+      ]
     }
   ],
   "TbrV3Proxies": [
@@ -47,12 +58,23 @@
     },
     {
       "chainId": 10005,
-      "address": "0xb620f38B1211bDB96684576017F66bA9871eb6be",
-      "constructorArgs": []
+      "address": "0x7057447A58b92e2C68A46548B6992203233e92eC",
+      "constructorArgs": [
+        "0x8899B06745dDF4E6A8244884adA36C88529513Cd",
+        "0x6f9b66c711a46d9c37706396ec8444bf6c8e7b176f9b66c711a46d9c37706396ec8444bf6c8e7b176f9b66c711a46d9c37706396ec8444bf6c8e7b17"
+      ]
     },
     {
       "chainId": 10004,
-      "address": "0x3ddc4d19D05Caf86F70BcF55BdDA5B683E56b2Ae",
+      "address": "0xFe8dE1cf8893f0D928F007E787fD072660EAc06B",
+      "constructorArgs": [
+        "0x515E26B32f3EFb16D40b00b4317CB1D2e9B4D18E",
+        "0x6f9b66c711a46d9c37706396ec8444bf6c8e7b176f9b66c711a46d9c37706396ec8444bf6c8e7b176f9b66c711a46d9c37706396ec8444bf6c8e7b17"
+      ]
+    },
+    {
+      "chainId": 14,
+      "address": "0xdbe75EfF77dF67524B13c38e07d2451456098DC7",
       "constructorArgs": []
     }
   ]

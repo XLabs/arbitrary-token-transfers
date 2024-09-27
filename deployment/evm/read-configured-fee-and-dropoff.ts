@@ -5,7 +5,6 @@ import {
   } from "../helpers/index.js";
   import { chainIdToChain } from "@wormhole-foundation/sdk-base";
   import { SupportedChains, Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
-  import { ethers } from "ethers";
   
   /**
    * Reads the configured relay fee and max gas dropoff for Tbrv3 contracts
