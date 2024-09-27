@@ -8,7 +8,6 @@ function makeBytes32(string memory seed) pure returns (bytes32) {
   return keccak256(abi.encodePacked(seed));
 }
 
-
 function normalizeAmount(uint256 amount, uint8 decimals) pure returns(uint256) { unchecked {
   if (decimals > 8) {
     amount /= 10 ** (decimals - 8);

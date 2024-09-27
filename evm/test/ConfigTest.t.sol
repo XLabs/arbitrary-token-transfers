@@ -255,18 +255,27 @@ contract ConfigTest is TbrTestBase {
       )
     );
 
-    (bool isAdmin, ) = invokeTbr(
+    commandCount = 2;
+    bytes memory res = invokeTbr(
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
         ACCESS_CONTROL_QUERIES_ID,
         commandCount, 
         IS_ADMIN_ID,
-        newAdmin
+        newAdmin,
+        ADMINS_ID
       )
-    ).asBoolUnchecked(0);
+    );
+    
+    (bool isAdmin, ) = res.asBoolUnchecked(0);
+    (uint adminsCount, ) = res.asUint256Unchecked(1);
+    (bytes memory rawAdmin, ) = res.sliceUnchecked(res.length - 20, 20);
+    (address newAdmin_, ) = rawAdmin.asAddressUnchecked(0);
 
     assertEq(isAdmin, true);
+    assertEq(adminsCount, 2);
+    assertEq(newAdmin_, newAdmin);
   } 
 
   function testRelinquishOwnership() public {
