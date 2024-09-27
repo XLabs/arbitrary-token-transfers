@@ -9,7 +9,7 @@ import { ethers } from 'ethers';
 import { getProvider, runOnEvms, sendTx } from '../helpers/evm';
 import { SupportedChains, Tbrv3, Transfer } from '@xlabs-xyz/evm-arbitrary-token-transfers';
 import { toUniversal } from '@wormhole-foundation/sdk-definitions';
-import { Chain, chainToPlatform } from '@wormhole-foundation/sdk-base';
+import { Chain, chainIdToChain, chainToPlatform } from '@wormhole-foundation/sdk-base';
 import { inspect } from 'util';
 import { solanaOperatingChains } from '../helpers/solana';
 
@@ -68,8 +68,9 @@ async function sendTestTransaction(
 
     const tbrv3ProxyAddress = getContractAddress('TbrV3Proxies', chain.chainId);
     const provider = getProvider(chain);
-    const tbrv3 = new Tbrv3(provider, chain.network, tbrv3ProxyAddress);
+    const tbrv3 = Tbrv3.connect(provider!, chain.network, chainIdToChain(chain.chainId), tbrv3ProxyAddress);
 
+    let allAllowances = {};
     const promises = await Promise.allSettled(
       targetChains
         .filter((targetChain) => chain.chainId !== targetChain.chainId)
@@ -96,15 +97,20 @@ async function sendTestTransaction(
               gasDropoff,
             });
 
-            const feeEstimation = (
+            const {feeEstimations, allowances} = (
               await tbrv3.relayingFee({
-                targetChain: targetChain.name as SupportedChains,
-                gasDropoff,
+                tokens: [inputToken],
+                transferRequests: [{
+                  targetChain: targetChain.name as SupportedChains,
+                  gasDropoff,
+                }],
               })
-            )[0];
+            );
 
+            const feeEstimation = feeEstimations[0];
             log(`Fee estimation ${chain.name}->${targetChain.name}: ${inspect(feeEstimation)}`);
 
+            allAllowances = {...allAllowances, allowances};
             return {
               args: {
                 method: 'TransferTokenWithRelay',
@@ -112,14 +118,14 @@ async function sendTestTransaction(
                 inputAmountInAtomic,
                 gasDropoff,
                 recipient: {
-                  chain: targetChain.name as Chain,
+                  chain: targetChain.name as SupportedChains,
                   address: toUniversal(targetChain.name as Chain, address),
                 },
                 inputToken,
                 unwrapIntent,
               },
               feeEstimation,
-            } as Transfer;
+            } satisfies Transfer;
           } catch (err) {
             console.error(`Error creating transfer for ${chain.name}->${targetChain.name}: ${err}`);
             throw err;
@@ -136,7 +142,7 @@ async function sendTestTransaction(
     }
 
     log(`Executing ${transfers.length} transfers`, transfers);
-    const { to, value, data } = tbrv3.transferWithRelay(...transfers);
+    const { to, value, data } = tbrv3.transferWithRelay(allAllowances, ...transfers);
 
     const { receipt, error } = await sendTx(signer, {
       to,

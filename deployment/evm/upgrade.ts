@@ -11,6 +11,7 @@ import { ethers } from "ethers";
 import { Tbr__factory } from "../ethers-contracts/index.js";
 import { getSigner, getProvider, sendTx } from "../helpers/evm";
 import { EvmAddress } from '@wormhole-foundation/sdk-evm';
+import { chainIdToChain } from '@wormhole-foundation/sdk-base';
 
 
 const processName = "tbr-v3";
@@ -78,10 +79,10 @@ async function deployRelayerImplementation(chain: EvmChainInfo, config: EvmTbrV3
     signer,
   );
 
-  const permit2 = await getDependencyAddress("permit2", chain);
-  const tokenBridge = await getDependencyAddress("tokenBridge", chain);
-  const oracle = await getDependencyAddress("oracle", chain);
-  const initGasToken = await getDependencyAddress("initGasToken", chain);
+  const permit2 = getDependencyAddress("permit2", chain);
+  const tokenBridge = getDependencyAddress("tokenBridge", chain);
+  const oracle = getDependencyAddress("oracle", chain);
+  const initGasToken = getDependencyAddress("initGasToken", chain);
 
   const contract = await factory.deploy(permit2, tokenBridge, oracle, initGasToken, config.initGasErc20TokenizationIsExplicit);
 
@@ -106,16 +107,17 @@ async function upgradeProxyWithNewImplementation(
 ) {
   console.log("Upgrade Proxy with new implementation " + chain.chainId);
   const signer = await getSigner(chain);
-  const signerAddress = await signer.getAddress();
+  // const signerAddress = await signer.getAddress();
   const { Tbrv3 } = await import("@xlabs-xyz/evm-arbitrary-token-transfers");
 
-  const tbr = new Tbrv3(
-    await getProvider(chain),
+  const tbr = Tbrv3.connect(
+    getProvider(chain),
     chain.network,
+    chainIdToChain(chain.chainId),
     getContractAddress("TbrV3Proxies", chain.chainId),
   );
 
-  const tx = await tbr.upgradeContract(new EvmAddress(implementationAddress));
+  const tx = tbr.upgradeContract(new EvmAddress(implementationAddress));
 
   const {receipt, error } = await sendTx(signer, {
     ...tx,
