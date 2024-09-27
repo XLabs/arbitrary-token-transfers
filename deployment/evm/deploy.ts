@@ -7,6 +7,7 @@ import {
 } from "../helpers";
 import { EvmTbrV3Config } from "../config/config.types";
 import { ethers } from "ethers";
+import { encoding } from "@wormhole-foundation/sdk-base";
 import { Tbr__factory, Proxy__factory } from "../ethers-contracts/index.js";
 import { getSigner } from "../helpers/evm";
 
@@ -137,7 +138,7 @@ async function deployProxy(
   }
   const address = await contract.getAddress();
   console.log("Successfully deployed proxy at " + address);
-  return { address, chainId: chain.chainId, constructorArgs: [implementationAddress, proxyConstructorArgs] };
+  return { address, chainId: chain.chainId, constructorArgs: [implementationAddress, encoding.hex.encode(proxyConstructorArgs, true)] };
 }
 
 
