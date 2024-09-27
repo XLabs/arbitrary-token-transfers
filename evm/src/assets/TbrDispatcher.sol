@@ -2,11 +2,15 @@
 
 pragma solidity ^0.8.25;
 
-import {BytesParsing} from "wormhole-sdk/libraries/BytesParsing.sol";
-import {RawDispatcher} from "wormhole-sdk/RawDispatcher.sol";
-import {TbrGovernance} from "./TbrGovernance.sol";
-import {InvalidCommand} from "./TbrBase.sol";
-import {TbrUser} from "./TbrUser.sol";
+import { BytesParsing } from "wormhole-sdk/libraries/BytesParsing.sol";
+import { AccessControl } from "./sharedComponents/AccessControl.sol";
+import { SweepTokens } from "./sharedComponents/SweepTokens.sol";
+import { RawDispatcher } from "wormhole-sdk/RawDispatcher.sol";
+import { Upgrade } from "./sharedComponents/Upgrade.sol";
+import { InvalidCommand } from "./TbrBase.sol";
+import { TbrConfig } from "./TbrConfig.sol";
+import { TbrUser } from "./TbrUser.sol";
+import "./sharedComponents/ids.sol";
 import "./TbrIds.sol";
 
 /**
@@ -14,7 +18,7 @@ import "./TbrIds.sol";
  */
 error UnsupportedVersion(uint8 version);
 
-abstract contract TbrDispatcher is RawDispatcher, TbrGovernance, TbrUser {
+abstract contract TbrDispatcher is RawDispatcher, TbrConfig, TbrUser, AccessControl, SweepTokens, Upgrade {
   using BytesParsing for bytes;
 
   function _exec(bytes calldata data) internal override returns (bytes memory) { unchecked {
@@ -53,6 +57,12 @@ abstract contract TbrDispatcher is RawDispatcher, TbrGovernance, TbrUser {
       }
       else if (command == CONFIG_ID)
         offset = _batchConfigCommands(data, offset);
+      else if (command == ACCESS_CONTROL_ID)
+        offset = _batchAccessControlCommands(data, offset);
+      else if (command == UPGRADE_CONTRACT_ID)
+        offset = _upgradeContract(data, offset);
+      else if (command == SWEEP_TOKENS_ID)
+        offset = _sweepTokens(data, offset);
       else if (command == ACQUIRE_OWNERSHIP_ID)
         _acquireOwnership();
       else
@@ -89,6 +99,10 @@ abstract contract TbrDispatcher is RawDispatcher, TbrGovernance, TbrUser {
         (result, offset) = _baseRelayingConfig(data, offset, queryIndex);
       else if (query == CONFIG_QUERIES_ID)
         (result, offset) = _batchGovernanceQueries(data, offset);
+      else if (query == ACCESS_CONTROL_QUERIES_ID)
+        (result, offset) = _batchAccessControlQueries(data, offset);
+      else if (query == IMPLEMENTATION_ID)
+        result = abi.encodePacked(_getImplementation());
       else
         revert InvalidCommand(query, queryIndex);
 
