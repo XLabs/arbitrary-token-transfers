@@ -2,19 +2,18 @@
 
 pragma solidity ^0.8.25;
 
-import "wormhole-sdk/libraries/BytesParsing.sol";
-
-import {IdempotentUpgrade} from "wormhole-sdk/proxy/ProxyBase.sol";
-import {TbrTestBase} from "./utils/TbrTestBase.sol";
-import {makeBytes32} from "./utils/utils.sol";
-import "./utils/UpgradeTester.sol";
-
-import {ChainIsNotRegistered} from "tbr/assets/TbrBase.sol";
-import "tbr/assets/TbrDispatcher.sol";
-import "tbr/assets/TbrGovernance.sol";
+import { InvalidConfigCommand, InvalidConfigQuery } from "tbr/assets/TbrConfig.sol";
+import { NotAuthorized } from "tbr/assets/sharedComponents/AccessControl.sol";
+import { BytesParsing } from "wormhole-sdk/libraries/BytesParsing.sol";
+import { IdempotentUpgrade } from "wormhole-sdk/proxy/ProxyBase.sol";
+import { ChainIsNotRegistered } from "tbr/assets/TbrBase.sol";
+import { UpgradeTester } from "./utils/UpgradeTester.sol";
+import { TbrTestBase } from "./utils/TbrTestBase.sol";
+import { makeBytes32 } from "./utils/utils.sol";
+import "tbr/assets/sharedComponents/ids.sol";
 import "tbr/assets/TbrIds.sol";
 
-contract GovernanceTest is TbrTestBase {
+contract ConfigTest is TbrTestBase {
   using BytesParsing for bytes;
 
   function addCanonicalPeer(uint16 peerChain) internal {
@@ -35,14 +34,11 @@ contract GovernanceTest is TbrTestBase {
 
   function testOwnerContractUpgrade() public {
     UpgradeTester upgradeTester = new UpgradeTester();
-    uint8 commandCount = 1;
 
     (address implementation, ) = invokeTbr(
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        CONFIG_QUERIES_ID,
-        commandCount, 
         IMPLEMENTATION_ID
       )
     ).asAddressUnchecked(0);
@@ -52,8 +48,6 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        CONFIG_ID,
-        commandCount, 
         UPGRADE_CONTRACT_ID,
         address(upgradeTester)
       )
@@ -65,8 +59,6 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        CONFIG_ID,
-        commandCount, 
         UPGRADE_CONTRACT_ID,
         address(upgradeTester)
       )
@@ -77,8 +69,6 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        CONFIG_ID,
-        commandCount, 
         UPGRADE_CONTRACT_ID,
         address(upgradeTester)
       )
@@ -93,8 +83,6 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        CONFIG_QUERIES_ID,
-        commandCount, 
         IMPLEMENTATION_ID
       )
     ).asAddressUnchecked(0);
@@ -109,7 +97,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0,
-        CONFIG_ID,
+        ACCESS_CONTROL_ID,
         commandCount, 
         PROPOSE_OWNERSHIP_TRANSFER_ID,
         newOwner
@@ -121,7 +109,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        CONFIG_ID,
+        ACCESS_CONTROL_ID,
         commandCount, 
         PROPOSE_OWNERSHIP_TRANSFER_ID,
         newOwner
@@ -133,7 +121,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        CONFIG_QUERIES_ID,
+        ACCESS_CONTROL_QUERIES_ID,
         commandCount, 
         OWNER_ID,
         PENDING_OWNER_ID
@@ -168,7 +156,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        CONFIG_QUERIES_ID,
+        ACCESS_CONTROL_QUERIES_ID,
         commandCount, 
         OWNER_ID,
         PENDING_OWNER_ID
@@ -191,7 +179,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        CONFIG_ID,
+        ACCESS_CONTROL_ID,
         commandCount, 
         PROPOSE_OWNERSHIP_TRANSFER_ID,
         newOwner
@@ -212,15 +200,18 @@ contract GovernanceTest is TbrTestBase {
       )
     );
 
-    commandCount = 3;
+    commandCount = 2;
+    uint8 configCommandCount = 1;
     bytes memory getRes = invokeTbr(
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        CONFIG_QUERIES_ID,
+        ACCESS_CONTROL_QUERIES_ID,
         commandCount, 
         OWNER_ID,
         PENDING_OWNER_ID,
+        CONFIG_QUERIES_ID,
+        configCommandCount,
         CANONICAL_PEER_ID,
         peerChain
       )
@@ -243,7 +234,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        CONFIG_ID,
+        ACCESS_CONTROL_ID,
         commandCount, 
         UPDATE_ADMIN_ID,
         newAdmin, 
@@ -256,11 +247,11 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        CONFIG_ID,
+        ACCESS_CONTROL_ID,
         commandCount, 
         UPDATE_ADMIN_ID, 
-        newAdmin,
-        shouldBeAdmin
+        shouldBeAdmin,
+        newAdmin
       )
     );
 
@@ -268,7 +259,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        CONFIG_QUERIES_ID,
+        ACCESS_CONTROL_QUERIES_ID,
         commandCount, 
         IS_ADMIN_ID,
         newAdmin
@@ -286,7 +277,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        CONFIG_ID,
+        ACCESS_CONTROL_ID,
         commandCount, 
         RELINQUISH_OWNERSHIP_ID
       )
@@ -301,7 +292,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        CONFIG_ID,
+        ACCESS_CONTROL_ID,
         commandCount,
         RELINQUISH_OWNERSHIP_ID,
         UPDATE_ADMIN_ID
@@ -313,7 +304,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        CONFIG_ID,
+        ACCESS_CONTROL_ID,
         commandCount, 
         RELINQUISH_OWNERSHIP_ID
       )
@@ -323,7 +314,7 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
-        CONFIG_QUERIES_ID,
+        ACCESS_CONTROL_QUERIES_ID,
         commandCount,
         OWNER_ID
       )
@@ -653,7 +644,6 @@ contract GovernanceTest is TbrTestBase {
   function testSweepTokens() public {
     uint usdtAmount = 1e6;
     uint ethAmount = 1 ether;
-    uint8 commandCount = 2;
     deal(address(usdt), address(tbr), usdtAmount);
     vm.deal(address(tbr), ethAmount);
     assertEq(usdt.balanceOf(owner), 0);
@@ -665,8 +655,6 @@ contract GovernanceTest is TbrTestBase {
       abi.encodePacked(
       tbr.exec768.selector, 
       DISPATCHER_PROTOCOL_VERSION0, 
-      CONFIG_ID,
-      commandCount, 
       SWEEP_TOKENS_ID, address(usdt), usdtAmount,
       SWEEP_TOKENS_ID, address(0), ethAmount
       )
@@ -790,7 +778,7 @@ contract GovernanceTest is TbrTestBase {
     uint8 fakeCommand = 0x80;
     vm.prank(owner);
     vm.expectRevert(
-      abi.encodeWithSelector(InvalidGovernanceCommand.selector, fakeCommand)
+      abi.encodeWithSelector(InvalidConfigCommand.selector, fakeCommand)
     );
     invokeTbr(
       abi.encodePacked(
@@ -811,7 +799,7 @@ contract GovernanceTest is TbrTestBase {
     uint8 fakeQuery = 0x79;
     vm.prank(owner);
     vm.expectRevert(
-      abi.encodeWithSelector(InvalidGovernanceQuery.selector, fakeQuery)
+      abi.encodeWithSelector(InvalidConfigQuery.selector, fakeQuery)
     );
     invokeTbr(
       abi.encodePacked(

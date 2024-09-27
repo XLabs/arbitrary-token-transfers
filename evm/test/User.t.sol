@@ -2,11 +2,11 @@
 
 pragma solidity ^0.8.25;
 
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {ISignatureTransfer, IAllowanceTransfer} from "permit2/IPermit2.sol";
-import {IPriceOracle} from "price-oracle/IPriceOracle.sol";
-import "wormhole-sdk/interfaces/ITokenBridge.sol";
-import "wormhole-sdk/libraries/BytesParsing.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { ISignatureTransfer, IAllowanceTransfer } from "permit2/IPermit2.sol";
+import { ITokenBridge } from "wormhole-sdk/interfaces/ITokenBridge.sol";
+import { BytesParsing } from "wormhole-sdk/libraries/BytesParsing.sol";
+import { IPriceOracle } from "price-oracle/IPriceOracle.sol";
 
 import "tbr/assets/TbrDispatcher.sol";
 import "tbr/assets/TbrUser.sol";
@@ -26,7 +26,7 @@ contract UserTest is TbrTestBase {
 
   receive() external payable {}
 
-  function executeGovernanceCommand(bytes memory command) internal {
+  function executeConfigCommand(bytes memory command) internal {
     uint8 commandCount = 1;
 
     vm.prank(owner);
@@ -43,30 +43,30 @@ contract UserTest is TbrTestBase {
 
   function _setUp1() internal override {
     // Solana chain setup
-    executeGovernanceCommand(
+    executeConfigCommand(
       abi.encodePacked(UPDATE_CANONICAL_PEER_ID, SOLANA_CHAIN_ID, SOLANA_CANONICAL_PEER)
     );
-    executeGovernanceCommand(
+    executeConfigCommand(
       abi.encodePacked(UPDATE_MAX_GAS_DROPOFF_ID, SOLANA_CHAIN_ID, MAX_GAS_DROPOFF_AMOUNT)
     );
-    executeGovernanceCommand(
+    executeConfigCommand(
       abi.encodePacked(UPDATE_TX_SIZE_SENSITIVE_ID, SOLANA_CHAIN_ID, bool(false))
     );
-    executeGovernanceCommand(
+    executeConfigCommand(
       abi.encodePacked(UPDATE_BASE_FEE_ID, SOLANA_CHAIN_ID, RELAY_FEE_AMOUNT)
     );
 
     // EVM chain setup
-    executeGovernanceCommand(
+    executeConfigCommand(
       abi.encodePacked(UPDATE_CANONICAL_PEER_ID, EVM_CHAIN_ID, EVM_CANONICAL_PEER)
     );
-    executeGovernanceCommand(
+    executeConfigCommand(
       abi.encodePacked(UPDATE_MAX_GAS_DROPOFF_ID, EVM_CHAIN_ID, MAX_GAS_DROPOFF_AMOUNT)
     );
-    executeGovernanceCommand(
+    executeConfigCommand(
       abi.encodePacked(UPDATE_TX_SIZE_SENSITIVE_ID, EVM_CHAIN_ID, bool(true))
     );
-    executeGovernanceCommand(
+    executeConfigCommand(
       abi.encodePacked(UPDATE_BASE_FEE_ID, EVM_CHAIN_ID, RELAY_FEE_AMOUNT)
     );
   }
