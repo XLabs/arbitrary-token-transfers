@@ -39,6 +39,7 @@ contract Tbr is TbrDispatcher {
 
     args.checkLengthCd(offset);
 
-    _governanceConstruction(owner, admin, payable(feeRecipient));
+    _accessControlConstruction(owner, admin);
+    _configConstruction(payable(feeRecipient));
   }
 }

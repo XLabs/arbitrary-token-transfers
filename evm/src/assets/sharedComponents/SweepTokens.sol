@@ -3,18 +3,18 @@
 pragma solidity ^0.8.25;
 
 import { BytesParsing } from "wormhole-sdk/libraries/BytesParsing.sol";
-import { governanceState, NotAuthorized } from "./AccessControl.sol";
+import { AccessControlState, accessControlState, NotAuthorized } from "./AccessControl.sol";
 import { transferTokens } from "./utils.sol";
 import "./ids.sol";
 
-abstract contract SweepTokens is ProxyBase {
+abstract contract SweepTokens {
   using BytesParsing for bytes;
 
   function _sweepTokens(
     bytes calldata commands,
     uint offset
   ) internal returns (uint) {
-    GovernanceState storage state = governanceState();
+    AccessControlState storage state = accessControlState();
     if (msg.sender != state.owner || !state.isAdmin[msg.sender]) 
       revert NotAuthorized();
 
