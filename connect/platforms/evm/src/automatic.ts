@@ -1,19 +1,25 @@
-import { chainToPlatform, decimals, encoding, Network } from "@wormhole-foundation/sdk-base";
+import { chainToPlatform, decimals, encoding, LayoutToType, Network } from "@wormhole-foundation/sdk-base";
 import { ChainsConfig, Contracts, isNative, VAA } from "@wormhole-foundation/sdk-definitions";
 import '@wormhole-foundation/sdk-evm';
 import { EvmChains, EvmPlatform, EvmPlatformType, EvmUnsignedTransaction } from "@wormhole-foundation/sdk-evm";
-import { AcquireMode, AutomaticTokenBridgeV3, isSupportedChain, RelayingFee, RelayingFeesParams, tokenBridgeRelayerV3Contracts, TransferParams } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
-import { BaseRelayingParams, SupportedChains, Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
+import { AutomaticTokenBridgeV3, BaseRelayingParams, isSupportedChain, RelayingFee, RelayingFeesParams, tokenBridgeRelayerV3Contracts, TransferParams } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
+import { acquireModeItem, SupportedChains, Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
 import { Provider } from "ethers";
 
 const WHOLE_EVM_GAS_TOKEN_UNITS = 1e18;
+
+export type AcquireMode = LayoutToType<typeof acquireModeItem>;
+
+export interface EvmOptions {
+  acquireMode: AcquireMode;
+};
 
 export interface EvmTransferParams<C extends EvmChains> extends TransferParams<C> {
   acquireMode: AcquireMode;
 }
 
 export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
-  implements AutomaticTokenBridgeV3<N, C> {
+  implements AutomaticTokenBridgeV3<N, C, EvmOptions> {
 
   private readonly tbr: Tbrv3;
   
@@ -175,5 +181,13 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
   async baseRelayingParams(chain: SupportedChains): Promise<BaseRelayingParams> {
     const [params] = await this.tbr.baseRelayingParams(chain);
     return params;
+  }
+
+  getDefaultOptions(): EvmOptions {
+    return {
+      acquireMode: {
+        mode: 'Preapproved'
+      }
+    };
   }
 }

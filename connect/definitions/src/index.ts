@@ -1,9 +1,9 @@
 import { NamedPayloads, RegisterPayloadTypes, registerPayloadTypes, transferWithPayloadLayout } from "@wormhole-foundation/sdk-definitions";
-import { TBRv3Message } from "./layout.js";
+import { TBRv3MessageLayout } from "common-arbitrary-token-transfer";
 
 const automaticTokenBridgeV3NamedPayloads = [
   [
-    "TransferWithRelay", transferWithPayloadLayout(TBRv3Message)
+    "TransferWithRelay", transferWithPayloadLayout(TBRv3MessageLayout)
   ]
 ] as const satisfies NamedPayloads;
 
@@ -20,6 +20,6 @@ declare module "@wormhole-foundation/sdk-definitions" {
 }
 
 export * from "./automatic.js";
-export * from "./layout.js";
 export * from "./consts.js";
 export * from "./types.js";
+

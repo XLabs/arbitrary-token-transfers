@@ -1,18 +1,20 @@
-import { amount, Chain, LayoutToType } from "@wormhole-foundation/sdk-base";
-import { AccountAddress, ChainAddress, TokenAddress, TokenId } from "@wormhole-foundation/sdk-definitions";
-import { relayingFeesInputLayout, SupportedChains } from "./layout.js";
+import { amount, Chain } from "@wormhole-foundation/sdk-base";
+import { AccountAddress, ChainAddress, layoutItems, TokenId, UniversalAddress } from "@wormhole-foundation/sdk-definitions";
+import { tokenBridgeRelayerV3Chains } from "./consts.js";
 
-// export type SupportedChains = typeof supportedChains[number];
+export const supportedChains = Object.values(tokenBridgeRelayerV3Chains);
+export const supportedChainItem = layoutItems.chainItem({allowedChains: supportedChains });
+export type SupportedChains = typeof supportedChains[number];
+export function isSupportedChain(chain: Chain): chain is SupportedChains {
+  return supportedChains.includes(chain);
+}
 
-// export interface RelayingFeesReturn {
-//   isPaused: boolean;
-//   fee: bigint;
-// }
-
-// export interface BaseRelayingParamsReturn {
-//   maxGasDropoff: bigint;
-//   baseFee: bigint;
-// }
+export interface BaseRelayingParams {
+  peer: UniversalAddress;
+  paused: boolean;
+  maxGasDropoff: number;
+  baseFee: number;
+}
 
 export interface TransferParams<C extends Chain> {
   sender: AccountAddress<C>;

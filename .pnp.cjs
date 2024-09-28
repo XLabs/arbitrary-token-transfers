@@ -2064,6 +2064,7 @@ const RAW_RUNTIME_STATE =
           ["@wormhole-foundation/sdk-base", "npm:0.10.9"],\
           ["@wormhole-foundation/sdk-definitions", "npm:0.10.9"],\
           ["@wormhole-foundation/sdk-evm", "npm:0.10.9"],\
+          ["common-arbitrary-token-transfer", "workspace:sdk/common"],\
           ["ethers", "npm:6.13.2"],\
           ["tsup", "virtual:9bef669af1c3b4b384f01597b4618f767933970b69e6fd62d81f9bbc7b8c4900225bffb44e48b8c05eea593d7778ed11aa109309394c7caa9adf8cbab67e8377#npm:8.2.4"],\
           ["tsx", "npm:4.16.5"],\
@@ -2086,7 +2087,7 @@ const RAW_RUNTIME_STATE =
           ["chai", "npm:5.1.1"],\
           ["ethers", "npm:6.13.2"],\
           ["mocha", "npm:10.7.3"],\
-          ["tsup", "virtual:056deaaa1268de825ebb7f2126e3a2787838e2876e69eb46bc3ce4857072f92cede74aabe3915aa2d505c2a087a7d59d9170f4e7cc6428f30bd09123b7267c8f#npm:8.2.4"],\
+          ["tsup", "virtual:ffb6666390cfc7cef5fa37dad6352334ff068a3935fb97fd12b4ff87d9ba48db9aeaf39877732e193daf1b5615299aef8d67b482fed9868be0c31f2e9186427e#npm:8.2.4"],\
           ["tsx", "npm:4.19.1"],\
           ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=8c6c40"]\
         ],\
@@ -2145,7 +2146,7 @@ const RAW_RUNTIME_STATE =
           ["@xlabs/solana-price-oracle-sdk", "npm:0.0.4::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40xlabs%2Fsolana-price-oracle-sdk%2F0.0.4%2F43985689b6a3edb240963b2fbebfb7268d340542"],\
           ["borsh", "npm:2.0.0"],\
           ["common-arbitrary-token-transfer", "workspace:sdk/common"],\
-          ["tsup", "virtual:056deaaa1268de825ebb7f2126e3a2787838e2876e69eb46bc3ce4857072f92cede74aabe3915aa2d505c2a087a7d59d9170f4e7cc6428f30bd09123b7267c8f#npm:8.2.4"],\
+          ["tsup", "virtual:ffb6666390cfc7cef5fa37dad6352334ff068a3935fb97fd12b4ff87d9ba48db9aeaf39877732e193daf1b5615299aef8d67b482fed9868be0c31f2e9186427e#npm:8.2.4"],\
           ["tsx", "npm:4.19.1"],\
           ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=8c6c40"]\
         ],\
@@ -2656,10 +2657,10 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "SOFT"\
       }],\
-      ["virtual:7afacf290833390b555108d12c2f68ceeeec8bc50492cfbac26f82dde32ea04d5ecbce3af2676311bcd53c0ee72a85f1f6f3e4eb789c557287d82cc3c83df758#npm:5.0.0", {\
-        "packageLocation": "./.yarn/__virtual__/bundle-require-virtual-dfca958eba/0/cache/bundle-require-npm-5.0.0-1ad25d21e8-92c46df025.zip/node_modules/bundle-require/",\
+      ["virtual:e76b8364342461eee3238c04c8a4d52199871e0b754c3c7903cde5af7085aa10271bf9821b2b3becee1c1588acada9707d829af02eac899c3a432533484fbd31#npm:5.0.0", {\
+        "packageLocation": "./.yarn/__virtual__/bundle-require-virtual-65e8eeee73/0/cache/bundle-require-npm-5.0.0-1ad25d21e8-92c46df025.zip/node_modules/bundle-require/",\
         "packageDependencies": [\
-          ["bundle-require", "virtual:7afacf290833390b555108d12c2f68ceeeec8bc50492cfbac26f82dde32ea04d5ecbce3af2676311bcd53c0ee72a85f1f6f3e4eb789c557287d82cc3c83df758#npm:5.0.0"],\
+          ["bundle-require", "virtual:e76b8364342461eee3238c04c8a4d52199871e0b754c3c7903cde5af7085aa10271bf9821b2b3becee1c1588acada9707d829af02eac899c3a432533484fbd31#npm:5.0.0"],\
           ["@types/esbuild", null],\
           ["esbuild", "npm:0.23.1"],\
           ["load-tsconfig", "npm:0.2.5"]\
@@ -2937,7 +2938,7 @@ const RAW_RUNTIME_STATE =
           ["@wormhole-foundation/sdk-base", "npm:0.10.9"],\
           ["@wormhole-foundation/sdk-definitions", "npm:0.10.9"],\
           ["bn.js", "npm:5.2.1"],\
-          ["tsup", "virtual:056deaaa1268de825ebb7f2126e3a2787838e2876e69eb46bc3ce4857072f92cede74aabe3915aa2d505c2a087a7d59d9170f4e7cc6428f30bd09123b7267c8f#npm:8.2.4"],\
+          ["tsup", "virtual:ffb6666390cfc7cef5fa37dad6352334ff068a3935fb97fd12b4ff87d9ba48db9aeaf39877732e193daf1b5615299aef8d67b482fed9868be0c31f2e9186427e#npm:8.2.4"],\
           ["tsx", "npm:4.19.1"],\
           ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=8c6c40"]\
         ],\
@@ -5201,10 +5202,10 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "SOFT"\
       }],\
-      ["virtual:7afacf290833390b555108d12c2f68ceeeec8bc50492cfbac26f82dde32ea04d5ecbce3af2676311bcd53c0ee72a85f1f6f3e4eb789c557287d82cc3c83df758#npm:6.0.1", {\
-        "packageLocation": "./.yarn/__virtual__/postcss-load-config-virtual-fcafadd579/0/cache/postcss-load-config-npm-6.0.1-50722afd05-74173a5881.zip/node_modules/postcss-load-config/",\
+      ["virtual:e76b8364342461eee3238c04c8a4d52199871e0b754c3c7903cde5af7085aa10271bf9821b2b3becee1c1588acada9707d829af02eac899c3a432533484fbd31#npm:6.0.1", {\
+        "packageLocation": "./.yarn/__virtual__/postcss-load-config-virtual-7b9180a542/0/cache/postcss-load-config-npm-6.0.1-50722afd05-74173a5881.zip/node_modules/postcss-load-config/",\
         "packageDependencies": [\
-          ["postcss-load-config", "virtual:7afacf290833390b555108d12c2f68ceeeec8bc50492cfbac26f82dde32ea04d5ecbce3af2676311bcd53c0ee72a85f1f6f3e4eb789c557287d82cc3c83df758#npm:6.0.1"],\
+          ["postcss-load-config", "virtual:e76b8364342461eee3238c04c8a4d52199871e0b754c3c7903cde5af7085aa10271bf9821b2b3becee1c1588acada9707d829af02eac899c3a432533484fbd31#npm:6.0.1"],\
           ["@types/jiti", null],\
           ["@types/postcss", null],\
           ["@types/tsx", null],\
@@ -6297,17 +6298,17 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "SOFT"\
       }],\
-      ["virtual:056deaaa1268de825ebb7f2126e3a2787838e2876e69eb46bc3ce4857072f92cede74aabe3915aa2d505c2a087a7d59d9170f4e7cc6428f30bd09123b7267c8f#npm:8.2.4", {\
-        "packageLocation": "./.yarn/__virtual__/tsup-virtual-0ce7e36091/0/cache/tsup-npm-8.2.4-8d7bbabf3e-0fa967ae0f.zip/node_modules/tsup/",\
+      ["virtual:9bef669af1c3b4b384f01597b4618f767933970b69e6fd62d81f9bbc7b8c4900225bffb44e48b8c05eea593d7778ed11aa109309394c7caa9adf8cbab67e8377#npm:8.2.4", {\
+        "packageLocation": "./.yarn/__virtual__/tsup-virtual-7afacf2908/0/cache/tsup-npm-8.2.4-8d7bbabf3e-0fa967ae0f.zip/node_modules/tsup/",\
         "packageDependencies": [\
-          ["tsup", "virtual:056deaaa1268de825ebb7f2126e3a2787838e2876e69eb46bc3ce4857072f92cede74aabe3915aa2d505c2a087a7d59d9170f4e7cc6428f30bd09123b7267c8f#npm:8.2.4"],\
+          ["tsup", "virtual:9bef669af1c3b4b384f01597b4618f767933970b69e6fd62d81f9bbc7b8c4900225bffb44e48b8c05eea593d7778ed11aa109309394c7caa9adf8cbab67e8377#npm:8.2.4"],\
           ["@microsoft/api-extractor", null],\
           ["@swc/core", null],\
           ["@types/microsoft__api-extractor", null],\
           ["@types/postcss", null],\
           ["@types/swc__core", null],\
           ["@types/typescript", null],\
-          ["bundle-require", "virtual:7afacf290833390b555108d12c2f68ceeeec8bc50492cfbac26f82dde32ea04d5ecbce3af2676311bcd53c0ee72a85f1f6f3e4eb789c557287d82cc3c83df758#npm:5.0.0"],\
+          ["bundle-require", "virtual:e76b8364342461eee3238c04c8a4d52199871e0b754c3c7903cde5af7085aa10271bf9821b2b3becee1c1588acada9707d829af02eac899c3a432533484fbd31#npm:5.0.0"],\
           ["cac", "npm:6.7.14"],\
           ["chokidar", "npm:3.6.0"],\
           ["consola", "npm:3.2.3"],\
@@ -6318,13 +6319,13 @@ const RAW_RUNTIME_STATE =
           ["joycon", "npm:3.1.1"],\
           ["picocolors", "npm:1.1.0"],\
           ["postcss", null],\
-          ["postcss-load-config", "virtual:7afacf290833390b555108d12c2f68ceeeec8bc50492cfbac26f82dde32ea04d5ecbce3af2676311bcd53c0ee72a85f1f6f3e4eb789c557287d82cc3c83df758#npm:6.0.1"],\
+          ["postcss-load-config", "virtual:e76b8364342461eee3238c04c8a4d52199871e0b754c3c7903cde5af7085aa10271bf9821b2b3becee1c1588acada9707d829af02eac899c3a432533484fbd31#npm:6.0.1"],\
           ["resolve-from", "npm:5.0.0"],\
           ["rollup", "npm:4.21.2"],\
           ["source-map", "npm:0.8.0-beta.0"],\
           ["sucrase", "npm:3.35.0"],\
           ["tree-kill", "npm:1.2.2"],\
-          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.5.4#optional!builtin<compat/typescript>::version=5.5.4&hash=379a07"]\
         ],\
         "packagePeers": [\
           "@microsoft/api-extractor",\
@@ -6338,17 +6339,17 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "HARD"\
       }],\
-      ["virtual:9bef669af1c3b4b384f01597b4618f767933970b69e6fd62d81f9bbc7b8c4900225bffb44e48b8c05eea593d7778ed11aa109309394c7caa9adf8cbab67e8377#npm:8.2.4", {\
-        "packageLocation": "./.yarn/__virtual__/tsup-virtual-7afacf2908/0/cache/tsup-npm-8.2.4-8d7bbabf3e-0fa967ae0f.zip/node_modules/tsup/",\
+      ["virtual:ffb6666390cfc7cef5fa37dad6352334ff068a3935fb97fd12b4ff87d9ba48db9aeaf39877732e193daf1b5615299aef8d67b482fed9868be0c31f2e9186427e#npm:8.2.4", {\
+        "packageLocation": "./.yarn/__virtual__/tsup-virtual-e76b836434/0/cache/tsup-npm-8.2.4-8d7bbabf3e-0fa967ae0f.zip/node_modules/tsup/",\
         "packageDependencies": [\
-          ["tsup", "virtual:9bef669af1c3b4b384f01597b4618f767933970b69e6fd62d81f9bbc7b8c4900225bffb44e48b8c05eea593d7778ed11aa109309394c7caa9adf8cbab67e8377#npm:8.2.4"],\
+          ["tsup", "virtual:ffb6666390cfc7cef5fa37dad6352334ff068a3935fb97fd12b4ff87d9ba48db9aeaf39877732e193daf1b5615299aef8d67b482fed9868be0c31f2e9186427e#npm:8.2.4"],\
           ["@microsoft/api-extractor", null],\
           ["@swc/core", null],\
           ["@types/microsoft__api-extractor", null],\
           ["@types/postcss", null],\
           ["@types/swc__core", null],\
           ["@types/typescript", null],\
-          ["bundle-require", "virtual:7afacf290833390b555108d12c2f68ceeeec8bc50492cfbac26f82dde32ea04d5ecbce3af2676311bcd53c0ee72a85f1f6f3e4eb789c557287d82cc3c83df758#npm:5.0.0"],\
+          ["bundle-require", "virtual:e76b8364342461eee3238c04c8a4d52199871e0b754c3c7903cde5af7085aa10271bf9821b2b3becee1c1588acada9707d829af02eac899c3a432533484fbd31#npm:5.0.0"],\
           ["cac", "npm:6.7.14"],\
           ["chokidar", "npm:3.6.0"],\
           ["consola", "npm:3.2.3"],\
@@ -6359,13 +6360,13 @@ const RAW_RUNTIME_STATE =
           ["joycon", "npm:3.1.1"],\
           ["picocolors", "npm:1.1.0"],\
           ["postcss", null],\
-          ["postcss-load-config", "virtual:7afacf290833390b555108d12c2f68ceeeec8bc50492cfbac26f82dde32ea04d5ecbce3af2676311bcd53c0ee72a85f1f6f3e4eb789c557287d82cc3c83df758#npm:6.0.1"],\
+          ["postcss-load-config", "virtual:e76b8364342461eee3238c04c8a4d52199871e0b754c3c7903cde5af7085aa10271bf9821b2b3becee1c1588acada9707d829af02eac899c3a432533484fbd31#npm:6.0.1"],\
           ["resolve-from", "npm:5.0.0"],\
           ["rollup", "npm:4.21.2"],\
           ["source-map", "npm:0.8.0-beta.0"],\
           ["sucrase", "npm:3.35.0"],\
           ["tree-kill", "npm:1.2.2"],\
-          ["typescript", "patch:typescript@npm%3A5.5.4#optional!builtin<compat/typescript>::version=5.5.4&hash=379a07"]\
+          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=8c6c40"]\
         ],\
         "packagePeers": [\
           "@microsoft/api-extractor",\

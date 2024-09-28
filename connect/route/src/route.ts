@@ -1,5 +1,4 @@
 import {
-  amount as sdkAmount,
   AttestationReceipt,
   Chain,
   ChainAddress,
@@ -9,6 +8,7 @@ import {
   isSignOnlySigner,
   Network,
   routes,
+  amount as sdkAmount,
   signAndSendWait,
   Signer,
   TokenId,
@@ -17,14 +17,13 @@ import {
   TransferState,
   Wormhole,
 } from "@wormhole-foundation/sdk-connect";
-import { UniversalOrNative } from "@wormhole-foundation/sdk-definitions";
-import { TokenAddress, toNative } from "@wormhole-foundation/sdk-definitions";
+import { toNative } from "@wormhole-foundation/sdk-definitions";
+import { SupportedChains, tokenBridgeRelayerV3Chains } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
 import "@xlabs-xyz/arbitrary-token-transfers-definitions";
-import { SupportedChains, tokenBridgeRelayerV3Chains, AcquireMode } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
 
+// TODO: implement acquireMode for permit
 interface TransferOptions {
   nativeGas: number; // this is a percentage
-  acquireMode: AcquireMode;
   unwrapIntent: boolean;
 }
 
@@ -98,7 +97,10 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
 
       const destinationDecimals = await request.toChain.getDecimals('native');
 
+      const tbr = await request.fromChain.getProtocol('AutomaticTokenBridgeV3');
+
       const options: ValidatedTransferOptions = {
+        ...tbr.getDefaultOptions(),
         ...this.getDefaultOptions(),
         ...params.options,
         gasDropOff: sdkAmount.fromBaseUnits(0n, destinationDecimals)
@@ -274,9 +276,6 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
   getDefaultOptions(): TransferOptions {
     return {
       nativeGas: 0,
-      acquireMode: {
-        mode: 'Preapproved'
-      },
       unwrapIntent: true
     };
   }

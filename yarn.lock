@@ -1710,6 +1710,7 @@ __metadata:
     "@wormhole-foundation/sdk-base": "npm:0.10.9"
     "@wormhole-foundation/sdk-definitions": "npm:0.10.9"
     "@wormhole-foundation/sdk-evm": "npm:0.10.9"
+    common-arbitrary-token-transfer: "workspace:*"
     ethers: "npm:^6.13.2"
     tsup: "npm:^8.2.4"
     tsx: "npm:4.16.5"
@@ -2479,7 +2480,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"common-arbitrary-token-transfer@workspace:^, common-arbitrary-token-transfer@workspace:sdk/common":
+"common-arbitrary-token-transfer@workspace:*, common-arbitrary-token-transfer@workspace:^, common-arbitrary-token-transfer@workspace:sdk/common":
   version: 0.0.0-use.local
   resolution: "common-arbitrary-token-transfer@workspace:sdk/common"
   dependencies:

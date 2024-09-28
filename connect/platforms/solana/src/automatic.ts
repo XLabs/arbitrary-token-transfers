@@ -4,8 +4,7 @@ import { Connection, LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction, Tr
 import { Chain, Network, amount as sdkAmount } from "@wormhole-foundation/sdk-base";
 import { AccountAddress, ChainsConfig, Contracts, isNative, TokenAddress, UniversalAddress, VAA } from "@wormhole-foundation/sdk-definitions";
 import { SolanaAddress, SolanaChain, SolanaChains, SolanaPlatform, SolanaPlatformType, SolanaUnsignedTransaction } from "@wormhole-foundation/sdk-solana";
-import { AutomaticTokenBridgeV3, BaseRelayingParamsReturn, RelayingFee, RelayingFeesParams, SupportedChains, TransferParams } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
-
+import { AutomaticTokenBridgeV3, BaseRelayingParams, RelayingFee, RelayingFeesParams, SupportedChains, TransferParams } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
 import { SolanaPriceOracleClient, SolanaTokenBridgeRelayer } from "@xlabs-xyz/solana-arbitrary-token-transfers";
 
 const NATIVE_MINT = new PublicKey('So11111111111111111111111111111111111111112');
@@ -220,15 +219,14 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     };
   }
 
-  async baseRelayingParams(chain: SupportedChains): Promise<BaseRelayingParamsReturn> {
+  async baseRelayingParams(chain: SupportedChains): Promise<BaseRelayingParams> {
     const config = await this.client.read.chainConfig(chain);
 
     return {
       maxGasDropoff: config.maxGasDropoffMicroToken,
       baseFee: config.relayerFeeMicroUsd,
       paused: config.pausedOutboundTransfers,
-      peer: new UniversalAddress(new Uint8Array(config.canonicalPeer)),
-      txSizeSensitive: false // TODO: might not be necessary
+      peer: new UniversalAddress(new Uint8Array(config.canonicalPeer))
     };
   }
 
@@ -236,5 +234,9 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     return isNative(token)
       ? new PublicKey(NATIVE_MINT)
       : new SolanaAddress(token).unwrap();
+  }
+
+  getDefaultOptions() {
+    return {};
   }
 }

@@ -10,5 +10,7 @@
     "rootDir": "."
   },
   "include": ["src"],
-  "references": []
+  "references": [
+    { "path": "../../sdk/common" },
+  ]
 }
