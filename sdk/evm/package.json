@@ -15,6 +15,7 @@
   "scripts": {
     "build:ts": "tsc --noEmit -p ./tsconfig.json && tsup",
     "build": "yarn run build:ts",
+    "clean": "rm -rf ./ts-build ./build-test",
     "prettier": "prettier --write .",
     "test:integration": "tsc -p ./test/tsconfig.json && mocha build-test/test/integration.tbrv3.test.js",
     "test:deploy:integration": "yarn workspace deployment run deploy:evm:localnet && yarn test:integration"
