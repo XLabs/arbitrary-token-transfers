@@ -279,7 +279,7 @@ contract ConfigTest is TbrTestBase {
     );
     
     (bool isAdmin, ) = res.asBoolUnchecked(0);
-    (uint adminsCount, ) = res.asUint256Unchecked(1);
+    (uint8 adminsCount, ) = res.asUint8Unchecked(1);
     (bytes memory rawAdmin, ) = res.sliceUnchecked(res.length - 20, 20);
     (address newAdmin_, ) = rawAdmin.asAddressUnchecked(0);
 
@@ -314,7 +314,7 @@ contract ConfigTest is TbrTestBase {
     );
     
     (isAdmin, ) = res.asBoolUnchecked(0);
-    (adminsCount, ) = res.asUint256Unchecked(1);
+    (adminsCount, ) = res.asUint8Unchecked(1);
 
     assertEq(isAdmin, false);
     assertEq(adminsCount, 1);

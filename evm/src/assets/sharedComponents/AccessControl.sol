@@ -127,7 +127,7 @@ abstract contract AccessControl {
         ret = abi.encodePacked(ret, state.isAdmin[admin]);
       } 
       else if (query == ADMINS_ID) {
-        ret = abi.encodePacked(ret, state.admins.length);
+        ret = abi.encodePacked(ret, uint8(state.admins.length));
         for (uint j = 0; j < state.admins.length; ++j)
           ret = abi.encodePacked(ret, state.admins[j]);
       }
