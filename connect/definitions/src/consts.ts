@@ -1,4 +1,4 @@
-import { MapLevels, Network, Chain, constMap } from "@wormhole-foundation/sdk-base";
+import { MapLevels, Network, Chain, constMap } from '@wormhole-foundation/sdk-base';
 
 // prettier-ignore
 const addresses = [[

@@ -16,10 +16,13 @@ import {
   TransferReceipt,
   TransferState,
   Wormhole,
-} from "@wormhole-foundation/sdk-connect";
-import { toNative } from "@wormhole-foundation/sdk-definitions";
-import { SupportedChains, tokenBridgeRelayerV3Chains } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
-import "@xlabs-xyz/arbitrary-token-transfers-definitions";
+} from '@wormhole-foundation/sdk-connect';
+import { toNative } from '@wormhole-foundation/sdk-definitions';
+import {
+  SupportedChains,
+  tokenBridgeRelayerV3Chains,
+} from '@xlabs-xyz/arbitrary-token-transfers-definitions';
+import '@xlabs-xyz/arbitrary-token-transfers-definitions';
 
 // TODO: implement acquireMode for permit
 interface TransferOptions {
@@ -31,7 +34,7 @@ interface ValidatedTransferOptions extends TransferOptions {
   gasDropOff: sdkAmount.Amount;
 }
 
-type Receipt = TransferReceipt<AttestationReceipt<"AutomaticTokenBridgeV3">>;
+type Receipt = TransferReceipt<AttestationReceipt<'AutomaticTokenBridgeV3'>>;
 
 export class AutomaticTokenBridgeRouteV3<N extends Network>
   extends routes.AutomaticRoute<N, any, any, any>
@@ -41,11 +44,11 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
   static IS_AUTOMATIC = true;
 
   static meta = {
-    name: "AutomaticTokenBridgeV3",
+    name: 'AutomaticTokenBridgeV3',
   };
 
   static supportedNetworks(): Network[] {
-    return ["Mainnet", "Testnet"];
+    return ['Mainnet', 'Testnet'];
   }
 
   static supportedChains(network: Network): Chain[] {
@@ -81,7 +84,7 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
 
     const { isPaused } = await tbr.relayingFee({
       targetChain: request.toChain.chain as any,
-      gasDropoff: 0n
+      gasDropoff: 0n,
     });
 
     return !isPaused;
@@ -92,7 +95,8 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
     params: routes.TransferParams<TransferOptions>,
   ): Promise<routes.ValidationResult<TransferOptions>> {
     try {
-      if (tokenBridgeRelayerV3Chains.has(request.fromChain.chain)) throw new Error('Source chain not supported');
+      if (tokenBridgeRelayerV3Chains.has(request.fromChain.chain))
+        throw new Error('Source chain not supported');
       if (request.fromChain.config.network === 'Devnet') throw new Error('Devnet not supported');
 
       const destinationDecimals = await request.toChain.getDecimals('native');
@@ -103,36 +107,35 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
         ...tbr.getDefaultOptions(),
         ...this.getDefaultOptions(),
         ...params.options,
-        gasDropOff: sdkAmount.fromBaseUnits(0n, destinationDecimals)
+        gasDropOff: sdkAmount.fromBaseUnits(0n, destinationDecimals),
       };
 
       if (options.nativeGas) {
         if (options.nativeGas > 1.0 || options.nativeGas < 0.0) {
-          throw new Error("Native gas must be between 0.0 and 1.0 (0% and 100%)");
+          throw new Error('Native gas must be between 0.0 and 1.0 (0% and 100%)');
         }
 
         const stbr = await request.fromChain.getProtocol('AutomaticTokenBridgeV3');
         // expect them to return in the gas token (e.g. eth, avax, sol)
-        const { maxGasDropoff: rawMaxGasDropoff } = await stbr.baseRelayingParams(request.toChain.chain);
+        const { maxGasDropoff: rawMaxGasDropoff } = await stbr.baseRelayingParams(
+          request.toChain.chain,
+        );
         const maxGasDropoff = sdkAmount.units(
-          sdkAmount.parse(rawMaxGasDropoff, destinationDecimals)
+          sdkAmount.parse(rawMaxGasDropoff, destinationDecimals),
         );
-        
-        const perc = BigInt(Math.floor(options.nativeGas * 100));
-        const dropoff = maxGasDropoff * perc / 100n;
 
-        options.gasDropOff = sdkAmount.fromBaseUnits(
-          dropoff,
-          destinationDecimals
-        );
+        const perc = BigInt(Math.floor(options.nativeGas * 100));
+        const dropoff = (maxGasDropoff * perc) / 100n;
+
+        options.gasDropOff = sdkAmount.fromBaseUnits(dropoff, destinationDecimals);
       }
 
       return {
         valid: true,
         params: {
           amount: request.parseAmount(params.amount).amount,
-          options
-        }
+          options,
+        },
       };
     } catch (e) {
       console.error('Validation error:', e);
@@ -143,12 +146,15 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
   async quote(
     request: routes.RouteTransferRequest<N>,
     params: routes.ValidatedTransferParams<ValidatedTransferOptions>,
-  ): Promise<routes.QuoteResult<TransferOptions, routes.ValidatedTransferParams<ValidatedTransferOptions>>> {
+  ): Promise<
+    routes.QuoteResult<TransferOptions, routes.ValidatedTransferParams<ValidatedTransferOptions>>
+  > {
     try {
       const sourceChain = request.fromChain.chain;
       const targetChain = request.toChain.chain;
 
-      if (tokenBridgeRelayerV3Chains.has(request.fromChain.chain)) throw new Error('Source chain not supported');
+      if (tokenBridgeRelayerV3Chains.has(request.fromChain.chain))
+        throw new Error('Source chain not supported');
       if (request.fromChain.config.network === 'Devnet') throw new Error('Devnet not supported');
 
       const tbr = await request.fromChain.getProtocol('AutomaticTokenBridgeV3');
@@ -157,7 +163,7 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
 
       const { fee, isPaused } = await tbr.relayingFee({
         gasDropoff,
-        targetChain
+        targetChain,
       });
 
       if (isPaused) throw new Error(`Relaying to ${targetChain} is paused`);
@@ -168,15 +174,16 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
       let dstToken = await TokenTransfer.lookupDestinationToken(
         request.fromChain,
         request.toChain,
-        request.source.id
+        request.source.id,
       );
 
       // if the destination token is the chain's wrapped gas token
       // and the intent is to unwrap, set the destination token to the native token
       const dstWrapped = await request.toChain.getNativeWrappedTokenId();
-      const dstIsWrapped = dstToken.address !== 'native'
-        && dstWrapped.address !== 'native'
-        && dstToken.address.equals(dstWrapped.address.toUniversalAddress());
+      const dstIsWrapped =
+        dstToken.address !== 'native' &&
+        dstWrapped.address !== 'native' &&
+        dstToken.address.equals(dstWrapped.address.toUniversalAddress());
       if (dstIsWrapped && params.options.unwrapIntent) {
         dstToken = { address: 'native', chain: targetChain };
       }
@@ -194,24 +201,24 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
         success: true,
         sourceToken: {
           amount: truncatedSrcAmount,
-          token: request.source.id
+          token: request.source.id,
         },
         destinationToken: {
           amount: dstAmount,
-          token: dstToken
+          token: dstToken,
         },
         params,
         destinationNativeGas: {
           amount: gasDropoff.toString(),
-          decimals: dstNativeDecimals
+          decimals: dstNativeDecimals,
         },
         relayFee: {
           amount: {
             amount: fee.toString(),
-            decimals: srcNativeDecimals
+            decimals: srcNativeDecimals,
           },
           // fees are paid in the source gas token
-          token: { address: 'native', chain: sourceChain }
+          token: { address: 'native', chain: sourceChain },
         },
         eta,
       };
@@ -239,7 +246,7 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
       amount: BigInt(quote.params.amount),
       recipient: {
         address: to.address.toUniversalAddress(),
-        chain: to.chain
+        chain: to.chain,
       },
       sender: toNative(request.fromChain.chain, signer.address()),
       token: request.source.id,
@@ -252,16 +259,13 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
       acquireMode: quote.params.options.acquireMode,
     });
 
-    const originTxs = await signAndSendWait(
-      transferTxs,
-      signer
-    );
+    const originTxs = await signAndSendWait(transferTxs, signer);
 
     return {
       originTxs,
       from: request.fromChain.chain,
       to: to.chain,
-      state: TransferState.SourceInitiated
+      state: TransferState.SourceInitiated,
     };
   }
 
@@ -276,7 +280,7 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
   getDefaultOptions(): TransferOptions {
     return {
       nativeGas: 0,
-      unwrapIntent: true
+      unwrapIntent: true,
     };
   }
 }

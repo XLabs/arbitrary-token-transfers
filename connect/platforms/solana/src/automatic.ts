@@ -1,22 +1,60 @@
-import { BN } from "@coral-xyz/anchor";
-import { createAssociatedTokenAccountInstruction, createSyncNativeInstruction } from "@solana/spl-token";
-import { Connection, LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction, TransactionInstruction, VersionedTransaction } from "@solana/web3.js";
-import { Chain, Network, amount as sdkAmount } from "@wormhole-foundation/sdk-base";
-import { AccountAddress, ChainsConfig, Contracts, isNative, TokenAddress, UniversalAddress, VAA } from "@wormhole-foundation/sdk-definitions";
-import { SolanaAddress, SolanaChain, SolanaChains, SolanaPlatform, SolanaPlatformType, SolanaUnsignedTransaction } from "@wormhole-foundation/sdk-solana";
-import { AutomaticTokenBridgeV3, BaseRelayingParams, RelayingFee, RelayingFeesParams, SupportedChains, TransferParams } from "@xlabs-xyz/arbitrary-token-transfers-definitions";
-import { SolanaPriceOracleClient, SolanaTokenBridgeRelayer } from "@xlabs-xyz/solana-arbitrary-token-transfers";
+import { BN } from '@coral-xyz/anchor';
+import {
+  createAssociatedTokenAccountInstruction,
+  createSyncNativeInstruction,
+} from '@solana/spl-token';
+import {
+  Connection,
+  LAMPORTS_PER_SOL,
+  PublicKey,
+  SystemProgram,
+  Transaction,
+  TransactionInstruction,
+  VersionedTransaction,
+} from '@solana/web3.js';
+import { Chain, Network, amount as sdkAmount } from '@wormhole-foundation/sdk-base';
+import {
+  AccountAddress,
+  ChainsConfig,
+  Contracts,
+  isNative,
+  TokenAddress,
+  UniversalAddress,
+  VAA,
+} from '@wormhole-foundation/sdk-definitions';
+import {
+  SolanaAddress,
+  SolanaChain,
+  SolanaChains,
+  SolanaPlatform,
+  SolanaPlatformType,
+  SolanaUnsignedTransaction,
+} from '@wormhole-foundation/sdk-solana';
+import {
+  AutomaticTokenBridgeV3,
+  BaseRelayingParams,
+  RelayingFee,
+  RelayingFeesParams,
+  SupportedChains,
+  TransferParams,
+} from '@xlabs-xyz/arbitrary-token-transfers-definitions';
+import {
+  SolanaPriceOracleClient,
+  SolanaTokenBridgeRelayer,
+} from '@xlabs-xyz/solana-arbitrary-token-transfers';
 
 const NATIVE_MINT = new PublicKey('So11111111111111111111111111111111111111112');
-const NATIVE_MINT_UNIVERSAL = new SolanaAddress(new PublicKey('So11111111111111111111111111111111111111112')).toUniversalAddress();
+const NATIVE_MINT_UNIVERSAL = new SolanaAddress(
+  new PublicKey('So11111111111111111111111111111111111111112'),
+).toUniversalAddress();
 
 const KLAM_PER_SOL = 1_000_000n;
 const MWEI_PER_MICRO_ETH = 1_000_000n;
 const MWEI_PER_ETH = 1_000_000_000_000n;
 
 export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaChains>
-  implements AutomaticTokenBridgeV3<N, C> {
-
+  implements AutomaticTokenBridgeV3<N, C>
+{
   private readonly client: SolanaTokenBridgeRelayer;
   private readonly chain: SolanaChain<N>;
 
@@ -28,13 +66,16 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
   ) {
     if (!contracts.tokenBridge) throw new Error('TokenBridge contract not defined');
     if (!contracts.coreBridge) throw new Error('CoreBridge contract not defined');
-    
+
     this.chain = new SolanaChain(chainName, new SolanaPlatform(this.network));
 
-    this.client = new SolanaTokenBridgeRelayer({ connection }, {
-      tokenBridgeProgramId: new PublicKey(contracts.tokenBridge),
-      wormholeProgramId: new PublicKey(contracts.coreBridge)
-    });
+    this.client = new SolanaTokenBridgeRelayer(
+      { connection },
+      {
+        tokenBridgeProgramId: new PublicKey(contracts.tokenBridge),
+        wormholeProgramId: new PublicKey(contracts.coreBridge),
+      },
+    );
   }
 
   static async fromRpc<N extends Network>(
@@ -47,15 +88,12 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     if (conf.network !== network)
       throw new Error(`Network mismatch: ${conf.network} != ${network}`);
 
-    return new AutomaticTokenBridgeV3Solana(
-      network as N,
-      chain,
-      provider,
-      conf.contracts
-    );
+    return new AutomaticTokenBridgeV3Solana(network as N, chain, provider, conf.contracts);
   }
 
-  private async getSourceTokenInfo(mint: PublicKey): Promise<{ chain: Chain, address: UniversalAddress }> {
+  private async getSourceTokenInfo(
+    mint: PublicKey,
+  ): Promise<{ chain: Chain; address: UniversalAddress }> {
     const tb = await this.chain.getTokenBridge();
 
     if (mint.equals(NATIVE_MINT)) {
@@ -70,8 +108,8 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
 
     return {
       chain,
-      address: address as UniversalAddress
-    }
+      address: address as UniversalAddress,
+    };
   }
 
   async *transfer(params: TransferParams<C>): AsyncGenerator<SolanaUnsignedTransaction<N, C>> {
@@ -81,7 +119,7 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     const token = await this.getSourceTokenInfo(mint);
 
     const tokenAccount = await this.chain.getTokenAccount(params.sender, new SolanaAddress(mint));
-    const ata = tokenAccount.address.toNative('Solana').unwrap()
+    const ata = tokenAccount.address.toNative('Solana').unwrap();
 
     const payer = new SolanaAddress(params.sender).unwrap(); // TODO replace by payer parameter
     const transaction = new Transaction();
@@ -89,14 +127,7 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
 
     const acc = await this.connection.getAccountInfo(ata);
     if (!acc) {
-      transaction.add(
-        createAssociatedTokenAccountInstruction(
-          payer,
-          ata,
-          payer,
-          mint
-        )
-      );
+      transaction.add(createAssociatedTokenAccountInstruction(payer, ata, payer, mint));
     }
 
     // if transferring SOL first we have to wrap it
@@ -105,47 +136,45 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
         SystemProgram.transfer({
           fromPubkey: payer,
           toPubkey: ata,
-          lamports: Number(params.amount.toString())
-        })
+          lamports: Number(params.amount.toString()),
+        }),
       );
-      transaction.add(
-        createSyncNativeInstruction(ata)
-      );
+      transaction.add(createSyncNativeInstruction(ata));
     }
 
     const senderPk = new PublicKey(params.sender.toNative('Solana').toString());
     const gasDropoffAmount = Number(sdkAmount.display(params.gasDropOff));
 
     if (token.chain === 'Solana') {
-      transaction.add(await this.client.transferNativeTokens(
-        senderPk,
-        {
+      transaction.add(
+        await this.client.transferNativeTokens(senderPk, {
           recipient: {
             chain: params.recipient.chain,
-            address: params.recipient.address.toUniversalAddress()
+            address: params.recipient.address.toUniversalAddress(),
           },
           transferredAmount: new BN(params.amount.toString()),
           maxFeeKlamports: new BN(params.fee.toString() || 0),
           gasDropoffAmount,
           tokenAccount: ata,
           mint,
-          unwrapIntent: params.unwrapIntent
-        }
-      ))
+          unwrapIntent: params.unwrapIntent,
+        }),
+      );
     } else {
-      transaction.add(await this.client.transferWrappedTokens(
-        senderPk, {
-        recipient: {
-          chain: params.recipient.chain,
-          address: params.recipient.address.toUniversalAddress(),
-        },
-        userTokenAccount: ata,
-        transferredAmount: new BN(params.amount.toString()),
-        gasDropoffAmount,
-        maxFeeKlamports: new BN(params.fee.toString() || 0),
-        unwrapIntent: params.unwrapIntent,
-        token
-      }));
+      transaction.add(
+        await this.client.transferWrappedTokens(senderPk, {
+          recipient: {
+            chain: params.recipient.chain,
+            address: params.recipient.address.toUniversalAddress(),
+          },
+          userTokenAccount: ata,
+          transferredAmount: new BN(params.amount.toString()),
+          gasDropoffAmount,
+          maxFeeKlamports: new BN(params.fee.toString() || 0),
+          unwrapIntent: params.unwrapIntent,
+          token,
+        }),
+      );
     }
 
     const { blockhash } = await this.connection.getLatestBlockhash('finalized');
@@ -158,11 +187,14 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
       this.network,
       this.chainName,
       'TokenBridgeRelayerV3.transfer',
-      false
+      false,
     );
   }
 
-  async *redeem(vaa: VAA<"AutomaticTokenBridgeV3:TransferWithRelay">, payer: AccountAddress<C>): AsyncGenerator<SolanaUnsignedTransaction<N, C>> {
+  async *redeem(
+    vaa: VAA<'AutomaticTokenBridgeV3:TransferWithRelay'>,
+    payer: AccountAddress<C>,
+  ): AsyncGenerator<SolanaUnsignedTransaction<N, C>> {
     const ata = new SolanaAddress(vaa.payload.to.address);
     const accInfo = await this.connection.getAccountInfo(ata.unwrap());
     if (!accInfo) throw new Error('Token Account not found');
@@ -173,45 +205,49 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     const ixs: TransactionInstruction[] = [];
 
     if (vaa.payload.token.chain === 'Solana') {
-      ixs.push(await this.client.completeNativeTransfer(
-        signer,
-        // @ts-ignore
-        vaa, // TODO: fix at solana sdk
-        ata
-      ));
+      ixs.push(
+        await this.client.completeNativeTransfer(
+          signer,
+          // @ts-ignore
+          vaa, // TODO: fix at solana sdk
+          ata,
+        ),
+      );
     } else {
-      ixs.push(await this.client.completeWrappedTransfer(
-        signer,
-        // @ts-ignore
-        vaa, // TODO: fix at solana sdk
-        ata
-      ));
+      ixs.push(
+        await this.client.completeWrappedTransfer(
+          signer,
+          // @ts-ignore
+          vaa, // TODO: fix at solana sdk
+          ata,
+        ),
+      );
     }
   }
 
   async relayingFee(args: RelayingFeesParams): Promise<RelayingFee> {
     const config = await this.client.read.config();
     const chainConfig = await this.client.read.chainConfig(args.targetChain);
-    
+
     const oracleClient = new SolanaPriceOracleClient(this.connection);
     const oraclePrices = await oracleClient.read.evmPrices(args.targetChain);
     const oracleConfig = await oracleClient.read.config();
 
     // gasDropoff comes in base units
-    const gasDropoffMicroEth = args.gasDropoff / (10n**12n);
+    const gasDropoffMicroEth = args.gasDropoff / 10n ** 12n;
 
-    const totalFeesMWei = BigInt(config.evmTransactionGas.toString()) * BigInt(oraclePrices.gasPrice)
-      + BigInt(config.evmTransactionSize.toString()) * BigInt(oraclePrices.pricePerByte)
-      + gasDropoffMicroEth * MWEI_PER_MICRO_ETH;
+    const totalFeesMWei =
+      BigInt(config.evmTransactionGas.toString()) * BigInt(oraclePrices.gasPrice) +
+      BigInt(config.evmTransactionSize.toString()) * BigInt(oraclePrices.pricePerByte) +
+      gasDropoffMicroEth * MWEI_PER_MICRO_ETH;
 
-    const totalFeesMicroUsd = totalFeesMWei * BigInt(oraclePrices.gasTokenPrice.toString()) / MWEI_PER_ETH
-      + BigInt(chainConfig.relayerFeeMicroUsd.toString());
+    const totalFeesMicroUsd =
+      (totalFeesMWei * BigInt(oraclePrices.gasTokenPrice.toString())) / MWEI_PER_ETH +
+      BigInt(chainConfig.relayerFeeMicroUsd.toString());
 
-    const fee = KLAM_PER_SOL * totalFeesMicroUsd / BigInt(oracleConfig.solPrice.toString());
+    const fee = (KLAM_PER_SOL * totalFeesMicroUsd) / BigInt(oracleConfig.solPrice.toString());
 
-    const feeInBaseUnits = BigInt(
-      Number(fee) * LAMPORTS_PER_SOL / 1_000_000
-    );
+    const feeInBaseUnits = BigInt((Number(fee) * LAMPORTS_PER_SOL) / 1_000_000);
 
     return {
       fee: feeInBaseUnits,
@@ -226,14 +262,12 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
       maxGasDropoff: config.maxGasDropoffMicroToken,
       baseFee: config.relayerFeeMicroUsd,
       paused: config.pausedOutboundTransfers,
-      peer: new UniversalAddress(new Uint8Array(config.canonicalPeer))
+      peer: new UniversalAddress(new Uint8Array(config.canonicalPeer)),
     };
   }
 
   private mintAddress(token: TokenAddress<Chain>): PublicKey {
-    return isNative(token)
-      ? new PublicKey(NATIVE_MINT)
-      : new SolanaAddress(token).unwrap();
+    return isNative(token) ? new PublicKey(NATIVE_MINT) : new SolanaAddress(token).unwrap();
   }
 
   getDefaultOptions() {

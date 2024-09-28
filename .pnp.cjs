@@ -2006,6 +2006,7 @@ const RAW_RUNTIME_STATE =
           ["@xlabs-xyz/arbitrary-token-transfers-definitions", "workspace:connect/definitions"],\
           ["@xlabs-xyz/evm-arbitrary-token-transfers", "workspace:sdk/evm"],\
           ["ethers", "npm:6.13.2"],\
+          ["prettier", "npm:3.3.3"],\
           ["tsup", "virtual:9bef669af1c3b4b384f01597b4618f767933970b69e6fd62d81f9bbc7b8c4900225bffb44e48b8c05eea593d7778ed11aa109309394c7caa9adf8cbab67e8377#npm:8.2.4"],\
           ["tsx", "npm:4.16.5"],\
           ["typescript", "patch:typescript@npm%3A5.5.4#optional!builtin<compat/typescript>::version=5.5.4&hash=379a07"]\
@@ -2027,6 +2028,7 @@ const RAW_RUNTIME_STATE =
           ["@xlabs-xyz/arbitrary-token-transfer-solana-route", "workspace:connect/platforms/solana"],\
           ["@xlabs-xyz/arbitrary-token-transfers-definitions", "workspace:connect/definitions"],\
           ["ethers", "npm:6.13.2"],\
+          ["prettier", "npm:3.3.3"],\
           ["tsup", "virtual:9bef669af1c3b4b384f01597b4618f767933970b69e6fd62d81f9bbc7b8c4900225bffb44e48b8c05eea593d7778ed11aa109309394c7caa9adf8cbab67e8377#npm:8.2.4"],\
           ["tsx", "npm:4.16.5"],\
           ["typescript", "patch:typescript@npm%3A5.5.4#optional!builtin<compat/typescript>::version=5.5.4&hash=379a07"]\
@@ -2048,6 +2050,7 @@ const RAW_RUNTIME_STATE =
           ["@wormhole-foundation/sdk-solana", "npm:0.10.9"],\
           ["@xlabs-xyz/arbitrary-token-transfers-definitions", "workspace:connect/definitions"],\
           ["@xlabs-xyz/solana-arbitrary-token-transfers", "workspace:sdk/solana"],\
+          ["prettier", "npm:3.3.3"],\
           ["tsup", "virtual:9bef669af1c3b4b384f01597b4618f767933970b69e6fd62d81f9bbc7b8c4900225bffb44e48b8c05eea593d7778ed11aa109309394c7caa9adf8cbab67e8377#npm:8.2.4"],\
           ["tsx", "npm:4.16.5"],\
           ["typescript", "patch:typescript@npm%3A5.5.4#optional!builtin<compat/typescript>::version=5.5.4&hash=379a07"]\
@@ -2066,6 +2069,7 @@ const RAW_RUNTIME_STATE =
           ["@wormhole-foundation/sdk-evm", "npm:0.10.9"],\
           ["common-arbitrary-token-transfer", "workspace:sdk/common"],\
           ["ethers", "npm:6.13.2"],\
+          ["prettier", "npm:3.3.3"],\
           ["tsup", "virtual:9bef669af1c3b4b384f01597b4618f767933970b69e6fd62d81f9bbc7b8c4900225bffb44e48b8c05eea593d7778ed11aa109309394c7caa9adf8cbab67e8377#npm:8.2.4"],\
           ["tsx", "npm:4.16.5"],\
           ["typescript", "patch:typescript@npm%3A5.5.4#optional!builtin<compat/typescript>::version=5.5.4&hash=379a07"]\

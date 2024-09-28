@@ -14,7 +14,8 @@
   },
   "scripts": {
     "build": "tsc -p ./tsconfig.json && tsup",
-    "prettier": "prettier --write .",
+    "lint:fix": "prettier \"src/**/*{.js,.ts}\" -w",
+    "lint": "prettier \"src/**/*{.js,.ts}\" --check",
     "clean": "rm -r ts-build build"
   },
   "files": [
@@ -40,6 +41,7 @@
   },
   "devDependencies": {
     "@types/node": "20.14.14",
+    "prettier": "^3.3.3",
     "tsup": "^8.2.4",
     "tsx": "4.16.5",
     "typescript": "5.5.4"
