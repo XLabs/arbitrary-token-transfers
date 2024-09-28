@@ -69,24 +69,27 @@ abstract contract AccessControl {
     for (uint i = 0; i < remainingCommands; ++i) {
       uint8 command;
       (command, offset) = commands.asUint8CdUnchecked(offset);
-      if (command == RELINQUISH_ADMINISTRATION_ID) {
+      if (command == REVOKE_ADMIN_ID) {
+        address admin;
+        (admin, offset) = commands.asAddressCdUnchecked(offset);
+        _updateAdmins(admin, false);
+      }
+      else if (command == RELINQUISH_ADMINISTRATION_ID) {
         _updateAdmins(msg.sender, false);
 
         //administration relinquishment must be the last command in the batch
         commands.checkLength(offset);
-      }
-      else if (command == UPDATE_ADMIN_ID) {
-        bool authorization;
-        address newAdmin;
-        (authorization, offset) = commands.asBoolCdUnchecked(offset);
-        (newAdmin, offset) = commands.asAddressCdUnchecked(offset);
-        _updateAdmins(newAdmin, authorization);
-      }
+      } 
       else {
         if (!isOwner)
           revert NotAuthorized();
 
-        if (command == PROPOSE_OWNERSHIP_TRANSFER_ID) {
+        if (command == ADD_ADMIN_ID) {
+          address newAdmin;
+          (newAdmin, offset) = commands.asAddressCdUnchecked(offset);
+          _updateAdmins(newAdmin, true);
+        }
+        else if (command == PROPOSE_OWNERSHIP_TRANSFER_ID) {
           address newOwner;
           (newOwner, offset) = commands.asAddressCdUnchecked(offset);
 
