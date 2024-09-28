@@ -19,12 +19,13 @@ uint8 constant IMPLEMENTATION_ID = 0xe1;
 // Execute commands
 
 //admin:
-uint8 constant UPDATE_ADMIN_ID = 0x00;
+uint8 constant REVOKE_ADMIN_ID = 0x00;
 uint8 constant RELINQUISH_ADMINISTRATION_ID = 0x01;
 
 //owner only:
 uint8 constant PROPOSE_OWNERSHIP_TRANSFER_ID = 0x10;
 uint8 constant RELINQUISH_OWNERSHIP_ID = 0x11;
+uint8 constant ADD_ADMIN_ID = 0x12;
 
 // Query commands
 

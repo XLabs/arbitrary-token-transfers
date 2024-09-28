@@ -227,7 +227,6 @@ contract ConfigTest is TbrTestBase {
 
   function testUpdateAdmin(address newAdmin) public {
     uint8 commandCount = 1;
-    bool shouldBeAdmin = true;
 
     vm.expectRevert(NotAuthorized.selector);
     invokeTbr(
@@ -236,9 +235,21 @@ contract ConfigTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         ACCESS_CONTROL_ID,
         commandCount, 
-        UPDATE_ADMIN_ID,
-        newAdmin, 
-        shouldBeAdmin
+        ADD_ADMIN_ID,
+        newAdmin
+      )
+    );
+
+    vm.expectRevert(NotAuthorized.selector);
+    vm.prank(admin);
+    invokeTbr(
+      abi.encodePacked(
+        tbr.exec768.selector, 
+        DISPATCHER_PROTOCOL_VERSION0, 
+        ACCESS_CONTROL_ID,
+        commandCount, 
+        ADD_ADMIN_ID,
+        newAdmin
       )
     );
 
@@ -249,8 +260,7 @@ contract ConfigTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         ACCESS_CONTROL_ID,
         commandCount, 
-        UPDATE_ADMIN_ID, 
-        shouldBeAdmin,
+        ADD_ADMIN_ID,
         newAdmin
       )
     );
@@ -276,6 +286,38 @@ contract ConfigTest is TbrTestBase {
     assertEq(isAdmin, true);
     assertEq(adminsCount, 2);
     assertEq(newAdmin_, newAdmin);
+
+    commandCount = 1;
+    vm.prank(admin);
+    invokeTbr(
+      abi.encodePacked(
+        tbr.exec768.selector, 
+        DISPATCHER_PROTOCOL_VERSION0, 
+        ACCESS_CONTROL_ID,
+        commandCount, 
+        REVOKE_ADMIN_ID,
+        newAdmin
+      )
+    );
+
+    commandCount = 2;
+    res = invokeTbr(
+      abi.encodePacked(
+        tbr.get1959.selector, 
+        DISPATCHER_PROTOCOL_VERSION0, 
+        ACCESS_CONTROL_QUERIES_ID,
+        commandCount, 
+        IS_ADMIN_ID,
+        newAdmin,
+        ADMINS_ID
+      )
+    );
+    
+    (isAdmin, ) = res.asBoolUnchecked(0);
+    (adminsCount, ) = res.asUint256Unchecked(1);
+
+    assertEq(isAdmin, false);
+    assertEq(adminsCount, 1);
   } 
 
   function testRelinquishOwnership() public {
@@ -304,7 +346,7 @@ contract ConfigTest is TbrTestBase {
         ACCESS_CONTROL_ID,
         commandCount,
         RELINQUISH_OWNERSHIP_ID,
-        UPDATE_ADMIN_ID
+        ADD_ADMIN_ID
       )
     );
 
