@@ -66,10 +66,17 @@ contract TbrTestBase is Test {
   function _setUp1() internal virtual { }
 
   function setUp() public {
+    uint fakeChainId = 0;
     vm.mockCall(
       oracle, 
       abi.encodeWithSelector(priceOracle.get1959.selector), 
-      abi.encode(EVM_CHAIN_ID)
+      abi.encode(abi.encodePacked(uint16(fakeChainId)))
+    );
+
+    vm.mockCall(
+      address(wormholeCore), 
+      abi.encodeWithSelector(wormholeCore.chainId.selector), 
+      abi.encode(fakeChainId)
     );
 
     tbrImplementation = address(new Tbr(

@@ -10,9 +10,15 @@ import { TbrExposer } from "./utils/TbrExposer.sol";
 contract OracleIntegrationTest is TbrTestBase {
   using BytesParsing for bytes;
   
-  uint32  RELAY_FEE_AMOUNT       = 1000;
+  uint32  RELAY_FEE_AMOUNT = 1000;
 
   function _setUp1() internal override {
+    vm.mockCall(
+      address(wormholeCore), 
+      abi.encodeWithSelector(wormholeCore.chainId.selector), 
+      abi.encode(EVM_CHAIN_ID)
+    );
+
     tbrExposer = new TbrExposer(
       permit2,
       tokenBridge,
