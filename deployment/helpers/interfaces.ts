@@ -1,5 +1,5 @@
 import { Commitment } from "@solana/web3.js";
-import { ChainId } from "@wormhole-foundation/sdk-base";
+import { Chain, ChainId } from "@wormhole-foundation/sdk-base";
 import { ethers } from "ethers";
 import { SolanaSigner } from "./solana";
 
@@ -84,3 +84,21 @@ export interface VerificationApiKeys extends ChainConfig {
   };
   sourcify?: string;
 } 
+
+export type TestTransfer = {
+  /**
+   * Amount to transfer in atomic units
+   */
+  transferredAmount: string;
+  gasDropoffAmount: string;
+  unwrapIntent: boolean;
+  /**
+   * Optional token address for the transfer, 
+   * if not present the script will call transfer gas token
+   */
+  tokenAddress?: string;
+  tokenChain: Chain;
+  fromChain: Chain;
+  toChain: Chain;
+  skip: boolean;
+};
