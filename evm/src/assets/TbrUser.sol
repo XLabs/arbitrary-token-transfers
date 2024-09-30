@@ -515,6 +515,9 @@ abstract contract TbrUser is TbrBase {
 
     (uint relayFee, uint wormholeFee) = _quoteRelay(chainId, gasDropoff, baseFee);
     uint totalFee = (relayFee + wormholeFee) / _TOTAL_FEE_DIVISOR;
+    // We need to round up to ensure that the quoted relay fee is able to cover the remainder.
+    if ((relayFee + wormholeFee) % _TOTAL_FEE_DIVISOR > 0)
+      ++totalFee;
     if (totalFee > type(uint64).max)
       revert FeeTooLarge(totalFee, commandIndex);
 
