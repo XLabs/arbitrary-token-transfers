@@ -51,9 +51,6 @@ contract UserTest is TbrTestBase {
       abi.encodePacked(UPDATE_MAX_GAS_DROPOFF_ID, SOLANA_CHAIN_ID, MAX_GAS_DROPOFF_AMOUNT)
     );
     executeConfigCommand(
-      abi.encodePacked(UPDATE_TX_SIZE_SENSITIVE_ID, SOLANA_CHAIN_ID, bool(false))
-    );
-    executeConfigCommand(
       abi.encodePacked(UPDATE_BASE_FEE_ID, SOLANA_CHAIN_ID, RELAY_FEE_AMOUNT)
     );
 
@@ -63,9 +60,6 @@ contract UserTest is TbrTestBase {
     );
     executeConfigCommand(
       abi.encodePacked(UPDATE_MAX_GAS_DROPOFF_ID, EVM_CHAIN_ID, MAX_GAS_DROPOFF_AMOUNT)
-    );
-    executeConfigCommand(
-      abi.encodePacked(UPDATE_TX_SIZE_SENSITIVE_ID, EVM_CHAIN_ID, bool(true))
     );
     executeConfigCommand(
       abi.encodePacked(UPDATE_BASE_FEE_ID, EVM_CHAIN_ID, RELAY_FEE_AMOUNT)
@@ -1164,20 +1158,18 @@ contract UserTest is TbrTestBase {
     uint offset;
     bytes32 peer;
     bool chainIsPaused;
-    bool txSizeSensitive;
     uint32 maxGasDropoff;
     uint32 baseFee;
     (peer, offset) = response.asBytes32Unchecked(offset);
     (baseFee, offset) = response.asUint32Unchecked(offset);
     (maxGasDropoff, offset) = response.asUint32Unchecked(offset);
     (chainIsPaused, offset) = response.asBoolUnchecked(offset);
-    (txSizeSensitive, offset) = response.asBoolUnchecked(offset);
 
     assertEq(peer, SOLANA_CANONICAL_PEER);
     assertEq(baseFee, RELAY_FEE_AMOUNT);
     assertEq(maxGasDropoff, MAX_GAS_DROPOFF_AMOUNT);
     assertEq(chainIsPaused, false);
-    assertEq(txSizeSensitive, false);
+    assertEq(response.length, offset);
 
     response = invokeTbr(
       abi.encodePacked(
@@ -1193,12 +1185,11 @@ contract UserTest is TbrTestBase {
     (baseFee, offset) = response.asUint32Unchecked(offset);
     (maxGasDropoff, offset) = response.asUint32Unchecked(offset);
     (chainIsPaused, offset) = response.asBoolUnchecked(offset);
-    (txSizeSensitive, offset) = response.asBoolUnchecked(offset);
 
     assertEq(peer, EVM_CANONICAL_PEER);
     assertEq(baseFee, RELAY_FEE_AMOUNT);
     assertEq(maxGasDropoff, MAX_GAS_DROPOFF_AMOUNT);
     assertEq(chainIsPaused, false);
-    assertEq(txSizeSensitive, true);
+    assertEq(response.length, offset);
   }
 }

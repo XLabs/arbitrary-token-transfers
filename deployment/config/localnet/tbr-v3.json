@@ -4,7 +4,6 @@
     "feeRecipient": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
     "initGasErc20TokenizationIsExplicit": false,
     "relayFee": 1,
-    "maxGasDropoff": 1,
-    "txSizeSensitive": false
+    "maxGasDropoff": 1
   }
 ]

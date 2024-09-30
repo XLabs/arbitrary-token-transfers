@@ -94,13 +94,6 @@ abstract contract TbrConfig is TbrBase, ProxyBase {
         (paused,      offset) = commands.asBoolCdUnchecked(offset);
         _setPause(targetChain, paused);
       }
-      else if (command == UPDATE_TX_SIZE_SENSITIVE_ID) {
-        uint16 targetChain;
-        bool txSizeSensitive;
-        (targetChain,     offset) = commands.asUint16CdUnchecked(offset);
-        (txSizeSensitive, offset) = commands.asBoolCdUnchecked(offset);
-        _setChainTxSizeSensitive(targetChain, txSizeSensitive);
-      }
       else if (command == UPDATE_FEE_RECIPIENT_ID) {
         address newFeeRecipient;
         (newFeeRecipient, offset) = commands.asAddressCdUnchecked(offset);
@@ -155,11 +148,6 @@ abstract contract TbrConfig is TbrBase, ProxyBase {
         (peerChainId, offset) = queries.asUint16CdUnchecked(offset);
         (peer, offset) = queries.asBytes32CdUnchecked(offset);
         ret = abi.encodePacked(ret, _isPeer(peerChainId, peer));
-      }
-      else if (query == IS_TX_SIZE_SENSITIVE_ID) {
-        uint16 chainId;
-        (chainId, offset) = queries.asUint16CdUnchecked(offset);
-        ret = abi.encodePacked(ret, _isChainTxSizeSensitive(chainId));
       }
       else if (query == CANONICAL_PEER_ID) {
         uint16 peerChainId;

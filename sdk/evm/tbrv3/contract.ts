@@ -464,12 +464,6 @@ export class Tbrv3 {
     return decodeQueryResponseLayout(layoutItems.boolItem, ethers.getBytes(result));
   }
 
-  async isTxSizeSensitive(chain: SupportedChains) {
-    const result = await this.governanceQuery([{ query: "IsTxSizeSensitive", chain }]);
-
-    return decodeQueryResponseLayout(layoutItems.boolItem, ethers.getBytes(result));
-  }
-
   async canonicalPeer(chain: SupportedChains): Promise<UniversalAddress> {
     const result = await this.governanceQuery([{ query: "CanonicalPeer", chain }]);
 
