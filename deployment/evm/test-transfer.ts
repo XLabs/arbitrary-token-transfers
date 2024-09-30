@@ -211,7 +211,7 @@ const uniqueTestTransfers: TestTransfer[] = [
     tokenChain: "OptimismSepolia",
     fromChain: "OptimismSepolia",
     toChain: "Solana",
-    skip: true,
+    skip: false,
   },
   {
     // case A with gas dropoff
@@ -226,17 +226,17 @@ const uniqueTestTransfers: TestTransfer[] = [
   },
   {
     // case B gas token with no gas dropoff
-    transferredAmount: '1000000000000',
+    transferredAmount: '1',
     gasDropoffAmount: '0',
     unwrapIntent: false,
-    tokenChain: "Sepolia",
-    fromChain: "Sepolia",
+    tokenChain: "Celo",
+    fromChain: "Celo",
     toChain: "Solana",
-    skip: false,
+    skip: true,
   },
   {
     // case B gas token with gas dropoff
-    transferredAmount: '1000000000000',
+    transferredAmount: '1',
     gasDropoffAmount: '0.00001',
     unwrapIntent: false,
     tokenChain: "Celo",
