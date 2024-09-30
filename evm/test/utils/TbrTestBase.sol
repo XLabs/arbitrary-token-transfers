@@ -29,6 +29,7 @@ contract TbrTestBase is Test {
 
   uint16 SOLANA_CHAIN_ID = 1;
   uint16 EVM_CHAIN_ID    = 3;
+  uint16 EVM_L2_CHAIN_ID = 23;
 
   address      immutable owner;
   address      immutable admin;
@@ -138,9 +139,14 @@ contract TbrTestBase is Test {
   function setUpOracle() internal {
     address assistant = makeAddr("assistant");
     EvmFeeParams evmFeeParams;
-    evmFeeParams = evmFeeParams.pricePerByte(PricePerByte.wrap(1e6));
+    evmFeeParams = evmFeeParams.pricePerByte(PricePerByte.wrap(0));
     evmFeeParams = evmFeeParams.gasPrice(GasPrice.wrap(1e6));
     evmFeeParams = evmFeeParams.gasTokenPrice(GasTokenPrice.wrap(1e12));
+
+    EvmFeeParams evmL2FeeParams;
+    evmL2FeeParams = evmL2FeeParams.pricePerByte(PricePerByte.wrap(1e6));
+    evmL2FeeParams = evmL2FeeParams.gasPrice(GasPrice.wrap(1e6));
+    evmL2FeeParams = evmL2FeeParams.gasTokenPrice(GasTokenPrice.wrap(1e12));
 
     SolanaFeeParams solanaFeeParams;
     solanaFeeParams = solanaFeeParams.accountOverhead(AccountOverhead.wrap(1e9)); 
@@ -155,6 +161,8 @@ contract TbrTestBase is Test {
         assistant,
         EVM_CHAIN_ID,
         evmFeeParams,
+        EVM_L2_CHAIN_ID,
+        evmL2FeeParams,
         SOLANA_CHAIN_ID,
         solanaFeeParams
       )

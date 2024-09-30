@@ -184,12 +184,6 @@ export interface BaseRelayingParams {
    */
   paused: boolean;
   /**
-   * If true, txs sent to this chain require factoring in the size when quoting relay costs.
-   * Usually, this is because they are later committed in the Ethereum chain.
-   * This is mostly informational as it only matters for quoting prices for relays.
-   */
-  txSizeSensitive: boolean;
-  /**
    * This is denominated in μETH or equivalent for EVM native tokens.
    * Equivalently, Twei, 10 ** 12 wei.
    */
@@ -213,7 +207,6 @@ export const baseRelayingConfigReturnLayout = [
   { name: "baseFee", ...baseFeeItem},
   { name: "maxGasDropoff", ...gasDropoffItem },
   { name: "paused", ...layoutItems.boolItem },
-  { name: "txSizeSensitive", ...layoutItems.boolItem },
 ] as const satisfies Layout;
 
 const governanceCommandLayout = 
@@ -229,7 +222,6 @@ const governanceCommandLayout =
       [[ 0x01, "UpdateBaseFee"           ], [peerChainItem, { name: "value", ...baseFeeItem}]],
       [[ 0x02, "UpdateMaxGasDropoff"     ], [peerChainItem, { name: "value", ...gasDropoffItem }]],
       [[ 0x03, "UpdateTransferPause"     ], [peerChainItem, { name: "value", ...layoutItems.boolItem }]],
-      [[ 0x04, "UpdateTxSizeSensitive"   ], [peerChainItem, { name: "value", ...layoutItems.boolItem }]],
 
       [[ 0x0b, "UpdateFeeRecipient"      ], [{ name: "address",...evmAddressItem }]],
 
@@ -253,7 +245,6 @@ export const governanceQueryLayout = {
     [[0x81, "MaxGasDropoff"], [peerChainItem]],
     [[0x82, "IsChainPaused"], [peerChainItem]],
     [[0x83, "IsPeer"], [peerChainItem, { name: "address", ...layoutItems.universalAddressItem }]],
-    [[0x84, "IsTxSizeSensitive"], [peerChainItem]],
     [[0x85, "CanonicalPeer"], [peerChainItem]],
     [[0x86, "IsChainSupported"], [peerChainItem]],
     [[0x87, "Owner"], []],

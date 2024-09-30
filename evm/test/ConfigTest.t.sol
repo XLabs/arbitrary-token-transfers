@@ -759,68 +759,6 @@ contract ConfigTest is TbrTestBase {
     assertEq(isSupported, true);
   }
 
-  function testSetChainTxSensitive() public {
-    uint16 chainId = 1;
-    bool txSensitive = true;
-    uint8 commandCount = 1;
-
-    vm.expectRevert(NotAuthorized.selector);
-    invokeTbr(
-      abi.encodePacked(
-        tbr.exec768.selector, 
-        DISPATCHER_PROTOCOL_VERSION0, 
-        CONFIG_ID,
-        commandCount, 
-        UPDATE_TX_SIZE_SENSITIVE_ID,
-        chainId,
-        txSensitive
-      )
-    );
-
-    vm.prank(admin);
-    vm.expectRevert(
-      abi.encodeWithSelector(ChainIsNotRegistered.selector, chainId)
-    );
-    invokeTbr(
-      abi.encodePacked(
-        tbr.exec768.selector, 
-        DISPATCHER_PROTOCOL_VERSION0, 
-        CONFIG_ID,
-        commandCount, 
-        UPDATE_TX_SIZE_SENSITIVE_ID,
-        chainId,
-        txSensitive
-      )
-    );
-
-    addCanonicalPeer(chainId);
-    vm.prank(admin);
-    invokeTbr(
-      abi.encodePacked(
-        tbr.exec768.selector, 
-        DISPATCHER_PROTOCOL_VERSION0, 
-        CONFIG_ID,
-        commandCount, 
-        UPDATE_TX_SIZE_SENSITIVE_ID,
-        chainId,
-        txSensitive
-      )
-    );
-
-    (bool txSensitive_, ) = invokeTbr(
-      abi.encodePacked(
-        tbr.get1959.selector, 
-        DISPATCHER_PROTOCOL_VERSION0, 
-        CONFIG_QUERIES_ID,
-        commandCount, 
-        IS_TX_SIZE_SENSITIVE_ID,
-        chainId
-      )
-    ).asBoolUnchecked(0);
-
-    assertEq(txSensitive_, txSensitive);
-  }
-
   function testInvalidCommand() public {
     uint8 commandCount = 1;
 
