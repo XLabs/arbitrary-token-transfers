@@ -31,7 +31,6 @@ contract OracleIntegrationTest is TbrTestBase {
   function testQuoteRelay_evmTransactionQuote() public {
     uint32 gasDropoff = 1000;
     uint16 chainId = EVM_CHAIN_ID;
-    bool txCommitEthereum = false;
     uint256 expectedQuote = 401000001000000000;
 
     uint fakeWormholeFee = 100;
@@ -43,14 +42,14 @@ contract OracleIntegrationTest is TbrTestBase {
       abi.encode(uint256(fakeWormholeFee))
     );
 
-    (uint256 quote, ) = tbrExposer.exposedQuoteRelay(chainId, gasDropoff, RELAY_FEE_AMOUNT, txCommitEthereum);
+    (uint256 quote, uint256 wormholeFee) = tbrExposer.exposedQuoteRelay(chainId, gasDropoff, RELAY_FEE_AMOUNT);
     assertEq(quote, expectedQuote);
+    assertEq(fakeWormholeFee, wormholeFee);
   } 
 
   function testQuoteRelay_evmTransactionWithTxSizeQuote() public {
     uint32 gasDropoff = 1000;
-    uint16 chainId = EVM_CHAIN_ID;
-    bool txCommitEthereum = true;
+    uint16 chainId = EVM_L2_CHAIN_ID;
     uint256 expectedQuote = 402000001000000000;
 
     uint fakeWormholeFee = 100;
@@ -62,14 +61,14 @@ contract OracleIntegrationTest is TbrTestBase {
       abi.encode(uint256(fakeWormholeFee))
     );
 
-    (uint256 quote, ) = tbrExposer.exposedQuoteRelay(chainId, gasDropoff, RELAY_FEE_AMOUNT, txCommitEthereum);
+    (uint256 quote, uint256 wormholeFee) = tbrExposer.exposedQuoteRelay(chainId, gasDropoff, RELAY_FEE_AMOUNT);
     assertEq(quote, expectedQuote);
+    assertEq(fakeWormholeFee, wormholeFee);
   } 
 
   function testQuoteRelay_solanaTransactionQuote() public {
     uint32 gasDropoff = 1000;
     uint16 chainId = SOLANA_CHAIN_ID;
-    bool txCommitEthereum = false;
     uint256 expectedQuote = 461001000001000000000;
 
     uint fakeWormholeFee = 100;
@@ -81,7 +80,8 @@ contract OracleIntegrationTest is TbrTestBase {
       abi.encode(uint256(fakeWormholeFee))
     );
 
-    (uint256 quote, ) = tbrExposer.exposedQuoteRelay(chainId, gasDropoff, RELAY_FEE_AMOUNT, txCommitEthereum);
+    (uint256 quote, uint256 wormholeFee) = tbrExposer.exposedQuoteRelay(chainId, gasDropoff, RELAY_FEE_AMOUNT);
     assertEq(quote, expectedQuote);
+    assertEq(fakeWormholeFee, wormholeFee);
   } 
 }

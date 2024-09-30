@@ -116,7 +116,6 @@ contract BaseTest is TbrTestBase {
     bytes32 peer,
     uint32 expectedBaseFee,
     uint32 expectedMaxGasDropoff,
-    bool txSizeSensitive,
     bool paused
   ) public {
     vm.assume(peer != bytes32(0));
@@ -126,20 +125,17 @@ contract BaseTest is TbrTestBase {
     tbrExposer.exposedSetBaseFee(chainId, expectedBaseFee);
     tbrExposer.exposedSetMaxGasDropoff(chainId, expectedMaxGasDropoff);
     tbrExposer.exposedSetPause(chainId, paused);
-    tbrExposer.exposedSetChainTxSizeSensitive(chainId, txSizeSensitive);
 
     (
       bytes32 canonicalPeer,
       uint32 baseFee,
       uint32 maxGasDropoff,
-      bool isPaused,
-      bool isTxSizeSensitive
+      bool isPaused
     ) = tbrExposer.exposedGetTargetChainData(chainId);
     assertEq(canonicalPeer, peer);
     assertEq(baseFee, expectedBaseFee);
     assertEq(maxGasDropoff, expectedMaxGasDropoff);
     assertEq(isPaused, paused);
-    assertEq(isTxSizeSensitive, txSizeSensitive);
   }
 
   function testTransferEthToAccount(uint256 amount) public {
@@ -172,20 +168,6 @@ contract BaseTest is TbrTestBase {
     tbrExposer.exposedSetBaseFee(chainId, fee);
     uint32 relayFee = tbrExposer.exposedGetBaseFee(chainId);
     assertEq(relayFee, fee);
-  }
-
-  function testSetIsChainTxSizeSensitive(bool txSizeSensitive) public {
-    uint16 chainId = EVM_CHAIN_ID;
-    vm.expectRevert(
-      abi.encodeWithSelector(ChainIsNotRegistered.selector, chainId)
-    );
-    tbrExposer.exposedSetChainTxSizeSensitive(chainId, txSizeSensitive);
-
-    tbrExposer.exposedSetCanonicalPeer(chainId, makeBytes32("peer"));
-
-    tbrExposer.exposedSetChainTxSizeSensitive(chainId, txSizeSensitive);
-    bool isTxSizeSensitive = tbrExposer.exposedIsChainTxSizeSensitive(chainId);
-    assertEq(isTxSizeSensitive, txSizeSensitive);
   }
 
   function testIsChainSupported(bytes32 peer) public {

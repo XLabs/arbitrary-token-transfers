@@ -298,7 +298,7 @@ abstract contract TbrUser is TbrBase {
     uint32 gasDropoff,
     uint commandIndex
   ) internal view returns (bytes32, uint256, uint256, uint256) {
-    (bytes32 peer, uint32 baseFee, uint32 maxGasDropoff, bool paused, bool txSizeSensitive) =
+    (bytes32 peer, uint32 baseFee, uint32 maxGasDropoff, bool paused) =
       _getTargetChainData(targetChain);
 
     if (peer == bytes32(0))
@@ -320,7 +320,7 @@ abstract contract TbrUser is TbrBase {
       revert InvalidTokenAmount();
 
     (uint256 fee, uint256 wormholeFee) =
-      _quoteRelay(targetChain, gasDropoff, baseFee, txSizeSensitive);
+      _quoteRelay(targetChain, gasDropoff, baseFee);
 
     return (peer, cleanedTokenAmount, fee, wormholeFee);
   }
@@ -346,8 +346,7 @@ abstract contract TbrUser is TbrBase {
   function _quoteRelay(
     uint16 targetChain,
     uint32 gasDropoff,
-    uint32 baseFee,
-    bool txSizeSensitive
+    uint32 baseFee
   ) view internal returns (uint256, uint256) {
     uint wormholeFee = wormholeCore.messageFee();
     if (targetChain == CHAIN_ID_SOLANA)
@@ -361,19 +360,16 @@ abstract contract TbrUser is TbrBase {
         wormholeFee
       );
 
-    if (txSizeSensitive)
-      return (
-          _evmTransactionWithTxSizeQuote(
-            targetChain,
-            GasDropoff.wrap(gasDropoff),
-            EVM_RELAY_GAS_COST,
-            BaseFee.wrap(baseFee),
-            EVM_RELAY_TX_SIZE
-          ),
-          wormholeFee
-      );
-
-    return (_evmTransactionQuote(targetChain, GasDropoff.wrap(gasDropoff), EVM_RELAY_GAS_COST, BaseFee.wrap(baseFee)), wormholeFee);
+    return (
+        _evmTransactionQuote(
+          targetChain,
+          GasDropoff.wrap(gasDropoff),
+          EVM_RELAY_GAS_COST,
+          BaseFee.wrap(baseFee),
+          EVM_RELAY_TX_SIZE
+        ),
+        wormholeFee
+    );
   }
 
   function _bridgeOut(
@@ -511,13 +507,13 @@ abstract contract TbrUser is TbrBase {
     (chainId,    offset) = data.asUint16CdUnchecked(offset);
     (gasDropoff, offset) = data.asUint32CdUnchecked(offset);
 
-    (, uint32 baseFee, uint32 maxGasDropoff, bool paused, bool txSizeSensitive) =
+    (, uint32 baseFee, uint32 maxGasDropoff, bool paused) =
       _getTargetChainData(chainId);
 
     if (gasDropoff > maxGasDropoff)
       revert GasDropoffRequestedExceedsMaximum(maxGasDropoff, commandIndex);
 
-    (uint relayFee, uint wormholeFee) = _quoteRelay(chainId, gasDropoff, baseFee, txSizeSensitive);
+    (uint relayFee, uint wormholeFee) = _quoteRelay(chainId, gasDropoff, baseFee);
     uint totalFee = (relayFee + wormholeFee) / _TOTAL_FEE_DIVISOR;
     if (totalFee > type(uint64).max)
       revert FeeTooLarge(totalFee, commandIndex);
@@ -532,10 +528,10 @@ abstract contract TbrUser is TbrBase {
   ) internal view returns(bytes memory, uint256) {
     uint16 chainId;
     (chainId, offset) = data.asUint16Unchecked(offset);
-    (bytes32 peer, uint32 baseFee, uint32 maxGasDropoff, bool paused, bool txSizeSensitive) =
+    (bytes32 peer, uint32 baseFee, uint32 maxGasDropoff, bool paused) =
       _getTargetChainData(chainId);
 
-    return (abi.encodePacked(peer, baseFee, maxGasDropoff, paused, txSizeSensitive), offset);
+    return (abi.encodePacked(peer, baseFee, maxGasDropoff, paused), offset);
   }
 
   receive() external payable {

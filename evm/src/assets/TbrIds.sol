@@ -30,7 +30,6 @@ uint8 constant ADD_PEER_ID = 0;
 uint8 constant UPDATE_BASE_FEE_ID = 1;
 uint8 constant UPDATE_MAX_GAS_DROPOFF_ID = 2;
 uint8 constant PAUSE_CHAIN_ID = 3;
-uint8 constant UPDATE_TX_SIZE_SENSITIVE_ID = 4;
 // gap for future chain parameters
 
 uint8 constant UPDATE_FEE_RECIPIENT_ID = 10;
@@ -43,7 +42,6 @@ uint8 constant BASE_FEE_ID = 0x80;
 uint8 constant MAX_GAS_DROPOFF_ID = 0x81;
 uint8 constant IS_CHAIN_PAUSED_ID = 0x82;
 uint8 constant IS_PEER_ID = 0x83;
-uint8 constant IS_TX_SIZE_SENSITIVE_ID = 0x84;
 uint8 constant CANONICAL_PEER_ID = 0x85;
 uint8 constant IS_CHAIN_SUPPORTED_ID = 0x86;
 uint8 constant FEE_RECIPIENT_ID = 0x87;
