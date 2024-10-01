@@ -3,7 +3,6 @@
 pragma solidity ^0.8.25;
 
 import { BytesParsing } from "wormhole-sdk/libraries/BytesParsing.sol";
-import { AccessControl } from "./sharedComponents/AccessControl.sol";
 import { SweepTokens } from "./sharedComponents/SweepTokens.sol";
 import { RawDispatcher } from "wormhole-sdk/RawDispatcher.sol";
 import { Upgrade } from "./sharedComponents/Upgrade.sol";
@@ -18,7 +17,7 @@ import "./TbrIds.sol";
  */
 error UnsupportedVersion(uint8 version);
 
-abstract contract TbrDispatcher is RawDispatcher, TbrConfig, TbrUser, AccessControl, SweepTokens, Upgrade {
+abstract contract TbrDispatcher is RawDispatcher, TbrConfig, TbrUser, SweepTokens, Upgrade {
   using BytesParsing for bytes;
 
   function _exec(bytes calldata data) internal override returns (bytes memory) { unchecked {

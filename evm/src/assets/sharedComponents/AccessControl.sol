@@ -79,13 +79,7 @@ abstract contract AccessControl {
     uint offset
   ) internal returns (uint) {
     AccessControlState storage state = accessControlState();
-    bool isOwner;
-    if (msg.sender == state.owner) //check highest privilege level first
-      isOwner = true;
-    else if (state.isAdmin[msg.sender])
-      isOwner = false;
-    else
-      revert NotAuthorized();
+    (bool isOwner, ) = senderAuthorization();
 
     uint remainingCommands;
     (remainingCommands, offset) = commands.asUint8CdUnchecked(offset);
@@ -164,10 +158,6 @@ abstract contract AccessControl {
     return (ret, offset);
   }
 
-  function isAdmin(address admin) internal view returns (bool) {
-    return accessControlState().isAdmin[admin];
-  }
-
   function _acquireOwnership() internal {
     AccessControlState storage state = accessControlState();
     if (state.pendingOwner != msg.sender)
@@ -175,6 +165,16 @@ abstract contract AccessControl {
 
     state.pendingOwner = address(0);
     _updateOwner(msg.sender);
+  }
+
+  function senderAuthorization() internal view returns (bool isOwner, bool isAdmin) {
+    AccessControlState storage state = accessControlState();
+    if (msg.sender == state.owner) //check highest privilege level first
+      return (true, false);
+    else if (state.isAdmin[msg.sender])
+      return (false, true);
+    else
+      revert NotAuthorized();
   }
 
   // ---- private ----

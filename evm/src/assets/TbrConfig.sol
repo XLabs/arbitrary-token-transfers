@@ -3,9 +3,10 @@
 pragma solidity ^0.8.25;
 
 import { 
+  AccessControl,
   AccessControlState, 
   accessControlState, 
-  NotAuthorized 
+  NotAuthorized
 } from "./sharedComponents/AccessControl.sol";
 import { BytesParsing } from "wormhole-sdk/libraries/BytesParsing.sol";
 import { ProxyBase } from "wormhole-sdk/proxy/ProxyBase.sol";
@@ -30,7 +31,7 @@ error InvalidConfigQuery(uint8 query);
 
 event FeeRecipienUpdated(address oldAddress, address newAddress, uint256 timestamp);
 
-abstract contract TbrConfig is TbrBase, ProxyBase {
+abstract contract TbrConfig is TbrBase, AccessControl {
   using BytesParsing for bytes;
 
   // ---- construction ----
@@ -47,14 +48,7 @@ abstract contract TbrConfig is TbrBase, ProxyBase {
   // ---- externals ----
 
   function _batchConfigCommands(bytes calldata commands, uint offset) internal returns (uint) {
-    AccessControlState storage state = accessControlState();
-    bool isOwner;
-    if (msg.sender == state.owner) //check highest privilege level first
-      isOwner = true;
-    else if (state.isAdmin[msg.sender])
-      isOwner = false;
-    else
-      revert NotAuthorized();
+    (bool isOwner, ) = senderAuthorization();
 
     uint commandCount;
     (commandCount, offset) = commands.asUint8CdUnchecked(offset);
