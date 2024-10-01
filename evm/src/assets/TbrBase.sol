@@ -77,10 +77,7 @@ error ChainIsNotRegistered(uint16 chainId);
  * Payment to the target failed.
  */
 error PaymentFailure(address target);
-/**
- * Mistmatch between the chain id of the oracle and the wormhole chain id.
- */
-error ChainIdMismatch(uint16 oracleChainId, uint16 wormholeChainId);
+
 
 abstract contract TbrBase is PriceOracleIntegration {
   using BytesParsing for bytes;
@@ -107,13 +104,7 @@ abstract contract TbrBase is PriceOracleIntegration {
     bool initGasErc20TokenizationIsExplicit
   ) PriceOracleIntegration(oracle) {
     wormholeCore = initTokenBridge.wormhole();
-
-    uint16 oracleChainId = _oracleChainId();
-    uint16 wormholeChainId = wormholeCore.chainId();
-    if (oracleChainId != wormholeChainId)
-      revert ChainIdMismatch(oracleChainId, wormholeChainId);
-
-    whChainId = wormholeChainId;
+    whChainId = _oracleChainId();
     permit2 = initPermit2;
     tokenBridge = initTokenBridge;
     gasToken = initGasToken;
