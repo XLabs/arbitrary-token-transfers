@@ -6,8 +6,7 @@ import {
   ChainIsNotRegistered, 
   InvalidChainId,
   PeerIsZeroAddress,
-  ChainNotSupportedByTokenBridge,
-  ChainIdMismatch
+  ChainNotSupportedByTokenBridge
 } from "tbr/assets/TbrBase.sol";
 import { TbrTestBase } from "./utils/TbrTestBase.sol";
 import { TbrExposer } from"./utils/TbrExposer.sol";
@@ -16,31 +15,6 @@ import { makeBytes32 } from "./utils/utils.sol";
 import { Tbr } from "tbr/Tbr.sol";
 
 contract BaseTest is TbrTestBase {
-
-  function testDeploymentChainIdMismatch() public {
-    uint16 FAKE_EVM_CHAIN_ID = EVM_CHAIN_ID + 1;
-    vm.mockCall(
-      address(wormholeCore), 
-      abi.encodeWithSelector(wormholeCore.chainId.selector), 
-      abi.encode(FAKE_EVM_CHAIN_ID)
-    );
-    vm.mockCall(
-      address(oracle), 
-      abi.encodeWithSelector(priceOracle.get1959.selector), 
-      abi.encode(abi.encodePacked(uint16(EVM_CHAIN_ID)))
-    );
-
-    vm.expectRevert(
-      abi.encodeWithSelector(ChainIdMismatch.selector, EVM_CHAIN_ID, FAKE_EVM_CHAIN_ID)
-    );
-    new Tbr(
-      permit2,
-      tokenBridge,
-      oracle,
-      gasToken,
-      gasErc20TokenizationIsExplicit
-    );
-  }
 
   function testAddPeer(bytes32 peer, bytes32 anotherPeer) public {
     vm.assume(peer != bytes32(0));

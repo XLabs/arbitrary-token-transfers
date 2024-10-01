@@ -1184,7 +1184,7 @@ contract UserTest is TbrTestBase {
     );
   }
 
-  function testBaseRelayingConfig() public {
+  function testBaseRelayingConfig() public view {
     bytes memory response = invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector,
