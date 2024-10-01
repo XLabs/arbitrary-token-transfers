@@ -69,14 +69,14 @@ contract TbrTestBase is Test {
   function setUp() public {
     uint fakeChainId = 0;
     vm.mockCall(
-      oracle, 
-      abi.encodeWithSelector(priceOracle.get1959.selector), 
+      oracle,
+      abi.encodeWithSelector(priceOracle.get1959.selector),
       abi.encode(abi.encodePacked(uint16(fakeChainId)))
     );
 
     vm.mockCall(
-      address(wormholeCore), 
-      abi.encodeWithSelector(wormholeCore.chainId.selector), 
+      address(wormholeCore),
+      abi.encodeWithSelector(wormholeCore.chainId.selector),
       abi.encode(fakeChainId)
     );
 
@@ -91,9 +91,10 @@ contract TbrTestBase is Test {
     tbr = Tbr(payable(new Proxy(
       tbrImplementation,
       abi.encodePacked(
+        feeRecipient,
         owner,
-        admin,
-        feeRecipient
+        uint8(1),
+        admin
       )
     )));
 
@@ -157,6 +158,7 @@ contract TbrTestBase is Test {
       address(new PriceOracle(EVM_CHAIN_ID)),
       abi.encodePacked(
         owner,
+        uint8(1),
         admin,
         assistant,
         EVM_CHAIN_ID,
