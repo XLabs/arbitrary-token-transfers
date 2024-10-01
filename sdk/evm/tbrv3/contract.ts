@@ -8,8 +8,8 @@ import {
   evmAddressItem,
   execParamsLayout,
   gasDropoffItem,
-  GovernanceCommand,
-  GovernanceQuery,
+  ConfigCommand,
+  ConfigQuery,
   proxyConstructorLayout,
   queryCategoryLayout,
   queryParamsLayout,
@@ -24,7 +24,9 @@ import {
   BaseRelayingParamsReturn,
   TokenBridgeAllowances,
   allowanceTokenBridgeReturnLayout,
+  QueryCategory,
 } from "./layouts.js";
+import { AccessControlQuery } from "./access-control.js";
 
 const WHOLE_EVM_GAS_TOKEN_UNITS = 10 ** 18;
 
@@ -367,7 +369,7 @@ export class Tbrv3 {
     return decodeQueryResponseLayout(baseRelayingReturnListLayout, ethers.getBytes(result));
   }
 
-  governanceTx<const C extends GovernanceCommand[]>(commands: C): TbrPartialTx {
+  governanceTx<const C extends ConfigCommand[]>(commands: C): TbrPartialTx {
     const methods = layout.serializeLayout(execParamsLayout, {
       version: 0,
       commandCategories: commands.map(arg => ({
@@ -416,15 +418,30 @@ export class Tbrv3 {
     ));
   }
 
-  async governanceQuery<const C extends GovernanceQuery[]>(queries: C): Promise<string> {
-    // const methods = Tbrv3.createEnvelope([{ method: "GovernanceQuery", queries }]);
+  async batchQueries<const C extends ConfigQuery[], const A extends AccessControlQuery[]>(configQueries: C, accessControlQueries: A): Promise<string> {
+    const queryCategories: QueryCategory[] = [];
+
+    if (configQueries.length > 0) {
+      queryCategories.push(
+        {
+          queryCategory: "ConfigQueries",
+          queries: configQueries,
+        } satisfies QueryCategory
+      );
+    }
+
+    if (accessControlQueries.length > 0) {
+      queryCategories.push(
+        {
+          queryCategory: "AccessControlQueries",
+          queries: accessControlQueries,
+        } satisfies QueryCategory
+      )
+    }
+    // const methods = Tbrv3.createEnvelope([{ method: "ConfigQuery", queries }]);
     const methods = layout.serializeLayout(queryParamsLayout, {
       version: 0,
-      queryCategories:
-        queries.map(arg => ({
-          queryCategory: "GovernanceQueries",
-          queries
-        }) satisfies LayoutToType<typeof queryCategoryLayout>)
+      queryCategories,
     });
     const data = Tbrv3.encodeQuery(methods);
 
@@ -438,7 +455,7 @@ export class Tbrv3 {
 
 
   async relayFee(chain: SupportedChains) {
-    const result = await this.governanceQuery([{ query: "BaseFee", chain }]);
+    const result = await this.batchQueries([{ query: "BaseFee", chain }], []);
     
     return decodeQueryResponseLayout(relayingFeesReturnLayout, ethers.getBytes(result)); 
   }
@@ -447,49 +464,49 @@ export class Tbrv3 {
    * @returns Maximum gas dropoff in gas token units, e.g. ETH for Ethereum.
    */
   async maxGasDropoff(chain: SupportedChains) {
-    const result = await this.governanceQuery([{ query: "MaxGasDropoff", chain }]);
+    const result = await this.batchQueries([{ query: "MaxGasDropoff", chain }], []);
 
     return decodeQueryResponseLayout(gasDropoffItem, ethers.getBytes(result));
   }
 
   async isChainPaused(chain: SupportedChains) {
-    const result = await this.governanceQuery([{ query: "IsChainPaused", chain }]);
+    const result = await this.batchQueries([{ query: "IsChainPaused", chain }], []);
 
     return decodeQueryResponseLayout(layoutItems.boolItem, ethers.getBytes(result));
   }
 
   async isPeer(chain: SupportedChains, address: UniversalAddress): Promise<boolean> {
-    const result = await this.governanceQuery([{ query: "IsPeer", address, chain }]);
+    const result = await this.batchQueries([{ query: "IsPeer", address, chain }], []);
 
     return decodeQueryResponseLayout(layoutItems.boolItem, ethers.getBytes(result));
   }
 
   async canonicalPeer(chain: SupportedChains): Promise<UniversalAddress> {
-    const result = await this.governanceQuery([{ query: "CanonicalPeer", chain }]);
+    const result = await this.batchQueries([{ query: "CanonicalPeer", chain }], []);
 
     return decodeQueryResponseLayout(layoutItems.universalAddressItem, ethers.getBytes(result));
   }
 
   async owner() {
-    const result = await this.governanceQuery([{ query: "Owner" }]);
+    const result = await this.batchQueries([], [{ query: "Owner" }]);
     
     return decodeQueryResponseLayout(evmAddressItem, ethers.getBytes(result)); 
   }
 
   async isChainSupported(chain: SupportedChains): Promise<boolean> {
-    const result = await this.governanceQuery([{ query: "IsChainSupported", chain }]);
+    const result = await this.batchQueries([{ query: "IsChainSupported", chain }], []);
 
     return decodeQueryResponseLayout(layoutItems.boolItem, ethers.getBytes(result));
   }
 
   async isAdmin(address: EvmAddress): Promise<boolean> {
-    const result = await this.governanceQuery([{ query: "IsAdmin", address: address.toString() }]);
+    const result = await this.batchQueries([], [{ query: "IsAdmin", address }]);
     
     return decodeQueryResponseLayout(layoutItems.boolItem, ethers.getBytes(result)); 
   }
 
   async feeRecipient() {
-    const result = await this.governanceQuery([{ query: "FeeRecipient" }]);
+    const result = await this.batchQueries([{ query: "FeeRecipient" }], []);
     
     return decodeQueryResponseLayout(evmAddressItem, ethers.getBytes(result)); 
   }

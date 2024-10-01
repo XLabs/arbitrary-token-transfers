@@ -74,12 +74,6 @@ abstract contract AccessControl {
         (admin, offset) = commands.asAddressCdUnchecked(offset);
         _updateAdmins(admin, false);
       }
-      else if (command == RELINQUISH_ADMINISTRATION_ID) {
-        _updateAdmins(msg.sender, false);
-
-        //administration relinquishment must be the last command in the batch
-        commands.checkLength(offset);
-      } 
       else {
         if (!isOwner)
           revert NotAuthorized();

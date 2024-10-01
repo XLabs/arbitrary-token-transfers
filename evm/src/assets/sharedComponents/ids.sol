@@ -20,7 +20,6 @@ uint8 constant IMPLEMENTATION_ID = 0xe1;
 
 //admin:
 uint8 constant REVOKE_ADMIN_ID = 0x00;
-uint8 constant RELINQUISH_ADMINISTRATION_ID = 0x01;
 
 //owner only:
 uint8 constant PROPOSE_OWNERSHIP_TRANSFER_ID = 0x10;
