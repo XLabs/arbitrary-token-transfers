@@ -100,16 +100,24 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
       return { chain: 'Solana', address: new SolanaAddress(NATIVE_MINT).toUniversalAddress() };
     }
 
-    let { address, chain } = await tb.getOriginalAsset(new SolanaAddress(mint));
-    if (address === 'native') {
-      const native = await this.chain.getNativeWrappedTokenId();
-      address = native.address;
-    }
+    try {
+      let { address, chain } = await tb.getOriginalAsset(new SolanaAddress(mint));
+      if (address === 'native') {
+        const native = await this.chain.getNativeWrappedTokenId();
+        address = native.address;
+      }
 
-    return {
-      chain,
-      address: address as UniversalAddress,
-    };
+      return {
+        chain,
+        address: address as UniversalAddress,
+      };
+    } catch (e: any) {
+      if (!e.message.includes("not a wrapped asset")) throw e;
+      return {
+        chain: 'Solana',
+        address: new SolanaAddress(mint).toUniversalAddress(),
+      };
+    }
   }
 
   async *transfer(params: TransferParams<C>): AsyncGenerator<SolanaUnsignedTransaction<N, C>> {
