@@ -1,4 +1,6 @@
 import {
+  amount,
+  api,
   AttestationReceipt,
   Chain,
   ChainAddress,
@@ -7,6 +9,7 @@ import {
   guardians,
   isSignOnlySigner,
   Network,
+  QuoteWarning,
   routes,
   amount as sdkAmount,
   signAndSendWait,
@@ -17,7 +20,7 @@ import {
   TransferState,
   Wormhole,
 } from '@wormhole-foundation/sdk-connect';
-import { toNative } from '@wormhole-foundation/sdk-definitions';
+import { isNative, toNative } from '@wormhole-foundation/sdk-definitions';
 import {
   SupportedChains,
   tokenBridgeRelayerV3Chains,
@@ -143,6 +146,59 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
     }
   }
 
+  private async checkGovernorLimits(request: routes.RouteTransferRequest<N>, srcAmountTruncated: amount.Amount): Promise<QuoteWarning[]> {
+    // Ensure the transfer would not violate governor transfer limits
+    const [tokens, limits] = await Promise.all([
+      api.getGovernedTokens(this.wh.config.api),
+      api.getGovernorLimits(this.wh.config.api),
+    ]);
+
+    const { fromChain, source } = request;
+    const token = source.id;
+
+    const srcTb = await fromChain.getProtocol('TokenBridge');
+
+    const warnings: QuoteWarning[] = [];
+    if (limits !== null && fromChain.chain in limits && tokens !== null) {
+      let origAsset: TokenId;
+      if (isNative(token.address)) {
+        origAsset = await fromChain.getNativeWrappedTokenId();
+      } else {
+        try {
+          origAsset = await srcTb.getOriginalAsset(token.address);
+        } catch (e: any) {
+          if (!e.message.includes("not a wrapped asset")) throw e;
+          origAsset = {
+            chain: fromChain.chain,
+            address: token.address,
+          };
+        }
+      }
+
+      if (origAsset.chain in tokens && origAsset.address.toString() in tokens[origAsset.chain]!) {
+        const limit = limits[fromChain.chain]!;
+        const tokenPrice = tokens[origAsset.chain]![origAsset.address.toString()]!;
+        const notionalTransferAmt = tokenPrice * amount.whole(srcAmountTruncated);
+
+        if (limit.maxSize && notionalTransferAmt > limit.maxSize) {
+          warnings.push({
+            type: "GovernorLimitWarning",
+            reason: "ExceedsLargeTransferLimit",
+          });
+        }
+
+        if (notionalTransferAmt > limit.available) {
+          warnings.push({
+            type: "GovernorLimitWarning",
+            reason: "ExceedsRemainingNotional",
+          });
+        }
+      }
+    }
+
+    return warnings;
+  }
+
   async quote(
     request: routes.RouteTransferRequest<N>,
     params: routes.ValidatedTransferParams<ValidatedTransferOptions>,
@@ -196,6 +252,8 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
       const dstAmount = sdkAmount.scale(truncatedSrcAmount, dstTokenDecimals);
 
       const eta = finality.estimateFinalityTime(sourceChain) + guardians.guardianAttestationEta;
+
+      const warnings = await this.checkGovernorLimits(request, truncatedSrcAmount);
 
       return {
         success: true,
