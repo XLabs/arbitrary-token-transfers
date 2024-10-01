@@ -32,10 +32,10 @@ contract ConfigTest is TbrTestBase {
     );
   }
 
-  function testOwnerContractUpgrade() public {
+  function testContractUpgrade() public {
     UpgradeTester upgradeTester = new UpgradeTester();
 
-    (address implementation, ) = invokeTbr(
+    (address implementation, ) = invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
@@ -79,10 +79,46 @@ contract ConfigTest is TbrTestBase {
 
     UpgradeTester(address(tbr)).upgradeTo(implementation, new bytes(0));
 
-    (address restoredImplementation, ) = invokeTbr(
+    (address restoredImplementation, ) = invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
+        IMPLEMENTATION_ID
+      )
+    ).asAddressUnchecked(0);
+    assertEq(restoredImplementation, implementation);
+  }
+
+  function testExternalContractUpgrade() public {
+    UpgradeTester upgradeTester = new UpgradeTester();
+
+    (address implementation, ) = invokeStaticTbr(
+      abi.encodePacked(
+        tbr.get1959.selector,
+        DISPATCHER_PROTOCOL_VERSION0,
+        IMPLEMENTATION_ID
+      )
+    ).asAddressUnchecked(0);
+
+    vm.expectRevert(NotAuthorized.selector);
+    tbr.upgrade(address(upgradeTester), new bytes(0));
+
+    vm.startPrank(admin);
+    vm.expectRevert(NotAuthorized.selector);
+    tbr.upgrade(address(upgradeTester), new bytes(0));
+
+    vm.startPrank(owner);
+    tbr.upgrade(address(upgradeTester), new bytes(0));
+
+    vm.expectRevert(IdempotentUpgrade.selector);
+    UpgradeTester(address(tbr)).upgradeTo(address(upgradeTester), new bytes(0));
+
+    UpgradeTester(address(tbr)).upgradeTo(implementation, new bytes(0));
+
+    (address restoredImplementation, ) = invokeStaticTbr(
+      abi.encodePacked(
+        tbr.get1959.selector,
+        DISPATCHER_PROTOCOL_VERSION0,
         IMPLEMENTATION_ID
       )
     ).asAddressUnchecked(0);
@@ -117,7 +153,7 @@ contract ConfigTest is TbrTestBase {
     );
     
     commandCount = 2;
-    bytes memory getRes = invokeTbr(
+    bytes memory getRes = invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
@@ -152,7 +188,7 @@ contract ConfigTest is TbrTestBase {
     );
 
     commandCount = 2;
-    getRes = invokeTbr(
+    getRes = invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
@@ -164,6 +200,88 @@ contract ConfigTest is TbrTestBase {
     );
     (owner_,        ) = getRes.asAddressUnchecked(0);
     (pendingOwner_, ) = getRes.asAddressUnchecked(20);
+
+    assertEq(owner_, newOwner);
+    assertEq(pendingOwner_, address(0));
+  }
+
+
+  function testExternalOwnershipTransfer(address newOwner) public {
+    vm.expectRevert(NotAuthorized.selector);
+    tbr.transferOwnership(newOwner);
+
+    vm.prank(owner);
+    tbr.transferOwnership(newOwner);
+
+    uint8 commandCount = 2;
+    bytes memory getRes = invokeStaticTbr(
+      abi.encodePacked(
+        tbr.get1959.selector,
+        DISPATCHER_PROTOCOL_VERSION0,
+        ACCESS_CONTROL_QUERIES_ID,
+        commandCount,
+        OWNER_ID,
+        PENDING_OWNER_ID
+      )
+    );
+    (address owner_,        ) = getRes.asAddressUnchecked(0);
+    (address pendingOwner_, ) = getRes.asAddressUnchecked(20);
+
+    assertEq(owner_,        owner);
+    assertEq(pendingOwner_, newOwner);
+  }
+
+  function testExternalCancelOwnershipTransfer(address newOwner) public {
+    vm.prank(owner);
+    tbr.transferOwnership(newOwner);
+
+    vm.expectRevert(NotAuthorized.selector);
+    tbr.cancelOwnershipTransfer();
+
+    vm.prank(owner);
+    tbr.cancelOwnershipTransfer();
+
+    uint8 commandCount = 2;
+    bytes memory getRes = invokeStaticTbr(
+      abi.encodePacked(
+        tbr.get1959.selector,
+        DISPATCHER_PROTOCOL_VERSION0,
+        ACCESS_CONTROL_QUERIES_ID,
+        commandCount,
+        OWNER_ID,
+        PENDING_OWNER_ID
+      )
+    );
+    (address owner_,        ) = getRes.asAddressUnchecked(0);
+    (address pendingOwner_, ) = getRes.asAddressUnchecked(20);
+
+    assertEq(owner_,        owner);
+    assertEq(pendingOwner_, address(0));
+  }
+
+  function testExternalReceiveOwnership(address newOwner) public {
+    vm.prank(owner);
+    tbr.transferOwnership(newOwner);
+
+    vm.expectRevert(NotAuthorized.selector);
+    tbr.receiveOwnership();
+
+    vm.prank(newOwner);
+    tbr.receiveOwnership();
+
+    uint8 commandCount = 2;
+    bytes memory getRes = invokeStaticTbr(
+      abi.encodePacked(
+        tbr.get1959.selector,
+        DISPATCHER_PROTOCOL_VERSION0,
+        ACCESS_CONTROL_QUERIES_ID,
+        commandCount,
+        OWNER_ID,
+        PENDING_OWNER_ID
+      )
+    );
+    (address owner_,        ) = getRes.asAddressUnchecked(0);
+    (address pendingOwner_, ) = getRes.asAddressUnchecked(20);
 
     assertEq(owner_, newOwner);
     assertEq(pendingOwner_, address(0));
@@ -202,7 +320,7 @@ contract ConfigTest is TbrTestBase {
 
     commandCount = 2;
     uint8 configCommandCount = 1;
-    bytes memory getRes = invokeTbr(
+    bytes memory getRes = invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
@@ -266,7 +384,7 @@ contract ConfigTest is TbrTestBase {
     );
 
     commandCount = 2;
-    bytes memory res = invokeTbr(
+    bytes memory res = invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
@@ -301,7 +419,7 @@ contract ConfigTest is TbrTestBase {
     );
 
     commandCount = 2;
-    res = invokeTbr(
+    res = invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
@@ -361,7 +479,7 @@ contract ConfigTest is TbrTestBase {
       )
     );
 
-    (address owner_, ) = invokeTbr(
+    (address owner_, ) = invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
@@ -405,7 +523,7 @@ contract ConfigTest is TbrTestBase {
       )
     );
 
-    (bool isPeer, ) = invokeTbr(
+    (bool isPeer, ) = invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
@@ -468,7 +586,7 @@ contract ConfigTest is TbrTestBase {
       )
     );
 
-    (uint32 maxGasDropoff_, ) = invokeTbr(
+    (uint32 maxGasDropoff_, ) = invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
@@ -510,7 +628,7 @@ contract ConfigTest is TbrTestBase {
       )
     );
 
-    (address newFeeRecipient_, ) = invokeTbr(
+    (address newFeeRecipient_, ) = invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
@@ -571,7 +689,7 @@ contract ConfigTest is TbrTestBase {
       )
     );
 
-    (uint32 newRelayFee_, ) = invokeTbr(
+    (uint32 newRelayFee_, ) = invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
@@ -633,7 +751,7 @@ contract ConfigTest is TbrTestBase {
       )
     );
 
-    (bool paused_, ) = invokeTbr(
+    (bool paused_, ) = invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
@@ -678,7 +796,7 @@ contract ConfigTest is TbrTestBase {
       )
     );
 
-    (bytes32 newCanonicalPeer_, ) = invokeTbr(
+    (bytes32 newCanonicalPeer_, ) = invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
@@ -721,7 +839,7 @@ contract ConfigTest is TbrTestBase {
     uint8 commandCount = 1;
     bytes32 fakePeer = makeBytes32("peer");
 
-    (bool isSupported, ) = invokeTbr(
+    (bool isSupported, ) = invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
@@ -746,7 +864,7 @@ contract ConfigTest is TbrTestBase {
       )
     );
 
-    (isSupported, ) = invokeTbr(
+    (isSupported, ) = invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 
@@ -790,7 +908,7 @@ contract ConfigTest is TbrTestBase {
     vm.expectRevert(
       abi.encodeWithSelector(InvalidConfigQuery.selector, fakeQuery)
     );
-    invokeTbr(
+    invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector, 
         DISPATCHER_PROTOCOL_VERSION0, 

@@ -13,6 +13,14 @@ error InvalidGovernanceQuery(uint8 query);
 abstract contract Upgrade is ProxyBase {
   using BytesParsing for bytes;
 
+  function upgrade(address implementation, bytes calldata data) external {
+    AccessControlState storage state = accessControlState();
+    if (msg.sender != state.owner)
+      revert NotAuthorized();
+    
+    _upgradeTo(implementation, data);
+  }
+
   function _upgradeContract(
     bytes calldata commands,
     uint offset

@@ -50,6 +50,28 @@ abstract contract AccessControl {
       _updateAdmins(admins[i], true);
   }
 
+  // ---- external -----
+
+  function transferOwnership(address newOwner) external {
+    AccessControlState storage state = accessControlState();
+    if (msg.sender != state.owner)
+      revert NotAuthorized();
+
+    state.pendingOwner = newOwner;
+  }
+
+  function cancelOwnershipTransfer() external {
+    AccessControlState storage state = accessControlState();
+    if (state.owner != msg.sender)
+      revert NotAuthorized();
+
+    state.pendingOwner = address(0);
+  }
+
+  function receiveOwnership() external {
+    _acquireOwnership();
+  }
+
   // ---- internals ----
 
   function _batchAccessControlCommands(

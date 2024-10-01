@@ -1103,7 +1103,7 @@ contract UserTest is TbrTestBase {
       abi.encode(abi.encodePacked(uint256(feeQuote)))
     );
 
-    bytes memory response = invokeTbr(
+    bytes memory response = invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector,
         DISPATCHER_PROTOCOL_VERSION0,
@@ -1143,7 +1143,7 @@ contract UserTest is TbrTestBase {
       abi.encode(uint256(fakeWormholeFee))
     );
 
-    bytes memory response = invokeTbr(
+    bytes memory response = invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector,
         DISPATCHER_PROTOCOL_VERSION0,
@@ -1173,8 +1173,7 @@ contract UserTest is TbrTestBase {
         commandIndex
       )
     );
-
-    invokeTbr(
+    invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector,
         DISPATCHER_PROTOCOL_VERSION0,
@@ -1186,7 +1185,7 @@ contract UserTest is TbrTestBase {
   }
 
   function testBaseRelayingConfig() public {
-    bytes memory response = invokeTbr(
+    bytes memory response = invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector,
         DISPATCHER_PROTOCOL_VERSION0,
@@ -1211,7 +1210,7 @@ contract UserTest is TbrTestBase {
     assertEq(chainIsPaused, false);
     assertEq(response.length, offset);
 
-    response = invokeTbr(
+    response = invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector,
         DISPATCHER_PROTOCOL_VERSION0,
