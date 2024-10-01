@@ -146,7 +146,10 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
     }
   }
 
-  private async checkGovernorLimits(request: routes.RouteTransferRequest<N>, srcAmountTruncated: amount.Amount): Promise<QuoteWarning[]> {
+  private async checkGovernorLimits(
+    request: routes.RouteTransferRequest<N>,
+    srcAmountTruncated: amount.Amount,
+  ): Promise<QuoteWarning[]> {
     // Ensure the transfer would not violate governor transfer limits
     const [tokens, limits] = await Promise.all([
       api.getGovernedTokens(this.wh.config.api),
@@ -167,7 +170,7 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
         try {
           origAsset = await srcTb.getOriginalAsset(token.address);
         } catch (e: any) {
-          if (!e.message.includes("not a wrapped asset")) throw e;
+          if (!e.message.includes('not a wrapped asset')) throw e;
           origAsset = {
             chain: fromChain.chain,
             address: token.address,
@@ -182,15 +185,15 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
 
         if (limit.maxSize && notionalTransferAmt > limit.maxSize) {
           warnings.push({
-            type: "GovernorLimitWarning",
-            reason: "ExceedsLargeTransferLimit",
+            type: 'GovernorLimitWarning',
+            reason: 'ExceedsLargeTransferLimit',
           });
         }
 
         if (notionalTransferAmt > limit.available) {
           warnings.push({
-            type: "GovernorLimitWarning",
-            reason: "ExceedsRemainingNotional",
+            type: 'GovernorLimitWarning',
+            reason: 'ExceedsRemainingNotional',
           });
         }
       }

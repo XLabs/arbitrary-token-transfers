@@ -112,7 +112,7 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
         address: address as UniversalAddress,
       };
     } catch (e: any) {
-      if (!e.message.includes("not a wrapped asset")) throw e;
+      if (!e.message.includes('not a wrapped asset')) throw e;
       return {
         chain: 'Solana',
         address: new SolanaAddress(mint).toUniversalAddress(),
