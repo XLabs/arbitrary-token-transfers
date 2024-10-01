@@ -4,7 +4,8 @@ pub type TokenBridgeRelayerResult<T> = std::result::Result<T, TokenBridgeRelayer
 
 #[error_code]
 pub(crate) enum TokenBridgeRelayerError {
-    /// The number of admin PDAs passed in initialize must match the number of remaining_accounts.
+    /// The number of admin accounts passed as arguments in `initialize` must match
+    /// the number of badges in `remaining_accounts`.
     #[msg("AdminCountMismatch")]
     AdminCountMismatch,
 
@@ -27,10 +28,6 @@ pub(crate) enum TokenBridgeRelayerError {
     /// Specified key is already the program's owner.
     #[msg("AlreadyTheOwner")]
     AlreadyTheOwner,
-
-    /// The correct auth badge for the previous owner must be provided.
-    #[msg("InvalidPreviousOwnerBadge")]
-    InvalidPreviousOwnerBadge,
 
     /// All chain IDs must be the same.
     #[msg("ChainIdMismatch")]

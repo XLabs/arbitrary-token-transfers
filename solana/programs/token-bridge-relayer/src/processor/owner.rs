@@ -40,27 +40,22 @@ pub fn submit_owner_transfer_request(
 
 #[derive(Accounts)]
 pub struct ConfirmOwnerTransfer<'info> {
-    #[account(
-        mut,
-        constraint = {
-            Some(new_owner.key()) == tbr_config.pending_owner
-        } @ TokenBridgeRelayerError::PendingOwnerOnly,
-    )]
+    #[account(mut)]
     pub new_owner: Signer<'info>,
 
     #[account(
         init,
         payer = new_owner,
         space = 8 + AuthBadgeState::INIT_SPACE,
-        seeds = [AuthBadgeState::SEED_PREFIX],
+        seeds = [AuthBadgeState::SEED_PREFIX, new_owner.key.to_bytes().as_ref()],
         bump
     )]
     pub auth_badge_new_owner: Account<'info, AuthBadgeState>,
 
     #[account(
         mut,
-        constraint = &auth_badge_previous_owner.address == &tbr_config.owner
-            @ TokenBridgeRelayerError::InvalidPreviousOwnerBadge,
+        seeds = [AuthBadgeState::SEED_PREFIX, tbr_config.owner.to_bytes().as_ref()],
+        bump,
         close = new_owner,
     )]
     pub auth_badge_previous_owner: Account<'info, AuthBadgeState>,
@@ -68,7 +63,11 @@ pub struct ConfirmOwnerTransfer<'info> {
     /// Program Config account. This program requires that the [`signer`] specified
     /// in the context equals a pubkey specified in this account. Mutable,
     /// because we will update roles depending on the operation.
-    #[account(mut)]
+    #[account(
+        mut,
+        constraint = tbr_config.is_pending_owner(&new_owner)
+            @ TokenBridgeRelayerError::PendingOwnerOnly
+    )]
     pub tbr_config: Account<'info, TbrConfigState>,
 
     pub system_program: Program<'info, System>,

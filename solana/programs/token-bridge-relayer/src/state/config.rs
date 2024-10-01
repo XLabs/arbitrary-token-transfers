@@ -20,6 +20,10 @@ pub struct TbrConfigState {
 }
 
 impl TbrConfigState {
+    pub fn is_pending_owner(&self, account: &impl Key) -> bool {
+        self.pending_owner == Some(account.key())
+    }
+
     /// Value `b"config"`.
     pub const SEED_PREFIX: &'static [u8] = b"config";
 }

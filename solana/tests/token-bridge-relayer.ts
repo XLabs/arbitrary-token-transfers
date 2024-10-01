@@ -9,6 +9,8 @@ import {
   newProvider,
   requestAirdrop,
   assertEqChainConfigs,
+  deployProgram,
+  keypairFromFile,
 } from './utils/helpers.js';
 import { TbrWrapper, TokenBridgeWrapper, WormholeCoreWrapper } from './utils/client-wrapper.js';
 import { SolanaPriceOracleClient, uaToArray } from '@xlabs-xyz/solana-arbitrary-token-transfers';
@@ -20,17 +22,11 @@ const ETHEREUM_ID = chainToChainId(ETHEREUM);
 const OASIS = 'Oasis';
 const OASIS_ID = chainToChainId(OASIS);
 
+const NETWORK = 'Devnet';
+
 describe('Token Bridge Relayer Program', () => {
   const clients = (['owner', 'owner', 'admin', 'admin', 'admin', 'regular'] as const).map(
-    (typeAccount) =>
-      new TbrWrapper(
-        newProvider(),
-        {
-          tokenBridgeProgramId,
-          wormholeProgramId,
-        },
-        typeAccount,
-      ),
+    (typeAccount) => new TbrWrapper(newProvider(), NETWORK, typeAccount),
   );
   const [
     ownerClient,
@@ -66,10 +62,18 @@ describe('Token Bridge Relayer Program', () => {
 
   before(async () => {
     await Promise.all(clients.map((client) => requestAirdrop(client.provider)));
-    await requestAirdrop(oracleOwner);
+
+    // Deploy program
+
+    const programKeyPairPath = './target/deploy/token_bridge_relayer-keypair.json';
+    const programKeyPair = keypairFromFile(programKeyPairPath);
+    await requestAirdrop(newProvider(programKeyPair));
+    deployProgram(programKeyPairPath, './target/sbf-solana-solana/release/token_bridge_relayer.so');
 
     // Oracle Setup
     // ============
+
+    await requestAirdrop(oracleOwner);
 
     await oracleOwner.sendAndConfirm(
       new Transaction().add(
@@ -96,6 +100,7 @@ describe('Token Bridge Relayer Program', () => {
 
   it('Is initialized!', async () => {
     await TbrWrapper.initialize({
+      network: NETWORK,
       feeRecipient,
       owner: ownerClient.publicKey,
       admins: [adminClient1.publicKey, adminClient2.publicKey],

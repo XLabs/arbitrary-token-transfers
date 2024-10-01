@@ -484,13 +484,40 @@
                   103,
                   101
                 ]
+              },
+              {
+                "kind": "account",
+                "path": "new_owner"
               }
             ]
           }
         },
         {
           "name": "auth_badge_previous_owner",
-          "writable": true
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  117,
+                  116,
+                  104,
+                  98,
+                  97,
+                  100,
+                  103,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "tbr_config.owner",
+                "account": "TbrConfigState"
+              }
+            ]
+          }
         },
         {
           "name": "tbr_config",
@@ -1740,56 +1767,51 @@
     },
     {
       "code": 6006,
-      "name": "InvalidPreviousOwnerBadge",
-      "msg": "InvalidPreviousOwnerBadge"
-    },
-    {
-      "code": 6007,
       "name": "ChainIdMismatch",
       "msg": "ChainIdMismatch"
     },
     {
-      "code": 6008,
+      "code": 6007,
       "name": "AlreadyTheCanonicalPeer",
       "msg": "AlreadyTheCanonicalPeer"
     },
     {
-      "code": 6009,
+      "code": 6008,
       "name": "FeeExceedingMaximum",
       "msg": "FeeExceedingMaximum"
     },
     {
-      "code": 6010,
+      "code": 6009,
       "name": "WrongFeeRecipient",
       "msg": "WrongFeeRecipient"
     },
     {
-      "code": 6011,
+      "code": 6010,
       "name": "WronglySetOptionalAccounts",
       "msg": "WronglySetOptionalAccounts"
     },
     {
-      "code": 6012,
+      "code": 6011,
       "name": "WrongMintAuthority",
       "msg": "WrongMintAuthority"
     },
     {
-      "code": 6013,
+      "code": 6012,
       "name": "InvalidRecipient",
       "msg": "InvalidRecipient"
     },
     {
-      "code": 6014,
+      "code": 6013,
       "name": "EvmChainPriceNotSet",
       "msg": "EvmChainPriceNotSet"
     },
     {
-      "code": 6015,
+      "code": 6014,
       "name": "PausedTransfers",
       "msg": "PausedTransfers"
     },
     {
-      "code": 6016,
+      "code": 6015,
       "name": "InvalidSendingPeer",
       "msg": "InvalidSendingPeer"
     }

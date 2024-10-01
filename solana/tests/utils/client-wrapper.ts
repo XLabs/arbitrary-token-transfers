@@ -1,6 +1,6 @@
 import { AnchorProvider, BN } from '@coral-xyz/anchor';
 import { PublicKey, TransactionSignature } from '@solana/web3.js';
-import { Chain } from '@wormhole-foundation/sdk-base';
+import { Chain, Network } from '@wormhole-foundation/sdk-base';
 import { UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import {
   SolanaTokenBridgeRelayer,
@@ -20,14 +20,14 @@ export class TbrWrapper {
 
   constructor(
     provider: AnchorProvider,
-    params: { tokenBridgeProgramId: PublicKey; wormholeProgramId: PublicKey },
+    network: Network,
     accountType: 'owner' | 'admin' | 'regular',
   ) {
     this.provider = provider;
     if (accountType === 'regular') {
-      this.client = new SolanaTokenBridgeRelayer(provider, params);
+      this.client = new SolanaTokenBridgeRelayer(provider, network);
     } else {
-      this.client = new SolanaTokenBridgeRelayer({ connection: provider.connection }, params);
+      this.client = new SolanaTokenBridgeRelayer({ connection: provider.connection }, network);
     }
     this.logs = {};
 
@@ -61,15 +61,13 @@ export class TbrWrapper {
   }
 
   static async initialize(args: {
+    network: Network;
     owner: PublicKey;
     feeRecipient: PublicKey;
     admins: PublicKey[];
   }): Promise<TransactionSignature> {
     const provider = AnchorProvider.env();
-    const client = new SolanaTokenBridgeRelayer(provider, {
-      tokenBridgeProgramId: PublicKey.default,
-      wormholeProgramId: PublicKey.default,
-    });
+    const client = new SolanaTokenBridgeRelayer(provider, 'Devnet');
     console.log('provider key', provider.publicKey);
 
     return sendAndConfirmIx(
@@ -179,7 +177,6 @@ export class TbrWrapper {
   async completeNativeTransfer(
     vaa: VaaMessage,
     recipientTokenAccount: PublicKey,
-    recipient: PublicKey,
   ): Promise<TransactionSignature> {
     return sendAndConfirmIx(
       this.client.completeNativeTransfer(this.publicKey, vaa, recipientTokenAccount),
@@ -190,7 +187,6 @@ export class TbrWrapper {
   async completeWrappedTransfer(
     vaa: VaaMessage,
     recipientTokenAccount: PublicKey,
-    recipient: PublicKey,
   ): Promise<TransactionSignature> {
     return sendAndConfirmIx(
       this.client.completeWrappedTransfer(this.publicKey, vaa, recipientTokenAccount),

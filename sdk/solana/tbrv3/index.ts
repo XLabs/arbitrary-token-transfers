@@ -7,7 +7,7 @@ import {
   VersionedTransactionResponse,
 } from '@solana/web3.js';
 import * as borsh from 'borsh';
-import { Chain, chainToChainId, encoding } from '@wormhole-foundation/sdk-base';
+import { Chain, chainToChainId, encoding, contracts, Network } from '@wormhole-foundation/sdk-base';
 import { UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import {
   getTransferNativeWithPayloadCpiAccounts,
@@ -66,20 +66,14 @@ export const uaToArray = (ua: UniversalAddress): number[] => Array.from(ua.toUin
 export class SolanaTokenBridgeRelayer {
   public readonly program: anchor.Program<TokenBridgeRelayer>;
   private readonly priceOracleClient: SolanaPriceOracleClient;
-  private readonly tokenBridgeProgramId: PublicKey;
   private readonly wormholeProgramId: PublicKey;
+  private readonly tokenBridgeProgramId: PublicKey;
 
-  constructor(
-    provider: anchor.Provider,
-    {
-      tokenBridgeProgramId,
-      wormholeProgramId,
-    }: { tokenBridgeProgramId: PublicKey; wormholeProgramId: PublicKey },
-  ) {
+  constructor(provider: anchor.Provider, network: Network) {
     this.program = new Program(IDL as any, provider);
     this.priceOracleClient = new SolanaPriceOracleClient(provider.connection);
-    this.tokenBridgeProgramId = tokenBridgeProgramId;
-    this.wormholeProgramId = wormholeProgramId;
+    this.wormholeProgramId = new PublicKey(contracts.coreBridge(network, 'Solana'));
+    this.tokenBridgeProgramId = new PublicKey(contracts.tokenBridge(network, 'Solana'));
   }
 
   get connection(): Connection {
@@ -93,7 +87,7 @@ export class SolanaTokenBridgeRelayer {
       peer: (chain: Chain, peerAddress: UniversalAddress) =>
         pda.peer(this.program.programId, chain, peerAddress),
       signerSequence: (signer: PublicKey) => pda.signerSequence(this.program.programId, signer),
-      authBadge: (admin: PublicKey) => pda.admin(this.program.programId, admin),
+      authBadge: (account: PublicKey) => pda.authBadge(this.program.programId, account),
     };
   }
 
@@ -106,9 +100,18 @@ export class SolanaTokenBridgeRelayer {
         this.program.account.peerState.fetch(this.address.peer(chain, peerAddress)),
       signerSequence: (signer: PublicKey) =>
         this.program.account.signerSequenceState.fetch(this.address.signerSequence(signer)),
-      authBadge: (admin: PublicKey) =>
-        this.program.account.authBadgeState.fetch(this.address.authBadge(admin)),
+      authBadge: (account: PublicKey) =>
+        this.program.account.authBadgeState.fetch(this.address.authBadge(account)),
     };
+  }
+
+  async readAdminAccounts(): Promise<PublicKey[]> {
+    const accounts = (await this.program.account.authBadgeState.all()).map((pa) => pa.account);
+    const owner = (await this.read.config()).owner.toString();
+
+    return accounts
+      .filter(({ address }) => address.toString() !== owner)
+      .map(({ address }) => address);
   }
 
   private async payerSequenceNumber(payer: PublicKey): Promise<anchor.BN> {
@@ -169,13 +172,10 @@ export class SolanaTokenBridgeRelayer {
   }
 
   async confirmOwnerTransferRequest(newOwner: PublicKey): Promise<web3.TransactionInstruction> {
-    const authBadgePreviousOwner = this.address.authBadge((await this.read.config()).owner);
-
     return this.program.methods
       .confirmOwnerTransferRequest()
       .accounts({
         newOwner,
-        authBadgePreviousOwner,
         tbrConfig: this.address.config(),
       })
       .instruction();
@@ -554,8 +554,8 @@ const pda = {
   signerSequence: (programId: PublicKey, signer: PublicKey) =>
     PublicKey.findProgramAddressSync([Buffer.from('seq'), signer.toBuffer()], programId)[0],
 
-  admin: (programId: PublicKey, admin: PublicKey) =>
-    PublicKey.findProgramAddressSync([Buffer.from('authbadge'), admin.toBuffer()], programId)[0],
+  authBadge: (programId: PublicKey, account: PublicKey) =>
+    PublicKey.findProgramAddressSync([Buffer.from('authbadge'), account.toBuffer()], programId)[0],
 
   // Internal:
 
