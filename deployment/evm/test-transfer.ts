@@ -180,9 +180,9 @@ const uniqueTestTransfers: TestTransfer[] = [
     transferredAmount: '1',
     gasDropoffAmount: '0',
     unwrapIntent: false,
-    tokenAddress: '0x5fd84259d66Cd46123540766Be93DFE6D43130D7', // USDC
-    tokenChain: "OptimismSepolia",
-    fromChain: "OptimismSepolia",
+    tokenAddress: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238', // USDC
+    tokenChain: "Sepolia",
+    fromChain: "Sepolia",
     toChain: "Solana",
     skip: true,
   },
@@ -191,7 +191,7 @@ const uniqueTestTransfers: TestTransfer[] = [
     transferredAmount: '1',
     gasDropoffAmount: '0.00001',
     unwrapIntent: false,
-    tokenAddress: '0x5fd84259d66Cd46123540766Be93DFE6D43130D7', // USDC
+    tokenAddress: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238', // USDC
     tokenChain: "OptimismSepolia",
     fromChain: "OptimismSepolia",
     toChain: "Solana",
@@ -224,7 +224,7 @@ const uniqueTestTransfers: TestTransfer[] = [
     unwrapIntent: false,
     tokenAddress: '0x8e62ff4ba9944b4ddff5fc548deab4b22c6ea34e', // wrapped USDC
     tokenChain: "Solana",
-    fromChain: "OptimismSepolia",
+    fromChain: "Sepolia",
     toChain: "Solana",
     skip: true,
   },
@@ -235,7 +235,7 @@ const uniqueTestTransfers: TestTransfer[] = [
     unwrapIntent: true,
     tokenAddress: '0x8e62ff4ba9944b4ddff5fc548deab4b22c6ea34e', // wrapped USDC
     tokenChain: "Solana",
-    fromChain: "OptimismSepolia",
+    fromChain: "Sepolia",
     toChain: "Solana",
     skip: true,
   },
@@ -246,9 +246,9 @@ const uniqueTestTransfers: TestTransfer[] = [
    transferredAmount: '1',
    gasDropoffAmount: '0',
    unwrapIntent: false,
-   tokenAddress: '0x5fd84259d66Cd46123540766Be93DFE6D43130D7', // USDC
-   tokenChain: "OptimismSepolia",
-   fromChain: "OptimismSepolia",
+   tokenAddress: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238', // USDC
+   tokenChain: "Sepolia",
+   fromChain: "Sepolia",
    toChain: "Sepolia",
    skip: true,
  },
@@ -257,9 +257,9 @@ const uniqueTestTransfers: TestTransfer[] = [
    transferredAmount: '1',
    gasDropoffAmount: '0.00001',
    unwrapIntent: false,
-   tokenAddress: '0x5fd84259d66Cd46123540766Be93DFE6D43130D7', // USDC
-   tokenChain: "OptimismSepolia",
-   fromChain: "OptimismSepolia",
+   tokenAddress: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238', // USDC
+   tokenChain: "Sepolia",
+   fromChain: "Sepolia",
    toChain: "Sepolia",
    skip: true,
  },
@@ -290,7 +290,7 @@ const uniqueTestTransfers: TestTransfer[] = [
    unwrapIntent: false,
    tokenAddress: '0x99d8471E68E67a5ED748Afa806bFcfD7C56Bf63c', // wrapped sepolia USDC on optimisim
    tokenChain: "Sepolia",
-   fromChain: "OptimismSepolia",
+   fromChain: "Sepolia",
    toChain: "Sepolia",
    skip: true,
  },
@@ -301,7 +301,7 @@ const uniqueTestTransfers: TestTransfer[] = [
    unwrapIntent: true,
    tokenAddress: '0x99d8471E68E67a5ED748Afa806bFcfD7C56Bf63c', // wrapped sepolia USDC on optimisim
    tokenChain: "Sepolia",
-   fromChain: "OptimismSepolia",
+   fromChain: "Sepolia",
    toChain: "Sepolia",
    skip: true,
  },
