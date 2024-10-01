@@ -1,6 +1,7 @@
 import type { Chain, CustomConversion, Layout, LayoutToType, LayoutItem, NamedLayoutItem } from "@wormhole-foundation/sdk-base";
 import { layoutItems, type UniversalAddress } from "@wormhole-foundation/sdk-definitions";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
+import { accessControlCommandLayout, accessControlQueryLayout } from "./access-control.js";
 
 // TODO: update supported chains to the actual chains supported
 export const supportedChains = ["Ethereum", "Solana", "Arbitrum", "Base", "Sepolia", "BaseSepolia", "OptimismSepolia"] as const satisfies readonly Chain[];
@@ -209,7 +210,7 @@ export const baseRelayingConfigReturnLayout = [
   { name: "paused", ...layoutItems.boolItem },
 ] as const satisfies Layout;
 
-const governanceCommandLayout = 
+const configCommandLayout =
   { 
     binary: "switch",
     idSize: 1,
@@ -223,20 +224,15 @@ const governanceCommandLayout =
       [[ 0x02, "UpdateMaxGasDropoff"     ], [peerChainItem, { name: "value", ...gasDropoffItem }]],
       [[ 0x03, "UpdateTransferPause"     ], [peerChainItem, { name: "value", ...layoutItems.boolItem }]],
 
-      [[ 0x0b, "UpdateFeeRecipient"      ], [{ name: "address",...evmAddressItem }]],
-
+      [[ 0x0a, "UpdateFeeRecipient"      ], [{ name: "address",...evmAddressItem }]],
       // Only owner
-      [[ 0x0c, "UpdateAdmin"             ], [{ name: "address",...evmAddressItem }, { name: "isAdmin", ...layoutItems.boolItem }]],
-      [[ 0x0d, "UpdateCanonicalPeer"     ], [peerChainItem, { name: "address", ...layoutItems.universalAddressItem }]],
-      [[ 0x0e, "UpgradeContract"         ], [{ name: "address",...evmAddressItem }]],
-      [[ 0x0f, "ProposeOwnershipTransfer"], [{ name: "address",...evmAddressItem }]],
-      [[ 0x10, "RelinquishOwnership"     ], []],
+      [[ 0x0b, "UpdateCanonicalPeer"     ], [peerChainItem, { name: "address", ...layoutItems.universalAddressItem }]],
     ]
   } as const satisfies Layout;
 
-export type GovernanceCommand = LayoutToType<typeof governanceCommandLayout>;
+export type ConfigCommand = LayoutToType<typeof configCommandLayout>;
 
-export const governanceQueryLayout = {
+export const configQueryLayout = {
   binary: "switch",
   idSize: 1,
   idTag: "query",
@@ -245,16 +241,12 @@ export const governanceQueryLayout = {
     [[0x81, "MaxGasDropoff"], [peerChainItem]],
     [[0x82, "IsChainPaused"], [peerChainItem]],
     [[0x83, "IsPeer"], [peerChainItem, { name: "address", ...layoutItems.universalAddressItem }]],
-    [[0x85, "CanonicalPeer"], [peerChainItem]],
-    [[0x86, "IsChainSupported"], [peerChainItem]],
-    [[0x87, "Owner"], []],
-    [[0x88, "PendingOwner"], []],
-    [[0x89, "IsAdmin"], [{ name: "address", ...evmAddressItem }]],
-    [[0x8A, "FeeRecipient"], []],
-    [[0x8B, "Implementation"], []],
+    [[0x84, "CanonicalPeer"], [peerChainItem]],
+    [[0x85, "IsChainSupported"], [peerChainItem]],
+    [[0x86, "FeeRecipient"], []],
   ],
 } as const satisfies Layout;
-export type GovernanceQuery = LayoutToType<typeof governanceQueryLayout>;
+export type ConfigQuery = LayoutToType<typeof configQueryLayout>;
 
 const subArrayLayout = <const N extends string, const L extends Layout>(
   name: N,
@@ -277,11 +269,12 @@ export const commandCategoryLayout = {
     [[0x00, "TransferTokenWithRelay"], transferTokenWithRelayLayout],
     [[0x01, "TransferGasTokenWithRelay" ], transferGasTokenWithRelayLayout],
     [[0x02, "CompleteTransfer"], [{ name: "vaa", binary: "bytes", lengthSize: 2 }]],
-    [[0x03, "ConfigCommands"], subArrayLayout("commands", governanceCommandLayout)],
+    [[0x03, "ConfigCommands"], subArrayLayout("commands", configCommandLayout)],
     [[0x04, "ApproveToken"], approveTokenLayout],
 
-    [[0x60, "RoleCommands"], [] /*subArrayLayout("commands", roleCommandLayout)*/],
-    [[0x61, "AcquireOwnership"], [] /*subArrayLayout("commands", roleCommandLayout)*/],
+    [[0x60, "AccessControlCommands"], subArrayLayout("commands", accessControlCommandLayout)],
+    [[0x61, "AcquireOwnership"], []],
+    // FIXME
     [[0x62, "UpgradeCommands"], [] /*subArrayLayout("commands", upgradeCommandLayout)*/],
     [[0x63, "SweepTokens"], [
       { name: "address", ...evmAddressItem },
@@ -298,10 +291,11 @@ export const queryCategoryLayout = {
   layouts: [
     [[0x80, "RelayFee"], relayingFeesInputLayout],
     [[0x81, "BaseRelayingConfig"], baseRelayingConfigInputLayout],
-    [[0x82, "GovernanceQueries"], subArrayLayout("queries", governanceQueryLayout)],
+    [[0x82, "ConfigQueries"], subArrayLayout("queries", configQueryLayout)],
     [[0x83, "AllowanceTokenBridge"], approveTokenLayout],
-    [[0xe0, "RoleQueries"], [] /*subArrayLayout("queries", roleQueryLayout)*/],
-    [[0xe2, "UpgradeQueries"], [] /*subArrayLayout("queries", upgradeQueryLayout)*/],
+    [[0xe0, "AccessControlQueries"], subArrayLayout("queries", accessControlQueryLayout)],
+    // FIXME
+    [[0xe1, "Implementation"], [] /*subArrayLayout("queries", upgradeQueryLayout)*/],
   ],
 } as const;
 export type QueryCategory = LayoutToType<typeof queryCategoryLayout>;
