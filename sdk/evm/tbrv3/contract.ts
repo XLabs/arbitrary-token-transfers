@@ -25,8 +25,9 @@ import {
   TokenBridgeAllowances,
   allowanceTokenBridgeReturnLayout,
   QueryCategory,
+  CommandCategory,
 } from "./layouts.js";
-import { AccessControlQuery } from "./access-control.js";
+import { AccessControlCommand, AccessControlQuery } from "./solidity-sdk/access-control.js";
 
 const WHOLE_EVM_GAS_TOKEN_UNITS = 10 ** 18;
 
@@ -369,13 +370,36 @@ export class Tbrv3 {
     return decodeQueryResponseLayout(baseRelayingReturnListLayout, ethers.getBytes(result));
   }
 
-  governanceTx<const C extends ConfigCommand[]>(commands: C): TbrPartialTx {
+  batchAdminWrites<
+    const C extends ConfigCommand[],
+    const A extends AccessControlCommand[],
+  >(configCommands: C, accessControlCommands: A): TbrPartialTx {
+    const commandCategories: CommandCategory[] = [];
+    if (configCommands.length > 0) {
+      commandCategories.push(
+        {
+          commandCategory: 'ConfigCommands',
+          commands: configCommands
+        }
+      )
+    }
+
+    if (accessControlCommands.length > 0) {
+      commandCategories.push(
+        {
+          commandCategory: "AccessControlCommands",
+          commands: accessControlCommands,
+        }
+      )
+    }
+
+    return this.writeAdminTx(commandCategories);
+  }
+
+  writeAdminTx<const C extends CommandCategory[]>(commandCategories: C): TbrPartialTx {
     const methods = layout.serializeLayout(execParamsLayout, {
       version: 0,
-      commandCategories: commands.map(arg => ({
-        commandCategory: 'ConfigCommands',
-        commands
-      }) satisfies LayoutToType<typeof commandCategoryLayout>),
+      commandCategories,
     })
     const data = Tbrv3.encodeExecute(methods);
 
@@ -387,35 +411,39 @@ export class Tbrv3 {
   }
 
   updateMaxGasDroppoffs(dropoffs: Map<SupportedChains, number>): TbrPartialTx {
-    return this.governanceTx(Array.from(dropoffs).map(
-      ([chain, maxDropoff]) => ({ command: "UpdateMaxGasDropoff", value: maxDropoff, chain: chain as SupportedChains })
-    ));
+    return this.batchAdminWrites(Array.from(dropoffs).map(
+      ([chain, maxDropoff]) => ({ command: "UpdateMaxGasDropoff", value: maxDropoff, chain })
+    ), []);
   }
 
   updateRelayFees(fees: Map<SupportedChains, number>): TbrPartialTx {
-    return this.governanceTx(Array.from(fees).map(
-      ([chain, maxDropoff]) => ({ command: "UpdateBaseFee", value: maxDropoff, chain: chain as SupportedChains })
-    )); 
+    return this.batchAdminWrites(Array.from(fees).map(
+      ([chain, maxDropoff]) => ({ command: "UpdateBaseFee", value: maxDropoff, chain })
+    ), []); 
   }
 
-  updateAdmin(authorized: boolean, admin: EvmAddress): TbrPartialTx {
-    return this.governanceTx([{ command: "UpdateAdmin", address: admin.toString(), isAdmin: authorized }]);
+  addAdmin(admin: EvmAddress): TbrPartialTx {
+    return this.batchAdminWrites([], [{ command: "AddAdmin", address: admin }]);
+  }
+
+  revokeAdmin(admin: EvmAddress): TbrPartialTx {
+    return this.batchAdminWrites([], [{ command: "RevokeAdmin", address: admin }]);
   }
 
   updateCanonicalPeers(canonicalPeers: Map<SupportedChains, UniversalAddress>): TbrPartialTx {
-    return this.governanceTx(Array.from(canonicalPeers).map(
-      ([chain, peer]) => ({ command: "UpdateCanonicalPeer", address: peer, chain: chain as SupportedChains })
-    ));
+    return this.batchAdminWrites(Array.from(canonicalPeers).map(
+      ([chain, peer]) => ({ command: "UpdateCanonicalPeer", address: peer, chain })
+    ), []);
   }
 
-  upgradeContract(newImplementationAddress: EvmAddress): TbrPartialTx {
-    return this.governanceTx([{command: "UpgradeContract", address: newImplementationAddress.toString() }]);
+  upgradeContract(newImplementation: EvmAddress): TbrPartialTx {
+    return this.writeAdminTx([{commandCategory: "UpgradeContract", newImplementation }]);
   }
 
   addPeers(peers: { chain: SupportedChains, peer: UniversalAddress }[]): TbrPartialTx {
-    return this.governanceTx(peers.map(
-      (peer) => ({command: "AddPeer", address: peer.peer, chain: peer.chain })
-    ));
+    return this.batchAdminWrites(peers.map(
+      ({peer, chain}) => ({command: "AddPeer", address: peer, chain })
+    ), []);
   }
 
   async batchQueries<const C extends ConfigQuery[], const A extends AccessControlQuery[]>(configQueries: C, accessControlQueries: A): Promise<string> {
@@ -543,12 +571,12 @@ export class Tbrv3 {
    */
   static proxyConstructor(
     owner: string,
-    admin: string,
+    admins: string[],
     feeRecipient: string,
   ) {
     const initConfig = {
       owner,
-      admin,
+      admins,
       feeRecipient,
     };
 

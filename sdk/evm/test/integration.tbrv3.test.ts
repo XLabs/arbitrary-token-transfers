@@ -97,18 +97,30 @@ describe('TbrV3 SDK Integration test', () => {
     expect(fee).to.equal(expectedFee);
   }).timeout(timeout);
 
-  it("should update admin", async () => {
-    const evmAddress = new EvmAddress(ethers.Wallet.createRandom().address);
-    const expectedIsAdmin = Math.random() < 0.5;
-    const modifyAdminPartialTx = tbrv3.updateAdmin(expectedIsAdmin, evmAddress);
+  it("should add admin", async () => {
+    const evmAddress = new EvmAddress("0x00002000004000000f000000e00a000b000c000d");
+    const modifyAdminPartialTx = tbrv3.addAdmin(evmAddress);
 
     const result = await awaitTx(modifyAdminPartialTx);
 
     expect(result!.status).to.equal(1);
 
     const isAdmin = await tbrv3.isAdmin(evmAddress);
-    expect(isAdmin).to.equal(expectedIsAdmin);
+    expect(isAdmin).to.equal(true);
   }).timeout(timeout);
+
+  // This test relies on the fact that we're not snapshotting state of the contracts.
+  it("should remove admin", async () => {
+    const evmAddress = new EvmAddress("0x00002000004000000f000000e00a000b000c000d");
+    const modifyAdminPartialTx = tbrv3.revokeAdmin(evmAddress);
+
+    const result = await awaitTx(modifyAdminPartialTx);
+
+    expect(result!.status).to.equal(1);
+
+    const isAdmin = await tbrv3.isAdmin(evmAddress);
+    expect(isAdmin).to.equal(false);
+  }).timeout(timeout)
 
   // governance queries
 

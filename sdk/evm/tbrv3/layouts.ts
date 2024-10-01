@@ -1,7 +1,9 @@
 import type { Chain, CustomConversion, Layout, LayoutToType, LayoutItem, NamedLayoutItem } from "@wormhole-foundation/sdk-base";
 import { layoutItems, type UniversalAddress } from "@wormhole-foundation/sdk-definitions";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
-import { accessControlCommandLayout, accessControlQueryLayout } from "./access-control.js";
+import { accessControlCommandMap, accessControlQueryMap } from "./solidity-sdk/access-control.js";
+import { implementationQueryLayout, upgradeCommandLayout } from "./solidity-sdk/upgrade.js";
+import { sweepTokensCommandLayout } from "./solidity-sdk/sweepTokens.js";
 
 // TODO: update supported chains to the actual chains supported
 export const supportedChains = ["Ethereum", "Solana", "Arbitrum", "Base", "Sepolia", "BaseSepolia", "OptimismSepolia"] as const satisfies readonly Chain[];
@@ -272,14 +274,9 @@ export const commandCategoryLayout = {
     [[0x03, "ConfigCommands"], subArrayLayout("commands", configCommandLayout)],
     [[0x04, "ApproveToken"], approveTokenLayout],
 
-    [[0x60, "AccessControlCommands"], subArrayLayout("commands", accessControlCommandLayout)],
-    [[0x61, "AcquireOwnership"], []],
-    // FIXME
-    [[0x62, "UpgradeCommands"], [] /*subArrayLayout("commands", upgradeCommandLayout)*/],
-    [[0x63, "SweepTokens"], [
-      { name: "address", ...evmAddressItem },
-      { name: "amount", ...layoutItems.amountItem }
-    ]],
+    ...accessControlCommandMap,
+    ...upgradeCommandLayout,
+    ...sweepTokensCommandLayout,
   ],
 } as const;
 export type CommandCategory = LayoutToType<typeof commandCategoryLayout>;
@@ -293,9 +290,9 @@ export const queryCategoryLayout = {
     [[0x81, "BaseRelayingConfig"], baseRelayingConfigInputLayout],
     [[0x82, "ConfigQueries"], subArrayLayout("queries", configQueryLayout)],
     [[0x83, "AllowanceTokenBridge"], approveTokenLayout],
-    [[0xe0, "AccessControlQueries"], subArrayLayout("queries", accessControlQueryLayout)],
-    // FIXME
-    [[0xe1, "Implementation"], [] /*subArrayLayout("queries", upgradeQueryLayout)*/],
+
+    ...accessControlQueryMap,
+    ...implementationQueryLayout,
   ],
 } as const;
 export type QueryCategory = LayoutToType<typeof queryCategoryLayout>;
@@ -331,7 +328,7 @@ export const TBRv3Message = [ //we can turn this into a switch layout if we ever
 ] as const satisfies Layout;
 
 export const proxyConstructorLayout = [
-  { name: "owner", ...evmAddressItem },
-  { name: "admin", ...evmAddressItem },
   { name: "feeRecipient", ...evmAddressItem },
+  { name: "owner", ...evmAddressItem },
+  { name: "admins", binary: "array", lengthSize: 1, layout: evmAddressItem },
 ] as const satisfies Layout;
