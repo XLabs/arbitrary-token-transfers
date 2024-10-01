@@ -158,10 +158,10 @@ abstract contract TbrUser is TbrBase {
     (rawToken,     offset) = data.asAddressCdUnchecked(offset);
     (unwrapIntent, offset) = data.asBoolCdUnchecked(offset);
     IERC20Metadata token = IERC20Metadata(rawToken);
-    offset = _acquireTokens(data, offset, token, tokenAmount);
-    
     (bytes32 peer, uint256 finalTokenAmount, uint256 fee, uint256 wormholeFee) =
       _getAndCheckTransferParams(targetChain, recipient, token, tokenAmount, gasDropoff, commandIndex);
+
+    offset = _acquireTokens(data, offset, token, finalTokenAmount);
 
     if (fee + wormholeFee > unallocatedBalance)
       revert FeesInsufficient(msg.value, commandIndex);
@@ -226,14 +226,14 @@ abstract contract TbrUser is TbrBase {
     bytes calldata data,
     uint offset,
     IERC20Metadata token,
-    uint256 tokenAmount
+    uint256 finalTokenAmount
   ) internal returns (uint) {
     // Acquire tokens
     // FIXME?: here we assume that the token transfers the entire amount without any tax or reward acquisition.
     uint8 acquireMode;
     (acquireMode, offset) = data.asUint8CdUnchecked(offset);
     if (acquireMode == ACQUIRE_PREAPPROVED)
-      SafeERC20.safeTransferFrom(token, msg.sender, address(this), tokenAmount);
+      SafeERC20.safeTransferFrom(token, msg.sender, address(this), finalTokenAmount);
     else if (acquireMode == ACQUIRE_PERMIT) {
       uint256 value; uint256 deadline; bytes32 r; bytes32 s; uint8 v;
       (value, deadline, r, s, v, offset) =
@@ -243,7 +243,9 @@ abstract contract TbrUser is TbrBase {
       try
         IERC20Permit(address(token)).permit(msg.sender, address(this), value, deadline, v, r, s) {}
       catch {}
-      SafeERC20.safeTransferFrom(token, msg.sender, address(this), tokenAmount);
+
+      // We only acquire the normalized `finalTokenAmount`
+      SafeERC20.safeTransferFrom(token, msg.sender, address(this), finalTokenAmount);
     }
     else if (acquireMode == ACQUIRE_PERMIT2TRANSFER) {
       uint256 amount; uint256 nonce; uint256 sigDeadline; bytes memory signature;
@@ -256,7 +258,10 @@ abstract contract TbrUser is TbrBase {
           nonce: nonce,
           deadline: sigDeadline
         }),
-        ISignatureTransfer.SignatureTransferDetails(address(this), tokenAmount),
+        ISignatureTransfer.SignatureTransferDetails({
+          to: address(this),
+          requestedAmount: finalTokenAmount
+        }),
         msg.sender,
         signature
       );
@@ -282,7 +287,7 @@ abstract contract TbrUser is TbrBase {
           signature
         ) {}
       catch {}
-      permit2.transferFrom(msg.sender, address(this), uint160(tokenAmount), address(token));
+      permit2.transferFrom(msg.sender, address(this), uint160(finalTokenAmount), address(token));
     }
     else
       revert InvalidAcquireMode(acquireMode);
