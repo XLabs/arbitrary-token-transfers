@@ -27,8 +27,7 @@
     "@wormhole-foundation/sdk-definitions": "^0.10.7",
     "@wormhole-foundation/sdk-solana-tokenbridge": "^0.10.7",
     "@xlabs/solana-price-oracle-sdk": "^0.0.4",
-    "borsh": "^2.0.0",
-    "common-arbitrary-token-transfer": "workspace:^"
+    "borsh": "^2.0.0"
   },
   "devDependencies": {
     "@types/node": "20.16.5",
