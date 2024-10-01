@@ -1,5 +1,16 @@
-import { BytesLayoutItem, Chain, chainToPlatform, FixedLengthArray, Layout, layout, LayoutItem, LayoutToType, Network, ProperLayout } from "@wormhole-foundation/sdk-base";
-import { layoutItems, serialize, toNative, UniversalAddress, VAA } from "@wormhole-foundation/sdk-definitions";
+import {
+  BytesLayoutItem,
+  Chain,
+  chainToPlatform,
+  FixedLengthArray,
+  Layout,
+  layout,
+  LayoutItem,
+  LayoutToType,
+  Network,
+  ProperLayout,
+} from "@wormhole-foundation/sdk-base";
+import { layoutItems, serialize, UniversalAddress, VAA } from "@wormhole-foundation/sdk-definitions";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
 import { ethers } from "ethers";
 import {
@@ -28,6 +39,7 @@ import {
 } from "./layouts.js";
 import { AccessControlCommand, AccessControlQuery } from "./solidity-sdk/access-control.js";
 import { evmAddressItem } from "./solidity-sdk/common.js";
+import { getNative } from "@wormhole-foundation/sdk-base/tokens";
 
 const WHOLE_EVM_GAS_TOKEN_UNITS = 10 ** 18;
 
@@ -157,13 +169,13 @@ export class Tbrv3 {
       throw new Error(`Tbrv3 address needs to be provided for network ${network}`);
     }
 
-    const defaultGasToken = this.gasTokens[network][chain];
+    const defaultGasToken = getNative(network, chain);
     if (gasToken === undefined) {
       if (defaultGasToken === undefined) {
         throw new Error(`Gas token address needs to be provided for network ${network} and chain ${chain}`);
       }
-      gasToken = defaultGasToken;
-    } else if (defaultGasToken !== undefined && !gasToken.equals(defaultGasToken)) {
+      gasToken = new EvmAddress(defaultGasToken.wrappedKey!);
+    } else if (defaultGasToken !== undefined && !gasToken.equals(new EvmAddress(defaultGasToken.wrappedKey!))) {
       throw new Error(`Unexpected gas token address ${gasToken} for network ${network} and chain ${chain}`);
     }
 
@@ -187,12 +199,6 @@ export class Tbrv3 {
   static readonly addresses: Record<NetworkMain, EvmAddress> = {
     Mainnet: zeroAddress,
     Testnet: zeroAddress,
-  }
-
-  // TODO: fill these out
-  static readonly gasTokens: Record<NetworkMain, Partial<Record<Chain, EvmAddress>>> = {
-    Mainnet: {},
-    Testnet: {},
   }
 
   transferWithRelay(allowances: TokenBridgeAllowances, ...transfers: Transfer[]): TbrPartialTx {
