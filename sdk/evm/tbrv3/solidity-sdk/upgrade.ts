@@ -2,7 +2,7 @@ import { Layout, SwitchLayoutItem } from "@wormhole-foundation/sdk-base";
 import { evmAddressItem } from "./common.js";
 
 /**
- * result of calls to Admins
+ * result of calls to Implementation
  */
 export const implementationResultLayout = [
   { name: "implementation", ...evmAddressItem },
