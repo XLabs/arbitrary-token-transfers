@@ -4,7 +4,7 @@ import { MapLevels, Network, Chain, constMap } from '@wormhole-foundation/sdk-ba
 const addresses = [[
   "Mainnet", []], [
   "Testnet", [
-    ["Solana",          "AttbEYJMSsnVRDcKY4AcX1GBcdPy9FzHcxTbKaMGGuLs"],
+    ["Solana",          "ATT7enfWTMV4dDTe2NQ2yBaTByuXXwrYRznsioQEUW6r"],
     ["Sepolia",         "0xb620f38B1211bDB96684576017F66bA9871eb6be"],
     ["Celo",            "0xdbe75EfF77dF67524B13c38e07d2451456098DC7"],
     ["BaseSepolia",     "0xFe8dE1cf8893f0D928F007E787fD072660EAc06B"],
