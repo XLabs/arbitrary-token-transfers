@@ -34,7 +34,7 @@ error InvalidAccessControlCommand(uint8 command);
 error InvalidAccessControlQuery(uint8 query);
 
 event OwnerUpdated(address oldAddress, address newAddress, uint256 timestamp);
-event AdminsUpdated(address newAddress, bool isAdmin, uint256 timestamp);
+event AdminsUpdated(address addr, bool isAdmin, uint256 timestamp);
 
 abstract contract AccessControl {
   using BytesParsing for bytes;
@@ -43,10 +43,11 @@ abstract contract AccessControl {
 
   function _accessControlConstruction(
     address owner,
-    address admin
+    address[] memory admins
   ) internal {
     accessControlState().owner = owner;
-    _updateAdmins(admin, true);
+    for (uint i = 0; i < admins.length; ++i)
+      _updateAdmins(admins[i], true);
   }
 
   // ---- internals ----

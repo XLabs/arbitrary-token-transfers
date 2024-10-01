@@ -7,9 +7,7 @@ import {
   accessControlState, 
   NotAuthorized 
 } from "./sharedComponents/AccessControl.sol";
-import { SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import { BytesParsing } from "wormhole-sdk/libraries/BytesParsing.sol";
-import { IERC20 } from "@openzeppelin/token/ERC20/IERC20.sol";
 import { ProxyBase } from "wormhole-sdk/proxy/ProxyBase.sol";
 import { TbrBase } from "./TbrBase.sol";
 import "./TbrIds.sol";
@@ -34,7 +32,6 @@ event FeeRecipienUpdated(address oldAddress, address newAddress, uint256 timesta
 
 abstract contract TbrConfig is TbrBase, ProxyBase {
   using BytesParsing for bytes;
-  using SafeERC20 for IERC20;
 
   // ---- construction ----
 
@@ -108,8 +105,8 @@ abstract contract TbrConfig is TbrBase, ProxyBase {
         (newCanonicalPeer, offset) = commands.asBytes32CdUnchecked(offset);
         _setCanonicalPeer(peerChain, newCanonicalPeer);
       }
-        else
-          revert InvalidConfigCommand(command);
+      else
+        revert InvalidConfigCommand(command);
       
     }
     return offset;
@@ -123,7 +120,7 @@ abstract contract TbrConfig is TbrBase, ProxyBase {
     uint8 queryCount;
     (queryCount, offset) = queries.asUint8CdUnchecked(offset);
 
-    for (uint8 i = 0; i < queryCount; i++) {
+    for (uint8 i = 0; i < queryCount; ++i) {
       uint8 query;
       (query, offset) = queries.asUint8CdUnchecked(offset);
 
