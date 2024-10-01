@@ -112,7 +112,8 @@ async function deployProxy(
 
   const proxyConstructorArgs = Tbrv3.proxyConstructor(
     config.owner || signerAddress,
-    config.admin || signerAddress,
+    // TODO: accept more admins in config
+    [config.admin || signerAddress],
     config.feeRecipient || signerAddress,
   );
 
