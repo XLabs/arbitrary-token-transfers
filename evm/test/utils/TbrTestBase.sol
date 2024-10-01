@@ -68,6 +68,7 @@ contract TbrTestBase is Test {
 
   function setUp() public {
     uint fakeChainId = 0;
+    uint8 adminCount = 1;
     vm.mockCall(
       oracle,
       abi.encodeWithSelector(priceOracle.get1959.selector),
@@ -93,7 +94,7 @@ contract TbrTestBase is Test {
       abi.encodePacked(
         feeRecipient,
         owner,
-        uint8(1),
+        adminCount,
         admin
       )
     )));

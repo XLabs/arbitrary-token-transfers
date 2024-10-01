@@ -39,7 +39,7 @@ contract DispatcherTest is TbrTestBase {
     vm.expectRevert(
       abi.encodeWithSelector(UnsupportedVersion.selector, wrongVersion)
     );
-    invokeTbr(
+    invokeStaticTbr(
       abi.encodePacked(tbr.get1959.selector, wrongVersion)
     );
 
@@ -49,7 +49,7 @@ contract DispatcherTest is TbrTestBase {
     vm.expectRevert(
       abi.encodeWithSelector(InvalidCommand.selector, fakeQuery, expextedQueryIndex)
     );
-    invokeTbr(
+    invokeStaticTbr(
       abi.encodePacked(tbr.get1959.selector, DISPATCHER_PROTOCOL_VERSION0, fakeQuery)
     );
   }
