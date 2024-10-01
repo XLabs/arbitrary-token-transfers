@@ -4,6 +4,7 @@ import { EvmAddress } from "@wormhole-foundation/sdk-evm";
 import { accessControlCommandMap, accessControlQueryMap } from "./solidity-sdk/access-control.js";
 import { implementationQueryLayout, upgradeCommandLayout } from "./solidity-sdk/upgrade.js";
 import { sweepTokensCommandLayout } from "./solidity-sdk/sweepTokens.js";
+import { evmAddressItem } from "./solidity-sdk/common.js";
 
 // TODO: update supported chains to the actual chains supported
 export const supportedChains = ["Ethereum", "Solana", "Arbitrum", "Base", "Sepolia", "BaseSepolia", "OptimismSepolia"] as const satisfies readonly Chain[];
@@ -21,15 +22,6 @@ const peerChainAndAddressItem = {
     { name: "address", ...layoutItems.universalAddressItem }
   ]
 } as const;
-
-export const evmAddressItem = {
-  binary: "bytes",
-  size: 20,
-  custom: {
-    to: (encoded: Uint8Array) => new EvmAddress(encoded).toString(),
-    from: (addr: string) => new EvmAddress(addr).toUint8Array(),
-  } satisfies CustomConversion<Uint8Array, string>,
-} as const satisfies LayoutItem;
 
 //TODO eliminate copy paste from oracle sdk and unify in some shared repo
 const decimalDownShift = (downShift: number) => ({

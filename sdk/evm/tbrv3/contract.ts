@@ -5,7 +5,6 @@ import { ethers } from "ethers";
 import {
   baseRelayingConfigReturnLayout,
   commandCategoryLayout,
-  evmAddressItem,
   execParamsLayout,
   gasDropoffItem,
   ConfigCommand,
@@ -28,8 +27,11 @@ import {
   CommandCategory,
 } from "./layouts.js";
 import { AccessControlCommand, AccessControlQuery } from "./solidity-sdk/access-control.js";
+import { evmAddressItem } from "./solidity-sdk/common.js";
 
 const WHOLE_EVM_GAS_TOKEN_UNITS = 10 ** 18;
+
+const zeroAddress = new EvmAddress("0x0000000000000000000000000000000000000000");
 
 
 type FixedArray<T extends Layout> = {
@@ -92,7 +94,7 @@ export interface RelayingFeesInput {
    * Token addresses involved in the transfers.
    * Must be hex encoded and '0x' prefixed.
    */
-  readonly tokens: readonly string[];
+  readonly tokens: readonly EvmAddress[];
   /**
    * Transfer parameters.
    * There should be one of these per transfer request.
@@ -137,8 +139,8 @@ export class Tbrv3 {
   constructor(
     public readonly provider: ethers.Provider,
     public readonly network: NetworkMain,
-    public readonly address: string = Tbrv3.addresses[network],
-    private readonly gasToken: string,
+    public readonly address: EvmAddress = Tbrv3.addresses[network],
+    private readonly gasToken: EvmAddress,
   ) {
     this.address = address;
 
@@ -148,10 +150,10 @@ export class Tbrv3 {
     provider: ethers.Provider,
     network: NetworkMain,
     chain: Chain,
-    gasToken?: string,
-    address?: string,
+    gasToken?: EvmAddress,
+    address?: EvmAddress,
   ) {
-    if (address === undefined && this.addresses[network] === "TBD") {
+    if (address === undefined && this.addresses[network].equals(zeroAddress)) {
       throw new Error(`Tbrv3 address needs to be provided for network ${network}`);
     }
 
@@ -161,7 +163,7 @@ export class Tbrv3 {
         throw new Error(`Gas token address needs to be provided for network ${network} and chain ${chain}`);
       }
       gasToken = defaultGasToken;
-    } else if (defaultGasToken !== undefined && gasToken.toLowerCase() !== defaultGasToken?.toLowerCase()) {
+    } else if (defaultGasToken !== undefined && !gasToken.equals(defaultGasToken)) {
       throw new Error(`Unexpected gas token address ${gasToken} for network ${network} and chain ${chain}`);
     }
 
@@ -171,24 +173,24 @@ export class Tbrv3 {
   /**
    * @deprecated This method will be removed soon. The sdk won't use ethers directly anymore.
    */
-  static fromRpcUrlStatic(rpc: string, network: NetworkMain, chain: Chain, gasToken?: string, address?: string): Tbrv3 {
+  static fromRpcUrlStatic(rpc: string, network: NetworkMain, chain: Chain, gasToken?: EvmAddress, address?: EvmAddress): Tbrv3 {
     return this.connect(new ethers.JsonRpcProvider(rpc, undefined, {staticNetwork: true}), network, chain, gasToken, address);
   }
 
   /**
    * @deprecated This method will be removed soon. The sdk won't use ethers directly anymore.
    */
-  static fromRpcUrl(rpc: string, network: NetworkMain, chain: Chain, gasToken?: string, address?: string): Tbrv3 {
+  static fromRpcUrl(rpc: string, network: NetworkMain, chain: Chain, gasToken?: EvmAddress, address?: EvmAddress): Tbrv3 {
     return this.connect(new ethers.JsonRpcProvider(rpc), network, chain, gasToken, address);
   }
 
-  static readonly addresses: Record<NetworkMain, string> = {
-    Mainnet: "TBD",
-    Testnet: "TBD",
+  static readonly addresses: Record<NetworkMain, EvmAddress> = {
+    Mainnet: zeroAddress,
+    Testnet: zeroAddress,
   }
 
   // TODO: fill these out
-  static readonly gasTokens: Record<NetworkMain, Partial<Record<Chain, string>>> = {
+  static readonly gasTokens: Record<NetworkMain, Partial<Record<Chain, EvmAddress>>> = {
     Mainnet: {},
     Testnet: {},
   }
@@ -217,10 +219,10 @@ export class Tbrv3 {
 
       if (transfer.args.method === "TransferGasTokenWithRelay") {
         value += transfer.args.inputAmountInAtomic;
-        requiredAllowances[this.gasToken] += transfer.args.inputAmountInAtomic;
+        requiredAllowances[this.gasToken.toString()] += transfer.args.inputAmountInAtomic;
         transferCalls.push({...transfer.args, commandCategory: transfer.args.method});
       } else {
-        requiredAllowances[transfer.args.inputToken.toLowerCase()] = transfer.args.inputAmountInAtomic;
+        requiredAllowances[transfer.args.inputToken.toString()] = transfer.args.inputAmountInAtomic;
         transferCalls.push({...transfer.args, commandCategory: transfer.args.method});
       }
 
@@ -234,7 +236,7 @@ export class Tbrv3 {
       if (requiredAllowance > allowances[token]) {
         approveCalls.push({
           commandCategory: "ApproveToken",
-          inputToken: token,
+          inputToken: new EvmAddress(token),
         });
       }
     }
@@ -246,7 +248,7 @@ export class Tbrv3 {
     const data = Tbrv3.encodeExecute(methods);
 
     return {
-      to: this.address,
+      to: this.address.toString(),
       data,
       value,
     };
@@ -260,7 +262,7 @@ export class Tbrv3 {
     if (vaas.some(({payload}) => {
       const destinationAddress = payload.to.address.toNative(payload.to.chain);
       // TODO: actually check that this is part of the supported EVM chains
-      return chainToPlatform(payload.to.chain) !== "Evm" || !destinationAddress.equals(toNative("Ethereum", this.address));
+      return chainToPlatform(payload.to.chain) !== "Evm" || !destinationAddress.equals(this.address);
     })) {
       // TODO: point out which one; do a search instead.
       throw new Error("At least one of the VAAs points to an unexpected contract.");
@@ -285,7 +287,7 @@ export class Tbrv3 {
     const data = Tbrv3.encodeExecute(methods);
 
     return {
-      to: this.address,
+      to: this.address.toString(),
       data,
       value,
     }
@@ -327,7 +329,7 @@ export class Tbrv3 {
     const calldata = Tbrv3.encodeQuery(queries);
     const result = await this.provider.call({
       data: ethers.hexlify(calldata),
-      to: this.address,
+      to: this.address.toString(),
     });
 
     const relayFeesReturnListLayout = fixedLengthArrayLayout(relayFeeQueries.length, relayingFeesReturnLayout);
@@ -342,7 +344,7 @@ export class Tbrv3 {
     const response = decodeQueryResponseLayout(responseLayout, ethers.getBytes(result));
     const allowances: Record<string, bigint> = {};
     for (const [i, {allowance}] of response.allowances.entries()) {
-      allowances[allowanceQueries[i].inputToken] = allowance;
+      allowances[allowanceQueries[i].inputToken.toString()] = allowance;
     }
 
     return {
@@ -363,7 +365,7 @@ export class Tbrv3 {
     const calldata = Tbrv3.encodeQuery(queries);
     const result = await this.provider.call({
       data: ethers.hexlify(calldata),
-      to: this.address,
+      to: this.address.toString(),
     });
 
     const baseRelayingReturnListLayout = fixedLengthArrayLayout(chains.length, baseRelayingConfigReturnLayout);
@@ -404,10 +406,22 @@ export class Tbrv3 {
     const data = Tbrv3.encodeExecute(methods);
 
     return {
-      to: this.address,
+      to: this.address.toString(),
       data,
       value: 0n,
     };
+  }
+
+  addPeers(peers: { chain: SupportedChains, peer: UniversalAddress }[]): TbrPartialTx {
+    return this.batchAdminWrites(peers.map(
+      ({peer, chain}) => ({command: "AddPeer", address: peer, chain })
+    ), []);
+  }
+
+  updateRelayFees(fees: Map<SupportedChains, number>): TbrPartialTx {
+    return this.batchAdminWrites(Array.from(fees).map(
+      ([chain, maxDropoff]) => ({ command: "UpdateBaseFee", value: maxDropoff, chain })
+    ), []);
   }
 
   updateMaxGasDroppoffs(dropoffs: Map<SupportedChains, number>): TbrPartialTx {
@@ -416,18 +430,16 @@ export class Tbrv3 {
     ), []);
   }
 
-  updateRelayFees(fees: Map<SupportedChains, number>): TbrPartialTx {
-    return this.batchAdminWrites(Array.from(fees).map(
-      ([chain, maxDropoff]) => ({ command: "UpdateBaseFee", value: maxDropoff, chain })
-    ), []); 
+  updateTransferPause(chainPause: Map<SupportedChains, boolean>): TbrPartialTx {
+    return this.batchAdminWrites(Array.from(chainPause).map(
+      ([chain, pause]) => ({ command: "UpdateTransferPause", value: pause, chain })
+    ), []);
   }
 
-  addAdmin(admin: EvmAddress): TbrPartialTx {
-    return this.batchAdminWrites([], [{ command: "AddAdmin", address: admin }]);
-  }
-
-  revokeAdmin(admin: EvmAddress): TbrPartialTx {
-    return this.batchAdminWrites([], [{ command: "RevokeAdmin", address: admin }]);
+  updateFeeRecipient(feeRecipient: EvmAddress): TbrPartialTx {
+    return this.batchAdminWrites([
+      { command: "UpdateFeeRecipient", address: feeRecipient },
+    ], []);
   }
 
   updateCanonicalPeers(canonicalPeers: Map<SupportedChains, UniversalAddress>): TbrPartialTx {
@@ -436,14 +448,28 @@ export class Tbrv3 {
     ), []);
   }
 
+  revokeAdmin(admin: EvmAddress): TbrPartialTx {
+    return this.batchAdminWrites([], [{ command: "RevokeAdmin", address: admin }]);
+  }
+
+  proposeOwnershipTransfer(newOwner: EvmAddress): TbrPartialTx {
+    return this.batchAdminWrites([], [{ command: "ProposeOwnershipTransfer", address: newOwner }]);
+  }
+
+  relinquishOwnership(): TbrPartialTx {
+    return this.batchAdminWrites([], [{ command: "RelinquishOwnership" }]);
+  }
+
+  addAdmin(admin: EvmAddress): TbrPartialTx {
+    return this.batchAdminWrites([], [{ command: "AddAdmin", address: admin }]);
+  }
+
   upgradeContract(newImplementation: EvmAddress): TbrPartialTx {
     return this.writeAdminTx([{commandCategory: "UpgradeContract", newImplementation }]);
   }
 
-  addPeers(peers: { chain: SupportedChains, peer: UniversalAddress }[]): TbrPartialTx {
-    return this.batchAdminWrites(peers.map(
-      ({peer, chain}) => ({command: "AddPeer", address: peer, chain })
-    ), []);
+  sweepTokens(tokens: { tokenAddress: EvmAddress; amount: bigint; }[]): TbrPartialTx {
+    return this.writeAdminTx(tokens.map(({tokenAddress, amount}) => ({commandCategory: "SweepTokens", tokenAddress, amount })));
   }
 
   async batchQueries<const C extends ConfigQuery[], const A extends AccessControlQuery[]>(configQueries: C, accessControlQueries: A): Promise<string> {
@@ -475,7 +501,7 @@ export class Tbrv3 {
 
     const result = await this.provider.call({
       data: ethers.hexlify(data),
-      to: this.address,
+      to: this.address.toString(),
     });
 
     return result;
@@ -570,9 +596,9 @@ export class Tbrv3 {
    * @returns The serialized layout of the initialization configuration.
    */
   static proxyConstructor(
-    owner: string,
-    admins: string[],
-    feeRecipient: string,
+    owner: EvmAddress,
+    admins: EvmAddress[],
+    feeRecipient: EvmAddress,
   ) {
     const initConfig = {
       owner,
@@ -615,6 +641,6 @@ function decodeQueryResponseLayout<const T extends Layout>(tbrLayout: T, value: 
   return response;
 }
 
-function filterTokens(tokens: readonly string[]): string[] {
-  return [...new Set(tokens.map(token => token.toLowerCase())).values()];
+function filterTokens(tokens: readonly EvmAddress[]): EvmAddress[] {
+  return [...new Set(tokens).values()];
 }
