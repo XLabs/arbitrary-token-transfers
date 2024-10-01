@@ -205,7 +205,7 @@ export class Tbrv3 {
     // Here we need to batch `this.baseRelayingParams` per target chain together with the relaying fee per transfer
 
     let value: bigint = 0n;
-    const transferCalls: LayoutToType<typeof commandCategoryLayout>[] = [];
+    const transferCalls: CommandCategory[] = [];
     for (const [i, transfer] of transfers.entries()) {
       if (transfer.feeEstimation.isPaused) {
         throw new Error(`Relays to chain ${transfer.args.recipient.chain} are paused. Found in transfer ${i + 1}.`);
