@@ -1,5 +1,5 @@
 {
-  "operatingChains": [1, 14, 10004, 10005],
+  "operatingChains": [1, 14, 10002, 10004, 10005],
   "evm": {
     "networks": [
       {
