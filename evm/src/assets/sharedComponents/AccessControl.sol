@@ -37,18 +37,26 @@ event OwnerUpdated(address oldAddress, address newAddress, uint256 timestamp);
 event AdminsUpdated(address addr, bool isAdmin, uint256 timestamp);
 
 enum Role {
+  NONE,
   OWNER,
   ADMIN
 }
 
 function senderHasAuth() view returns (Role) {
+  Role role = senderRole();
+  if (Role.NONE == role)
+    revert NotAuthorized();
+  return role;
+}
+
+function senderRole() view returns (Role) {
   AccessControlState storage state = accessControlState();
   if (msg.sender == state.owner) //check highest privilege level first
     return Role.OWNER;
   else if (state.isAdmin[msg.sender] != 0)
     return Role.ADMIN;
   else
-    revert NotAuthorized();
+    return Role.NONE;
 }
 
 abstract contract AccessControl {
@@ -88,6 +96,31 @@ abstract contract AccessControl {
   }
 
   // ---- internals ----
+
+  /**
+   * Dispatch an execute function. Execute functions almost always modify contract state.
+   */
+  function dispatchExecAccessControl(bytes calldata data, uint256 offset, uint8 command) internal returns (bool, uint256) {
+    if (command == ACCESS_CONTROL_ID)
+      offset = _batchAccessControlCommands(data, offset);
+    else if (command == ACQUIRE_OWNERSHIP_ID)
+      _acquireOwnership();
+    else return (false, offset);
+
+    return (true, offset);
+  }
+
+  /**
+   * Dispatch a query function. Query functions never modify contract state.
+   */
+  function dispatchQueryAccessControl(bytes calldata data, uint256 offset, uint8 query) view internal returns (bool, bytes memory, uint256) {
+    bytes memory result;
+    if (query == ACCESS_CONTROL_QUERIES_ID)
+      (result, offset) = _batchAccessControlQueries(data, offset);
+    else return (false, new bytes(0), offset);
+
+    return (true, result, offset);
+  }
 
   function _batchAccessControlCommands(
     bytes calldata commands,

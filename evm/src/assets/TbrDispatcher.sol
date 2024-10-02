@@ -57,16 +57,16 @@ abstract contract TbrDispatcher is RawDispatcher, TbrConfig, TbrUser, SweepToken
         offset = _approveToken(data, offset);
       else if (command == CONFIG_ID)
         offset = _batchConfigCommands(data, offset);
-      else if (command == ACCESS_CONTROL_ID)
-        offset = _batchAccessControlCommands(data, offset);
-      else if (command == UPGRADE_CONTRACT_ID)
-        offset = _upgradeContract(data, offset);
-      else if (command == SWEEP_TOKENS_ID)
-        offset = _sweepTokens(data, offset);
-      else if (command == ACQUIRE_OWNERSHIP_ID)
-        _acquireOwnership();
-      else
-        revert InvalidCommand(command, commandIndex);
+      else {
+        bool dispatched;
+          (dispatched, offset) = dispatchExecAccessControl(data, offset, command);
+        if (!dispatched)
+          (dispatched, offset) = dispatchExecUpgrade(data, offset, command);
+        if (!dispatched)
+          (dispatched, offset) = dispatchExecSweepTokens(data, offset, command);
+        if (!dispatched)
+          revert InvalidCommand(command, commandIndex);
+      }
 
       ++commandIndex;
     }
@@ -99,14 +99,16 @@ abstract contract TbrDispatcher is RawDispatcher, TbrConfig, TbrUser, SweepToken
         (result, offset) = _baseRelayingConfig(data, offset, queryIndex);
       else if (query == CONFIG_QUERIES_ID)
         (result, offset) = _batchGovernanceQueries(data, offset);
-      else if (query == ACCESS_CONTROL_QUERIES_ID)
-        (result, offset) = _batchAccessControlQueries(data, offset);
-      else if (query == IMPLEMENTATION_ID)
-        result = abi.encodePacked(_getImplementation());
       else if (query == ALLOWANCE_TOKEN_BRIDGE_ID)
         (result, offset) = _allowanceTokenBridge(data, offset);
-      else
-        revert InvalidCommand(query, queryIndex);
+      else {
+        bool dispatched;
+        (dispatched, result, offset) = dispatchQueryAccessControl(data, offset, query);
+        if (!dispatched)
+          (dispatched, result, offset) = dispatchQueryUpgrade(data, offset, query);
+        if (!dispatched)
+          revert InvalidCommand(query, queryIndex);
+      }
 
       ret = abi.encodePacked(ret, result);
       ++queryIndex;
