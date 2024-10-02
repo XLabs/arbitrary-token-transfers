@@ -1,0 +1,10 @@
+.idea
+npm-debug.log
+.vscode
+.nyc
+.env
+.DS_Store
+examples/logs/*
+examples/node_modules/*
+examples-d/logs/*
+examples-d/node_modules/*

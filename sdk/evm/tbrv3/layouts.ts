@@ -71,7 +71,7 @@ const feeItem = {
   custom: bigintDownshift(12),
 } as const satisfies LayoutItem;
 
-const acquireModeItem = {
+export const acquireModeItem = {
   name: "acquireMode",
   binary: "switch",
   idSize: 1,

@@ -45,7 +45,10 @@
     "sdk/solana",
     "evm",
     "solana",
-    "deployment"
+    "deployment",
+    "connect/definitions",
+    "connect/platforms/*",
+    "connect/route"
   ],
   "packageManager": "yarn@4.4.1"
 }

@@ -1,0 +1,20 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "experimentalDecorators": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2023", "DOM"],
+    "outDir": "ts-build",
+    "rootDir": ".",
+    "sourceRoot": "./src"
+  },
+  "include": ["src"],
+  "exclude": ["ts-build"],
+  "references": [
+    { "path": "../definitions" },
+    { "path": "../platforms/evm" },
+    { "path": "../platforms/solana" }
+  ]
+}

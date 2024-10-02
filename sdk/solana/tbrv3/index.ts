@@ -1,4 +1,4 @@
-import anchor from '@coral-xyz/anchor';
+import { BN, Provider, IdlAccounts } from '@coral-xyz/anchor';
 import { Program, web3 } from '@coral-xyz/anchor';
 import {
   PublicKey,
@@ -36,9 +36,9 @@ export interface TransferNativeParameters {
   recipient: WormholeAddress;
   mint: PublicKey;
   tokenAccount: PublicKey;
-  transferredAmount: anchor.BN;
+  transferredAmount: BN;
   gasDropoffAmount: number;
-  maxFeeKlamports: anchor.BN;
+  maxFeeKlamports: BN;
   unwrapIntent: boolean;
 }
 
@@ -46,17 +46,17 @@ export interface TransferWrappedParameters {
   recipient: WormholeAddress;
   token: WormholeAddress;
   userTokenAccount: PublicKey;
-  transferredAmount: anchor.BN;
+  transferredAmount: BN;
   gasDropoffAmount: number;
-  maxFeeKlamports: anchor.BN;
+  maxFeeKlamports: BN;
   unwrapIntent: boolean;
 }
 
-export type TbrConfigAccount = anchor.IdlAccounts<TokenBridgeRelayer>['tbrConfigState'];
-export type ChainConfigAccount = anchor.IdlAccounts<TokenBridgeRelayer>['chainConfigState'];
-export type PeerAccount = anchor.IdlAccounts<TokenBridgeRelayer>['peerState'];
-export type SignerSequenceAccount = anchor.IdlAccounts<TokenBridgeRelayer>['signerSequenceState'];
-export type AdminAccount = anchor.IdlAccounts<TokenBridgeRelayer>['adminState'];
+export type TbrConfigAccount = IdlAccounts<TokenBridgeRelayer>['tbrConfigState'];
+export type ChainConfigAccount = IdlAccounts<TokenBridgeRelayer>['chainConfigState'];
+export type PeerAccount = IdlAccounts<TokenBridgeRelayer>['peerState'];
+export type SignerSequenceAccount = IdlAccounts<TokenBridgeRelayer>['signerSequenceState'];
+export type AdminAccount = IdlAccounts<TokenBridgeRelayer>['adminState'];
 
 /**
  * Transforms a `UniversalAddress` into an array of numbers `number[]`.
@@ -64,13 +64,13 @@ export type AdminAccount = anchor.IdlAccounts<TokenBridgeRelayer>['adminState'];
 export const uaToArray = (ua: UniversalAddress): number[] => Array.from(ua.toUint8Array());
 
 export class SolanaTokenBridgeRelayer {
-  public readonly program: anchor.Program<TokenBridgeRelayer>;
+  public readonly program: Program<TokenBridgeRelayer>;
   private readonly priceOracleClient: SolanaPriceOracleClient;
   private readonly tokenBridgeProgramId: PublicKey;
   private readonly wormholeProgramId: PublicKey;
 
   constructor(
-    provider: anchor.Provider,
+    provider: Provider,
     {
       tokenBridgeProgramId,
       wormholeProgramId,
@@ -111,12 +111,12 @@ export class SolanaTokenBridgeRelayer {
     };
   }
 
-  private async payerSequenceNumber(payer: PublicKey): Promise<anchor.BN> {
+  private async payerSequenceNumber(payer: PublicKey): Promise<BN> {
     const impl = async (payer: PublicKey) => {
       try {
         return (await this.read.signerSequence(payer)).value;
       } catch {
-        return new anchor.BN(0);
+        return new BN(0);
       }
     };
 
@@ -301,8 +301,8 @@ export class SolanaTokenBridgeRelayer {
 
   async updateEvmTransactionConfig(
     signer: PublicKey,
-    evmTransactionGas: anchor.BN,
-    evmTransactionSize: anchor.BN,
+    evmTransactionGas: BN,
+    evmTransactionSize: BN,
   ): Promise<web3.TransactionInstruction> {
     return this.program.methods
       .updateEvmTransactionConfig(evmTransactionGas, evmTransactionSize)
@@ -543,7 +543,7 @@ const pda = {
   vaa: (programId: PublicKey, vaaHash: Uint8Array) =>
     PublicKey.findProgramAddressSync([Buffer.from('PostedVAA'), vaaHash], programId)[0],
 
-  wormholeMessage: (programId: PublicKey, payer: PublicKey, payerSequence: anchor.BN) => {
+  wormholeMessage: (programId: PublicKey, payer: PublicKey, payerSequence: BN) => {
     const buf = Buffer.alloc(8);
 
     buf.writeBigInt64BE(BigInt(payerSequence.toString()), 0);
@@ -555,7 +555,7 @@ const pda = {
   },
 };
 
-function assertProvider(provider: anchor.Provider) {
+function assertProvider(provider: Provider) {
   if (provider.sendAndConfirm === undefined) {
     throw new Error('The client must be created with a full provider to use this method');
   }
