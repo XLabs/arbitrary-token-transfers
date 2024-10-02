@@ -1779,7 +1779,6 @@ __metadata:
     "@wormhole-foundation/sdk-solana-tokenbridge": "npm:^0.10.7"
     "@xlabs/solana-price-oracle-sdk": "npm:^0.0.4"
     borsh: "npm:^2.0.0"
-    common-arbitrary-token-transfer: "workspace:^"
     tsup: "npm:^8.2.4"
     tsx: "npm:4.19.1"
     typescript: "npm:5.6.2"
@@ -2482,7 +2481,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"common-arbitrary-token-transfer@workspace:^, common-arbitrary-token-transfer@workspace:sdk/common":
+"common-arbitrary-token-transfer@workspace:sdk/common":
   version: 0.0.0-use.local
   resolution: "common-arbitrary-token-transfer@workspace:sdk/common"
   dependencies:

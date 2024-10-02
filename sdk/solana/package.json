@@ -1,6 +1,6 @@
 {
   "name": "@xlabs-xyz/solana-arbitrary-token-transfers",
-  "version": "0.0.2-alpha0",
+  "version": "0.0.2-alpha2",
   "license": "ISC",
   "type": "module",
   "module": "ts-build/tbrv3/index.js",
@@ -27,8 +27,7 @@
     "@wormhole-foundation/sdk-definitions": "^0.10.7",
     "@wormhole-foundation/sdk-solana-tokenbridge": "^0.10.7",
     "@xlabs/solana-price-oracle-sdk": "^0.0.4",
-    "borsh": "^2.0.0",
-    "common-arbitrary-token-transfer": "workspace:^"
+    "borsh": "^2.0.0"
   },
   "devDependencies": {
     "@types/node": "20.16.5",
@@ -58,6 +57,9 @@
       "@wormhole-foundation/sdk-definitions",
       "@wormhole-foundation/sdk-base",
       "@wormhole-foundation/sdk-solana-tokenbridge"
+    ],
+    "noExternal": [
+      "common-arbitrary-token-transfer"
     ]
   }
 }
