@@ -2,7 +2,12 @@
 
 pragma solidity ^0.8.25;
 
-import {ERC20} from "wormhole-sdk/testing/ERC20Mock.sol";
+import { WormholeOverride } from "wormhole-sdk/testing/WormholeOverride.sol";
+import { IWormhole } from "wormhole-sdk/interfaces/IWormhole.sol";
+import { TBR_V3_MESSAGE_VERSION } from "tbr/assets/TbrUser.sol";
+import { toUniversalAddress } from "wormhole-sdk/Utils.sol";
+import { ERC20 } from "wormhole-sdk/testing/ERC20Mock.sol";
+
 
 function makeBytes32(string memory seed) pure returns (bytes32) {
   return keccak256(abi.encodePacked(seed));
@@ -36,4 +41,45 @@ contract ERC20Mock is ERC20 {
     function burn(address from, uint256 amount) public {
         _burn(from, amount);
     }
+}
+
+function craftTbrV3Vaa(
+  IWormhole wormhole,
+  uint16 peerChain,
+  uint16 tokenChain,
+  bytes32 tokenAddress,
+  uint256 amount,
+  uint16 recipientChain,
+  address recipient,
+  uint32 gasDropoff,
+  bool unwrapIntent,
+  uint64 sequence
+) returns (IWormhole.VM memory, bytes memory) {
+  bytes32 universalRecipient = toUniversalAddress(recipient);
+  uint8 TOKEN_BRIDGE_PAYLOAD_ID = 3;
+  
+  bytes memory tokenBridgePayload = abi.encodePacked(
+      TOKEN_BRIDGE_PAYLOAD_ID,
+      amount,
+      tokenAddress,
+      tokenChain,
+      universalRecipient,
+      recipientChain,
+      toUniversalAddress(msg.sender),
+      abi.encodePacked(
+        TBR_V3_MESSAGE_VERSION,
+        universalRecipient,
+        gasDropoff,
+        unwrapIntent
+      )
+  );
+
+  WormholeOverride.setUpOverride(wormhole);
+  return WormholeOverride.craftVaa(
+    wormhole, 
+    peerChain, 
+    toUniversalAddress(msg.sender), 
+    sequence, 
+    tokenBridgePayload
+  );  
 }
