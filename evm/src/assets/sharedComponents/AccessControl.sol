@@ -36,6 +36,11 @@ error InvalidAccessControlQuery(uint8 query);
 event OwnerUpdated(address oldAddress, address newAddress, uint256 timestamp);
 event AdminsUpdated(address addr, bool isAdmin, uint256 timestamp);
 
+enum Role {
+  OWNER,
+  ADMIN
+}
+
 abstract contract AccessControl {
   using BytesParsing for bytes;
 
@@ -79,7 +84,7 @@ abstract contract AccessControl {
     uint offset
   ) internal returns (uint) {
     AccessControlState storage state = accessControlState();
-    (bool isOwner, ) = senderAuthorization();
+    bool isOwner = senderRole() == Role.OWNER;
 
     uint remainingCommands;
     (remainingCommands, offset) = commands.asUint8CdUnchecked(offset);
@@ -167,12 +172,12 @@ abstract contract AccessControl {
     _updateOwner(msg.sender);
   }
 
-  function senderAuthorization() internal view returns (bool isOwner, bool isAdmin) {
+  function senderRole() internal view returns (Role) {
     AccessControlState storage state = accessControlState();
     if (msg.sender == state.owner) //check highest privilege level first
-      return (true, false);
+      return Role.OWNER;
     else if (state.isAdmin[msg.sender])
-      return (false, true);
+      return Role.ADMIN;
     else
       revert NotAuthorized();
   }

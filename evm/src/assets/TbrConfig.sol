@@ -6,6 +6,7 @@ import {
   AccessControl,
   AccessControlState, 
   accessControlState, 
+  Role,
   NotAuthorized
 } from "./sharedComponents/AccessControl.sol";
 import { BytesParsing } from "wormhole-sdk/libraries/BytesParsing.sol";
@@ -48,7 +49,7 @@ abstract contract TbrConfig is TbrBase, AccessControl {
   // ---- externals ----
 
   function _batchConfigCommands(bytes calldata commands, uint offset) internal returns (uint) {
-    (bool isOwner, ) = senderAuthorization();
+    bool isOwner = senderRole() == Role.OWNER;
 
     uint commandCount;
     (commandCount, offset) = commands.asUint8CdUnchecked(offset);
