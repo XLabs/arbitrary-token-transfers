@@ -219,8 +219,8 @@ const uniqueTestTransfers: TestTransfer[] = [
     gasDropoffAmount: '0.00001',
     unwrapIntent: false,
     tokenAddress: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238', // USDC
-    tokenChain: "OptimismSepolia",
-    fromChain: "OptimismSepolia",
+    tokenChain: "Sepolia",
+    fromChain: "Sepolia",
     toChain: "Solana",
     skip: true,
   },
