@@ -17,7 +17,7 @@ struct AccessControlState {
   address   owner; //puts owner address in eip1967 admin slot
   address   pendingOwner;
   address[] admins;
-  mapping(address => bool) isAdmin;
+  mapping(address => uint256) isAdmin;
 }
 
 // we use the designated eip1967 admin storage slot:
@@ -39,6 +39,16 @@ event AdminsUpdated(address addr, bool isAdmin, uint256 timestamp);
 enum Role {
   OWNER,
   ADMIN
+}
+
+function senderHasAuth() view returns (Role) {
+  AccessControlState storage state = accessControlState();
+  if (msg.sender == state.owner) //check highest privilege level first
+    return Role.OWNER;
+  else if (state.isAdmin[msg.sender] != 0)
+    return Role.ADMIN;
+  else
+    revert NotAuthorized();
 }
 
 abstract contract AccessControl {
@@ -84,7 +94,7 @@ abstract contract AccessControl {
     uint offset
   ) internal returns (uint) {
     AccessControlState storage state = accessControlState();
-    bool isOwner = senderRole() == Role.OWNER;
+    bool isOwner = senderHasAuth() == Role.OWNER;
 
     uint remainingCommands;
     (remainingCommands, offset) = commands.asUint8CdUnchecked(offset);
@@ -140,7 +150,7 @@ abstract contract AccessControl {
       if (query == IS_ADMIN_ID) {
         address admin;
         (admin, offset) = queries.asAddressCdUnchecked(offset);
-        ret = abi.encodePacked(ret, state.isAdmin[admin]);
+        ret = abi.encodePacked(ret, bool(state.isAdmin[admin] != 0));
       } 
       else if (query == ADMINS_ID) {
         ret = abi.encodePacked(ret, uint8(state.admins.length));
@@ -172,16 +182,6 @@ abstract contract AccessControl {
     _updateOwner(msg.sender);
   }
 
-  function senderRole() internal view returns (Role) {
-    AccessControlState storage state = accessControlState();
-    if (msg.sender == state.owner) //check highest privilege level first
-      return Role.OWNER;
-    else if (state.isAdmin[msg.sender])
-      return Role.ADMIN;
-    else
-      revert NotAuthorized();
-  }
-
   // ---- private ----
 
   function _updateOwner(address newOwner) private {
@@ -192,21 +192,21 @@ abstract contract AccessControl {
 
   function _updateAdmins(address admin, bool authorization) private {
     AccessControlState storage state = accessControlState();
-    if (state.isAdmin[admin] == authorization)
+    if ((state.isAdmin[admin] != 0) == authorization)
       return;
 
-    state.isAdmin[admin] = authorization;
 
-    if (authorization)
+    if (authorization) {
       state.admins.push(admin);
+      state.isAdmin[admin] = state.admins.length;
+    }
     else {
-      for (uint i = 0; i < state.admins.length; ++i) {
-        if (state.admins[i] == admin) {
-          state.admins[i] = state.admins[state.admins.length - 1];
-          state.admins.pop();
-          break;
-        }
-      }
+      uint256 rawIndex = state.isAdmin[admin];
+      if (rawIndex != state.admins.length)
+        state.admins[rawIndex - 1] = state.admins[state.admins.length - 1];
+
+      state.isAdmin[admin] = 0;
+      state.admins.pop();
     }
 
     emit AdminsUpdated(admin, authorization, block.timestamp);

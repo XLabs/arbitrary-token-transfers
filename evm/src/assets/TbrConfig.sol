@@ -7,7 +7,8 @@ import {
   AccessControlState, 
   accessControlState, 
   Role,
-  NotAuthorized
+  NotAuthorized,
+  senderHasAuth
 } from "./sharedComponents/AccessControl.sol";
 import { BytesParsing } from "wormhole-sdk/libraries/BytesParsing.sol";
 import { ProxyBase } from "wormhole-sdk/proxy/ProxyBase.sol";
@@ -49,7 +50,7 @@ abstract contract TbrConfig is TbrBase, AccessControl {
   // ---- externals ----
 
   function _batchConfigCommands(bytes calldata commands, uint offset) internal returns (uint) {
-    bool isOwner = senderRole() == Role.OWNER;
+    bool isOwner = senderHasAuth() == Role.OWNER;
 
     uint commandCount;
     (commandCount, offset) = commands.asUint8CdUnchecked(offset);
@@ -167,9 +168,7 @@ abstract contract TbrConfig is TbrBase, AccessControl {
   // ---- private ----
 
   function _setFeeRecipient(address newFeeRecipient) internal {
-    AccessControlState storage acState = accessControlState();
-    if (msg.sender != acState.owner && !acState.isAdmin[msg.sender]) 
-      revert NotAuthorized();
+    senderHasAuth();
     
     ConfigState storage state = configState();
     address oldFeeRecipient = state.feeRecipient;
