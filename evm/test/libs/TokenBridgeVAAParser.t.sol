@@ -42,7 +42,7 @@ contract TokenBridgeVAAParserTest is TbrTestBase {
     uint64 sequence
   ) public {
     vm.assume(recipient != address(0));
-    (, bytes memory encoded) = craftTbrV3Vaa(
+    bytes memory encoded = craftTbrV3Vaa(
       wormholeCore,
       peerChain,
       tokenChain,
@@ -55,8 +55,6 @@ contract TokenBridgeVAAParserTest is TbrTestBase {
       sequence
     );
 
-    uint16 vaaLength = uint16(encoded.length);
-    encoded = abi.encodePacked(vaaLength, encoded);
     uint commandIndex = 0;
     uint offset = 0;
 
@@ -80,6 +78,6 @@ contract TokenBridgeVAAParserTest is TbrTestBase {
     assertEq(tokenAmount, amount);
     assertEq(gasDropoffParsed, gasDropoff);
     assertEq(unwrapIntentParsed, unwrapIntent);
-    assertEq(retOffset, vaaLength + 2); // 2 bytes for the size of the length field
+    assertEq(retOffset, encoded.length);
   } 
 }

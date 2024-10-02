@@ -54,7 +54,7 @@ function craftTbrV3Vaa(
   uint32 gasDropoff,
   bool unwrapIntent,
   uint64 sequence
-) returns (IWormhole.VM memory, bytes memory) {
+) returns (bytes memory) {
   bytes32 universalRecipient = toUniversalAddress(recipient);
   uint8 TOKEN_BRIDGE_PAYLOAD_ID = 3;
   
@@ -75,11 +75,13 @@ function craftTbrV3Vaa(
   );
 
   WormholeOverride.setUpOverride(wormhole);
-  return WormholeOverride.craftVaa(
+  (, bytes memory encoded) = WormholeOverride.craftVaa(
     wormhole, 
     peerChain, 
     toUniversalAddress(msg.sender), 
     sequence, 
     tokenBridgePayload
   );  
+
+  return abi.encodePacked(uint16(encoded.length), encoded);
 }
