@@ -41,7 +41,7 @@ describe('TbrV3 SDK Integration test', () => {
     expect(rpc).to.not.be.undefined;
     expect(ownerPk).to.not.be.undefined;
 
-    const address = config.TbrV3Proxies[0].address;
+    const address = new EvmAddress(config.TbrV3Proxies[0].address);
     const provider = new ethers.JsonRpcProvider(rpc);
     tbrv3 = Tbrv3.connect(provider, "Testnet", "Sepolia", address);
     signer = new ethers.Wallet(ownerPk!, tbrv3.provider);
@@ -133,7 +133,7 @@ describe('TbrV3 SDK Integration test', () => {
 
   it("should obtain relaying fee", async () => {
     const estimate = {
-      tokens: ["0x000000000000000000000000000000000000000a"],
+      tokens: [new EvmAddress("0x000000000000000000000000000000000000000a")],
       transferRequests: [{ targetChain: "Sepolia", gasDropoff: 1 }],
     } as const;
     const relayingFee = await tbrv3.relayingFee(estimate);
