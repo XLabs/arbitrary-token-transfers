@@ -1,12 +1,5 @@
-import { Layout, SwitchLayoutItem } from "@wormhole-foundation/sdk-base";
+import { SwitchLayoutItem } from "@wormhole-foundation/sdk-base";
 import { evmAddressItem } from "./common.js";
-
-/**
- * result of calls to Implementation
- */
-export const implementationResultLayout = [
-  { name: "implementation", ...evmAddressItem },
-] satisfies Layout;
 
 export const upgradeCommandLayout = [
   [[0x62, "UpgradeContract"], [{ name: "newImplementation", ...evmAddressItem}]],

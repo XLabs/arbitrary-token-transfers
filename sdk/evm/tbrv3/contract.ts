@@ -1,90 +1,52 @@
 import {
-  BytesLayoutItem,
+  RoArray,
   Chain,
-  chainToPlatform,
-  FixedLengthArray,
-  Layout,
-  layout,
-  LayoutItem,
-  LayoutToType,
   Network,
-  ProperLayout,
+  serializeLayout,
+  deserializeLayout,
+  chainToPlatform,
+  encoding,
 } from "@wormhole-foundation/sdk-base";
-import { layoutItems, serialize, UniversalAddress, VAA } from "@wormhole-foundation/sdk-definitions";
-import { EvmAddress } from "@wormhole-foundation/sdk-evm";
-import { ethers } from "ethers";
 import {
-  baseRelayingConfigReturnLayout,
-  commandCategoryLayout,
-  execParamsLayout,
-  gasDropoffItem,
-  ConfigCommand,
+  keccak256,
+  layoutItems,
+  serialize,
+  VAA,
+} from "@wormhole-foundation/sdk-definitions";
+import { EvmAddress } from "@wormhole-foundation/sdk-evm";
+import {
+  RelayingFeeParams,
+  TransferTokenWithRelay,
+  TransferGasTokenWithRelay,
   ConfigQuery,
+  RootCommand,
+  RootQuery,
+  TBRv3MessageLayout,
+  RelayingFeeReturn,
+  BaseRelayingConfigReturn,
+  AllowanceTokenBridgeReturn,
+  baseFeeItem,
+  gasDropoffItem,
   proxyConstructorLayout,
-  queryCategoryLayout,
   queryParamsLayout,
-  relayingFeesInputLayout,
-  relayingFeesReturnLayout,
-  SupportedChains,
-  TBRv3Message,
-  transferGasTokenWithRelayLayout,
-  transferTokenWithRelayLayout,
-  RelayingFee,
-  RelayingFeesReturn,
-  BaseRelayingParamsReturn,
-  TokenBridgeAllowances,
+  relayingFeeReturnLayout,
+  baseRelayingConfigReturnLayout,
   allowanceTokenBridgeReturnLayout,
-  QueryCategory,
-  CommandCategory,
+  execParamsLayout,
 } from "./layouts.js";
-import { AccessControlCommand, AccessControlQuery } from "./solidity-sdk/access-control.js";
+import {
+  AccessControlQuery,
+  AdminsQueryReturn,
+  adminsQueryReturnLayout,
+} from "./solidity-sdk/access-control.js";
 import { evmAddressItem } from "./solidity-sdk/common.js";
 import { getNative } from "@wormhole-foundation/sdk-base/tokens";
 
 const WHOLE_EVM_GAS_TOKEN_UNITS = 10 ** 18;
 
-const zeroAddress = new EvmAddress("0x0000000000000000000000000000000000000000");
+const zeroAddress = new EvmAddress(new Uint8Array(20));
 
-
-type FixedArray<T extends Layout> = {
-    binary: "array",
-    length: number,
-    layout: T,
-};
-
-// /**
-//  * @custom:selector 00000eb6
-//  */
-// function exec768() external payable returns (bytes memory) {
-//   return _exec(msg.data[4:]);
-// }
-
-// /**
-//  * @custom:selector 0008a112
-//  */
-// function get1959() external view returns (bytes memory) {
-//   return _get(msg.data[4:]);
-// }
-interface Tbrv3Abi {
-  exec768: ethers.BaseContractMethod<[], [ ethers.BytesLike ], ethers.ContractTransactionResponse>;
-  get1959: ethers.BaseContractMethod<[], [ ethers.BytesLike ], [ ethers.BytesLike ]>;
-}
-const tbrv3Abi = [
-  "function exec768() returns (bytes memory result)",
-  "function get1959() view returns (bytes memory responses)",
-  // "event Minted(address target)"
-];
-
-type EthersContractClass<T> = ReturnType<typeof ethers.BaseContract.buildClass<T>>;
-let Tbrv3Contract: EthersContractClass<Tbrv3Abi>;
-function getTbrv3Class() {
-  if (Tbrv3Contract === undefined) {
-    Tbrv3Contract = ethers.BaseContract.buildClass<Tbrv3Abi>(tbrv3Abi);
-  }
-  return Tbrv3Contract;
-}
-
-export interface TbrPartialTx {
+export interface PartialTx {
   /**
    * Amount of native token that should be attached to the transaction.
    * Denominated in wei.
@@ -100,39 +62,39 @@ export interface TbrPartialTx {
   to: string;
 }
 
-
-export interface RelayingFeesInput {
+export interface RelayingFeeInput {
   /**
    * Token addresses involved in the transfers.
    * Must be hex encoded and '0x' prefixed.
    */
-  readonly tokens: readonly EvmAddress[];
+  readonly tokens: RoArray<EvmAddress>;
   /**
    * Transfer parameters.
    * There should be one of these per transfer request.
    */
-  readonly transferRequests: readonly LayoutToType<typeof relayingFeesInputLayout>[];
+  readonly transferRequests: RoArray<RelayingFeeParams>;
 };
-export type TransferTokenWithRelayInput = LayoutToType<typeof transferTokenWithRelayLayout> & {readonly method: "TransferTokenWithRelay";};
-export type TransferGasTokenWithRelayInput = LayoutToType<typeof transferGasTokenWithRelayLayout> & {readonly method: "TransferGasTokenWithRelay";};
+
+export type TokenBridgeAllowances = Readonly<Record<string, bigint>>;
+
+export interface RelayingFeeResult {
+  allowances: TokenBridgeAllowances;
+  feeEstimations: RoArray<RootQuery & { query: "RelayFee" } & RelayingFeeReturn>;
+}
+
+export type TransferTokenWithRelayInput =
+  TransferTokenWithRelay & {readonly method: "TransferTokenWithRelay";};
+export type TransferGasTokenWithRelayInput =
+  TransferGasTokenWithRelay & {readonly method: "TransferGasTokenWithRelay";};
 export type NetworkMain = Exclude<Network, "Devnet">;
 
-interface ConnectionPrimitives/*<T>*/ {
+interface ConnectionPrimitives {
   /**
    * Performs an `eth_call` JSON-RPC request with the given tx parameters.
    * @return Raw undecoded array of bytes of the EVM return value.
    */
-  readonly ethCall: (partialTx: TbrPartialTx) => Promise<Uint8Array>;
-  /**
-   * Signs and sends a tx to the network based on the given tx parameters.
-   * @todo do we really need this?
-   */
-  // readonly sendTx: (partialTx: TbrPartialTx) => Promise<T>;
+  readonly ethCall: (partialTx: Omit<PartialTx, "value">) => Promise<Uint8Array>;
 }
-
-const executeFunction = "exec768";
-const queryFunction = "get1959";
-type DispatcherFunction = typeof executeFunction | typeof queryFunction;
 
 export interface Transfer {
   /**
@@ -142,456 +104,15 @@ export interface Transfer {
    * Increasing this estimation won't affect the actual cost.
    * Excedent gas tokens will be returned to the caller of the contract.
    */
-  feeEstimation: RelayingFee;
+  feeEstimation: RelayingFeeReturn;
   args: TransferTokenWithRelayInput | TransferGasTokenWithRelayInput;
 };
 
 export class Tbrv3 {
-
-  constructor(
-    public readonly provider: ethers.Provider,
-    public readonly network: NetworkMain,
-    public readonly address: EvmAddress = Tbrv3.addresses[network],
-    private readonly gasToken: EvmAddress,
-  ) {
-    this.address = address;
-
-  }
-
-  static connect(
-    provider: ethers.Provider,
-    network: NetworkMain,
-    chain: Chain,
-    gasToken?: EvmAddress,
-    address?: EvmAddress,
-  ) {
-    if (address === undefined && this.addresses[network].equals(zeroAddress)) {
-      throw new Error(`Tbrv3 address needs to be provided for network ${network}`);
-    }
-
-    const defaultGasToken = getNative(network, chain);
-    if (gasToken === undefined) {
-      if (defaultGasToken === undefined) {
-        throw new Error(`Gas token address needs to be provided for network ${network} and chain ${chain}`);
-      }
-      gasToken = new EvmAddress(defaultGasToken.wrappedKey!);
-    } else if (defaultGasToken !== undefined && !gasToken.equals(new EvmAddress(defaultGasToken.wrappedKey!))) {
-      throw new Error(`Unexpected gas token address ${gasToken} for network ${network} and chain ${chain}`);
-    }
-
-    return new Tbrv3(provider, network, address, gasToken);
-  }
-
-  /**
-   * @deprecated This method will be removed soon. The sdk won't use ethers directly anymore.
-   */
-  static fromRpcUrlStatic(rpc: string, network: NetworkMain, chain: Chain, gasToken?: EvmAddress, address?: EvmAddress): Tbrv3 {
-    return this.connect(new ethers.JsonRpcProvider(rpc, undefined, {staticNetwork: true}), network, chain, gasToken, address);
-  }
-
-  /**
-   * @deprecated This method will be removed soon. The sdk won't use ethers directly anymore.
-   */
-  static fromRpcUrl(rpc: string, network: NetworkMain, chain: Chain, gasToken?: EvmAddress, address?: EvmAddress): Tbrv3 {
-    return this.connect(new ethers.JsonRpcProvider(rpc), network, chain, gasToken, address);
-  }
-
-  static readonly addresses: Record<NetworkMain, EvmAddress> = {
+  static readonly addresses = {
     Mainnet: zeroAddress,
     Testnet: zeroAddress,
-  }
-
-  transferWithRelay(allowances: TokenBridgeAllowances, ...transfers: Transfer[]): TbrPartialTx {
-    if (transfers.length === 0) {
-      throw new Error("At least one transfer should be specified.");
-    }
-
-    const requiredAllowances: Record<string, bigint> = {};
-    for (const token of Object.keys(allowances)) {
-      requiredAllowances[token] = 0n;
-    }
-    // TODO: decide if we want to check that requested gas dropoff doesn't exceed max gas dropoff per transfer
-    // Here we need to batch `this.baseRelayingParams` per target chain together with the relaying fee per transfer
-
-    let value: bigint = 0n;
-    const transferCalls: CommandCategory[] = [];
-    for (const [i, transfer] of transfers.entries()) {
-      if (transfer.feeEstimation.isPaused) {
-        throw new Error(`Relays to chain ${transfer.args.recipient.chain} are paused. Found in transfer ${i + 1}.`);
-      }
-      // We are asking for a transfer on an EVM chain, so the gas token used to pay has 18 decimals.
-      // Here we need to calculate the amount in wei.
-      value += BigInt(transfer.feeEstimation.fee * WHOLE_EVM_GAS_TOKEN_UNITS);
-
-      if (transfer.args.method === "TransferGasTokenWithRelay") {
-        value += transfer.args.inputAmountInAtomic;
-        requiredAllowances[this.gasToken.toString()] += transfer.args.inputAmountInAtomic;
-        transferCalls.push({...transfer.args, commandCategory: transfer.args.method});
-      } else {
-        requiredAllowances[transfer.args.inputToken.toString()] = transfer.args.inputAmountInAtomic;
-        transferCalls.push({...transfer.args, commandCategory: transfer.args.method});
-      }
-
-    }
-
-    const approveCalls: LayoutToType<typeof commandCategoryLayout>[] = [];
-    for (const [token, requiredAllowance] of Object.entries(requiredAllowances)) {
-      if (!(token in allowances)) {
-        throw new Error(`Token ${token} missing from the allowance queries.`);
-      }
-      if (requiredAllowance > allowances[token]) {
-        approveCalls.push({
-          commandCategory: "ApproveToken",
-          inputToken: new EvmAddress(token),
-        });
-      }
-    }
-
-    const methods = layout.serializeLayout(execParamsLayout, {
-      version: 0,
-      commandCategories: approveCalls.concat(transferCalls),
-    });
-    const data = Tbrv3.encodeExecute(methods);
-
-    return {
-      to: this.address.toString(),
-      data,
-      value,
-    };
-  }
-
-  completeTransfer(vaas: VAA<"TokenBridge:TransferWithPayload">[]): TbrPartialTx {
-    if (vaas.length === 0) {
-      throw new Error("At least one TB VAA should be specified.");
-    }
-
-    if (vaas.some(({payload}) => {
-      const destinationAddress = payload.to.address.toNative(payload.to.chain);
-      // TODO: actually check that this is part of the supported EVM chains
-      return chainToPlatform(payload.to.chain) !== "Evm" || !destinationAddress.equals(this.address);
-    })) {
-      // TODO: point out which one; do a search instead.
-      throw new Error("At least one of the VAAs points to an unexpected contract.");
-    }
-
-    let value: bigint = 0n;
-    for (const vaa of vaas) {
-      const tbrv3Message = layout.deserializeLayout(TBRv3Message, vaa.payload.payload);
-      // We are redeeming on an EVM chain so the gas token has 18 decimals.
-      // Here we need to calculate the amount in wei.
-      value += BigInt(tbrv3Message.gasDropoff * WHOLE_EVM_GAS_TOKEN_UNITS);
-    }
-
-    const methods = layout.serializeLayout(execParamsLayout, {
-      version: 0,
-      commandCategories: vaas.map((vaa) => ({
-        commandCategory: "CompleteTransfer",
-        vaa: serialize(vaa)
-      }) satisfies LayoutToType<typeof commandCategoryLayout>)
-    });
-
-    const data = Tbrv3.encodeExecute(methods);
-
-    return {
-      to: this.address.toString(),
-      data,
-      value,
-    }
-  }
-
-  /**
-   * Queries TBR contract to prepare instructions for a transfer request.
-   * In particular, it queries:
-   *   the relaying fees needed
-   *   the allowance towards the token bridge for each token
-   * With these two, a transaction to transfer tokens can be built.
-   * Many relays can be quoted at once.
-   * The result is a list of quotes for the relays in the same order as they were passed in.
-   */
-  async relayingFee({tokens, transferRequests}: RelayingFeesInput): Promise<RelayingFeesReturn> {
-    if (transferRequests.length === 0) {
-      throw new Error("At least one relay fee query should be specified.");
-    }
-    if (tokens.length === 0) {
-      throw new Error("At least one token should be specified.");
-    }
-
-    const relayFeeQueries = transferRequests.map(arg => ({
-      queryCategory: "RelayFee",
-      targetChain: arg.targetChain,
-      gasDropoff: arg.gasDropoff,
-    }) satisfies LayoutToType<typeof queryCategoryLayout>);
-
-    const allowanceQueries = filterTokens(tokens).map(token => ({
-      queryCategory: "AllowanceTokenBridge",
-      inputToken: token,
-    }) satisfies LayoutToType<typeof queryCategoryLayout>);
-
-    const queries = layout.serializeLayout(queryParamsLayout, {
-      version: 0,
-      queryCategories: (relayFeeQueries as LayoutToType<typeof queryCategoryLayout>[]).concat(allowanceQueries),
-    });
-
-    const calldata = Tbrv3.encodeQuery(queries);
-    const result = await this.provider.call({
-      data: ethers.hexlify(calldata),
-      to: this.address.toString(),
-    });
-
-    const relayFeesReturnListLayout = fixedLengthArrayLayout(relayFeeQueries.length, relayingFeesReturnLayout);
-    const allowancesListLayout = fixedLengthArrayLayout(allowanceQueries.length, allowanceTokenBridgeReturnLayout);
-    const responseLayout = {
-      binary: "bytes",
-      layout: [
-        {name: "feeEstimations", ...relayFeesReturnListLayout},
-        {name: "allowances", ...allowancesListLayout},
-      ]
-    } as const satisfies BytesLayoutItem;
-    const response = decodeQueryResponseLayout(responseLayout, ethers.getBytes(result));
-    const allowances: Record<string, bigint> = {};
-    for (const [i, {allowance}] of response.allowances.entries()) {
-      allowances[allowanceQueries[i].inputToken.toString()] = allowance;
-    }
-
-    return {
-      allowances,
-      feeEstimations: response.feeEstimations
-    };
-  }
-
-  async baseRelayingParams(...chains: SupportedChains[]): Promise<BaseRelayingParamsReturn> {
-    const queries = layout.serializeLayout(queryParamsLayout, {
-      version: 0,
-      queryCategories: chains.map((targetChain) => ({
-        queryCategory: "BaseRelayingConfig",
-        targetChain,
-      }) satisfies LayoutToType<typeof queryCategoryLayout>)
-    });
-
-    const calldata = Tbrv3.encodeQuery(queries);
-    const result = await this.provider.call({
-      data: ethers.hexlify(calldata),
-      to: this.address.toString(),
-    });
-
-    const baseRelayingReturnListLayout = fixedLengthArrayLayout(chains.length, baseRelayingConfigReturnLayout);
-    return decodeQueryResponseLayout(baseRelayingReturnListLayout, ethers.getBytes(result));
-  }
-
-  batchAdminWrites<
-    const C extends ConfigCommand[],
-    const A extends AccessControlCommand[],
-  >(configCommands: C, accessControlCommands: A): TbrPartialTx {
-    const commandCategories: CommandCategory[] = [];
-    if (configCommands.length > 0) {
-      commandCategories.push(
-        {
-          commandCategory: 'ConfigCommands',
-          commands: configCommands
-        }
-      )
-    }
-
-    if (accessControlCommands.length > 0) {
-      commandCategories.push(
-        {
-          commandCategory: "AccessControlCommands",
-          commands: accessControlCommands,
-        }
-      )
-    }
-
-    return this.writeAdminTx(commandCategories);
-  }
-
-  writeAdminTx<const C extends CommandCategory[]>(commandCategories: C): TbrPartialTx {
-    const methods = layout.serializeLayout(execParamsLayout, {
-      version: 0,
-      commandCategories,
-    })
-    const data = Tbrv3.encodeExecute(methods);
-
-    return {
-      to: this.address.toString(),
-      data,
-      value: 0n,
-    };
-  }
-
-  addPeers(peers: { chain: SupportedChains, peer: UniversalAddress }[]): TbrPartialTx {
-    return this.batchAdminWrites(peers.map(
-      ({peer, chain}) => ({command: "AddPeer", address: peer, chain })
-    ), []);
-  }
-
-  updateRelayFees(fees: Map<SupportedChains, number>): TbrPartialTx {
-    return this.batchAdminWrites(Array.from(fees).map(
-      ([chain, maxDropoff]) => ({ command: "UpdateBaseFee", value: maxDropoff, chain })
-    ), []);
-  }
-
-  updateMaxGasDroppoffs(dropoffs: Map<SupportedChains, number>): TbrPartialTx {
-    return this.batchAdminWrites(Array.from(dropoffs).map(
-      ([chain, maxDropoff]) => ({ command: "UpdateMaxGasDropoff", value: maxDropoff, chain })
-    ), []);
-  }
-
-  updateTransferPause(chainPause: Map<SupportedChains, boolean>): TbrPartialTx {
-    return this.batchAdminWrites(Array.from(chainPause).map(
-      ([chain, pause]) => ({ command: "UpdateTransferPause", value: pause, chain })
-    ), []);
-  }
-
-  updateFeeRecipient(feeRecipient: EvmAddress): TbrPartialTx {
-    return this.batchAdminWrites([
-      { command: "UpdateFeeRecipient", address: feeRecipient },
-    ], []);
-  }
-
-  updateCanonicalPeers(canonicalPeers: Map<SupportedChains, UniversalAddress>): TbrPartialTx {
-    return this.batchAdminWrites(Array.from(canonicalPeers).map(
-      ([chain, peer]) => ({ command: "UpdateCanonicalPeer", address: peer, chain })
-    ), []);
-  }
-
-  revokeAdmin(admin: EvmAddress): TbrPartialTx {
-    return this.batchAdminWrites([], [{ command: "RevokeAdmin", address: admin }]);
-  }
-
-  proposeOwnershipTransfer(newOwner: EvmAddress): TbrPartialTx {
-    return this.batchAdminWrites([], [{ command: "ProposeOwnershipTransfer", address: newOwner }]);
-  }
-
-  relinquishOwnership(): TbrPartialTx {
-    return this.batchAdminWrites([], [{ command: "RelinquishOwnership" }]);
-  }
-
-  addAdmin(admin: EvmAddress): TbrPartialTx {
-    return this.batchAdminWrites([], [{ command: "AddAdmin", address: admin }]);
-  }
-
-  upgradeContract(newImplementation: EvmAddress): TbrPartialTx {
-    return this.writeAdminTx([{commandCategory: "UpgradeContract", newImplementation }]);
-  }
-
-  sweepTokens(tokens: { tokenAddress: EvmAddress; amount: bigint; }[]): TbrPartialTx {
-    return this.writeAdminTx(tokens.map(({tokenAddress, amount}) => ({commandCategory: "SweepTokens", tokenAddress, amount })));
-  }
-
-  async batchQueries<const C extends ConfigQuery[], const A extends AccessControlQuery[]>(configQueries: C, accessControlQueries: A): Promise<string> {
-    const queryCategories: QueryCategory[] = [];
-
-    if (configQueries.length > 0) {
-      queryCategories.push(
-        {
-          queryCategory: "ConfigQueries",
-          queries: configQueries,
-        } satisfies QueryCategory
-      );
-    }
-
-    if (accessControlQueries.length > 0) {
-      queryCategories.push(
-        {
-          queryCategory: "AccessControlQueries",
-          queries: accessControlQueries,
-        } satisfies QueryCategory
-      )
-    }
-    // const methods = Tbrv3.createEnvelope([{ method: "ConfigQuery", queries }]);
-    const methods = layout.serializeLayout(queryParamsLayout, {
-      version: 0,
-      queryCategories,
-    });
-    const data = Tbrv3.encodeQuery(methods);
-
-    const result = await this.provider.call({
-      data: ethers.hexlify(data),
-      to: this.address.toString(),
-    });
-
-    return result;
-  }
-
-
-  async relayFee(chain: SupportedChains) {
-    const result = await this.batchQueries([{ query: "BaseFee", chain }], []);
-    
-    return decodeQueryResponseLayout(relayingFeesReturnLayout, ethers.getBytes(result)); 
-  }
-
-  /**
-   * @returns Maximum gas dropoff in gas token units, e.g. ETH for Ethereum.
-   */
-  async maxGasDropoff(chain: SupportedChains) {
-    const result = await this.batchQueries([{ query: "MaxGasDropoff", chain }], []);
-
-    return decodeQueryResponseLayout(gasDropoffItem, ethers.getBytes(result));
-  }
-
-  async isChainPaused(chain: SupportedChains) {
-    const result = await this.batchQueries([{ query: "IsChainPaused", chain }], []);
-
-    return decodeQueryResponseLayout(layoutItems.boolItem, ethers.getBytes(result));
-  }
-
-  async isPeer(chain: SupportedChains, address: UniversalAddress): Promise<boolean> {
-    const result = await this.batchQueries([{ query: "IsPeer", address, chain }], []);
-
-    return decodeQueryResponseLayout(layoutItems.boolItem, ethers.getBytes(result));
-  }
-
-  async canonicalPeer(chain: SupportedChains): Promise<UniversalAddress> {
-    const result = await this.batchQueries([{ query: "CanonicalPeer", chain }], []);
-
-    return decodeQueryResponseLayout(layoutItems.universalAddressItem, ethers.getBytes(result));
-  }
-
-  async owner() {
-    const result = await this.batchQueries([], [{ query: "Owner" }]);
-    
-    return decodeQueryResponseLayout(evmAddressItem, ethers.getBytes(result)); 
-  }
-
-  async isChainSupported(chain: SupportedChains): Promise<boolean> {
-    const result = await this.batchQueries([{ query: "IsChainSupported", chain }], []);
-
-    return decodeQueryResponseLayout(layoutItems.boolItem, ethers.getBytes(result));
-  }
-
-  async isAdmin(address: EvmAddress): Promise<boolean> {
-    const result = await this.batchQueries([], [{ query: "IsAdmin", address }]);
-    
-    return decodeQueryResponseLayout(layoutItems.boolItem, ethers.getBytes(result)); 
-  }
-
-  async feeRecipient() {
-    const result = await this.batchQueries([{ query: "FeeRecipient" }], []);
-    
-    return decodeQueryResponseLayout(evmAddressItem, ethers.getBytes(result)); 
-  }
-
-  static encodeExecute(methods: Uint8Array): Uint8Array {
-    return this.encodeForDispatcher(executeFunction, methods);
-  }
-
-  static encodeQuery(methods: Uint8Array): Uint8Array {
-    return this.encodeForDispatcher(queryFunction, methods);
-  }
-
-  static encodeForDispatcher(fn: DispatcherFunction, methods: Uint8Array): Uint8Array {
-    const Tbrv3Contract = getTbrv3Class();
-    const contract = new Tbrv3Contract("0x0000000000000000000000000000000000000000");
-    const fnFragment = contract.interface.getFunction(fn);
-    if (fnFragment === null) throw new Error(`${fn} function not found in TBRv3 ABI.`);
-    const selector = ethers.getBytes(fnFragment.selector);
-
-    const result = new Uint8Array(selector.length + methods.length);
-    result.set(selector, 0);
-    result.set(methods, selector.length);
-
-    return result;
-  }
+  } as const satisfies Record<NetworkMain, EvmAddress>;
 
   /**
    * Creates the initialization configuration for the TBRv3 proxy contract.
@@ -612,41 +133,343 @@ export class Tbrv3 {
       feeRecipient,
     };
 
-    return layout.serializeLayout(proxyConstructorLayout, initConfig);
+    return serializeLayout(proxyConstructorLayout, initConfig);
   }
 
-}
+  static connect(
+    provider: ConnectionPrimitives,
+    network: NetworkMain,
+    chain: Chain,
+    gasToken?: EvmAddress,
+    address?: EvmAddress,
+  ) {
+    if (address === undefined && this.addresses[network].equals(zeroAddress)) {
+      throw new Error(`Tbrv3 address needs to be provided for network ${network}`);
+    }
 
-function fixedLengthArrayLayout<const T extends ProperLayout>(length: number, layout: T): FixedArray<T> {
-  return {
-    binary: "array",
-    length,
-    layout,
-  } as const satisfies FixedLengthArray;
-}
+    const defaultGasToken = getNative(network, chain);
+    if (gasToken === undefined) {
+      if (defaultGasToken === undefined) {
+        throw new Error(`Gas token address needs to be provided for network ${network} and chain ${chain}`);
+      }
+      gasToken = new EvmAddress(defaultGasToken.wrappedKey!);
+    } else if (defaultGasToken !== undefined && !gasToken.equals(new EvmAddress(defaultGasToken.wrappedKey!))) {
+      throw new Error(`Unexpected gas token address ${gasToken} for network ${network} and chain ${chain}`);
+    }
 
-function decodeQueryResponseLayout<const T extends Layout>(tbrLayout: T, value: Uint8Array) {
-  const responseHeaderLayout = {
-    binary: "bytes",
-    layout: [
-      // ptr must always point to the next "slot", i.e. 0x20
+    return new Tbrv3(provider, address ?? Tbrv3.addresses[network], gasToken);
+  }
+
+  constructor(
+    public readonly provider: ConnectionPrimitives,
+    public readonly address: EvmAddress,
+    private readonly gasToken: EvmAddress,
+  ) {}
+
+  execTx<const C extends RoArray<RootCommand>>(value: bigint, commands: C): PartialTx {
+    return {
+      to: this.address.toString(),
+      value,
+      data: encoding.bytes.concat(
+        selectorOf("exec768()"),
+        serializeLayout(execParamsLayout, { version: 0, commands })
+      ),
+    };
+  }
+
+  async query<const Q extends RoArray<RootQuery>>(queries: Q): Promise<QueryResults<Q>> {
+    if (queries.length === 0) return [] as QueryResults<Q>;
+
+    const data = encoding.bytes.concat(
+      selectorOf("get1959()"),
+      serializeLayout(queryParamsLayout, { version: 0, queries })
+    );
+    const encodedResults = await this.provider.ethCall({to: this.address.toString(), data });
+
+    if (encodedResults.length === 0)
+      throw new Error(
+        "Empty result returned by the provider. Please check your config params."
+      );
+
+    const decodedResults: any[] = []; 
+    const solidityBytesEncodingLayout = [
+      //ptr must always point to the next "slot", i.e. 0x20
       { name: "ptr", binary: "uint", size: 32, custom: 32n, omit: true },
-      // if the response claims to be longer than 2^32 bytes, something is wrong
+      //if the response claims to be longer than 2^32 bytes, something is wrong
       { name: "mustBeZero", binary: "uint", size: 28, custom: 0n, omit: true },
-      // the actual length of the response
+      //the actual length of the response
       { name: "length", binary: "uint", size: 4 },
-    ] as const,
-  } as const satisfies LayoutItem;
+    ] as const;
 
-  const [header, offset] = layout.deserializeLayout(responseHeaderLayout, value, {consumeAll: false});
-  // TODO: do we want to perform any check on the length?
-  const [response, offsetPadding] = layout.deserializeLayout(tbrLayout, value, {offset, consumeAll: false});
-  for (let i = offsetPadding; i < value.length; ++i) {
-    if (value[i] !== 0) throw new Error(`Found nonzero byte at padding. Buffer: ${value.toString()}`);
+    let [bytesHeader, offset] = deserializeLayout(
+      solidityBytesEncodingLayout,
+      encodedResults,
+      { offset: 0, consumeAll: false }
+    );
+
+    const deserializeResult = (query: any, layout: any) => {
+      const [result, newOffset] = deserializeLayout(layout, encodedResults, {
+        offset,
+        consumeAll: false,
+      });
+      decodedResults.push({ ...query, result});
+      offset = newOffset;
+
+      if (offset > encodedResults.length)
+        throw new Error("Query response too short");
+    };
+
+    for (const query of queries)
+      if (query.query === "RelayFee")
+        deserializeResult(query, relayingFeeReturnLayout);
+      else if (query.query === "BaseRelayingConfig")
+        deserializeResult(query, baseRelayingConfigReturnLayout);
+      else if (query.query === "ConfigQueries")
+        for (const configQuery of query.queries)
+          if (["IsChainSupported", "IsChainPaused", "IsPeer"].includes(configQuery.query))
+            deserializeResult(configQuery, layoutItems.boolItem);
+          else if (configQuery.query === "BaseFee")
+            deserializeResult(configQuery, baseFeeItem);
+          else if (configQuery.query === "MaxGasDropoff")
+            deserializeResult(configQuery, gasDropoffItem);
+          else //must be either "CanonicalPeer" or "FeeRecipient"
+            deserializeResult(configQuery, evmAddressItem);
+      else if (query.query === "AllowanceTokenBridge")
+        deserializeResult(query, allowanceTokenBridgeReturnLayout);
+      else if (query.query === "AccessControlQueries")
+        for (const acquery of query.queries)
+          if (acquery.query === "IsAdmin")
+            deserializeResult(acquery, layoutItems.boolItem);
+          else if (acquery.query === "Admins")
+            deserializeResult(acquery, adminsQueryReturnLayout);
+          else //must be either "Owner" or "PendingOwner"
+            deserializeResult(acquery, evmAddressItem);
+      else //must be "Implementation"
+        deserializeResult(query, evmAddressItem);
+
+    if (offset < bytesHeader.length)
+      throw new Error("Query response too long");
+
+    return decodedResults as QueryResults<Q>;
   }
-  return response;
+
+  //---- convenience functions:
+
+  transferWithRelay(allowances: TokenBridgeAllowances, ...transfers: Transfer[]): PartialTx {
+    if (transfers.length === 0)
+      throw new Error("At least one transfer should be specified.");
+
+    const requiredAllowances: Record<string, bigint> = {};
+    for (const token of Object.keys(allowances))
+      requiredAllowances[token] = 0n;
+
+    // TODO: decide if we want to check that requested gas dropoff doesn't exceed max gas dropoff per transfer
+    // Here we need to batch `this.baseRelayingParams` per target chain together with the relaying fee per transfer
+
+    let value: bigint = 0n;
+    const transferCalls: RootCommand[] = [];
+    for (const [i, transfer] of transfers.entries()) {
+      if (transfer.feeEstimation.isPaused)
+        throw new Error(`Relays to chain ${transfer.args.recipient.chain} are paused. Found in transfer ${i + 1}.`);
+      // We are asking for a transfer on an EVM chain, so the gas token used to pay has 18 decimals.
+      // Here we need to calculate the amount in wei.
+      value += BigInt(transfer.feeEstimation.fee * WHOLE_EVM_GAS_TOKEN_UNITS);
+
+      if (transfer.args.method === "TransferGasTokenWithRelay")
+        value += transfer.args.inputAmountInAtomic;
+
+      requiredAllowances[
+        (transfer.args.method === "TransferGasTokenWithRelay")
+        ? this.gasToken.toString()
+        : transfer.args.inputToken.toString()
+      ] += transfer.args.inputAmountInAtomic;
+
+      transferCalls.push(
+        {...transfer.args, command: transfer.args.method} as RootCommand
+      );
+    }
+
+    const approveCalls: RootCommand[] = [];
+    for (const [token, requiredAllowance] of Object.entries(requiredAllowances)) {
+      if (!(token in allowances)) {
+        throw new Error(`Token ${token} missing from the allowance queries.`);
+      }
+      if (requiredAllowance > allowances[token]) {
+        approveCalls.push({
+          command: "ApproveToken",
+          inputToken: new EvmAddress(token),
+        });
+      }
+    }
+
+    return this.execTx(value, [...approveCalls, ...transferCalls]);
+  }
+
+  completeTransfer(vaas: VAA<"TokenBridge:TransferWithPayload">[]): PartialTx {
+    if (vaas.length === 0) {
+      throw new Error("At least one TB VAA should be specified.");
+    }
+
+    if (vaas.some(({payload}) => {
+      const destinationAddress = payload.to.address.toNative(payload.to.chain);
+      // TODO: actually check that this is part of the supported EVM chains
+      return chainToPlatform(payload.to.chain) !== "Evm" || !destinationAddress.equals(this.address);
+    })) {
+      // TODO: point out which one; do a search instead.
+      throw new Error("At least one of the VAAs points to an unexpected contract.");
+    }
+
+    let value: bigint = 0n;
+    for (const vaa of vaas) {
+      const tbrv3Message = deserializeLayout(TBRv3MessageLayout, vaa.payload.payload);
+      // We are redeeming on an EVM chain so the gas token has 18 decimals.
+      // Here we need to calculate the amount in wei.
+      value += BigInt(tbrv3Message.gasDropoff * WHOLE_EVM_GAS_TOKEN_UNITS);
+    }
+
+    return this.execTx(
+      value, 
+      vaas.map((vaa) => ({ command: "CompleteTransfer", vaa: serialize(vaa)}))
+    );
+  }
+
+  /**
+   * Queries TBR contract to prepare instructions for a transfer request.
+   * In particular, it queries:
+   *   the relaying fees needed
+   *   the allowance towards the token bridge for each token
+   * With these two, a transaction to transfer tokens can be built.
+   * Many relays can be quoted at once.
+   * The result is a list of quotes for the relays in the same order as they were passed in.
+   */
+  async relayingFee({tokens, transferRequests}: RelayingFeeInput): Promise<RelayingFeeResult> {
+    if (transferRequests.length === 0)
+      throw new Error("At least one relay fee query should be specified.");
+  
+    if (tokens.length === 0)
+      throw new Error("At least one token should be specified.");
+
+    const relayFeeQueries = transferRequests.map(arg => ({
+      query: "RelayFee",
+      targetChain: arg.targetChain,
+      gasDropoff: arg.gasDropoff,
+    }) as const satisfies RootQuery);
+
+    const allowanceQueries = [...new Set(tokens).values()].map(token => ({
+      query: "AllowanceTokenBridge",
+      inputToken: token,
+    }) as const satisfies RootQuery);
+
+    const queryResults = await this.query([...relayFeeQueries, ...allowanceQueries]);
+
+    const ret: any = {allowanceQueries: {}, feeEstimations: []};
+    for (const qRes of queryResults)
+      if (qRes.query === "RelayFee") {
+        const {result, ...args} = qRes;
+        ret.feeEstimations.push({...result, ...args});
+      }
+      else
+        ret.allowanceQueries[qRes.inputToken.toString()] = qRes.result;
+
+    return ret;
+  }
 }
 
-function filterTokens(tokens: readonly EvmAddress[]): EvmAddress[] {
-  return [...new Set(tokens).values()];
-}
+const selectorOf = (funcSig: string) => keccak256(funcSig).subarray(0, 4);
+
+type Tuple = readonly [unknown, ...unknown[]] | readonly [];
+
+//always return the passed arguments along with the result
+//this makes it easier to match queries to results without having to muck around with types
+//  in the client code too.
+//Originally, arguments were placed in their own, separate args field, so that there couldn't
+//  be a clash if a query argument was named "result", however because Typescript fails to
+//  automatically narrow the type of a union like:
+//    `{ args: { chain: "foo"}; result: number } | { args: { chain: "bar"}; result: string }`
+//  when testing the nested `chain` field i.e.:
+//    if (query.args.chain === "foo")
+//      type ThisSucks = typeof query.result; //type is number | string - wasn't narrowed
+//  we now simply merge the arguments and result into a single object and consider result a
+//  reserved field name.
+type ArgsResult<A, R> =
+  { [K in keyof A | "result"]: K extends "result" ? R : A[Exclude<K, "result">] };
+
+type AccessControlQueryToResult<Q extends AccessControlQuery> =
+  Q extends { query: "Owner" | "PendingOwner" }
+  ? ArgsResult<Q, EvmAddress>
+  : Q extends { query: "isAdmin" }
+  ? ArgsResult<Q, boolean>
+  : Q extends { query: "Admins" }
+  ? ArgsResult<Q, AdminsQueryReturn>
+  : never;
+
+type AccessControlQueryTupleResults<QA extends RoArray<AccessControlQuery>> =
+  QA extends readonly [
+    infer Head extends AccessControlQuery,
+    ...infer Tail extends RoArray<AccessControlQuery>
+  ]
+  ? [AccessControlQueryToResult<Head>, ...AccessControlQueryTupleResults<Tail>]
+  : [];
+
+type AccessControlQueryResults<QA extends RoArray<AccessControlQuery>> =
+  QA extends Tuple
+  ? AccessControlQueryTupleResults<QA>
+  : QA extends RoArray<infer Q extends AccessControlQuery>
+  ? AccessControlQueryToResult<Q>[]
+  : never;
+
+type ConfigQueryToResult<Q extends ConfigQuery> =
+  Q extends { query: "IsChainSupported" | "IsChainPaused" | "IsPeer" }
+  ? ArgsResult<Q, boolean>
+  : Q extends { query: "BaseFee" | "MaxGasDropoff" }
+  ? ArgsResult<Q, number>
+  : Q extends { query: "CanonicalPeer" | "FeeRecipient" }
+  ? ArgsResult<Q, EvmAddress>
+  : never;
+
+type ConfigQueryTupleResults<QA extends RoArray<ConfigQuery>> =
+  QA extends readonly [
+    infer Head extends ConfigQuery,
+    ...infer Tail extends RoArray<ConfigQuery>
+  ]
+  ? [ConfigQueryToResult<Head>, ...ConfigQueryTupleResults<Tail>]
+  : [];
+
+type ConfigQueryResults<QA extends RoArray<ConfigQuery>> =
+  QA extends Tuple
+  ? ConfigQueryTupleResults<QA>
+  : QA extends RoArray<infer Q extends ConfigQuery>
+  ? ConfigQueryToResult<Q>[]
+  : never;
+
+type RootQueryToResults<C extends RootQuery> =
+  C extends { query: "RelayFee" }
+  ? ArgsResult<C, RelayingFeeReturn>
+  : C extends { query: "BaseRelayingConfig" }
+  ? ArgsResult<C, BaseRelayingConfigReturn>
+  : C extends { query: "ConfigQueries" }
+  ? ConfigQueryResults<C["queries"]>
+  : C extends { query: "AllowanceTokenBridge" }
+  ? ArgsResult<C, AllowanceTokenBridgeReturn>
+  : C extends { query: "AccessControlQueries" }
+  ? AccessControlQueryResults<C["queries"]>
+  : C extends { query: "Implementation" }
+  ? ArgsResult<C, EvmAddress>
+  : never;
+
+type EnsureTuple<T> = T extends Tuple ? T : [T];
+
+type RootQueryTupleResults<CA extends RoArray<RootQuery>> =
+  CA extends readonly [
+    infer Head extends RootQuery,
+    ...infer Tail extends RoArray<RootQuery>
+  ]
+  ? [...EnsureTuple<RootQueryToResults<Head>>, ...RootQueryTupleResults<Tail>]
+  : [];
+
+type QueryResults<CA extends RoArray<RootQuery>> =
+  CA extends Tuple
+  ? RootQueryTupleResults<CA>
+  : CA extends RoArray<infer C extends RootQuery>
+  ? RootQueryToResults<C>[]
+  : never;
