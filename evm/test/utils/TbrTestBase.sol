@@ -150,7 +150,7 @@ contract TbrTestBase is Test {
     );
 
     priceOracle = PriceOracle(address(new Proxy(
-      address(new PriceOracle(EVM_CHAIN_ID, wormholeCore)),
+      address(new PriceOracle(wormholeCore)),
       abi.encodePacked(
         owner,
         uint8(1),
