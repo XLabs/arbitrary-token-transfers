@@ -1,5 +1,4 @@
 import {
-  contracts,
   evm,
   getChainConfig,
   getContractAddress,

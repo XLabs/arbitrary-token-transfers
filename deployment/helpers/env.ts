@@ -8,6 +8,7 @@ import 'dotenv/config';
 import { ChainId, contracts as connectDependencies, toChain } from "@wormhole-foundation/sdk-base";
 
 export const env = getEnv("ENV");
+export const network = env === "mainnet" ? "Mainnet" : "Testnet";
 export const contracts = loadContracts();
 export const dependencies = loadDependencies();
 export const ecosystemChains = loadEcosystem();
