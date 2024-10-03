@@ -104,10 +104,7 @@ async function sendTestTransaction(
             chain: tokenChain,
             address: toUniversal(tokenChain, mint!.toBase58()),
           },
-          userTokenAccount: await getAssociatedTokenAddress(
-            mint!,
-            signerKey,
-          ),
+          userTokenAccount: tokenAccount!,
           transferredAmount,
           gasDropoffAmount,
           maxFeeKlamports,
