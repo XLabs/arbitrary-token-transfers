@@ -14,7 +14,6 @@ export const evmAddressLayout = [
   { name: "address", ...evmAddressItem },
 ] as const satisfies Layout;
 
-
 export const subArrayLayout = <const N extends string, const L extends Layout>(
   name: N,
   layout: L

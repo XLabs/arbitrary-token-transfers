@@ -9,7 +9,7 @@ import { evmAddressItem } from "./solidity-sdk/common.js";
 // TODO: update supported chains to the actual chains supported
 export const supportedChains = ["Ethereum", "Solana", "Arbitrum", "Base", "Sepolia", "BaseSepolia", "OptimismSepolia"] as const satisfies readonly Chain[];
 const supportedChainItem = layoutItems.chainItem({allowedChains: supportedChains});
-export type SupportedChains = typeof supportedChains[number];
+export type SupportedChain = typeof supportedChains[number];
 
 const peerChainItem = {
   name: "chain", ...layoutItems.chainItem({ allowedChains: supportedChains }) 
@@ -114,95 +114,47 @@ const sharedTransferLayout = [
 
 // msg.value - inputAmount = maxFee(*)
 export const transferGasTokenWithRelayLayout = sharedTransferLayout;
+export type TransferGasTokenWithRelay = LayoutToType<typeof transferGasTokenWithRelayLayout>;
 
 export const transferTokenWithRelayLayout = [
   ...sharedTransferLayout,
-  { name: "inputToken", ...evmAddressItem },
+  { name: "inputToken",   ...evmAddressItem       },
   { name: "unwrapIntent", ...layoutItems.boolItem },
   acquireModeItem,
 ] as const satisfies Layout;
+export type TransferTokenWithRelay = LayoutToType<typeof transferTokenWithRelayLayout>;
 
 export const approveTokenLayout = [
   { name: "inputToken", ...evmAddressItem },
 ] as const satisfies Layout;
 
-export const allowanceTokenBridgeReturnLayout = [
-  { name: "allowance", ...layoutItems.amountItem },
-] as const satisfies Layout;
-/**
- * Token address => allowance.
- */
-export type TokenBridgeAllowances = Readonly<Record<string, bigint>>;
+export const allowanceTokenBridgeReturnLayout = layoutItems.amountItem;
+export type AllowanceTokenBridgeReturn = LayoutToType<typeof allowanceTokenBridgeReturnLayout>;
 
-export const relayingFeesInputLayout = [
+export const relayingFeeParamsLayout = [
   { name: "targetChain", ...supportedChainItem },
-  { name: "gasDropoff", ...gasDropoffItem },
+  { name: "gasDropoff",  ...gasDropoffItem     },
 ] as const satisfies Layout;
+export type RelayingFeeParams = LayoutToType<typeof relayingFeeParamsLayout>;
 
-/**
- * This is the response schema for a single `RelayFee` command.
- */
-export interface RelayingFee {
-  /**
-   * If outbound transfers towards the target chain are paused, this will be `true`.
-   */
-  readonly isPaused: boolean;
-  /**
-   * The fee is denominated in the gas token unit of the source chain native token, e.g. ETH, AVAX, etc.
-   */
-  readonly fee: number;
-}
-
-export interface RelayingFeesReturn {
-  /**
-   * Allowances of the TBRv3 contract towards the Token Bridge contract.
-   */
-  allowances: TokenBridgeAllowances;
-  /**
-   * Fee estimation for each transfer.
-   */
-  feeEstimations: readonly RelayingFee[];
-}
-
-export const relayingFeesReturnLayout = [
+export const relayingFeeReturnLayout = [
   { name: "isPaused", ...layoutItems.boolItem },
-  { name: "fee", ...feeItem },
+  { name: "fee",      ...feeItem              },
 ] as const satisfies Layout;
+export type RelayingFeeReturn = LayoutToType<typeof relayingFeeReturnLayout>;
 
-export interface BaseRelayingParams {
-  /**
-   * This is the TBRv3 peer address on the chosen chain.
-   */
-  peer: UniversalAddress;
-  /**
-   * If true, outbound transfers are rejected to this chain.
-   */
-  paused: boolean;
-  /**
-   * This is denominated in μETH or equivalent for EVM native tokens.
-   * Equivalently, Twei, 10 ** 12 wei.
-   */
-  maxGasDropoff: number;
-  /**
-   * The base fee is denominated in usd.
-   * This is added on top of the chain tx cost quote.
-   * For small quotes, it might not be added in its entirety.
-   * @todo update description once the implementation is settled.
-   */
-  baseFee: number;
-}
-export type BaseRelayingParamsReturn = readonly BaseRelayingParams[];
-
-export const baseRelayingConfigInputLayout = [
+export const baseRelayingConfigParamsLayout = [
   { name: "targetChain", ...supportedChainItem },
 ] as const satisfies Layout;
+export type BaseRelayingConfigParams = LayoutToType<typeof baseRelayingConfigParamsLayout>;
 
 export const baseRelayingConfigReturnLayout = [
-  { name: "peer", ...layoutItems.universalAddressItem },
-  { name: "baseFee", ...baseFeeItem},
-  { name: "maxGasDropoff", ...gasDropoffItem },
-  { name: "paused", ...layoutItems.boolItem },
+  { name: "canonicalPeer", ...layoutItems.universalAddressItem },
+  { name: "baseFee",       ...baseFeeItem                      },
+  { name: "maxGasDropoff", ...gasDropoffItem                   },
+  { name: "paused",        ...layoutItems.boolItem             },
 ] as const satisfies Layout;
+export type BaseRelayingConfigReturn = LayoutToType<typeof baseRelayingConfigReturnLayout>;
 
 const configCommandLayout =
   { 
@@ -214,16 +166,14 @@ const configCommandLayout =
         peerChainItem,
         { name: "address", ...layoutItems.universalAddressItem }
       ]],
-      [[ 0x01, "UpdateBaseFee"           ], [peerChainItem, { name: "value", ...baseFeeItem}]],
-      [[ 0x02, "UpdateMaxGasDropoff"     ], [peerChainItem, { name: "value", ...gasDropoffItem }]],
-      [[ 0x03, "UpdateTransferPause"     ], [peerChainItem, { name: "value", ...layoutItems.boolItem }]],
-
-      [[ 0x0a, "UpdateFeeRecipient"      ], [{ name: "address",...evmAddressItem }]],
+      [[ 0x01, "UpdateBaseFee"       ], [peerChainItem, { name: "value", ...baseFeeItem}]],
+      [[ 0x02, "UpdateMaxGasDropoff" ], [peerChainItem, { name: "value", ...gasDropoffItem }]],
+      [[ 0x03, "UpdateTransferPause" ], [peerChainItem, { name: "value", ...layoutItems.boolItem }]],
+      [[ 0x0a, "UpdateFeeRecipient"  ], [{ name: "address",...evmAddressItem }]],
       // Only owner
-      [[ 0x0b, "UpdateCanonicalPeer"     ], [peerChainItem, { name: "address", ...layoutItems.universalAddressItem }]],
+      [[ 0x0b, "UpdateCanonicalPeer" ], [peerChainItem, { name: "address", ...layoutItems.universalAddressItem }]],
     ]
   } as const satisfies Layout;
-
 export type ConfigCommand = LayoutToType<typeof configCommandLayout>;
 
 export const configQueryLayout = {
@@ -231,13 +181,13 @@ export const configQueryLayout = {
   idSize: 1,
   idTag: "query",
   layouts: [
-    [[0x80, "BaseFee"], [peerChainItem]],
-    [[0x81, "MaxGasDropoff"], [peerChainItem]],
-    [[0x82, "IsChainPaused"], [peerChainItem]],
-    [[0x83, "IsPeer"], [peerChainItem, { name: "address", ...layoutItems.universalAddressItem }]],
-    [[0x84, "CanonicalPeer"], [peerChainItem]],
+    [[0x80, "BaseFee"         ], [peerChainItem]],
+    [[0x81, "MaxGasDropoff"   ], [peerChainItem]],
+    [[0x82, "IsChainPaused"   ], [peerChainItem]],
+    [[0x83, "IsPeer"          ], [peerChainItem, { name: "address", ...layoutItems.universalAddressItem }]],
+    [[0x84, "CanonicalPeer"   ], [peerChainItem]],
     [[0x85, "IsChainSupported"], [peerChainItem]],
-    [[0x86, "FeeRecipient"], []],
+    [[0x86, "FeeRecipient"    ], []],
   ],
 } as const satisfies Layout;
 export type ConfigQuery = LayoutToType<typeof configQueryLayout>;
@@ -255,39 +205,38 @@ const subArrayLayout = <const N extends string, const L extends Layout>(
     },
   ] as const;
 
-export const commandCategoryLayout = {
+export const rootCommandLayout = {
   binary: "switch",
   idSize: 1,
-  idTag: "commandCategory",
+  idTag: "command",
   layouts: [
-    [[0x00, "TransferTokenWithRelay"], transferTokenWithRelayLayout],
-    [[0x01, "TransferGasTokenWithRelay" ], transferGasTokenWithRelayLayout],
-    [[0x02, "CompleteTransfer"], [{ name: "vaa", binary: "bytes", lengthSize: 2 }]],
-    [[0x03, "ConfigCommands"], subArrayLayout("commands", configCommandLayout)],
-    [[0x04, "ApproveToken"], approveTokenLayout],
+    [[0x00, "TransferTokenWithRelay"   ], transferTokenWithRelayLayout                     ],
+    [[0x01, "TransferGasTokenWithRelay"], transferGasTokenWithRelayLayout                  ],
+    [[0x02, "CompleteTransfer"         ], [{ name: "vaa", binary: "bytes", lengthSize: 2 }]],
+    [[0x03, "ConfigCommands"           ], subArrayLayout("commands", configCommandLayout)  ],
+    [[0x04, "ApproveToken"             ], approveTokenLayout                               ],
 
     ...accessControlCommandMap,
     ...upgradeCommandLayout,
     ...sweepTokensCommandLayout,
   ],
 } as const;
-export type CommandCategory = LayoutToType<typeof commandCategoryLayout>;
+export type RootCommand = LayoutToType<typeof rootCommandLayout>;
 
-export const queryCategoryLayout = {
+export const rootQueryLayout = {
   binary: "switch",
   idSize: 1,
-  idTag: "queryCategory",
+  idTag: "query",
   layouts: [
-    [[0x80, "RelayFee"], relayingFeesInputLayout],
-    [[0x81, "BaseRelayingConfig"], baseRelayingConfigInputLayout],
-    [[0x82, "ConfigQueries"], subArrayLayout("queries", configQueryLayout)],
-    [[0x83, "AllowanceTokenBridge"], approveTokenLayout],
-
+    [[0x80, "RelayFee"            ], relayingFeeParamsLayout                     ],
+    [[0x81, "BaseRelayingConfig"  ], baseRelayingConfigParamsLayout              ],
+    [[0x82, "ConfigQueries"       ], subArrayLayout("queries", configQueryLayout)],
+    [[0x83, "AllowanceTokenBridge"], approveTokenLayout                          ],
     ...accessControlQueryMap,
     ...implementationQueryLayout,
   ],
 } as const;
-export type QueryCategory = LayoutToType<typeof queryCategoryLayout>;
+export type RootQuery = LayoutToType<typeof rootQueryLayout>;
 
 export const versionEnvelopeLayout = <
   const N extends string,
@@ -305,22 +254,24 @@ export const versionEnvelopeLayout = <
   } as const);
 
 export const execParamsLayout =
-  versionEnvelopeLayout("commandCategories", commandCategoryLayout);
+  versionEnvelopeLayout("commands", rootCommandLayout);
 export type ExecParams = LayoutToType<typeof execParamsLayout>;
 
 export const queryParamsLayout =
-  versionEnvelopeLayout("queryCategories", queryCategoryLayout);
+  versionEnvelopeLayout("queries", rootQueryLayout);
 export type QueryParams = LayoutToType<typeof queryParamsLayout>;
 
-export const TBRv3Message = [ //we can turn this into a switch layout if we ever get a version 1
+export const TBRv3MessageLayout = [ //we can turn this into a switch layout if we ever get a version 1
   { name: "version", binary: "uint", size: 1, custom: 0, omit: true },
-  { name: "recipient", ...layoutItems.universalAddressItem },
-  { name: "gasDropoff", ...gasDropoffItem },
-  { name: "unwrapIntent", ...layoutItems.boolItem },
+  { name: "recipient",    ...layoutItems.universalAddressItem       },
+  { name: "gasDropoff",   ...gasDropoffItem                         },
+  { name: "unwrapIntent", ...layoutItems.boolItem                   },
 ] as const satisfies Layout;
+export type TBRv3Message = LayoutToType<typeof TBRv3MessageLayout>;
 
 export const proxyConstructorLayout = [
-  { name: "feeRecipient", ...evmAddressItem },
-  { name: "owner", ...evmAddressItem },
+  { name: "feeRecipient", ...evmAddressItem                                },
+  { name: "owner",        ...evmAddressItem                                },
   { name: "admins", binary: "array", lengthSize: 1, layout: evmAddressItem },
 ] as const satisfies Layout;
+export type ProxyConstructor = LayoutToType<typeof proxyConstructorLayout>;
