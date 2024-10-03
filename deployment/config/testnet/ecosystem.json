@@ -1,7 +1,15 @@
 {
-  "operatingChains": [1, 10002],
+  "operatingChains": [1, 14, 10002, 10004, 10005],
   "evm": {
     "networks": [
+      {
+        "name": "Celo",
+        "externalId": 44787,
+        "chainId": 14,
+        "rpc": "https://alfajores-forno.celo-testnet.org",
+        "network": "Testnet",
+        "wormholeAddress": "0x88505117CA88e7dd2eC6EA1E13f0948db2D50D56"
+      },
       {
         "name": "Sepolia",
         "externalId": 11155111,

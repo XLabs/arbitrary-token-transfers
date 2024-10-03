@@ -83,10 +83,10 @@ contract UserTest is TbrTestBase {
     uint boundMaxValue = 1e12;
     wormholeFee = bound(wormholeFee, 1, boundMaxValue);
     feeQuote = bound(feeQuote, 1, boundMaxValue);
-    vm.assume(tokenAmount > 0 && tokenAmount <= type(uint56).max);
+    tokenAmount = bound(tokenAmount, 1, type(uint56).max);
     vm.assume(recipient != bytes32(0));
-    vm.assume(gasDropoff < MAX_GAS_DROPOFF_AMOUNT);
-    vm.assume(unallocatedBalance >= feeQuote + wormholeFee);
+    gasDropoff = uint32(bound(gasDropoff, 0, MAX_GAS_DROPOFF_AMOUNT));
+    unallocatedBalance = bound(unallocatedBalance, feeQuote + wormholeFee, (feeQuote + wormholeFee) * 10);
     deal(address(this), unallocatedBalance);
     deal(address(usdt), address(this), tokenAmount);
     SafeERC20.safeApprove(usdt, address(tbr), tokenAmount);
@@ -300,10 +300,10 @@ contract UserTest is TbrTestBase {
     uint boundMaxValue = 1e12;
     wormholeFee = bound(wormholeFee, 1, boundMaxValue);
     feeQuote = bound(feeQuote, 1, boundMaxValue);
-    vm.assume(tokenAmount > 0);
+    tokenAmount = bound(tokenAmount, 1, type(uint256).max);
     vm.assume(recipient != bytes32(0));
-    vm.assume(gasDropoff < MAX_GAS_DROPOFF_AMOUNT);
-    vm.assume(unallocatedBalance < feeQuote + wormholeFee);
+    gasDropoff = uint32(bound(gasDropoff, 1, MAX_GAS_DROPOFF_AMOUNT));
+    unallocatedBalance = bound(unallocatedBalance, 0, feeQuote + wormholeFee - 1);
     deal(address(this), unallocatedBalance);
     deal(address(usdt), address(this), tokenAmount);
     SafeERC20.safeApprove(usdt, address(tbr), tokenAmount);
