@@ -67,19 +67,7 @@ contract TbrTestBase is Test {
   function _setUp1() internal virtual { }
 
   function setUp() public {
-    uint fakeChainId = 0;
     uint8 adminCount = 1;
-    vm.mockCall(
-      oracle,
-      abi.encodeWithSelector(priceOracle.get1959.selector),
-      abi.encode(abi.encodePacked(uint16(fakeChainId)))
-    );
-
-    vm.mockCall(
-      address(wormholeCore),
-      abi.encodeWithSelector(wormholeCore.chainId.selector),
-      abi.encode(fakeChainId)
-    );
 
     tbrImplementation = address(new Tbr(
       permit2,
@@ -155,8 +143,14 @@ contract TbrTestBase is Test {
     solanaFeeParams = solanaFeeParams.accountSizeCost(AccountSizeCost.wrap(1e9));
     solanaFeeParams = solanaFeeParams.gasTokenPrice(GasTokenPrice.wrap(1e12));
 
+    vm.mockCall(
+      address(wormholeCore),
+      abi.encodeWithSelector(wormholeCore.chainId.selector),
+      abi.encode(EVM_CHAIN_ID)
+    );
+
     priceOracle = PriceOracle(address(new Proxy(
-      address(new PriceOracle(EVM_CHAIN_ID)),
+      address(new PriceOracle(EVM_CHAIN_ID, wormholeCore)),
       abi.encodePacked(
         owner,
         uint8(1),
