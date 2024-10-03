@@ -204,7 +204,7 @@ const uniqueTestTransfers: TestTransfer[] = [
   // EVM to Solana
   {
     // case A with no gas dropoff
-    transferredAmount: '1',
+    transferredAmount: '1000000',
     gasDropoffAmount: '0',
     unwrapIntent: false,
     tokenAddress: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238', // USDC
@@ -215,7 +215,7 @@ const uniqueTestTransfers: TestTransfer[] = [
   },
   {
     // case A with gas dropoff
-    transferredAmount: '1',
+    transferredAmount: '1000000',
     gasDropoffAmount: '0.00001',
     unwrapIntent: false,
     tokenAddress: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238', // USDC
