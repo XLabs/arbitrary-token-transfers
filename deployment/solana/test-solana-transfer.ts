@@ -3,13 +3,26 @@ import {
   TransferNativeParameters,
   TransferWrappedParameters,
 } from '@xlabs-xyz/solana-arbitrary-token-transfers';
-import { dependencies, evm, getEnv, LoggerFn, SolanaChainInfo, getEnvOrDefault, TestTransfer } from '../helpers';
+import {
+  dependencies,
+  evm,
+  getEnv,
+  LoggerFn,
+  SolanaChainInfo,
+  getEnvOrDefault,
+  TestTransfer,
+} from '../helpers';
 import { getConnection, ledgerSignAndSend, runOnSolana, SolanaSigner } from '../helpers/solana';
 import { PublicKey, SystemProgram, TransactionInstruction } from '@solana/web3.js';
 import { toUniversal } from '@wormhole-foundation/sdk-definitions';
 import { Chain } from '@wormhole-foundation/sdk-base';
 import * as anchor from '@coral-xyz/anchor';
-import { createAssociatedTokenAccountIdempotentInstruction, createSyncNativeInstruction, getAssociatedTokenAddress, NATIVE_MINT } from '@solana/spl-token';
+import {
+  createAssociatedTokenAccountIdempotentInstruction,
+  createSyncNativeInstruction,
+  getAssociatedTokenAddress,
+  NATIVE_MINT,
+} from '@solana/spl-token';
 import { inspect } from 'util';
 
 const BN = anchor.BN;
@@ -27,18 +40,14 @@ async function run() {
   const start = process.hrtime.bigint();
 
   await runOnSolana('send-test-transactions', async (chain, signer, logFn) => {
-    const transfers = uniqueTestTransfers.filter((testTransfer) => !testTransfer.skip && testTransfer.fromChain === chain.name);
+    const transfers = uniqueTestTransfers.filter(
+      (testTransfer) => !testTransfer.skip && testTransfer.fromChain === chain.name,
+    );
     logFn(`Transfers from ${chain.name}: ${transfers.length}`);
 
     const promises = transfers.map(async (testTransfer) => {
       try {
-
-        await sendTestTransaction(
-          chain,
-          signer,
-          logFn,
-          testTransfer,
-        );
+        await sendTestTransaction(chain, signer, logFn, testTransfer);
       } catch (error) {
         console.error(`Error executing script for test: ${inspect(testTransfer)}`, error);
       }
@@ -102,8 +111,10 @@ async function sendTestTransaction(
 
       let transferIx: TransactionInstruction;
 
-      if (testTransfer.tokenChain !== "Solana") {
-        const tokenChain = testTransfer.tokenChain ?? getEnvOrDefault('TOKEN_CHAIN', 'Sepolia') as Chain;
+      if (testTransfer.tokenChain !== 'Solana') {
+        const tokenChain =
+          testTransfer.tokenChain ?? (getEnvOrDefault('TOKEN_CHAIN', 'Sepolia') as Chain);
+
         const params = {
           recipient: {
             chain: targetChain.name as Chain,
@@ -111,7 +122,7 @@ async function sendTestTransaction(
           },
           token: {
             chain: tokenChain,
-            address: toUniversal(tokenChain, mint!.toBase58()),
+            address: toUniversal(tokenChain, mint!.toBytes()),
           },
           userTokenAccount: new PublicKey(getEnv('TRANSFER_TOKEN_ACCOUNT')),
           transferredAmount,
@@ -142,16 +153,13 @@ async function sendTestTransaction(
       // if transferring SOL first we have to wrap it
       if (testTransfer.tokenAddress && testTransfer.tokenAddress === NATIVE_MINT.toBase58()) {
         const payerPk = new PublicKey(await signer.getAddress());
-        const ata = await getAssociatedTokenAddress(
-          mint!,
-          payerPk,
-        );
+        const ata = await getAssociatedTokenAddress(mint!, payerPk);
 
         const ataIx = createAssociatedTokenAccountIdempotentInstruction(
           payerPk,
           ata,
           payerPk,
-          mint!
+          mint!,
         );
         ixs.push(ataIx);
 
@@ -195,9 +203,9 @@ const uniqueTestTransfers: TestTransfer[] = [
     gasDropoffAmount: '0',
     unwrapIntent: false,
     tokenAddress: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU', // USDC
-    tokenChain: "Solana",
-    fromChain: "Solana", 
-    toChain: "OptimismSepolia",
+    tokenChain: 'Solana',
+    fromChain: 'Solana',
+    toChain: 'OptimismSepolia',
     skip: true,
   },
   {
@@ -206,9 +214,9 @@ const uniqueTestTransfers: TestTransfer[] = [
     gasDropoffAmount: '0.0001',
     unwrapIntent: false,
     tokenAddress: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU', // USDC
-    tokenChain: "Solana",
-    fromChain: "Solana",
-    toChain: "OptimismSepolia",
+    tokenChain: 'Solana',
+    fromChain: 'Solana',
+    toChain: 'OptimismSepolia',
     skip: true,
   },
   {
@@ -217,10 +225,10 @@ const uniqueTestTransfers: TestTransfer[] = [
     gasDropoffAmount: '0',
     unwrapIntent: false,
     tokenAddress: NATIVE_MINT.toBase58(),
-    tokenChain: "Solana",
-    fromChain: "Solana", 
-    toChain: "OptimismSepolia",
-    skip: false,
+    tokenChain: 'Solana',
+    fromChain: 'Solana',
+    toChain: 'OptimismSepolia',
+    skip: true,
   },
   {
     // case D (gas token)
@@ -228,31 +236,31 @@ const uniqueTestTransfers: TestTransfer[] = [
     gasDropoffAmount: '0.0001',
     unwrapIntent: false,
     tokenAddress: NATIVE_MINT.toBase58(),
-    tokenChain: "Solana",
-    fromChain: "Solana",
-    toChain: "OptimismSepolia",
+    tokenChain: 'Solana',
+    fromChain: 'Solana',
+    toChain: 'OptimismSepolia',
     skip: true,
   },
   {
     // case E native evm token (wrapped on solana)
-    transferredAmount: '1',
+    transferredAmount: '10000000000000000',
     gasDropoffAmount: '0',
     unwrapIntent: false,
-    tokenAddress: 'TBD',
-    tokenChain: "OptimismSepolia",
-    fromChain: "Solana", 
-    toChain: "OptimismSepolia",
-    skip: true,
+    tokenAddress: '84F2QX9278ToDmA98u4A86xSV9hz1ovazr8zwGaX6qjS', // Wrapped Celo
+    tokenChain: 'Celo',
+    fromChain: 'Solana',
+    toChain: 'Celo',
+    skip: false,
   },
   {
     // case E native evm token (wrapped on solana)
     transferredAmount: '1',
     gasDropoffAmount: '0.0001',
     unwrapIntent: true,
-    tokenAddress: 'TBD',
-    tokenChain: "OptimismSepolia",
-    fromChain: "Solana",
-    toChain: "OptimismSepolia",
+    tokenAddress: '84F2QX9278ToDmA98u4A86xSV9hz1ovazr8zwGaX6qjS', // Wrapped Celo
+    tokenChain: 'Celo',
+    fromChain: 'Solana',
+    toChain: 'Celo',
     skip: true,
-  }
+  },
 ];

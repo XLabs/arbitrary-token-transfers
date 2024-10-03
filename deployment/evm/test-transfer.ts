@@ -1,11 +1,4 @@
-import {
-  evm,
-  EvmChainInfo,
-  getContractAddress,
-  getEnv,
-  LoggerFn,
-  TestTransfer,
-} from '../helpers';
+import { evm, EvmChainInfo, getContractAddress, getEnv, LoggerFn, TestTransfer } from '../helpers';
 import { ethers } from 'ethers';
 import { getProvider, runOnEvms, sendTx } from '../helpers/evm';
 import { SupportedChains, Tbrv3, Transfer } from '@xlabs-xyz/evm-arbitrary-token-transfers';
@@ -21,7 +14,7 @@ const usdcAddresses = {
   OptimismSepolia: '0x5fd84259d66Cd46123540766Be93DFE6D43130D7',
   Sepolia: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
   Celo: '	0x2F25deB3848C207fc8E0c34035B3Ba7fC157602B',
-  Solana: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU'
+  Solana: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
 };
 
 /**
@@ -30,23 +23,19 @@ const usdcAddresses = {
  * - SOLANA_RECIPIENT_ADDRESS: Solana address to send tokens to
  */
 
-
 async function run() {
   console.log(`Start ${processName}!`);
   const start = process.hrtime.bigint();
 
   await runOnEvms('send-test-transactions', async (chain, signer, logFn) => {
-    const transfersFromChain = uniqueTestTransfers.filter((testTransfer) => !testTransfer.skip && testTransfer.fromChain === chain.name);
+    const transfersFromChain = uniqueTestTransfers.filter(
+      (testTransfer) => !testTransfer.skip && testTransfer.fromChain === chain.name,
+    );
     logFn(`Transfers from ${chain.name}: ${transfersFromChain.length}`);
 
     const promises = transfersFromChain.map(async (testTransfer) => {
       try {
-        await sendTestTransaction(
-          chain,
-          signer,
-          logFn,
-          testTransfer,
-        );
+        await sendTestTransaction(chain, signer, logFn, testTransfer);
       } catch (error) {
         console.error(`Error executing script for test: ${inspect(testTransfer)}`, error);
       }
@@ -75,7 +64,7 @@ async function sendTestTransaction(
       inputToken,
       inputAmountInAtomic,
       gasDropoff,
-      unwrapIntent
+      unwrapIntent,
     });
 
     console.log(`Operating chain: ${inspect(chain)}`);
@@ -172,7 +161,7 @@ async function sendTestTransaction(
 }
 
 run().then(() => console.log('Done!'));
-  
+
 const uniqueTestTransfers: TestTransfer[] = [
   // EVM to Solana
   {
@@ -181,9 +170,9 @@ const uniqueTestTransfers: TestTransfer[] = [
     gasDropoffAmount: '0',
     unwrapIntent: false,
     tokenAddress: '0x5fd84259d66Cd46123540766Be93DFE6D43130D7', // USDC
-    tokenChain: "OptimismSepolia",
-    fromChain: "OptimismSepolia",
-    toChain: "Solana",
+    tokenChain: 'OptimismSepolia',
+    fromChain: 'OptimismSepolia',
+    toChain: 'Solana',
     skip: false,
   },
   {
@@ -192,9 +181,9 @@ const uniqueTestTransfers: TestTransfer[] = [
     gasDropoffAmount: '0.00001',
     unwrapIntent: false,
     tokenAddress: '0x5fd84259d66Cd46123540766Be93DFE6D43130D7', // USDC
-    tokenChain: "OptimismSepolia",
-    fromChain: "OptimismSepolia",
-    toChain: "Solana",
+    tokenChain: 'OptimismSepolia',
+    fromChain: 'OptimismSepolia',
+    toChain: 'Solana',
     skip: true,
   },
   {
@@ -202,9 +191,9 @@ const uniqueTestTransfers: TestTransfer[] = [
     transferredAmount: '1',
     gasDropoffAmount: '0',
     unwrapIntent: false,
-    tokenChain: "Celo",
-    fromChain: "Celo",
-    toChain: "Solana",
+    tokenChain: 'Celo',
+    fromChain: 'Celo',
+    toChain: 'Solana',
     skip: true,
   },
   {
@@ -212,9 +201,9 @@ const uniqueTestTransfers: TestTransfer[] = [
     transferredAmount: '1',
     gasDropoffAmount: '0.00001',
     unwrapIntent: false,
-    tokenChain: "Celo",
-    fromChain: "Celo",
-    toChain: "Solana",
+    tokenChain: 'Celo',
+    fromChain: 'Celo',
+    toChain: 'Solana',
     skip: true,
   },
   {
@@ -223,9 +212,9 @@ const uniqueTestTransfers: TestTransfer[] = [
     gasDropoffAmount: '0',
     unwrapIntent: false,
     tokenAddress: '0x8e62ff4ba9944b4ddff5fc548deab4b22c6ea34e', // wrapped USDC
-    tokenChain: "Solana",
-    fromChain: "OptimismSepolia",
-    toChain: "Solana",
+    tokenChain: 'Solana',
+    fromChain: 'OptimismSepolia',
+    toChain: 'Solana',
     skip: true,
   },
   {
@@ -234,76 +223,74 @@ const uniqueTestTransfers: TestTransfer[] = [
     gasDropoffAmount: '0',
     unwrapIntent: true,
     tokenAddress: '0x8e62ff4ba9944b4ddff5fc548deab4b22c6ea34e', // wrapped USDC
-    tokenChain: "Solana",
-    fromChain: "OptimismSepolia",
-    toChain: "Solana",
+    tokenChain: 'Solana',
+    fromChain: 'OptimismSepolia',
+    toChain: 'Solana',
     skip: true,
   },
-  
   // EVM to EVM
   {
-   // case F with no gas dropoff
-   transferredAmount: '1',
-   gasDropoffAmount: '0',
-   unwrapIntent: false,
-   tokenAddress: '0x5fd84259d66Cd46123540766Be93DFE6D43130D7', // USDC
-   tokenChain: "OptimismSepolia",
-   fromChain: "OptimismSepolia",
-   toChain: "Sepolia",
-   skip: true,
- },
- {
-   // case F with gas dropoff
-   transferredAmount: '1',
-   gasDropoffAmount: '0.00001',
-   unwrapIntent: false,
-   tokenAddress: '0x5fd84259d66Cd46123540766Be93DFE6D43130D7', // USDC
-   tokenChain: "OptimismSepolia",
-   fromChain: "OptimismSepolia",
-   toChain: "Sepolia",
-   skip: true,
- },
- {
-   // case G gas token with no gas dropoff
-   transferredAmount: '1',
-   gasDropoffAmount: '0',
-   unwrapIntent: false,
-   tokenChain: "Celo",
-   fromChain: "Celo",
-   toChain: "Sepolia",
-   skip: true,
- },
- {
-   // case G gas token with gas dropoff
-   transferredAmount: '1',
-   gasDropoffAmount: '0.00001',
-   unwrapIntent: false,
-   tokenChain: "Celo",
-   fromChain: "Celo",
-   toChain: "Sepolia",
-   skip: true,
- },
- {
-   // case H 
-   transferredAmount: '1',
-   gasDropoffAmount: '0',
-   unwrapIntent: false,
-   tokenAddress: '0x99d8471E68E67a5ED748Afa806bFcfD7C56Bf63c', // wrapped sepolia USDC on optimisim
-   tokenChain: "Sepolia",
-   fromChain: "OptimismSepolia",
-   toChain: "Sepolia",
-   skip: true,
- },
- {
-   // case H 
-   transferredAmount: '1',
-   gasDropoffAmount: '0',
-   unwrapIntent: true,
-   tokenAddress: '0x99d8471E68E67a5ED748Afa806bFcfD7C56Bf63c', // wrapped sepolia USDC on optimisim
-   tokenChain: "Sepolia",
-   fromChain: "OptimismSepolia",
-   toChain: "Sepolia",
-   skip: true,
- },
-  
+    // case F with no gas dropoff
+    transferredAmount: '1',
+    gasDropoffAmount: '0',
+    unwrapIntent: false,
+    tokenAddress: '0x5fd84259d66Cd46123540766Be93DFE6D43130D7', // USDC
+    tokenChain: 'OptimismSepolia',
+    fromChain: 'OptimismSepolia',
+    toChain: 'Sepolia',
+    skip: true,
+  },
+  {
+    // case F with gas dropoff
+    transferredAmount: '1',
+    gasDropoffAmount: '0.00001',
+    unwrapIntent: false,
+    tokenAddress: '0x5fd84259d66Cd46123540766Be93DFE6D43130D7', // USDC
+    tokenChain: 'OptimismSepolia',
+    fromChain: 'OptimismSepolia',
+    toChain: 'Sepolia',
+    skip: true,
+  },
+  {
+    // case G gas token with no gas dropoff
+    transferredAmount: '1',
+    gasDropoffAmount: '0',
+    unwrapIntent: false,
+    tokenChain: 'Celo',
+    fromChain: 'Celo',
+    toChain: 'Sepolia',
+    skip: true,
+  },
+  {
+    // case G gas token with gas dropoff
+    transferredAmount: '1',
+    gasDropoffAmount: '0.00001',
+    unwrapIntent: false,
+    tokenChain: 'Celo',
+    fromChain: 'Celo',
+    toChain: 'Sepolia',
+    skip: true,
+  },
+  {
+    // case H
+    transferredAmount: '1',
+    gasDropoffAmount: '0',
+    unwrapIntent: false,
+    tokenAddress: '0x99d8471E68E67a5ED748Afa806bFcfD7C56Bf63c', // wrapped sepolia USDC on optimisim
+    tokenChain: 'Sepolia',
+    fromChain: 'OptimismSepolia',
+    toChain: 'Sepolia',
+    skip: true,
+  },
+  {
+    // case H
+    transferredAmount: '1',
+    gasDropoffAmount: '0',
+    unwrapIntent: true,
+    tokenAddress: '0x99d8471E68E67a5ED748Afa806bFcfD7C56Bf63c', // wrapped sepolia USDC on optimisim
+    tokenChain: 'Sepolia',
+    fromChain: 'OptimismSepolia',
+    toChain: 'Sepolia',
+    skip: true,
+  },
 ];
