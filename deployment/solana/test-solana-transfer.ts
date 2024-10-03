@@ -104,7 +104,10 @@ async function sendTestTransaction(
             chain: tokenChain,
             address: toUniversal(tokenChain, mint!.toBase58()),
           },
-          userTokenAccount: new PublicKey(getEnv('TRANSFER_TOKEN_ACCOUNT')),
+          userTokenAccount: await getAssociatedTokenAddress(
+            mint!,
+            signerKey,
+          ),
           transferredAmount,
           gasDropoffAmount,
           maxFeeKlamports,
@@ -132,22 +135,21 @@ async function sendTestTransaction(
 
       // if transferring SOL first we have to wrap it
       if (testTransfer.tokenAddress && testTransfer.tokenAddress === NATIVE_MINT.toBase58()) {
-        const payerPk = new PublicKey(await signer.getAddress());
         const ata = await getAssociatedTokenAddress(
           mint!,
-          payerPk,
+          signerKey,
         );
 
         const ataIx = createAssociatedTokenAccountIdempotentInstruction(
-          payerPk,
+          signerKey,
           ata,
-          payerPk,
+          signerKey,
           mint!
         );
         ixs.push(ataIx);
 
         const transferSol = SystemProgram.transfer({
-          fromPubkey: payerPk,
+          fromPubkey: signerKey,
           toPubkey: ata,
           lamports: Number(testTransfer.transferredAmount),
         });
