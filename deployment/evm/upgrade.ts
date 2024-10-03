@@ -114,7 +114,7 @@ async function upgradeProxyWithNewImplementation(
     getProvider(chain),
     chain.network,
     chainIdToChain(chain.chainId),
-    getContractAddress("TbrV3Proxies", chain.chainId),
+    new EvmAddress(getContractAddress("TbrV3Proxies", chain.chainId)),
   );
 
   const tx = tbr.upgradeContract(new EvmAddress(implementationAddress));

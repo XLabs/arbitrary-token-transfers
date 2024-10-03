@@ -12,6 +12,7 @@ import { toUniversal } from '@wormhole-foundation/sdk-definitions';
 import { Chain, chainIdToChain, chainToPlatform } from '@wormhole-foundation/sdk-base';
 import { inspect } from 'util';
 import { solanaOperatingChains } from '../helpers/solana';
+import { EvmAddress } from '@wormhole-foundation/sdk-evm/dist/cjs';
 
 const processName = 'att-evm-test-transfer';
 const chains = evm.evmOperatingChains();
@@ -54,7 +55,7 @@ async function sendTestTransaction(
   unwrapIntent: boolean,
 ): Promise<void> {
   try {
-    const inputToken = getEnv('INPUT_TOKEN');
+    const inputToken = new EvmAddress(getEnv('INPUT_TOKEN'));
 
     console.log({
       sourceChain: chain,
@@ -66,7 +67,7 @@ async function sendTestTransaction(
 
     console.log(`Operating chain: ${inspect(chain)}`);
 
-    const tbrv3ProxyAddress = getContractAddress('TbrV3Proxies', chain.chainId);
+    const tbrv3ProxyAddress = new EvmAddress(getContractAddress('TbrV3Proxies', chain.chainId));
     const provider = getProvider(chain);
     const tbrv3 = Tbrv3.connect(provider!, chain.network, chainIdToChain(chain.chainId), tbrv3ProxyAddress);
 

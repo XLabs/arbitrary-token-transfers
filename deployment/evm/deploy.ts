@@ -9,6 +9,7 @@ import { EvmTbrV3Config } from "../config/config.types";
 import { ethers } from "ethers";
 import { Tbr__factory, Proxy__factory } from "../ethers-contracts/index.js";
 import { getSigner } from "../helpers/evm";
+import { EvmAddress } from "@wormhole-foundation/sdk-evm/dist/cjs";
 
 
 const processName = "tbr-v3";
@@ -106,14 +107,17 @@ async function deployProxy(
 ) {
   console.log("deployRelayerProxy " + chain.chainId);
   const signer = await getSigner(chain);
-  const signerAddress = await signer.getAddress();
+  const signerAddress = new EvmAddress(await signer.getAddress());
   const { Tbrv3 } = await import("@xlabs-xyz/evm-arbitrary-token-transfers");
+  const owner = config.owner !== undefined ? new EvmAddress(config.owner) : signerAddress;
+  const admin = config.admin !== undefined ? new EvmAddress(config.admin) : signerAddress;
+  const feeRecipient = config.feeRecipient !== undefined ? new EvmAddress(config.feeRecipient) : signerAddress;
 
   const proxyConstructorArgs = Tbrv3.proxyConstructor(
-    config.owner || signerAddress,
+    owner,
     // TODO: accept more admins in config
-    [config.admin || signerAddress],
-    config.feeRecipient || signerAddress,
+    [admin],
+    feeRecipient,
   );
 
   const contractInterface = Proxy__factory.createInterface();
