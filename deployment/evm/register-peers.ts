@@ -8,6 +8,7 @@ import { SolanaAddress } from "@wormhole-foundation/sdk-solana";
 import { chainIdToChain } from "@wormhole-foundation/sdk-base";
 import { SupportedChains, Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
 import { ethers } from "ethers";
+import { EvmAddress } from "@wormhole-foundation/sdk-evm/dist/cjs";
 
 /**
  * Configure peers for Tbrv3 contracts:
@@ -16,7 +17,7 @@ import { ethers } from "ethers";
  *  
  */
 evm.runOnEvms("register-peers", async (chain, signer, log) => {
-  const tbrv3ProxyAddress = getContractAddress("TbrV3Proxies", chain.chainId);
+  const tbrv3ProxyAddress = new EvmAddress(getContractAddress("TbrV3Proxies", chain.chainId));
   const tbrv3 = Tbrv3.connect(signer.provider!, chain.network, chainIdToChain(chain.chainId), tbrv3ProxyAddress);
   const deployedTbrv3s = loadTbrPeers(chain)
 

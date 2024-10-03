@@ -8,12 +8,13 @@ import { chainIdToChain } from "@wormhole-foundation/sdk-base";
 import { SupportedChains, Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
 import { ethers } from "ethers";
 import { EvmTbrV3Config } from "../config/config.types.js";
+import { EvmAddress } from "@wormhole-foundation/sdk-evm/dist/cjs";
 
 /**
  * Configures relay fee and max gas dropoff for Tbrv3 contracts
  */
 evm.runOnEvms("configure-fee-and-dropoff", async (chain, signer, log) => {
-  const tbrv3ProxyAddress = getContractAddress("TbrV3Proxies", chain.chainId);
+  const tbrv3ProxyAddress = new EvmAddress(getContractAddress("TbrV3Proxies", chain.chainId));
   const tbrv3 = Tbrv3.connect(signer.provider!, chain.network, "Sepolia", tbrv3ProxyAddress);
   const peers = loadTbrPeers(chain);
 
