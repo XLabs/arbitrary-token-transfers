@@ -9,10 +9,6 @@ pub(crate) enum TokenBridgeRelayerError {
     #[msg("AdminCountMismatch")]
     AdminCountMismatch,
 
-    /// The provided admin PDA accounts in initialize must be derived from the passed admin pubkeys.
-    #[msg("AdminAddressMismatch")]
-    AdminAddressMismatch,
-
     /// Only the program's owner is permitted.
     #[msg("OwnerOnly")]
     OwnerOnly,

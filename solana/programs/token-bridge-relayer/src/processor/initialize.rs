@@ -22,7 +22,7 @@ pub struct Initialize<'info> {
         init,
         payer = deployer,
         space = 8 + AuthBadgeState::INIT_SPACE,
-        seeds = [AuthBadgeState::SEED_PREFIX],
+        seeds = [AuthBadgeState::SEED_PREFIX, owner.key.to_bytes().as_ref()],
         bump
     )]
     pub auth_badge: Account<'info, AuthBadgeState>,
@@ -114,23 +114,24 @@ pub fn initialize<'a, 'b, 'c, 'info>(
     );
 
     for (admin, badge_acc_info) in zip(admins, ctx.remaining_accounts) {
-        require_keys_eq!(
-            badge_acc_info.key(),
-            Pubkey::find_program_address(
-                &[AuthBadgeState::SEED_PREFIX, admin.to_bytes().as_ref()],
-                ctx.program_id
-            )
-            .0,
-            TokenBridgeRelayerError::AdminAddressMismatch
-        );
+        let bump = Pubkey::find_program_address(
+            &[AuthBadgeState::SEED_PREFIX, admin.to_bytes().as_ref()],
+            ctx.program_id,
+        )
+        .1;
 
         anchor_lang::system_program::create_account(
-            CpiContext::new(
+            CpiContext::new_with_signer(
                 ctx.accounts.system_program.to_account_info(),
                 anchor_lang::system_program::CreateAccount {
                     from: ctx.accounts.deployer.to_account_info(),
                     to: badge_acc_info.clone(),
                 },
+                &[&[
+                    AuthBadgeState::SEED_PREFIX,
+                    admin.to_bytes().as_ref(),
+                    &[bump],
+                ]],
             ),
             Rent::get()?.minimum_balance(8 + AuthBadgeState::INIT_SPACE),
             (8 + AuthBadgeState::INIT_SPACE) as u64,

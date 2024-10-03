@@ -3,13 +3,13 @@
   "version": "0.0.1-alpha12",
   "license": "ISC",
   "type": "module",
-  "module": "ts-build/tbrv3/index.js",
-  "types": "ts-build/tbrv3/index.d.ts",
+  "module": "ts-build/index.js",
+  "types": "ts-build/index.d.ts",
   "exports": {
     ".": {
-      "types": "./ts-build/tbrv3/index.d.ts",
-      "require": "./ts-build/tbrv3/index.cjs",
-      "import": "./ts-build/tbrv3/index.js"
+      "types": "./ts-build/index.d.ts",
+      "require": "./ts-build/index.cjs",
+      "import": "./ts-build/index.js"
     }
   },
   "files": [
@@ -25,6 +25,7 @@
     "@solana/web3.js": "^1.95.3",
     "@wormhole-foundation/sdk-base": "^0.10.7",
     "@wormhole-foundation/sdk-definitions": "^0.10.7",
+    "@wormhole-foundation/sdk-solana": "^0.10.9",
     "@wormhole-foundation/sdk-solana-tokenbridge": "^0.10.7",
     "@xlabs/solana-price-oracle-sdk": "^0.0.4",
     "borsh": "^2.0.0",
@@ -38,14 +39,14 @@
   },
   "tsup": {
     "entry": [
-      "tbrv3/index.ts"
+      "index.ts"
     ],
     "tsconfig": "tsconfig.build.json",
     "splitting": false,
     "sourcemap": true,
     "minify": false,
     "clean": true,
-    "outDir": "ts-build/tbrv3",
+    "outDir": "ts-build",
     "format": [
       "esm",
       "cjs"

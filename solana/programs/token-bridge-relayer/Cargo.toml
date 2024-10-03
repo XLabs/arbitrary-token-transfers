@@ -9,7 +9,7 @@ crate-type = ["cdylib", "lib"]
 name = "token_bridge_relayer"
 
 [features]
-default = ["solana-price-oracle/cpi", "solana-devnet"]
+default = ["solana-price-oracle/cpi", "localnet"]
 cpi = ["no-entrypoint"]
 no-entrypoint = []
 no-idl = []
@@ -27,6 +27,7 @@ solana-devnet = [
     "wormhole-anchor-sdk/solana-devnet",
 ]
 tilt-devnet = ["solana-price-oracle/tilt-devnet"]
+localnet = ["solana-price-oracle/mainnet", "wormhole-anchor-sdk/mainnet"]
 
 [dependencies]
 cfg-if = "1"

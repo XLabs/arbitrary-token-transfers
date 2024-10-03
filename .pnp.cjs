@@ -1724,6 +1724,14 @@ const RAW_RUNTIME_STATE =
           ["@scure/base", "npm:1.1.8"]\
         ],\
         "linkType": "HARD"\
+      }],\
+      ["npm:0.10.9", {\
+        "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-base-npm-0.10.9-1a809728e8-b385ba242c.zip/node_modules/@wormhole-foundation/sdk-base/",\
+        "packageDependencies": [\
+          ["@wormhole-foundation/sdk-base", "npm:0.10.9"],\
+          ["@scure/base", "npm:1.1.8"]\
+        ],\
+        "linkType": "HARD"\
       }]\
     ]],\
     ["@wormhole-foundation/sdk-connect", [\
@@ -1733,6 +1741,16 @@ const RAW_RUNTIME_STATE =
           ["@wormhole-foundation/sdk-connect", "npm:0.10.7"],\
           ["@wormhole-foundation/sdk-base", "npm:0.10.7"],\
           ["@wormhole-foundation/sdk-definitions", "npm:0.10.7"],\
+          ["axios", "npm:1.7.7"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:0.10.9", {\
+        "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-connect-npm-0.10.9-fd57381048-f0e10f1db5.zip/node_modules/@wormhole-foundation/sdk-connect/",\
+        "packageDependencies": [\
+          ["@wormhole-foundation/sdk-connect", "npm:0.10.9"],\
+          ["@wormhole-foundation/sdk-base", "npm:0.10.9"],\
+          ["@wormhole-foundation/sdk-definitions", "npm:0.10.9"],\
           ["axios", "npm:1.7.7"]\
         ],\
         "linkType": "HARD"\
@@ -1746,6 +1764,16 @@ const RAW_RUNTIME_STATE =
           ["@noble/curves", "npm:1.6.0"],\
           ["@noble/hashes", "npm:1.5.0"],\
           ["@wormhole-foundation/sdk-base", "npm:0.10.7"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:0.10.9", {\
+        "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-definitions-npm-0.10.9-229a7881cb-5c10644160.zip/node_modules/@wormhole-foundation/sdk-definitions/",\
+        "packageDependencies": [\
+          ["@wormhole-foundation/sdk-definitions", "npm:0.10.9"],\
+          ["@noble/curves", "npm:1.6.0"],\
+          ["@noble/hashes", "npm:1.5.0"],\
+          ["@wormhole-foundation/sdk-base", "npm:0.10.9"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -1771,6 +1799,19 @@ const RAW_RUNTIME_STATE =
           ["@solana/spl-token", "virtual:61796ba40674fd63eb80efdd3da851b0f862b84269c5f160874149fb7f4bb31ef20a106b54590bf51d31e9363b47134fb8f2e65eaa6734f6be130698e6152500#npm:0.3.9"],\
           ["@solana/web3.js", "npm:1.95.3"],\
           ["@wormhole-foundation/sdk-connect", "npm:0.10.7"],\
+          ["rpc-websockets", "npm:7.11.2"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:0.10.9", {\
+        "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-solana-npm-0.10.9-97362ecb14-b9b801e888.zip/node_modules/@wormhole-foundation/sdk-solana/",\
+        "packageDependencies": [\
+          ["@wormhole-foundation/sdk-solana", "npm:0.10.9"],\
+          ["@coral-xyz/anchor", "npm:0.29.0"],\
+          ["@coral-xyz/borsh", "virtual:852da326f150408584798524fe58e9855b987bcc4f041389e1ca13248c23c659c3ffb4a9aa4176cc7542f503f2e1e6422a1f18f69e5e623ca255691d222a55ca#npm:0.29.0"],\
+          ["@solana/spl-token", "virtual:61796ba40674fd63eb80efdd3da851b0f862b84269c5f160874149fb7f4bb31ef20a106b54590bf51d31e9363b47134fb8f2e65eaa6734f6be130698e6152500#npm:0.3.9"],\
+          ["@solana/web3.js", "npm:1.95.3"],\
+          ["@wormhole-foundation/sdk-connect", "npm:0.10.9"],\
           ["rpc-websockets", "npm:7.11.2"]\
         ],\
         "linkType": "HARD"\
@@ -1874,6 +1915,7 @@ const RAW_RUNTIME_STATE =
           ["@types/node", "npm:20.16.5"],\
           ["@wormhole-foundation/sdk-base", "npm:0.10.7"],\
           ["@wormhole-foundation/sdk-definitions", "npm:0.10.7"],\
+          ["@wormhole-foundation/sdk-solana", "npm:0.10.9"],\
           ["@wormhole-foundation/sdk-solana-tokenbridge", "npm:0.10.7"],\
           ["@xlabs/solana-price-oracle-sdk", "npm:0.0.4::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40xlabs%2Fsolana-price-oracle-sdk%2F0.0.4%2F43985689b6a3edb240963b2fbebfb7268d340542"],\
           ["borsh", "npm:2.0.0"],\

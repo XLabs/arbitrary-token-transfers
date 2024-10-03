@@ -152,7 +152,7 @@ pub struct CompleteTransfer<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub fn complete_transfer(ctx: Context<CompleteTransfer>) -> Result<()> {
+pub fn complete_transfer(mut ctx: Context<CompleteTransfer>) -> Result<()> {
     let RelayerMessage::V0 {
         recipient,
         gas_dropoff_amount,
@@ -176,13 +176,15 @@ pub fn complete_transfer(ctx: Context<CompleteTransfer>) -> Result<()> {
 
     // The tokens are transferred into the temporary_account:
     if is_native(&ctx)? {
+        msg!("Native transfer");
         token_bridge_complete_native(&ctx, redeemer_seeds)?;
     } else {
+        msg!("Wrapped transfer");
         token_bridge_complete_wrapped(&ctx, redeemer_seeds)?;
     }
 
     redeem_gas(&ctx, gas_dropoff_amount)?;
-    redeem_token(&ctx, unwrap_intent, tbr_config_seeds)?;
+    redeem_token(&mut ctx, unwrap_intent, tbr_config_seeds)?;
 
     Ok(())
 }
@@ -305,14 +307,18 @@ fn redeem_gas(ctx: &Context<CompleteTransfer>, gas_dropoff_amount: u32) -> Resul
 }
 
 fn redeem_token(
-    ctx: &Context<CompleteTransfer>,
+    ctx: &mut Context<CompleteTransfer>,
     unwrap_intent: bool,
     tbr_config_seeds: &[&[u8]],
 ) -> Result<()> {
     let unwrap_spl_sol_as_sol = unwrap_intent && ctx.accounts.mint.key() == native_mint::ID;
-    let token_amount = ctx.accounts.temporary_account.amount;
+    let token_amount = {
+        ctx.accounts.temporary_account.reload()?;
+        ctx.accounts.temporary_account.amount
+    };
 
     if unwrap_spl_sol_as_sol {
+        msg!("Native token to be unwrapped");
         // The SPL SOLs are transferred to the payer as gas:
         anchor_spl::token::close_account(CpiContext::new_with_signer(
             ctx.accounts.token_program.to_account_info(),
@@ -338,6 +344,7 @@ fn redeem_token(
             )?;
         }
     } else {
+        msg!("Non-native token, or user asked not to unwrap");
         // Transfer the SPL tokens from temporary_account to recipent_token_account
         anchor_spl::token::transfer(
             CpiContext::new_with_signer(

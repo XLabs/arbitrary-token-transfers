@@ -76,16 +76,7 @@ async function sendTestTransaction(
         throw new Error(`No dependencies found for chain ${chain.chainId}`);
       }
 
-      const tokenBridgeProgramId = new PublicKey(solanaDependencies.tokenBridge);
-      const wormholeProgramId = new PublicKey(solanaDependencies.wormhole);
-
-      const tbr = new SolanaTokenBridgeRelayer(
-        { connection },
-        {
-          tokenBridgeProgramId,
-          wormholeProgramId,
-        },
-      );
+      const tbr = new SolanaTokenBridgeRelayer({ connection });
 
       const evmAddress = getEnv('RECIPIENT_EVM_ADDRESS');
       const maxFeeKlamports = new BN(getEnvOrDefault('MAX_FEE_KLAMPORTS', '5000000'));

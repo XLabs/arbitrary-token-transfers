@@ -67,7 +67,7 @@ pub fn register_peer(
     }
 
     ctx.accounts.peer.set_inner(PeerState {
-        chain_id: chain_id,
+        chain_id,
         address: peer_address,
     });
 

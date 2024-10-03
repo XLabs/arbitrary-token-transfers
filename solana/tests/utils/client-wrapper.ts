@@ -1,6 +1,6 @@
 import { AnchorProvider, BN } from '@coral-xyz/anchor';
 import { PublicKey, TransactionSignature } from '@solana/web3.js';
-import { Chain, Network } from '@wormhole-foundation/sdk-base';
+import { Chain } from '@wormhole-foundation/sdk-base';
 import { UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import {
   SolanaTokenBridgeRelayer,
@@ -8,26 +8,28 @@ import {
   TransferWrappedParameters,
   VaaMessage,
 } from '@xlabs-xyz/solana-arbitrary-token-transfers';
-import { sendAndConfirmIx, wormholeProgramId, tokenBridgeProgramId } from './helpers.js';
+import {
+  sendAndConfirmIxs,
+  wormholeProgramId,
+  tokenBridgeProgramId,
+  newProvider,
+  keypairFromFile,
+} from './helpers.js';
 import { SolanaWormholeCore } from '@wormhole-foundation/sdk-solana-core';
 import { SolanaAutomaticTokenBridge } from '@wormhole-foundation/sdk-solana-tokenbridge';
 
 export class TbrWrapper {
-  private readonly client: SolanaTokenBridgeRelayer;
+  readonly client: SolanaTokenBridgeRelayer;
   readonly provider: AnchorProvider;
   readonly logs: { [key: string]: string[] };
   readonly logsSubscriptionId: number;
 
-  constructor(
-    provider: AnchorProvider,
-    network: Network,
-    accountType: 'owner' | 'admin' | 'regular',
-  ) {
+  constructor(provider: AnchorProvider, accountType: 'owner' | 'admin' | 'regular') {
     this.provider = provider;
     if (accountType === 'regular') {
-      this.client = new SolanaTokenBridgeRelayer(provider, network);
+      this.client = new SolanaTokenBridgeRelayer(provider);
     } else {
-      this.client = new SolanaTokenBridgeRelayer({ connection: provider.connection }, network);
+      this.client = new SolanaTokenBridgeRelayer({ connection: provider.connection });
     }
     this.logs = {};
 
@@ -61,54 +63,44 @@ export class TbrWrapper {
   }
 
   static async initialize(args: {
-    network: Network;
     owner: PublicKey;
     feeRecipient: PublicKey;
     admins: PublicKey[];
   }): Promise<TransactionSignature> {
-    const provider = AnchorProvider.env();
-    const client = new SolanaTokenBridgeRelayer(provider, 'Devnet');
-    console.log('provider key', provider.publicKey);
-
-    return sendAndConfirmIx(
-      client.initialize({
-        deployer: provider.publicKey,
-        ...args,
-      }),
-      provider,
+    const authorityProvider = newProvider(
+      await keypairFromFile('./target/deploy/token_bridge_relayer-keypair.json'),
     );
+    const client = new SolanaTokenBridgeRelayer(authorityProvider);
+    console.log('Authority Key --', authorityProvider.publicKey.toString());
+    console.log('Program ID -----', client.program.programId.toString());
+
+    return sendAndConfirmIxs(authorityProvider, await client.initialize(args));
   }
 
   async submitOwnerTransferRequest(newOwner: PublicKey): Promise<TransactionSignature> {
-    return sendAndConfirmIx(
-      this.client.submitOwnerTransferRequest(this.publicKey, newOwner),
-      this.provider,
-    );
+    return sendAndConfirmIxs(this.provider, this.client.submitOwnerTransferRequest(newOwner));
   }
 
   async confirmOwnerTransferRequest(): Promise<TransactionSignature> {
-    return await sendAndConfirmIx(
-      this.client.confirmOwnerTransferRequest(this.publicKey),
-      this.provider,
-    );
+    return await sendAndConfirmIxs(this.provider, this.client.confirmOwnerTransferRequest());
   }
 
   async cancelOwnerTransferRequest(): Promise<TransactionSignature> {
-    return sendAndConfirmIx(this.client.cancelOwnerTransferRequest(this.publicKey), this.provider);
+    return sendAndConfirmIxs(this.provider, this.client.cancelOwnerTransferRequest());
   }
 
   async addAdmin(newAdmin: PublicKey): Promise<TransactionSignature> {
-    return sendAndConfirmIx(this.client.addAdmin(this.publicKey, newAdmin), this.provider);
+    return sendAndConfirmIxs(this.provider, this.client.addAdmin(newAdmin));
   }
 
   async removeAdmin(adminToRemove: PublicKey): Promise<TransactionSignature> {
-    return sendAndConfirmIx(this.client.removeAdmin(this.publicKey, adminToRemove), this.provider);
+    return sendAndConfirmIxs(this.provider, this.client.removeAdmin(this.publicKey, adminToRemove));
   }
 
   async registerPeer(chain: Chain, peerAddress: UniversalAddress): Promise<TransactionSignature> {
-    return sendAndConfirmIx(
-      this.client.registerPeer(this.publicKey, chain, peerAddress),
+    return sendAndConfirmIxs(
       this.provider,
+      this.client.registerPeer(this.publicKey, chain, peerAddress),
     );
   }
 
@@ -116,37 +108,34 @@ export class TbrWrapper {
     chain: Chain,
     peerAddress: UniversalAddress,
   ): Promise<TransactionSignature> {
-    return sendAndConfirmIx(
-      this.client.updateCanonicalPeer(this.publicKey, chain, peerAddress),
-      this.provider,
-    );
+    return sendAndConfirmIxs(this.provider, this.client.updateCanonicalPeer(chain, peerAddress));
   }
 
   async setPauseForOutboundTransfers(chain: Chain, paused: boolean): Promise<TransactionSignature> {
-    return sendAndConfirmIx(
-      this.client.setPauseForOutboundTransfers(this.publicKey, chain, paused),
+    return sendAndConfirmIxs(
       this.provider,
+      this.client.setPauseForOutboundTransfers(this.publicKey, chain, paused),
     );
   }
 
   async updateMaxGasDropoff(chain: Chain, maxGasDropoff: number): Promise<TransactionSignature> {
-    return sendAndConfirmIx(
-      this.client.updateMaxGasDropoff(this.publicKey, chain, maxGasDropoff),
+    return sendAndConfirmIxs(
       this.provider,
+      this.client.updateMaxGasDropoff(this.publicKey, chain, maxGasDropoff),
     );
   }
 
   async updateRelayerFee(chain: Chain, relayerFee: number): Promise<TransactionSignature> {
-    return sendAndConfirmIx(
-      this.client.updateRelayerFee(this.publicKey, chain, relayerFee),
+    return sendAndConfirmIxs(
       this.provider,
+      this.client.updateRelayerFee(this.publicKey, chain, relayerFee),
     );
   }
 
   async updateFeeRecipient(newFeeRecipient: PublicKey): Promise<TransactionSignature> {
-    return sendAndConfirmIx(
-      this.client.updateFeeRecipient(this.publicKey, newFeeRecipient),
+    return sendAndConfirmIxs(
       this.provider,
+      this.client.updateFeeRecipient(this.publicKey, newFeeRecipient),
     );
   }
 
@@ -154,23 +143,23 @@ export class TbrWrapper {
     evmTransactionGas: BN,
     evmTransactionSize: BN,
   ): Promise<TransactionSignature> {
-    return sendAndConfirmIx(
-      this.client.updateEvmTransactionConfig(this.publicKey, evmTransactionGas, evmTransactionSize),
+    return sendAndConfirmIxs(
       this.provider,
+      this.client.updateEvmTransactionConfig(this.publicKey, evmTransactionGas, evmTransactionSize),
     );
   }
 
   async transferNativeTokens(params: TransferNativeParameters): Promise<TransactionSignature> {
-    return sendAndConfirmIx(
-      this.client.transferNativeTokens(this.publicKey, params),
+    return sendAndConfirmIxs(
       this.provider,
+      this.client.transferNativeTokens(this.publicKey, params),
     );
   }
 
   async transferWrappedTokens(params: TransferWrappedParameters): Promise<TransactionSignature> {
-    return sendAndConfirmIx(
-      this.client.transferWrappedTokens(this.publicKey, params),
+    return sendAndConfirmIxs(
       this.provider,
+      this.client.transferWrappedTokens(this.publicKey, params),
     );
   }
 
@@ -178,9 +167,9 @@ export class TbrWrapper {
     vaa: VaaMessage,
     recipientTokenAccount: PublicKey,
   ): Promise<TransactionSignature> {
-    return sendAndConfirmIx(
-      this.client.completeNativeTransfer(this.publicKey, vaa, recipientTokenAccount),
+    return sendAndConfirmIxs(
       this.provider,
+      this.client.completeNativeTransfer(this.publicKey, vaa, recipientTokenAccount),
     );
   }
 
@@ -188,9 +177,9 @@ export class TbrWrapper {
     vaa: VaaMessage,
     recipientTokenAccount: PublicKey,
   ): Promise<TransactionSignature> {
-    return sendAndConfirmIx(
-      this.client.completeWrappedTransfer(this.publicKey, vaa, recipientTokenAccount),
+    return sendAndConfirmIxs(
       this.provider,
+      this.client.completeWrappedTransfer(this.publicKey, vaa, recipientTokenAccount),
     );
   }
 

@@ -17,6 +17,9 @@ cfg_if::cfg_if! {
     } else if #[cfg(feature = "tilt-devnet")] {
         declare_id!("46kv4wCpfEtLsHPDh4zm7jJb2pVdvke8Pj2ABYYJotFD");
         const WORMHOLE_MINT_AUTHORITY: Pubkey = anchor_lang::pubkey!("8P2wAnHr2t4pAVEyJftzz7k6wuCE7aP1VugNwehzCJJY");
+    } else if #[cfg(feature = "localnet")] {
+        declare_id!("7TLiBkpDGshV4o3jmacTCx93CLkmo3VjZ111AsijN9f8");
+        const WORMHOLE_MINT_AUTHORITY: Pubkey = anchor_lang::pubkey!("BCD75RNBHrJJpW4dXVagL5mPjzRLnVZq4YirJdjEYMV7");
     }
 }
 

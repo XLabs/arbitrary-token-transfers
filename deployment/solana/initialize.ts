@@ -14,7 +14,7 @@ async function initializeSolanaTbr(
 ): Promise<void> {
   const signerKey = new PublicKey(await signer.getAddress());
   const connection = getConnection(chain);
-  const tbr = new SolanaTokenBridgeRelayer({ connection }, chain.network);
+  const tbr = new SolanaTokenBridgeRelayer({ connection });
 
   const tmpError = () => { throw new Error('TODO: add this field'); };
   const initializeIx = await tbr.initialize({

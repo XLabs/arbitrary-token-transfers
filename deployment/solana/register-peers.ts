@@ -26,13 +26,7 @@ async function configureSolanaTbr(
   if (solanaDependencies === undefined) {
     throw new Error(`No dependencies found for chain ${chain.chainId}`);
   }
-  const tbr = new SolanaTokenBridgeRelayer(
-    { connection },
-    {
-      tokenBridgeProgramId: new PublicKey(solanaDependencies.tokenBridge),
-      wormholeProgramId: new PublicKey(solanaDependencies.wormhole),
-    },
-  );
+  const tbr = new SolanaTokenBridgeRelayer({ connection });
 
   for (const tbrDeployment of contracts['TbrV3Proxies']) {
     if (tbrDeployment.chainId === chain.chainId) continue; // skip self;

@@ -1,10 +1,13 @@
 import anchor from '@coral-xyz/anchor';
-import { Program, web3 } from '@coral-xyz/anchor';
+import { Program } from '@coral-xyz/anchor';
 import {
   PublicKey,
   Connection,
   SystemProgram,
   VersionedTransactionResponse,
+  TransactionInstruction,
+  clusterApiUrl,
+  Cluster,
 } from '@solana/web3.js';
 import * as borsh from 'borsh';
 import { Chain, chainToChainId, encoding, contracts, Network } from '@wormhole-foundation/sdk-base';
@@ -18,8 +21,9 @@ import {
 import { SolanaPriceOracleClient } from '@xlabs/solana-price-oracle-sdk';
 
 import { TokenBridgeRelayer } from './idl/token_bridge_relayer.js';
-import IDL from '../../../target/idl/token_bridge_relayer.json' with { type: 'json' };
-import { deserializeTbrV3Message, VaaMessage } from 'common-arbitrary-token-transfer';
+import IDL from '/Users/felixdv/Dev/Xlabs/arbitrary-token-transfers/target/idl/token_bridge_relayer.json' with { type: 'json' };
+import { deserializeTbrV3Message, VaaMessage, throwError } from 'common-arbitrary-token-transfer';
+import { BpfLoaderUpgradeableProgram } from './bpf-loader-upgradeable.js';
 
 // Export IDL
 export * from './idl/token_bridge_relayer.js';
@@ -69,8 +73,11 @@ export class SolanaTokenBridgeRelayer {
   private readonly wormholeProgramId: PublicKey;
   private readonly tokenBridgeProgramId: PublicKey;
 
-  constructor(provider: anchor.Provider, network: Network) {
-    this.program = new Program(IDL as any, provider);
+  constructor(provider: anchor.Provider) {
+    const network = networkFromConnection(provider.connection);
+    myDebug('Network detected to be:', network);
+
+    this.program = new Program(patchTest(provider.connection, IDL), provider);
     this.priceOracleClient = new SolanaPriceOracleClient(provider.connection);
     this.wormholeProgramId = new PublicKey(contracts.coreBridge(network, 'Solana'));
     this.tokenBridgeProgramId = new PublicKey(contracts.tokenBridge(network, 'Solana'));
@@ -130,24 +137,29 @@ export class SolanaTokenBridgeRelayer {
 
   /* Initialize */
 
+  /**
+   * Signer: the Program Authority.
+   */
   async initialize({
-    deployer,
     owner,
     feeRecipient,
     admins,
   }: {
-    deployer: PublicKey;
     owner: PublicKey;
     feeRecipient: PublicKey;
     admins: PublicKey[];
-  }): Promise<web3.TransactionInstruction> {
+  }): Promise<TransactionInstruction> {
     const authBadges = admins.map((key) => ({
       pubkey: this.address.authBadge(key),
       isSigner: false,
       isWritable: true,
     }));
 
-    return this.program.methods
+    const program = new BpfLoaderUpgradeableProgram(this.program.programId, this.connection);
+    const deployer =
+      (await program.getdata()).upgradeAuthority ?? throwError('The program must be upgradeable');
+
+    return await this.program.methods
       .initialize(feeRecipient, admins)
       .accounts({
         deployer,
@@ -159,43 +171,60 @@ export class SolanaTokenBridgeRelayer {
 
   /* Roles */
 
-  async submitOwnerTransferRequest(
-    owner: PublicKey,
-    newOwner: PublicKey,
-  ): Promise<web3.TransactionInstruction> {
+  /**
+   * Signer: the Owner.
+   */
+  async submitOwnerTransferRequest(newOwner: PublicKey): Promise<TransactionInstruction> {
+    const config = await this.read.config();
+
     return this.program.methods
       .submitOwnerTransferRequest(newOwner)
       .accounts({
-        owner,
+        owner: config.owner,
       })
       .instruction();
   }
 
-  async confirmOwnerTransferRequest(newOwner: PublicKey): Promise<web3.TransactionInstruction> {
+  /**
+   * Signer: the Pending Owner.
+   */
+  async confirmOwnerTransferRequest(): Promise<TransactionInstruction> {
+    const config = await this.read.config();
+
     return this.program.methods
       .confirmOwnerTransferRequest()
       .accounts({
-        newOwner,
+        newOwner: config.pendingOwner ?? throwError('No pending owner in the program'),
         tbrConfig: this.address.config(),
       })
       .instruction();
   }
 
-  async cancelOwnerTransferRequest(owner: PublicKey): Promise<web3.TransactionInstruction> {
+  /**
+   * Signer: the Owner.
+   */
+  async cancelOwnerTransferRequest(): Promise<TransactionInstruction> {
+    const config = await this.read.config();
+
     return this.program.methods
       .cancelOwnerTransferRequest()
       .accountsStrict({
-        owner,
+        owner: config.owner,
         tbrConfig: this.address.config(),
       })
       .instruction();
   }
 
-  async addAdmin(owner: PublicKey, newAdmin: PublicKey): Promise<web3.TransactionInstruction> {
+  /**
+   * Signer: the Owner.
+   */
+  async addAdmin(newAdmin: PublicKey): Promise<TransactionInstruction> {
+    const config = await this.read.config();
+
     return this.program.methods
       .addAdmin(newAdmin)
       .accountsStrict({
-        owner,
+        owner: config.owner,
         tbrConfig: this.address.config(),
         authBadge: this.address.authBadge(newAdmin),
         systemProgram: SystemProgram.programId,
@@ -203,10 +232,10 @@ export class SolanaTokenBridgeRelayer {
       .instruction();
   }
 
-  async removeAdmin(
-    signer: PublicKey,
-    adminToRemove: PublicKey,
-  ): Promise<web3.TransactionInstruction> {
+  /**
+   * Signer: the Owner or an Admin.
+   */
+  async removeAdmin(signer: PublicKey, adminToRemove: PublicKey): Promise<TransactionInstruction> {
     return this.program.methods
       .removeAdmin()
       .accountsStrict({
@@ -220,11 +249,14 @@ export class SolanaTokenBridgeRelayer {
 
   /* Peer management */
 
+  /**
+   * Signer: the Owner or an Admin.
+   */
   async registerPeer(
     signer: PublicKey,
     chain: Chain,
     peerAddress: UniversalAddress,
-  ): Promise<web3.TransactionInstruction> {
+  ): Promise<TransactionInstruction> {
     return this.program.methods
       .registerPeer(chainToChainId(chain), uaToArray(peerAddress))
       .accountsStrict({
@@ -238,15 +270,19 @@ export class SolanaTokenBridgeRelayer {
       .instruction();
   }
 
+  /**
+   * Signer: the Owner.
+   */
   async updateCanonicalPeer(
-    signer: PublicKey,
     chain: Chain,
     peerAddress: UniversalAddress,
-  ): Promise<web3.TransactionInstruction> {
+  ): Promise<TransactionInstruction> {
+    const config = await this.read.config();
+
     return this.program.methods
       .updateCanonicalPeer()
       .accountsStrict({
-        owner: signer,
+        owner: config.owner,
         tbrConfig: this.address.config(),
         peer: this.address.peer(chain, peerAddress),
         chainConfig: this.address.chainConfig(chain),
@@ -257,11 +293,14 @@ export class SolanaTokenBridgeRelayer {
 
   /* Chain config update */
 
+  /**
+   * Signer: the Owner or an Admin.
+   */
   async setPauseForOutboundTransfers(
     signer: PublicKey,
     chain: Chain,
     paused: boolean,
-  ): Promise<web3.TransactionInstruction> {
+  ): Promise<TransactionInstruction> {
     return this.program.methods
       .setPauseForOutboundTransfers(paused)
       .accountsStrict({
@@ -273,11 +312,14 @@ export class SolanaTokenBridgeRelayer {
       .instruction();
   }
 
+  /**
+   * Signer: the Owner or an Admin.
+   */
   async updateMaxGasDropoff(
     signer: PublicKey,
     chain: Chain,
     maxGasDropoff: number,
-  ): Promise<web3.TransactionInstruction> {
+  ): Promise<TransactionInstruction> {
     return this.program.methods
       .updateMaxGasDropoff(maxGasDropoff)
       .accountsStrict({
@@ -289,11 +331,14 @@ export class SolanaTokenBridgeRelayer {
       .instruction();
   }
 
+  /**
+   * Signer: the Owner or an Admin.
+   */
   async updateRelayerFee(
     signer: PublicKey,
     chain: Chain,
     relayerFee: number,
-  ): Promise<web3.TransactionInstruction> {
+  ): Promise<TransactionInstruction> {
     return this.program.methods
       .updateRelayerFee(relayerFee)
       .accountsStrict({
@@ -307,10 +352,13 @@ export class SolanaTokenBridgeRelayer {
 
   /* Config update */
 
+  /**
+   * Signer: the Owner or an Admin.
+   */
   async updateFeeRecipient(
     signer: PublicKey,
     newFeeRecipient: PublicKey,
-  ): Promise<web3.TransactionInstruction> {
+  ): Promise<TransactionInstruction> {
     return this.program.methods
       .updateFeeRecipient(newFeeRecipient)
       .accounts({
@@ -321,11 +369,14 @@ export class SolanaTokenBridgeRelayer {
       .instruction();
   }
 
+  /**
+   * Signer: the Owner or an Admin.
+   */
   async updateEvmTransactionConfig(
     signer: PublicKey,
     evmTransactionGas: anchor.BN,
     evmTransactionSize: anchor.BN,
-  ): Promise<web3.TransactionInstruction> {
+  ): Promise<TransactionInstruction> {
     return this.program.methods
       .updateEvmTransactionConfig(evmTransactionGas, evmTransactionSize)
       .accounts({
@@ -338,10 +389,13 @@ export class SolanaTokenBridgeRelayer {
 
   /* Transfers */
 
+  /**
+   * Signer: typically the Token Bridge.
+   */
   async transferNativeTokens(
     signer: PublicKey,
     params: TransferNativeParameters,
-  ): Promise<web3.TransactionInstruction> {
+  ): Promise<TransactionInstruction> {
     const {
       recipient,
       mint,
@@ -389,10 +443,13 @@ export class SolanaTokenBridgeRelayer {
       .instruction();
   }
 
+  /**
+   * Signer: typically the Token Bridge.
+   */
   async transferWrappedTokens(
     signer: PublicKey,
     params: TransferWrappedParameters,
-  ): Promise<web3.TransactionInstruction> {
+  ): Promise<TransactionInstruction> {
     const {
       recipient,
       token,
@@ -442,17 +499,17 @@ export class SolanaTokenBridgeRelayer {
   }
 
   /**
+   * Signer: typically the Token Bridge.
    *
    * @param signer
    * @param vaa
-   * @param recipientTokenAccount The account receiving the SPL tokens.
-   * @param recipient The account receiving the gas dropoff.
+   * @param recipientTokenAccount The user's account receiving the SPL tokens.
    */
   async completeNativeTransfer(
     signer: PublicKey,
     vaa: VaaMessage,
     recipientTokenAccount: PublicKey,
-  ): Promise<web3.TransactionInstruction> {
+  ): Promise<TransactionInstruction> {
     const tokenBridgeAccounts = completeNativeTokenBridgeAccounts({
       tokenBridgeProgramId: this.tokenBridgeProgramId,
       wormholeProgramId: this.wormholeProgramId,
@@ -477,11 +534,18 @@ export class SolanaTokenBridgeRelayer {
       .instruction();
   }
 
+  /**
+   * Signer: typically the Token Bridge.
+   *
+   * @param signer
+   * @param vaa
+   * @param recipientTokenAccount The user's account receiving the SPL tokens.
+   */
   async completeWrappedTransfer(
     signer: PublicKey,
     vaa: VaaMessage,
     recipientTokenAccount: PublicKey,
-  ): Promise<web3.TransactionInstruction> {
+  ): Promise<TransactionInstruction> {
     const tokenBridgeAccounts = completeWrappedTokenBridgeAccounts({
       tokenBridgeProgramId: this.tokenBridgeProgramId,
       wormholeProgramId: this.wormholeProgramId,
@@ -786,4 +850,40 @@ function completeWrappedTokenBridgeAccounts(params: {
     tokenBridgeWrappedMeta,
     mint: tokenBridgeWrappedMint,
   };
+}
+
+/**
+ * Detects the network from a Solana connection.
+ */
+function networkFromConnection(connection: Connection): Network {
+  function clusterRpcEndpoint(cluster: Cluster) {
+    return new Connection(clusterApiUrl(cluster), 'singleGossip').rpcEndpoint;
+  }
+  const mainnet = clusterRpcEndpoint('mainnet-beta');
+  const devnet = clusterRpcEndpoint('devnet');
+  const testnet = clusterRpcEndpoint('testnet');
+
+  switch (connection.rpcEndpoint) {
+    case mainnet:
+      return 'Mainnet';
+    case devnet:
+      return 'Devnet';
+    case testnet:
+      return 'Testnet';
+    default: // We consider that it is localnet, and use the mainnet values:
+      return 'Mainnet';
+  }
+}
+
+function myDebug(message?: any, ...optionalParams: any[]) {
+  console.debug('[SolanaTokenBridgeRelayer]', message, ...optionalParams);
+}
+
+/**
+ * Crappy fix for allowing the tests to run correctly.
+ */
+function patchTest(connection: Connection, idl: any) {
+  return connection.rpcEndpoint.includes('localhost')
+    ? { ...idl, address: '7TLiBkpDGshV4o3jmacTCx93CLkmo3VjZ111AsijN9f8' }
+    : idl;
 }

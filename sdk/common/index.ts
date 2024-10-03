@@ -10,6 +10,10 @@ import { layoutItems, UniversalAddress, VAA } from '@wormhole-foundation/sdk-def
 export type VaaMessage = VAA<'TokenBridge:TransferWithPayload'>;
 export type TbrV3Payload = LayoutToType<typeof TBRv3Message>;
 
+export function throwError(message: string): never {
+  throw new Error(message);
+}
+
 export function deserializeTbrV3Message(vaa: VaaMessage): TbrV3Payload {
   return layout.deserializeLayout(TBRv3Message, vaa.payload.payload);
 }

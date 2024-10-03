@@ -79,6 +79,10 @@ pub fn confirm_owner_transfer_request(ctx: Context<ConfirmOwnerTransfer>) -> Res
     tbr_config.owner = ctx.accounts.new_owner.key();
     tbr_config.pending_owner = None;
 
+    ctx.accounts.auth_badge_new_owner.set_inner(AuthBadgeState {
+        address: ctx.accounts.new_owner.key(),
+    });
+
     Ok(())
 }
 
