@@ -63,7 +63,6 @@ async function configureSolanaTbr(
           `Updating peer for chain ${tbrDeployment.chainId} from ${currentPeer} to ${peerUniversalAddress}`,
         );
         const ix = await tbr.updateCanonicalPeer(
-          signerKey,
           chainIdToChain(tbrDeployment.chainId),
           peerUniversalAddress,
         );
