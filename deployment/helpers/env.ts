@@ -157,12 +157,8 @@ export async function getContractInstance(
   return factory.connect(contractAddress, signer);
 }
 
-export function getDeploymentArgs(contractName: string, whChainId: ChainId): UncheckedConstructorArgs {
+export function getDeploymentArgs(contractName: string, whChainId: ChainId): UncheckedConstructorArgs | undefined {
   const constructorArgs = contracts[contractName]?.find((c) => c.chainId === whChainId)?.constructorArgs;
-
-  if (!constructorArgs) {
-    throw new Error(`No constructorArgs found for ${contractName} contract for chain ${whChainId}`);
-  }
 
   return constructorArgs;
 }

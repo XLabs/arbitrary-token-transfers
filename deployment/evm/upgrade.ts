@@ -3,7 +3,7 @@ import {
   EvmChainInfo,
   getChainConfig,
   getContractAddress,
-  getDependencyAddress,
+  getDeploymentArgs,
   writeDeployedContract
 } from "../helpers";
 import { EvmTbrV3Config } from "../config/config.types";
@@ -12,6 +12,7 @@ import { Tbr__factory } from "../ethers-contracts/index.js";
 import { getSigner, getProvider, sendTx, wrapEthersProvider } from "../helpers/evm";
 import { EvmAddress } from '@wormhole-foundation/sdk-evm';
 import { chainIdToChain } from '@wormhole-foundation/sdk-base';
+import { deployRelayerImplementation } from "./deploy-implementation";
 
 
 const processName = "tbr-v3";
@@ -19,7 +20,6 @@ const chains = evm.evmOperatingChains();
 
 async function run() {
   console.log(`Start ${processName}!`);
-
 
   const results = await Promise.all(
     chains.map(async (chain) => {
@@ -41,6 +41,7 @@ async function run() {
       console.log(`Successfully deployed to chain ${result.chainId}`);
 
       writeDeployedContract(result.chainId, "TbrV3", result.implementation?.address ?? "", result.implementation?.constructorArgs ?? []);
+      writeDeployedContract(result.chainId, "TbrV3Proxies", result.proxy?.address ?? "", result.proxy?.constructorArgs ?? []);
     }
   }
 
@@ -66,40 +67,6 @@ async function upgradeTbrV3Relayer(chain: EvmChainInfo, config: EvmTbrV3Config) 
   return { chainId: chain.chainId, implementation, proxy };
 }
 
-async function deployRelayerImplementation(chain: EvmChainInfo, config: EvmTbrV3Config) {
-  console.log("Deploying Relayer Implementation " + chain.chainId);
-  const signer = await getSigner(chain);
-
-  const contractInterface = Tbr__factory.createInterface();
-  const bytecode = Tbr__factory.bytecode;
-
-  const factory = new ethers.ContractFactory(
-    contractInterface,
-    bytecode,
-    signer,
-  );
-
-  const permit2 = getDependencyAddress("permit2", chain);
-  const tokenBridge = getDependencyAddress("tokenBridge", chain);
-  const oracle = getDependencyAddress("oracle", chain);
-  const initGasToken = getDependencyAddress("initGasToken", chain);
-
-  const contract = await factory.deploy(permit2, tokenBridge, oracle, initGasToken, config.initGasErc20TokenizationIsExplicit);
-
-  const tx = contract.deploymentTransaction();
-  if (tx === null) {
-    throw new Error("Implementation deployment transaction is missing")
-  }
-  const receipt = await tx.wait();
-  if (receipt?.status !== 1) {
-    throw new Error("Implementation deployment failed with status " + receipt?.status);
-  }
-  
-  const address = await contract.getAddress();
-  console.log("Successfully deployed implementation at " + address);
-  return { address, chainId: chain.chainId, constructorArgs: [ permit2, tokenBridge, oracle, initGasToken, config.initGasErc20TokenizationIsExplicit ] };
-}
-
 async function upgradeProxyWithNewImplementation(
   chain: EvmChainInfo,
   config: EvmTbrV3Config,
@@ -107,14 +74,14 @@ async function upgradeProxyWithNewImplementation(
 ) {
   console.log("Upgrade Proxy with new implementation " + chain.chainId);
   const signer = await getSigner(chain);
-  // const signerAddress = await signer.getAddress();
   const { Tbrv3 } = await import("@xlabs-xyz/evm-arbitrary-token-transfers");
 
+  const proxyAddress = new EvmAddress(getContractAddress("TbrV3Proxies", chain.chainId));
   const tbr = Tbrv3.connect(
     wrapEthersProvider(getProvider(chain)),
     chain.network,
     chainIdToChain(chain.chainId),
-    new EvmAddress(getContractAddress("TbrV3Proxies", chain.chainId)),
+    proxyAddress,
   );
 
   const tx = tbr.execTx(0n, [{
@@ -129,7 +96,13 @@ async function upgradeProxyWithNewImplementation(
 
   console.log(`Tx Included!. TxHash: ${txid}`);
 
-  return { chainId: chain.chainId };
+  const constructorArgs = [implementationAddress];
+  const previousConstructorArgs = getDeploymentArgs("TbrV3Proxies", chain.chainId);
+  if (previousConstructorArgs) {
+    constructorArgs.push(...previousConstructorArgs.slice(1));
+  }
+
+  return { chainId: chain.chainId, address: proxyAddress, constructorArgs };
 }
 
 
