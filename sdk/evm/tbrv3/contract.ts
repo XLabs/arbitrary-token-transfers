@@ -397,7 +397,7 @@ type ArgsResult<A, R> =
 type AccessControlQueryToResult<Q extends AccessControlQuery> =
   Q extends { query: "Owner" | "PendingOwner" }
   ? ArgsResult<Q, EvmAddress>
-  : Q extends { query: "isAdmin" }
+  : Q extends { query: "IsAdmin" }
   ? ArgsResult<Q, boolean>
   : Q extends { query: "Admins" }
   ? ArgsResult<Q, AdminsQueryReturn>
