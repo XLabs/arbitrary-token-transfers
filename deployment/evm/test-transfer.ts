@@ -7,13 +7,14 @@ import {
   TestTransfer,
 } from '../helpers';
 import { ethers } from 'ethers';
-import { getProvider, runOnEvms, sendTx } from '../helpers/evm';
-import { SupportedChains, Tbrv3, Transfer } from '@xlabs-xyz/evm-arbitrary-token-transfers';
+import { getProvider, runOnEvms, sendTxCatch, wrapEthersProvider } from '../helpers/evm';
+import { SupportedChain, Tbrv3, Transfer } from '@xlabs-xyz/evm-arbitrary-token-transfers';
 import { toUniversal } from '@wormhole-foundation/sdk-definitions';
 import { Chain, chainIdToChain, chainToPlatform } from '@wormhole-foundation/sdk-base';
 import { inspect } from 'util';
 import { solanaOperatingChains } from '../helpers/solana';
 import { EvmAddress } from '@wormhole-foundation/sdk-evm/dist/cjs';
+import { getNative } from '@wormhole-foundation/sdk-base/tokens';
 
 const processName = 'att-evm-test-transfer';
 const chains = evm.evmOperatingChains();
@@ -66,7 +67,10 @@ async function sendTestTransaction(
   testTransfer: TestTransfer,
 ): Promise<void> {
   try {
-    const inputToken = new EvmAddress(testTransfer.tokenAddress);
+    const inputTokenStr = testTransfer.tokenAddress
+      ?? getNative("Testnet", chain.name as SupportedChain)?.wrappedKey;
+    if (inputTokenStr === undefined) throw new Error(`Could not find gas token for chain ${chain.name}`);
+    const inputToken = new EvmAddress(inputTokenStr);
     const gasDropoff = Number(testTransfer.gasDropoffAmount);
     const inputAmountInAtomic = BigInt(testTransfer.transferredAmount);
     const unwrapIntent = testTransfer.unwrapIntent;
@@ -83,7 +87,12 @@ async function sendTestTransaction(
 
     const tbrv3ProxyAddress = new EvmAddress(getContractAddress('TbrV3Proxies', chain.chainId));
     const provider = getProvider(chain);
-    const tbrv3 = Tbrv3.connect(provider!, chain.network, chainIdToChain(chain.chainId), tbrv3ProxyAddress);
+    const tbrv3 = Tbrv3.connect(
+      wrapEthersProvider(provider!),
+      chain.network,
+      chainIdToChain(chain.chainId),
+      tbrv3ProxyAddress
+    );
     const targetChains = availableChains.filter((c) => c.name === testTransfer.toChain);
 
     let allAllowances = {};
@@ -99,9 +108,11 @@ async function sendTestTransaction(
                 ? await signer.getAddress()
                 : getEnv('SOLANA_RECIPIENT_ADDRESS');
 
-            const isChainSupported = await tbrv3.isChainSupported(
-              targetChain.name as SupportedChains,
-            );
+            const [{result: isChainSupported}] = await tbrv3.query([
+              {
+                query: "ConfigQueries", queries: [{ query: "IsChainSupported", chain: targetChain.name as SupportedChain}]
+              }
+            ]);
 
             if (!isChainSupported) {
               console.error(`Chain ${targetChain.name} is not supported`);
@@ -115,9 +126,10 @@ async function sendTestTransaction(
 
             const {feeEstimations, allowances} = (
               await tbrv3.relayingFee({
-                tokens: [inputToken],
+                // TODO: enable this to work on a mainnet fork too?
+                tokens: [new EvmAddress(inputToken)],
                 transferRequests: [{
-                  targetChain: targetChain.name as SupportedChains,
+                  targetChain: targetChain.name as SupportedChain,
                   gasDropoff,
                 }],
               })
@@ -129,12 +141,12 @@ async function sendTestTransaction(
             allAllowances = {...allAllowances, allowances};
             return {
               args: {
-                method: inputToken ? 'TransferTokenWithRelay' : 'TransferGasTokenWithRelay',
+                method: testTransfer.tokenAddress ? 'TransferTokenWithRelay' : 'TransferGasTokenWithRelay',
                 acquireMode: { mode: 'Preapproved' },
                 inputAmountInAtomic,
                 gasDropoff,
                 recipient: {
-                  chain: targetChain.name as SupportedChains,
+                  chain: targetChain.name as SupportedChain,
                   address: toUniversal(targetChain.name as Chain, address),
                 },
                 inputToken,
@@ -160,21 +172,21 @@ async function sendTestTransaction(
     log(`Executing ${transfers.length} transfers`, transfers);
     const { to, value, data } = tbrv3.transferWithRelay(allAllowances, ...transfers);
 
-    const { receipt, error } = await sendTx(signer, {
+    const { receipt, error } = await sendTxCatch(signer, {
       to,
       value: (value * 110n) / 100n,
       data: ethers.hexlify(data),
     });
 
     if (error) {
-      console.error(`Error: ${error}`);
+      console.error(`Error: ${(error as any)?.stack ?? error}`);
     }
 
     if (receipt) {
       log(`Receipt: ${inspect(receipt)}`);
     }
-  } catch (err) {
-    console.error(`Error running ${processName}: ${err}`);
+  } catch (error) {
+    console.error(`Error running ${processName}: ${(error as any)?.stack ?? error}}`);
   }
 }
 

@@ -9,7 +9,7 @@ import {
 import { EvmTbrV3Config } from "../config/config.types";
 import { ethers } from "ethers";
 import { Tbr__factory } from "../ethers-contracts/index.js";
-import { getSigner, getProvider, sendTx } from "../helpers/evm";
+import { getSigner, getProvider, sendTx, wrapEthersProvider } from "../helpers/evm";
 import { EvmAddress } from '@wormhole-foundation/sdk-evm';
 import { chainIdToChain } from '@wormhole-foundation/sdk-base';
 
@@ -111,25 +111,23 @@ async function upgradeProxyWithNewImplementation(
   const { Tbrv3 } = await import("@xlabs-xyz/evm-arbitrary-token-transfers");
 
   const tbr = Tbrv3.connect(
-    getProvider(chain),
+    wrapEthersProvider(getProvider(chain)),
     chain.network,
     chainIdToChain(chain.chainId),
     new EvmAddress(getContractAddress("TbrV3Proxies", chain.chainId)),
   );
 
-  const tx = tbr.upgradeContract(new EvmAddress(implementationAddress));
+  const tx = tbr.execTx(0n, [{
+    command: "UpgradeContract",
+    newImplementation: new EvmAddress(implementationAddress),
+  }]);
 
-  const {receipt, error } = await sendTx(signer, {
+  const { txid } = await sendTx(signer, {
     ...tx,
     data: ethers.hexlify(tx.data),
   });
-  if (error) {
-    console.log("TX Failed to be included. Error", error);
-  }
 
-  else {
-    console.log("Tx Included!. TxHash: ", receipt!.hash);
-  }
+  console.log(`Tx Included!. TxHash: ${txid}`);
 
   return { chainId: chain.chainId };
 }

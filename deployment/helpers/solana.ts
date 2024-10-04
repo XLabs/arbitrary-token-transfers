@@ -13,6 +13,10 @@ import type { SolanaScriptCb, SolanaChainInfo } from "./interfaces.js";
 import { inspect } from "util";
 import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet.js";
 
+// Ensure SolanaAddress is registered
+import "@wormhole-foundation/sdk-solana";
+
+
 export const connectionCommitmentLevel = (process.env.SOLANA_COMMITMENT || "confirmed") as Commitment;
 export const priorityMicrolamports = process.env.PRIORITY_MICROLAMPORTS !== "undefined" ? Number(process.env.PRIORITY_MICROLAMPORTS) : 1;
 

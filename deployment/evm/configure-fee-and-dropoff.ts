@@ -4,72 +4,67 @@ import {
   getContractAddress,
   loadTbrPeers,
 } from "../helpers/index.js";
-import { chainIdToChain } from "@wormhole-foundation/sdk-base";
-import { SupportedChains, Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
-import { ethers } from "ethers";
+import { chainIdToChain, encoding } from "@wormhole-foundation/sdk-base";
+import { SupportedChain, Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
 import { EvmTbrV3Config } from "../config/config.types.js";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm/dist/cjs";
+import { wrapEthersProvider } from "../helpers/evm.js";
 
 /**
  * Configures relay fee and max gas dropoff for Tbrv3 contracts
  */
 evm.runOnEvms("configure-fee-and-dropoff", async (chain, signer, log) => {
   const tbrv3ProxyAddress = new EvmAddress(getContractAddress("TbrV3Proxies", chain.chainId));
-  const tbrv3 = Tbrv3.connect(signer.provider!, chain.network, "Sepolia", tbrv3ProxyAddress);
+  const tbrv3 = Tbrv3.connect(wrapEthersProvider(signer.provider!), chain.network, "Sepolia", tbrv3ProxyAddress);
   const peers = loadTbrPeers(chain);
 
-  const relayFeeUpdates: Map<SupportedChains, number> = new Map();
+  const queries = [];
   for (const otherTbrv3 of peers) {
-    const otherTbrv3Chain = chainIdToChain(otherTbrv3.chainId) as SupportedChains;
-    const peerChainCfg = await getChainConfig<EvmTbrV3Config>("tbr-v3", otherTbrv3.chainId);
-    const desiredRelayFee = Number(peerChainCfg.relayFee);
+    const otherTbrv3Chain = chainIdToChain(otherTbrv3.chainId) as SupportedChain;
 
-    const currentRelayFee = await tbrv3.relayFee(otherTbrv3Chain as SupportedChains);
-    if (currentRelayFee.fee !== desiredRelayFee) {
-      log(`Will updaterelay fee for ${otherTbrv3Chain}: ${peerChainCfg.maxGasDropoff}`);
-      relayFeeUpdates.set(otherTbrv3Chain, desiredRelayFee);
+    queries.push({query: "BaseFee", chain: otherTbrv3Chain} as const);
+    queries.push({query: "MaxGasDropoff", chain: otherTbrv3Chain} as const);
+  }
+
+  const configValues = await tbrv3.query([{query: "ConfigQueries", queries}]);
+
+  const currentState: Map<SupportedChain, {baseFee: number; maxGasDropoff: number}> = new Map(peers.map(({chainId}) => [
+    chainIdToChain(chainId) as SupportedChain,
+    {} as any
+  ]));
+  for (const config of configValues) {
+    const chainState = currentState.get(config.chain)!;
+    if (config.query === "BaseFee") {
+      chainState.baseFee = config.result;
+    } else {
+      chainState.maxGasDropoff = config.result;
     }
   }
 
-  if (relayFeeUpdates.size !== 0) {
-    log("Updating relay fee");
-    const partialTx = tbrv3.updateRelayFees(relayFeeUpdates);
-    const { error, receipt } = await evm.sendTx(signer, { ...partialTx, data: ethers.hexlify(partialTx.data) });
-    if (error) {
-      log("Error updating relay fee: ", error);
-      throw error;
-    }
-    if (receipt) {
-      log("Updated relay fee");
-    }
-  }
-
-  const updateMaxGasDropoff: Map<SupportedChains, number> = new Map();
+  const commands = [];
   for (const otherTbrv3 of peers) {
-    const otherTbrv3Chain = chainIdToChain(otherTbrv3.chainId) as SupportedChains;
     const peerChainCfg = await getChainConfig<EvmTbrV3Config>("tbr-v3", otherTbrv3.chainId);
+    const desiredBaseFee = Number(peerChainCfg.relayFee);
     const desiredMaxGasDropoff = Number(peerChainCfg.maxGasDropoff);
-
-    const currentMaxGasDropoff = await tbrv3.maxGasDropoff(otherTbrv3Chain);
-    if (currentMaxGasDropoff !== desiredMaxGasDropoff) {
+    const otherTbrv3Chain = chainIdToChain(otherTbrv3.chainId) as SupportedChain;
+    const chainState = currentState.get(otherTbrv3Chain)!;
+    // schedule update
+    if (chainState.baseFee !== desiredBaseFee) {
+      log(`Will update base fee for ${otherTbrv3Chain}: ${peerChainCfg.maxGasDropoff}`);
+      commands.push({command: "UpdateBaseFee", chain: otherTbrv3Chain, value: desiredBaseFee} as const);
+    }
+    if (chainState.maxGasDropoff !== desiredMaxGasDropoff) {
       log(`Will update max gas dropoff for ${otherTbrv3Chain}: ${peerChainCfg.maxGasDropoff}`);
-      updateMaxGasDropoff.set(otherTbrv3Chain, desiredMaxGasDropoff);
+      commands.push({command: "UpdateMaxGasDropoff", chain: otherTbrv3Chain, value: desiredMaxGasDropoff} as const);
     }
   }
 
-  if (updateMaxGasDropoff.size !== 0) {
-    log("Updating max gas dropoff");
-    const partialTx = tbrv3.updateMaxGasDroppoffs(updateMaxGasDropoff);
-    const { error, receipt } = await evm.sendTx(signer, { ...partialTx, data: ethers.hexlify(partialTx.data) });
-    if (error) {
-      log("Error updating max gas dropoff: ", error);
-      throw error;
-    }
-    if (receipt) {
-      log("Updated max gas dropoff");
-    }
-  } else {
-    log("No max gas dropoff to update");
+  if (commands.length === 0) {
+    log("No updates to base fee or max gas dropoff are needed.");
+    return;
   }
 
+  const partialTx = tbrv3.execTx(0n, [{ command: "ConfigCommands", commands}]);
+  const { txid } = await evm.sendTx(signer, { ...partialTx, data: encoding.hex.encode(partialTx.data) });
+  log(`Update tx successful in ${txid}`);
 });
