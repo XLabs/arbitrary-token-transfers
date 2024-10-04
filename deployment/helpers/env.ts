@@ -1,7 +1,7 @@
 import fs from "fs";
 import { ethers } from "ethers";
 import { validateSolAddress } from "./solana.js";
-import { ChainConfig, ChainInfo, ContractsJson, Dependencies, DependenciesConfig, Ecosystem, VerificationApiKeys, UncheckedConstructorArgs } from "./interfaces.js";
+import { ChainConfig, ChainInfo, ContractsJson, Dependencies, DependenciesConfig, Ecosystem, VerificationApiKeys, UncheckedConstructorArgs, SolanaTbrInitParams } from "./interfaces.js";
 import { getSigner } from "./evm.js";
 // TODO: support different env files
 import 'dotenv/config';
@@ -30,6 +30,10 @@ function loadContracts<T extends ContractsJson>() {
 
 function loadEcosystem(): Ecosystem {
   return loadJson<Ecosystem>("ecosystem");
+}
+
+export function loadSolanaTbrInitParams(): SolanaTbrInitParams {
+  return loadJson<SolanaTbrInitParams>("solana-tbr-init");
 }
 
 export function loadVerificationApiKeys() {
