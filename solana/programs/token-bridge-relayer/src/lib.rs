@@ -171,7 +171,7 @@ pub mod token_bridge_relayer {
     /// # Parameters
     ///
     /// - `dropoff_amount_micro`: the dropoff in µ-target-token.
-    /// - `max_fee_klam`: the maximum fee the user is willing to pay, in lamports.
+    /// - `max_fee_lamports`: the maximum fee the user is willing to pay, in lamports.
     pub fn transfer_tokens(
         ctx: Context<OutboundTransfer>,
         recipient_address: [u8; 32],
