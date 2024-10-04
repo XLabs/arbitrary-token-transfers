@@ -377,7 +377,7 @@ export class Tbrv3 {
 
 const selectorOf = (funcSig: string) => keccak256(funcSig).subarray(0, 4);
 
-type Tuple = readonly [unknown, ...unknown[]] | readonly [];
+type Tuple<T = unknown> = readonly [T, ...T[]] | readonly [];
 
 //always return the passed arguments along with the result
 //this makes it easier to match queries to results without having to muck around with types
@@ -458,6 +458,7 @@ type RootQueryToResults<C extends RootQuery> =
   : never;
 
 type EnsureTuple<T> = T extends Tuple ? T : [T];
+type StripArray<T> = T extends RoArray<infer E> ? E : T;
 
 type RootQueryTupleResults<CA extends RoArray<RootQuery>> =
   CA extends readonly [
@@ -469,7 +470,12 @@ type RootQueryTupleResults<CA extends RoArray<RootQuery>> =
 
 type QueryResults<CA extends RoArray<RootQuery>> =
   CA extends Tuple
-  ? RootQueryTupleResults<CA>
+  ? RootQueryTupleResults<CA> extends infer R extends RoArray<unknown>
+    //if any of the internal queries are not tuples, then we can't return a tuple ourselves
+    ? any[] extends R[number]
+      ? StripArray<R[number]>[]
+      : R
+    : never
   : CA extends RoArray<infer C extends RootQuery>
   ? RootQueryToResults<C>[]
   : never;
