@@ -38,10 +38,10 @@ uint8 constant UPDATE_CANONICAL_PEER_ID = 0x0b;
 
 // Query commands
 
-uint8 constant BASE_FEE_ID = 0x80;
-uint8 constant MAX_GAS_DROPOFF_ID = 0x81;
-uint8 constant IS_CHAIN_PAUSED_ID = 0x82;
-uint8 constant IS_PEER_ID = 0x83;
+uint8 constant IS_CHAIN_SUPPORTED_ID = 0x80;
+uint8 constant IS_CHAIN_PAUSED_ID = 0x81;
+uint8 constant BASE_FEE_ID = 0x82;
+uint8 constant MAX_GAS_DROPOFF_ID = 0x83;
 uint8 constant CANONICAL_PEER_ID = 0x84;
-uint8 constant IS_CHAIN_SUPPORTED_ID = 0x85;
+uint8 constant IS_PEER_ID = 0x85;
 uint8 constant FEE_RECIPIENT_ID = 0x86;

@@ -181,12 +181,12 @@ export const configQueryLayout = {
   idSize: 1,
   idTag: "query",
   layouts: [
-    [[0x80, "BaseFee"         ], [peerChainItem]],
-    [[0x81, "MaxGasDropoff"   ], [peerChainItem]],
-    [[0x82, "IsChainPaused"   ], [peerChainItem]],
-    [[0x83, "IsPeer"          ], [peerChainItem, { name: "address", ...layoutItems.universalAddressItem }]],
+    [[0x80, "IsChainSupported"], [peerChainItem]],
+    [[0x81, "IsChainPaused"   ], [peerChainItem]],
+    [[0x82, "BaseFee"         ], [peerChainItem]],
+    [[0x83, "MaxGasDropoff"   ], [peerChainItem]],
     [[0x84, "CanonicalPeer"   ], [peerChainItem]],
-    [[0x85, "IsChainSupported"], [peerChainItem]],
+    [[0x85, "IsPeer"          ], [peerChainItem, { name: "address", ...layoutItems.universalAddressItem }]],
     [[0x86, "FeeRecipient"    ], []],
   ],
 } as const satisfies Layout;
