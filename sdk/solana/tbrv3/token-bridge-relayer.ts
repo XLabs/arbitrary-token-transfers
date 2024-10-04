@@ -633,7 +633,7 @@ export class SolanaTokenBridgeRelayer {
     myDebug('completeNativeTransfer:', accounts);
 
     return this.program.methods
-      .completeTransfer(Array.from(vaa.hash))
+      .completeTransfer()
       .accountsPartial(accounts)
       .instruction();
   }
@@ -672,7 +672,7 @@ export class SolanaTokenBridgeRelayer {
     myDebug('completeWrappedTransfer:', accounts);
 
     return this.program.methods
-      .completeTransfer(Array.from(vaa.hash))
+      .completeTransfer()
       .accountsPartial(accounts)
       .instruction();
   }
