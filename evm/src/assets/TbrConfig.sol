@@ -50,7 +50,7 @@ abstract contract TbrConfig is TbrBase, AccessControl {
   // ---- externals ----
 
   function _batchConfigCommands(bytes calldata commands, uint offset) internal returns (uint) {
-    bool isOwner = senderHasAuth() == Role.OWNER;
+    bool isOwner = senderHasAuth() == Role.Owner;
 
     uint commandCount;
     (commandCount, offset) = commands.asUint8CdUnchecked(offset);

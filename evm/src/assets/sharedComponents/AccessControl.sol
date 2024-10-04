@@ -37,14 +37,14 @@ event OwnerUpdated(address oldAddress, address newAddress, uint256 timestamp);
 event AdminsUpdated(address addr, bool isAdmin, uint256 timestamp);
 
 enum Role {
-  NONE,
-  OWNER,
-  ADMIN
+  None,
+  Owner,
+  Admin
 }
 
 function senderHasAuth() view returns (Role) {
   Role role = senderRole();
-  if (Role.NONE == role)
+  if (Role.None == role)
     revert NotAuthorized();
   return role;
 }
@@ -52,11 +52,11 @@ function senderHasAuth() view returns (Role) {
 function senderRole() view returns (Role) {
   AccessControlState storage state = accessControlState();
   if (msg.sender == state.owner) //check highest privilege level first
-    return Role.OWNER;
+    return Role.Owner;
   else if (state.isAdmin[msg.sender] != 0)
-    return Role.ADMIN;
+    return Role.Admin;
   else
-    return Role.NONE;
+    return Role.None;
 }
 
 abstract contract AccessControl {
@@ -127,7 +127,7 @@ abstract contract AccessControl {
     uint offset
   ) internal returns (uint) {
     AccessControlState storage state = accessControlState();
-    bool isOwner = senderHasAuth() == Role.OWNER;
+    bool isOwner = senderHasAuth() == Role.Owner;
 
     uint remainingCommands;
     (remainingCommands, offset) = commands.asUint8CdUnchecked(offset);
@@ -183,7 +183,7 @@ abstract contract AccessControl {
       if (query == IS_ADMIN_ID) {
         address admin;
         (admin, offset) = queries.asAddressCdUnchecked(offset);
-        ret = abi.encodePacked(ret, bool(state.isAdmin[admin] != 0));
+        ret = abi.encodePacked(ret, state.isAdmin[admin] != 0);
       } 
       else if (query == ADMINS_ID) {
         ret = abi.encodePacked(ret, uint8(state.admins.length));
@@ -223,7 +223,7 @@ abstract contract AccessControl {
     emit OwnerUpdated(oldAddress, newOwner, block.timestamp);
   }
 
-  function _updateAdmins(address admin, bool authorization) private {
+  function _updateAdmins(address admin, bool authorization) private { unchecked {
     AccessControlState storage state = accessControlState();
     if ((state.isAdmin[admin] != 0) == authorization)
       return;
@@ -243,5 +243,5 @@ abstract contract AccessControl {
     }
 
     emit AdminsUpdated(admin, authorization, block.timestamp);
-  }
+  }}
 }

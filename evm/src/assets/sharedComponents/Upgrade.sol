@@ -43,7 +43,7 @@ abstract contract Upgrade is ProxyBase {
   }
 
   function upgrade(address implementation, bytes calldata data) external {
-    if (senderHasAuth() != Role.OWNER)
+    if (senderHasAuth() != Role.Owner)
       revert NotAuthorized();
     
     _upgradeTo(implementation, data);
@@ -53,7 +53,7 @@ abstract contract Upgrade is ProxyBase {
     bytes calldata commands,
     uint offset
   ) internal returns (uint) {
-    if (senderHasAuth() != Role.OWNER)
+    if (senderHasAuth() != Role.Owner)
       revert NotAuthorized();
 
     address newImplementation;
