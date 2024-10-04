@@ -66,7 +66,7 @@ pub fn calculate_total_fee(
     .expect("Overflow")
         + u64::from(chain_config.relayer_fee_micro_usd);
 
-    // µSOL/SOL * μusd / μusd/SOL
+    // lamports/SOL * μusd / μusd/SOL
     Ok((LAMPORTS_PER_SOL * total_fees_micro_usd) / oracle_config.sol_price)
 }
 
