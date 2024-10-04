@@ -13,7 +13,6 @@ use wormhole_anchor_sdk::{
 };
 
 #[derive(Accounts)]
-#[instruction(vaa_hash: [u8; 32])]
 pub struct CompleteTransfer<'info> {
     /// Payer will pay for completing the Wormhole transfer tokens and create temporary
     /// token account.
@@ -47,16 +46,7 @@ pub struct CompleteTransfer<'info> {
     #[account(mut)]
     pub recipient: AccountInfo<'info>,
 
-    /// Verified Wormhole message account. The Wormhole program verified
-    /// signatures and posted the account data here. Read-only.
-    #[account(
-        seeds = [
-            wormhole::SEED_PREFIX_POSTED_VAA,
-            &vaa_hash
-        ],
-        seeds::program = wormhole_program.key(),
-        bump,
-    )]
+    /// Verified Wormhole message account. Read-only.
     pub vaa: Account<'info, PostedRelayerMessage>,
 
     /// Program's temporary token account. This account is created before the

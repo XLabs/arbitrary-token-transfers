@@ -191,7 +191,7 @@ pub mod token_bridge_relayer {
     }
 
     /// Complete a transfer initiated from another chain.
-    pub fn complete_transfer(ctx: Context<CompleteTransfer>, _vaa_hash: [u8; 32]) -> Result<()> {
+    pub fn complete_transfer(ctx: Context<CompleteTransfer>) -> Result<()> {
         processor::complete_transfer(ctx)
     }
 
