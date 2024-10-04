@@ -9,12 +9,11 @@ import {
 import { ethers } from 'ethers';
 import { getProvider, runOnEvms, sendTxCatch, wrapEthersProvider } from '../helpers/evm';
 import { SupportedChain, Tbrv3, Transfer } from '@xlabs-xyz/evm-arbitrary-token-transfers';
-import { toUniversal } from '@wormhole-foundation/sdk-definitions';
+import { resolveWrappedToken, toUniversal } from '@wormhole-foundation/sdk-definitions';
 import { Chain, chainIdToChain, chainToPlatform } from '@wormhole-foundation/sdk-base';
 import { inspect } from 'util';
 import { solanaOperatingChains } from '../helpers/solana';
 import { EvmAddress } from '@wormhole-foundation/sdk-evm/dist/cjs';
-import { getNative } from '@wormhole-foundation/sdk-base/tokens';
 
 const processName = 'att-evm-test-transfer';
 const chains = evm.evmOperatingChains();
@@ -60,6 +59,17 @@ async function run() {
   console.log(`Process ${processName} finished after ${timeMs} miliseconds`);
 }
 
+function getNativeWrappedToken(chain: EvmChainInfo) {
+  let token;
+  try {
+    ([, { address: token }] = resolveWrappedToken(chain.network, chain.name as Exclude<SupportedChain, "Solana">, "native"));
+  } catch {}
+  if (token === undefined) {
+    throw new Error(`Could not find gas token for chain ${chain.name}`);
+  }
+  return new EvmAddress(token);
+}
+
 async function sendTestTransaction(
   chain: EvmChainInfo,
   signer: ethers.Signer,
@@ -67,10 +77,9 @@ async function sendTestTransaction(
   testTransfer: TestTransfer,
 ): Promise<void> {
   try {
-    const inputTokenStr = testTransfer.tokenAddress
-      ?? getNative("Testnet", chain.name as SupportedChain)?.wrappedKey;
-    if (inputTokenStr === undefined) throw new Error(`Could not find gas token for chain ${chain.name}`);
-    const inputToken = new EvmAddress(inputTokenStr);
+    const inputToken = testTransfer.tokenAddress !== undefined
+      ? new EvmAddress(testTransfer.tokenAddress)
+      : getNativeWrappedToken(chain);
     const gasDropoff = Number(testTransfer.gasDropoffAmount);
     const inputAmountInAtomic = BigInt(testTransfer.transferredAmount);
     const unwrapIntent = testTransfer.unwrapIntent;
@@ -126,7 +135,6 @@ async function sendTestTransaction(
 
             const {feeEstimations, allowances} = (
               await tbrv3.relayingFee({
-                // TODO: enable this to work on a mainnet fork too?
                 tokens: [new EvmAddress(inputToken)],
                 transferRequests: [{
                   targetChain: targetChain.name as SupportedChain,
