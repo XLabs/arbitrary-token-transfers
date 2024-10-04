@@ -10,6 +10,7 @@ import {
 import {
   keccak256,
   layoutItems,
+  resolveWrappedToken,
   serialize,
   VAA,
 } from "@wormhole-foundation/sdk-definitions";
@@ -40,7 +41,6 @@ import {
   adminsQueryReturnLayout,
 } from "./solidity-sdk/access-control.js";
 import { evmAddressItem } from "./solidity-sdk/common.js";
-import { getNative } from "@wormhole-foundation/sdk-base/tokens";
 
 const WHOLE_EVM_GAS_TOKEN_UNITS = 10 ** 18;
 
@@ -147,13 +147,17 @@ export class Tbrv3 {
       throw new Error(`Tbrv3 address needs to be provided for network ${network}`);
     }
 
-    const defaultGasToken = getNative(network, chain);
+    let defaultGasToken;
+    try {
+      ([,{address: defaultGasToken}] = resolveWrappedToken(network, chain, "native"));
+    } catch {}
+
     if (gasToken === undefined) {
       if (defaultGasToken === undefined) {
         throw new Error(`Gas token address needs to be provided for network ${network} and chain ${chain}`);
       }
-      gasToken = new EvmAddress(defaultGasToken.wrappedKey!);
-    } else if (defaultGasToken !== undefined && !gasToken.equals(new EvmAddress(defaultGasToken.wrappedKey!))) {
+      gasToken = new EvmAddress(defaultGasToken);
+    } else if (defaultGasToken !== undefined && !gasToken.equals(new EvmAddress(defaultGasToken))) {
       throw new Error(`Unexpected gas token address ${gasToken} for network ${network} and chain ${chain}`);
     }
 
