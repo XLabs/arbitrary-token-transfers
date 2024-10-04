@@ -2,6 +2,7 @@ import { SolanaTokenBridgeRelayer } from '@xlabs-xyz/solana-arbitrary-token-tran
 import { runOnSolana, ledgerSignAndSend, getConnection, SolanaSigner } from '../helpers/solana.js';
 import { SolanaChainInfo, LoggerFn } from '../helpers/interfaces.js';
 import { PublicKey } from '@solana/web3.js';
+import { loadSolanaTbrInitParams } from '../helpers/env.js';
 
 runOnSolana('initialize-tbr', initializeSolanaTbr).catch((e) => {
   console.error('Error executing script: ', e);
@@ -16,11 +17,12 @@ async function initializeSolanaTbr(
   const connection = getConnection(chain);
   const tbr = new SolanaTokenBridgeRelayer({ connection });
 
-  const tmpError = () => { throw new Error('TODO: add this field'); };
+  const tbrInitParams = loadSolanaTbrInitParams();
+
   const initializeIx = await tbr.initialize({
-    owner: tmpError(),
-    feeRecipient: tmpError(),
-    admins: tmpError(),
+    owner: new PublicKey(tbrInitParams.owner),
+    feeRecipient: new PublicKey(tbrInitParams.feeRecipient),
+    admins: tbrInitParams.admins.map((adminKey) => new PublicKey(adminKey)),
   });
 
   await ledgerSignAndSend(connection, [initializeIx], []);
