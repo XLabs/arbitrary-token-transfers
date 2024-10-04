@@ -41,8 +41,11 @@ pub fn update_max_gas_dropoff(
     Ok(())
 }
 
-pub fn update_relayer_fee(ctx: Context<UpdateChainConfig>, relayer_fee: u32) -> Result<()> {
-    ctx.accounts.chain_config.relayer_fee_micro_usd = relayer_fee;
+pub fn update_relayer_fee(
+    ctx: Context<UpdateChainConfig>,
+    relayer_fee_micro_usd: u32,
+) -> Result<()> {
+    ctx.accounts.chain_config.relayer_fee_micro_usd = relayer_fee_micro_usd;
 
     Ok(())
 }

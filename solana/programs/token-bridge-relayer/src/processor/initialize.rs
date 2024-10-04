@@ -69,13 +69,8 @@ pub fn initialize<'a, 'b, 'c, 'info>(
     fee_recipient: Pubkey,
     admins: Vec<Pubkey>,
 ) -> Result<()> {
-    msg!(
-        "Authority: {:?}",
-        ctx.accounts.program_data.upgrade_authority_address
-    );
     //We only update the upgrade authority if the program wasn't deployed by the designated owner
     if Some(ctx.accounts.owner.key()) != ctx.accounts.program_data.upgrade_authority_address {
-        msg!("Setting program authority to the owner...");
         //This call fails for anyone but the deployer who must be the current update authority.
         invoke(
             &bpf_loader_upgradeable::set_upgrade_authority(
@@ -89,7 +84,6 @@ pub fn initialize<'a, 'b, 'c, 'info>(
                 ctx.accounts.owner.to_account_info(),
             ],
         )?;
-        msg!("Program authority set to the owner");
     }
 
     ctx.accounts.tbr_config.set_inner(TbrConfigState {

@@ -10,24 +10,21 @@ use solana_price_oracle::{
 
 #[derive(Accounts)]
 pub struct QuoteQuery<'info> {
-    #[account(mut)]
-    pub payer: Signer<'info>,
-
     /// This program's config.
-    pub tbr_config: Box<Account<'info, TbrConfigState>>,
+    pub tbr_config: Account<'info, TbrConfigState>,
 
     /// The peer config. We need to verify that the transfer is sent to the
     /// canonical peer.
-    pub chain_config: Box<Account<'info, ChainConfigState>>,
+    pub chain_config: Account<'info, ChainConfigState>,
 
-    pub oracle_config: Box<Account<'info, PriceOracleConfigAccount>>,
+    pub oracle_config: Account<'info, PriceOracleConfigAccount>,
 
     #[account(
         seeds = [EvmPricesAccount::SEED_PREFIX, chain_config.chain_id.to_be_bytes().as_ref()],
         seeds::program = PriceOracle::id(),
         bump,
     )]
-    pub oracle_evm_prices: Box<Account<'info, EvmPricesAccount>>,
+    pub oracle_evm_prices: Account<'info, EvmPricesAccount>,
 }
 
 pub fn relaying_fee(ctx: Context<QuoteQuery>, dropoff_amount: u32) -> Result<u64> {

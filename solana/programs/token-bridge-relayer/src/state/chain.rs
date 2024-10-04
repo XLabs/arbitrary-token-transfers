@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-/// A peer chain. Nothing is stored in it for now.
+/// A peer chain for sending token to or from.
 #[account]
 #[derive(InitSpace)]
 pub struct PeerState {

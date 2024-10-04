@@ -757,7 +757,8 @@
     {
       "name": "register_peer",
       "docs": [
-        "Register a new peer for the given chain.",
+        "Register a new peer for the given chain. If this peer is the first one to be registered",
+        "on this chain,  it becomes the canonical peer for this chain.",
         "",
         "# Authorization",
         "",
@@ -885,11 +886,6 @@
         250
       ],
       "accounts": [
-        {
-          "name": "payer",
-          "writable": true,
-          "signer": true
-        },
         {
           "name": "tbr_config",
           "docs": [
@@ -1100,7 +1096,7 @@
         "# Parameters",
         "",
         "- `dropoff_amount_micro`: the dropoff in µ-target-token.",
-        "- `max_fee_klam`: the maximum fee the user is willing to pay, in Klamports, aka µSOL."
+        "- `max_fee_klam`: the maximum fee the user is willing to pay, in lamports."
       ],
       "discriminator": [
         54,
@@ -1133,8 +1129,7 @@
           "docs": [
             "The peer config. We need to verify that the transfer is sent to the",
             "canonical peer."
-          ],
-          "writable": true
+          ]
         },
         {
           "name": "mint",
@@ -1374,7 +1369,7 @@
           "type": "u32"
         },
         {
-          "name": "max_fee_klam",
+          "name": "max_fee_lamports",
           "type": "u64"
         }
       ]
@@ -1639,7 +1634,7 @@
       ],
       "args": [
         {
-          "name": "relayer_fee",
+          "name": "relayer_fee_micro_usd",
           "type": "u32"
         }
       ]
@@ -1908,7 +1903,7 @@
     {
       "name": "PeerState",
       "docs": [
-        "A peer chain. Nothing is stored in it for now."
+        "A peer chain for sending token to or from."
       ],
       "type": {
         "kind": "struct",

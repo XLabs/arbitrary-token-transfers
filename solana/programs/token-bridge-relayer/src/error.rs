@@ -69,4 +69,12 @@ pub(crate) enum TokenBridgeRelayerError {
     /// The peer sending the transfer is not the right one.
     #[msg("InvalidSendingPeer")]
     InvalidSendingPeer,
+
+    /// Solana cannot be registered as a chain in Solana.
+    #[msg("CannotRegisterSolana")]
+    CannotRegisterSolana,
+
+    /// The peer address is empty, please set a peer address.
+    #[msg("InvalidPeerAddress")]
+    InvalidPeerAddress,
 }

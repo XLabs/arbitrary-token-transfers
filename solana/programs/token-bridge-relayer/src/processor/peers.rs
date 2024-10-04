@@ -55,6 +55,11 @@ pub fn register_peer(
     chain_id: u16,
     peer_address: [u8; 32],
 ) -> Result<()> {
+    require_neq!(chain_id, 0, TokenBridgeRelayerError::CannotRegisterSolana);
+    if peer_address == [0; 32] {
+        Err(TokenBridgeRelayerError::InvalidPeerAddress)?;
+    }
+
     // If it is the first peer for this chain, make it canonical:
     if ctx.accounts.chain_config.is_uninitialized() {
         ctx.accounts.chain_config.set_inner(ChainConfigState {

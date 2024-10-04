@@ -140,8 +140,8 @@ export class TbrWrapper {
   }
 
   async updateEvmTransactionConfig(
-    evmTransactionGas: BN,
-    evmTransactionSize: BN,
+    evmTransactionGas: bigint,
+    evmTransactionSize: bigint,
   ): Promise<TransactionSignature> {
     return sendAndConfirmIxs(
       this.provider,

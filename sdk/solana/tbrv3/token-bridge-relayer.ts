@@ -8,9 +8,18 @@ import {
   TransactionInstruction,
   clusterApiUrl,
   Cluster,
+  LAMPORTS_PER_SOL,
 } from '@solana/web3.js';
 import * as borsh from 'borsh';
-import { Chain, chainToChainId, encoding, contracts, Network } from '@wormhole-foundation/sdk-base';
+import {
+  Chain,
+  chainToChainId,
+  encoding,
+  contracts,
+  Network,
+  chain,
+  chainIdToChain,
+} from '@wormhole-foundation/sdk-base';
 import { UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import {
   getTransferNativeWithPayloadCpiAccounts,
@@ -40,9 +49,9 @@ export interface TransferNativeParameters {
   recipient: WormholeAddress;
   mint: PublicKey;
   tokenAccount: PublicKey;
-  transferredAmount: anchor.BN;
+  transferredAmount: bigint;
   gasDropoffAmount: number;
-  maxFeeKlamports: anchor.BN;
+  maxFeeLamports: bigint;
   unwrapIntent: boolean;
 }
 
@@ -50,9 +59,9 @@ export interface TransferWrappedParameters {
   recipient: WormholeAddress;
   token: WormholeAddress;
   userTokenAccount: PublicKey;
-  transferredAmount: anchor.BN;
+  transferredAmount: bigint;
   gasDropoffAmount: number;
-  maxFeeKlamports: anchor.BN;
+  maxFeeLamports: bigint;
   unwrapIntent: boolean;
 }
 
@@ -100,7 +109,103 @@ export class SolanaTokenBridgeRelayer {
 
   get read() {
     return {
-      config: () => this.program.account.tbrConfigState.fetch(this.address.config()),
+      /* High level data */
+      allAdminAccounts: async () => {
+        const [accounts, owner] = await Promise.all([
+          this.program.account.authBadgeState.all().then((state) => state.map((pa) => pa.account)),
+          this.read.config().then((state) => state.owner.toString()),
+        ]);
+
+        return accounts
+          .filter(({ address }) => address.toString() !== owner)
+          .map(({ address }) => address);
+      },
+      allChainConfigs: async () => {
+        const states = await this.program.account.chainConfigState
+          .all()
+          .then((state) => state.map((pa) => pa.account));
+
+        return states.map(({ canonicalPeer, ...rest }) => ({
+          canonicalPeer: new UniversalAddress(Uint8Array.from(canonicalPeer)),
+          ...rest,
+        }));
+      },
+      allPeers: async (chain?: Chain) => {
+        let filter: Buffer | undefined = undefined;
+        if (chain !== undefined) {
+          filter = Buffer.alloc(2);
+          filter.writeUInt16LE(chainToChainId(chain));
+        }
+        const states = await this.program.account.peerState
+          .all(filter)
+          .then((state) => state.map((pa) => pa.account));
+
+        return states.map(({ address, chainId }) => ({
+          address: new UniversalAddress(Uint8Array.from(address)),
+          chainId,
+        }));
+      },
+      state: async (): Promise<{
+        evm: {
+          transactionGas: bigint;
+          transactionSize: bigint;
+        };
+        admins: anchor.web3.PublicKey[];
+        chains: {
+          [chain: string]: {
+            maxGasDropoffMicroToken: number;
+            relayerFeeMicroUsd: number;
+            pausedOutboundTransfers: boolean;
+            canonicalPeer: UniversalAddress;
+            peers: UniversalAddress[];
+          };
+        };
+        owner: anchor.web3.PublicKey;
+        pendingOwner: anchor.web3.PublicKey | null;
+        feeRecipient: anchor.web3.PublicKey;
+      }> => {
+        const [
+          admins,
+          chains,
+          allPeers,
+          { bump, senderBump, redeemerBump, evmTransactionGas, evmTransactionSize, ...config },
+        ] = await Promise.all([
+          this.read.allAdminAccounts(),
+          this.read.allChainConfigs(),
+          this.read.allPeers(),
+          this.read.config(),
+        ]);
+
+        return {
+          ...config,
+          evm: {
+            transactionGas: evmTransactionGas,
+            transactionSize: evmTransactionSize,
+          },
+          admins,
+          chains: chains.reduce((obj, { chainId, ...chain }) => {
+            const chainName: string = chainIdToChain(chainId as any);
+            const peers = allPeers
+              .filter((peer) => peer.chainId === chainId)
+              .map((peer) => peer.address);
+            return {
+              [chainName]: { ...chain, peers },
+              ...obj,
+            };
+          }, {}),
+        };
+      },
+
+      /* Solana accounts */
+      config: async () => {
+        const { evmTransactionGas, evmTransactionSize, ...rest } =
+          await this.program.account.tbrConfigState.fetch(this.address.config());
+        return {
+          evmTransactionGas: bnToBigint(evmTransactionGas),
+          evmTransactionSize: bnToBigint(evmTransactionSize),
+          ...rest,
+        };
+      },
       chainConfig: (chain: Chain) =>
         this.program.account.chainConfigState.fetch(this.address.chainConfig(chain)),
       peer: (chain: Chain, peerAddress: UniversalAddress) =>
@@ -110,15 +215,6 @@ export class SolanaTokenBridgeRelayer {
       authBadge: (account: PublicKey) =>
         this.program.account.authBadgeState.fetch(this.address.authBadge(account)),
     };
-  }
-
-  async readAdminAccounts(): Promise<PublicKey[]> {
-    const accounts = (await this.program.account.authBadgeState.all()).map((pa) => pa.account);
-    const owner = (await this.read.config()).owner.toString();
-
-    return accounts
-      .filter(({ address }) => address.toString() !== owner)
-      .map(({ address }) => address);
   }
 
   private async payerSequenceNumber(payer: PublicKey): Promise<anchor.BN> {
@@ -374,11 +470,11 @@ export class SolanaTokenBridgeRelayer {
    */
   async updateEvmTransactionConfig(
     signer: PublicKey,
-    evmTransactionGas: anchor.BN,
-    evmTransactionSize: anchor.BN,
+    evmTransactionGas: bigint,
+    evmTransactionSize: bigint,
   ): Promise<TransactionInstruction> {
     return this.program.methods
-      .updateEvmTransactionConfig(evmTransactionGas, evmTransactionSize)
+      .updateEvmTransactionConfig(bigintToBn(evmTransactionGas), bigintToBn(evmTransactionSize))
       .accounts({
         signer,
         authBadge: this.address.authBadge(signer),
@@ -402,7 +498,7 @@ export class SolanaTokenBridgeRelayer {
       tokenAccount: userTokenAccount,
       transferredAmount,
       gasDropoffAmount,
-      maxFeeKlamports: maxFeeSol,
+      maxFeeLamports,
       unwrapIntent,
     } = params;
 
@@ -415,31 +511,34 @@ export class SolanaTokenBridgeRelayer {
       wormholeProgramId: this.wormholeProgramId,
       mint,
     });
+    const accounts = {
+      payer: signer,
+      tbrConfig: this.address.config(),
+      chainConfig: this.address.chainConfig(recipient.chain),
+      mint,
+      userTokenAccount,
+      temporaryAccount: pda.temporary(this.program.programId, mint),
+      feeRecipient,
+      oracleConfig: this.priceOracleClient.address.config(),
+      oracleEvmPrices: this.priceOracleClient.address.evmPrices(recipient.chain),
+      ...tokenBridgeAccounts,
+      wormholeMessage: pda.wormholeMessage(this.program.programId, signer, payerSequenceNumber),
+      payerSequence: this.address.signerSequence(signer),
+      tokenBridgeProgram: this.tokenBridgeProgramId,
+      wormholeProgram: this.wormholeProgramId,
+    };
+
+    myDebug('transferNativeTokens:', params, accounts);
 
     return this.program.methods
       .transferTokens(
         uaToArray(recipient.address),
-        transferredAmount,
+        bigintToBn(transferredAmount),
         unwrapIntent,
         gasDropoffAmount,
-        maxFeeSol,
+        bigintToBn(maxFeeLamports),
       )
-      .accountsPartial({
-        payer: signer,
-        tbrConfig: this.address.config(),
-        chainConfig: this.address.chainConfig(recipient.chain),
-        mint,
-        userTokenAccount,
-        temporaryAccount: pda.temporary(this.program.programId, mint),
-        feeRecipient,
-        oracleConfig: this.priceOracleClient.address.config(),
-        oracleEvmPrices: this.priceOracleClient.address.evmPrices(recipient.chain),
-        ...tokenBridgeAccounts,
-        wormholeMessage: pda.wormholeMessage(this.program.programId, signer, payerSequenceNumber),
-        payerSequence: this.address.signerSequence(signer),
-        tokenBridgeProgram: this.tokenBridgeProgramId,
-        wormholeProgram: this.wormholeProgramId,
-      })
+      .accountsPartial(accounts)
       .instruction();
   }
 
@@ -456,11 +555,10 @@ export class SolanaTokenBridgeRelayer {
       userTokenAccount,
       transferredAmount,
       gasDropoffAmount,
-      maxFeeKlamports,
+      maxFeeLamports,
       unwrapIntent,
     } = params;
 
-    const chainId = chainToChainId(recipient.chain);
     const { feeRecipient } = await this.read.config();
     const payerSequenceNumber = await this.payerSequenceNumber(signer);
 
@@ -471,30 +569,33 @@ export class SolanaTokenBridgeRelayer {
       tokenChain: chainToChainId(token.chain),
       tokenAddress: Buffer.from(token.address.toUint8Array()),
     });
+    const accounts = {
+      payer: signer,
+      tbrConfig: this.address.config(),
+      chainConfig: this.address.chainConfig(recipient.chain),
+      userTokenAccount,
+      temporaryAccount: pda.temporary(this.program.programId, tokenBridgeAccounts.mint),
+      feeRecipient,
+      oracleConfig: this.priceOracleClient.address.config(),
+      oracleEvmPrices: this.priceOracleClient.address.evmPrices(recipient.chain),
+      ...tokenBridgeAccounts,
+      wormholeMessage: pda.wormholeMessage(this.program.programId, signer, payerSequenceNumber),
+      payerSequence: this.address.signerSequence(signer),
+      tokenBridgeProgram: this.tokenBridgeProgramId,
+      wormholeProgram: this.wormholeProgramId,
+    };
+
+    myDebug('transferWrappedTokens:', params, accounts);
 
     return this.program.methods
       .transferTokens(
         uaToArray(recipient.address),
-        transferredAmount,
+        bigintToBn(transferredAmount),
         unwrapIntent,
         gasDropoffAmount,
-        maxFeeKlamports,
+        bigintToBn(maxFeeLamports),
       )
-      .accountsPartial({
-        payer: signer,
-        tbrConfig: this.address.config(),
-        chainConfig: this.address.chainConfig(recipient.chain),
-        userTokenAccount,
-        temporaryAccount: pda.temporary(this.program.programId, tokenBridgeAccounts.mint),
-        feeRecipient,
-        oracleConfig: this.priceOracleClient.address.config(),
-        oracleEvmPrices: this.priceOracleClient.address.evmPrices(recipient.chain),
-        ...tokenBridgeAccounts,
-        wormholeMessage: pda.wormholeMessage(this.program.programId, signer, payerSequenceNumber),
-        payerSequence: this.address.signerSequence(signer),
-        tokenBridgeProgram: this.tokenBridgeProgramId,
-        wormholeProgram: this.wormholeProgramId,
-      })
+      .accountsPartial(accounts)
       .instruction();
   }
 
@@ -516,21 +617,24 @@ export class SolanaTokenBridgeRelayer {
       vaa,
     });
     const { recipient } = deserializeTbrV3Message(vaa);
+    const accounts = {
+      payer: signer,
+      tbrConfig: this.address.config(),
+      recipientTokenAccount,
+      recipient: new PublicKey(recipient.address),
+      vaa: pda.vaa(this.wormholeProgramId, vaa.hash),
+      temporaryAccount: pda.temporary(this.program.programId, tokenBridgeAccounts.mint),
+      ...tokenBridgeAccounts,
+      tokenBridgeProgram: this.tokenBridgeProgramId,
+      wormholeProgram: this.wormholeProgramId,
+      peer: pda.peer(this.program.programId, vaa.emitterChain, vaa.payload.from),
+    };
+
+    myDebug('completeNativeTransfer:', accounts);
 
     return this.program.methods
       .completeTransfer(Array.from(vaa.hash))
-      .accountsPartial({
-        payer: signer,
-        tbrConfig: this.address.config(),
-        recipientTokenAccount,
-        recipient: new PublicKey(recipient.address),
-        vaa: pda.vaa(this.wormholeProgramId, vaa.hash),
-        temporaryAccount: pda.temporary(this.program.programId, tokenBridgeAccounts.mint),
-        ...tokenBridgeAccounts,
-        tokenBridgeProgram: this.tokenBridgeProgramId,
-        wormholeProgram: this.wormholeProgramId,
-        peer: pda.peer(this.program.programId, vaa.emitterChain, vaa.payload.from),
-      })
+      .accountsPartial(accounts)
       .instruction();
   }
 
@@ -552,21 +656,24 @@ export class SolanaTokenBridgeRelayer {
       vaa,
     });
     const { recipient } = deserializeTbrV3Message(vaa);
+    const accounts = {
+      payer: signer,
+      tbrConfig: this.address.config(),
+      recipientTokenAccount,
+      recipient: new PublicKey(recipient.address),
+      vaa: pda.vaa(this.wormholeProgramId, vaa.hash),
+      temporaryAccount: pda.temporary(this.program.programId, tokenBridgeAccounts.mint),
+      ...tokenBridgeAccounts,
+      tokenBridgeProgram: this.tokenBridgeProgramId,
+      wormholeProgram: this.wormholeProgramId,
+      peer: pda.peer(this.program.programId, vaa.emitterChain, vaa.payload.from),
+    };
+
+    myDebug('completeWrappedTransfer:', accounts);
 
     return this.program.methods
       .completeTransfer(Array.from(vaa.hash))
-      .accountsPartial({
-        payer: signer,
-        tbrConfig: this.address.config(),
-        recipientTokenAccount,
-        recipient: new PublicKey(recipient.address),
-        vaa: pda.vaa(this.wormholeProgramId, vaa.hash),
-        temporaryAccount: pda.temporary(this.program.programId, tokenBridgeAccounts.mint),
-        ...tokenBridgeAccounts,
-        tokenBridgeProgram: this.tokenBridgeProgramId,
-        wormholeProgram: this.wormholeProgramId,
-        peer: pda.peer(this.program.programId, vaa.emitterChain, vaa.payload.from),
-      })
+      .accountsPartial(accounts)
       .instruction();
   }
 
@@ -584,7 +691,6 @@ export class SolanaTokenBridgeRelayer {
     const tx = await this.program.methods
       .relayingFee(dropoffAmount)
       .accountsStrict({
-        payer: this.program.provider.publicKey,
         tbrConfig: this.address.config(),
         chainConfig: this.address.chainConfig(chain),
         oracleConfig: this.priceOracleClient.address.config(),
@@ -597,7 +703,7 @@ export class SolanaTokenBridgeRelayer {
     });
     const result = returnedDataFromTransaction<bigint>('u64', txResponse);
 
-    return Number(result) / 1_000_000;
+    return Number(result) / LAMPORTS_PER_SOL;
   }
 }
 
@@ -883,7 +989,15 @@ function myDebug(message?: any, ...optionalParams: any[]) {
  * Crappy fix for allowing the tests to run correctly.
  */
 function patchTest(connection: Connection, idl: any) {
-  return connection.rpcEndpoint.includes('localhost')
-    ? { ...idl, address: '7TLiBkpDGshV4o3jmacTCx93CLkmo3VjZ111AsijN9f8' }
-    : idl;
+  const address: TokenBridgeRelayer['address'] = '7TLiBkpDGshV4o3jmacTCx93CLkmo3VjZ111AsijN9f8';
+
+  return connection.rpcEndpoint.includes('localhost') ? { ...idl, address } : idl;
+}
+
+function bnToBigint(n: anchor.BN): bigint {
+  return BigInt(n.toString());
+}
+
+function bigintToBn(n: bigint): anchor.BN {
+  return new anchor.BN(n.toString());
 }

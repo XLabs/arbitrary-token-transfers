@@ -158,6 +158,7 @@ pub fn complete_transfer(mut ctx: Context<CompleteTransfer>) -> Result<()> {
         gas_dropoff_amount,
         unwrap_intent,
     } = *ctx.accounts.vaa.message().data();
+    let gas_dropoff_amount = denormalize_dropoff_to_lamports(gas_dropoff_amount);
 
     let tbr_config_seeds = &[
         TbrConfigState::SEED_PREFIX.as_ref(),
@@ -284,11 +285,7 @@ fn token_bridge_complete_wrapped(
 }
 
 /// If the transfer includes a gas dropoff, the gas will be transferred to the recipient.
-fn redeem_gas(ctx: &Context<CompleteTransfer>, gas_dropoff_amount: u32) -> Result<()> {
-    // Denormalize the gas_dropoff_amount.
-    // Since it is transferred as Klamports, we need to convert it to lamports:
-    let gas_dropoff_amount = u64::from(gas_dropoff_amount) * 1_000;
-
+fn redeem_gas(ctx: &Context<CompleteTransfer>, gas_dropoff_amount: u64) -> Result<()> {
     // Transfer lamports from the payer to the recipient if any and if they're different accounts:
     if gas_dropoff_amount > 0 && ctx.accounts.payer.key != ctx.accounts.recipient.key {
         anchor_lang::system_program::transfer(
@@ -373,4 +370,10 @@ fn redeem_token(
     }
 
     Ok(())
+}
+
+/// The amount in the VAA is normalized to be in micro-token (so µSOL here) and
+/// we need to get the value in lamports.
+fn denormalize_dropoff_to_lamports(amount: u32) -> u64 {
+    u64::from(amount) * 1_000
 }

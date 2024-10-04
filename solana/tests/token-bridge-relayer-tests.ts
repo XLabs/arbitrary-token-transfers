@@ -43,8 +43,8 @@ describe('Token Bridge Relayer Program', () => {
   //const tokenBridgeClient = new TokenBridgeWrapper(tokenBridgeOwner);
 
   const feeRecipient = PublicKey.unique();
-  const evmTransactionGas = new anchor.BN(321000);
-  const evmTransactionSize = new anchor.BN(654000);
+  const evmTransactionGas = 321_000n;
+  const evmTransactionSize = 654_000n;
 
   const ethereumPeer1 = new UniversalAddress(
     Buffer.from('e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1', 'hex'),
@@ -124,7 +124,7 @@ describe('Token Bridge Relayer Program', () => {
     });
 
     // Verify that the accounts reader works:
-    const adminAccounts = await unauthorizedClient.client.readAdminAccounts();
+    const adminAccounts = await unauthorizedClient.client.read.allAdminAccounts();
     assert.array(adminAccounts).equal([adminClient1.publicKey, adminClient2.publicKey]);
   });
 
@@ -342,8 +342,8 @@ describe('Token Bridge Relayer Program', () => {
       const config = await unauthorizedClient.read.config();
 
       assert.key(config.feeRecipient).equal(feeRecipient);
-      assert.bn(config.evmTransactionGas).equal(evmTransactionGas);
-      assert.bn(config.evmTransactionSize).equal(evmTransactionSize);
+      expect(config.evmTransactionGas).equal(evmTransactionGas);
+      expect(config.evmTransactionSize).equal(evmTransactionSize);
     });
 
     it('Unauthorized cannot update the values', async () => {
@@ -351,7 +351,7 @@ describe('Token Bridge Relayer Program', () => {
         .promise(unauthorizedClient.updateFeeRecipient(PublicKey.unique()))
         .fails(SendTransactionError);
       await assert
-        .promise(unauthorizedClient.updateEvmTransactionConfig(new anchor.BN(0), new anchor.BN(0)))
+        .promise(unauthorizedClient.updateEvmTransactionConfig(0n, 0n))
         .fails(SendTransactionError);
     });
   });

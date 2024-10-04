@@ -763,7 +763,8 @@ export type TokenBridgeRelayer = {
     {
       "name": "registerPeer",
       "docs": [
-        "Register a new peer for the given chain.",
+        "Register a new peer for the given chain. If this peer is the first one to be registered",
+        "on this chain,  it becomes the canonical peer for this chain.",
         "",
         "# Authorization",
         "",
@@ -891,11 +892,6 @@ export type TokenBridgeRelayer = {
         250
       ],
       "accounts": [
-        {
-          "name": "payer",
-          "writable": true,
-          "signer": true
-        },
         {
           "name": "tbrConfig",
           "docs": [
@@ -1106,7 +1102,7 @@ export type TokenBridgeRelayer = {
         "# Parameters",
         "",
         "- `dropoff_amount_micro`: the dropoff in µ-target-token.",
-        "- `max_fee_klam`: the maximum fee the user is willing to pay, in Klamports, aka µSOL."
+        "- `max_fee_klam`: the maximum fee the user is willing to pay, in lamports."
       ],
       "discriminator": [
         54,
@@ -1139,8 +1135,7 @@ export type TokenBridgeRelayer = {
           "docs": [
             "The peer config. We need to verify that the transfer is sent to the",
             "canonical peer."
-          ],
-          "writable": true
+          ]
         },
         {
           "name": "mint",
@@ -1380,7 +1375,7 @@ export type TokenBridgeRelayer = {
           "type": "u32"
         },
         {
-          "name": "maxFeeKlam",
+          "name": "maxFeeLamports",
           "type": "u64"
         }
       ]
@@ -1645,7 +1640,7 @@ export type TokenBridgeRelayer = {
       ],
       "args": [
         {
-          "name": "relayerFee",
+          "name": "relayerFeeMicroUsd",
           "type": "u32"
         }
       ]
@@ -1914,7 +1909,7 @@ export type TokenBridgeRelayer = {
     {
       "name": "peerState",
       "docs": [
-        "A peer chain. Nothing is stored in it for now."
+        "A peer chain for sending token to or from."
       ],
       "type": {
         "kind": "struct",

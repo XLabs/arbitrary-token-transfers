@@ -21,9 +21,6 @@ use wormhole_anchor_sdk::{
 /// The other side will mint a wrapped token issued by Wormhole.
 /// The other side will unbound a native ERC-20 token.
 #[derive(Accounts)]
-#[instruction(
-    recipient_address: [u8; 32],
-)]
 pub struct OutboundTransfer<'info> {
     /// Payer will pay Wormhole fee to transfer tokens and create temporary
     /// token account.
@@ -37,7 +34,6 @@ pub struct OutboundTransfer<'info> {
     /// The peer config. We need to verify that the transfer is sent to the
     /// canonical peer.
     #[account(
-        mut,
         constraint = (!chain_config.paused_outbound_transfers) @ TokenBridgeRelayerError::PausedTransfers
     )]
     pub chain_config: Box<Account<'info, ChainConfigState>>,
@@ -181,7 +177,7 @@ pub fn transfer_tokens(
     transferred_amount: u64,
     unwrap_intent: bool,
     dropoff_amount_micro: u32,
-    max_fee_klam: u64,
+    max_fee_lamports: u64,
     recipient_address: [u8; 32],
 ) -> Result<()> {
     let recipient_chain = ctx.accounts.chain_config.chain_id;
@@ -201,7 +197,7 @@ pub fn transfer_tokens(
         &[ctx.accounts.tbr_config.sender_bump],
     ];
 
-    let total_fees_klam = calculate_total_fee(
+    let total_fees_lamports = calculate_total_fee(
         &ctx.accounts.tbr_config,
         &ctx.accounts.chain_config,
         &ctx.accounts.oracle_evm_prices,
@@ -209,7 +205,7 @@ pub fn transfer_tokens(
         dropoff_amount_micro,
     )?;
     require!(
-        total_fees_klam <= max_fee_klam,
+        total_fees_lamports <= max_fee_lamports,
         TokenBridgeRelayerError::FeeExceedingMaximum
     );
 
@@ -222,7 +218,7 @@ pub fn transfer_tokens(
                 to: ctx.accounts.fee_recipient.to_account_info(),
             },
         ),
-        total_fees_klam,
+        total_fees_lamports,
     )?;
 
     // Transfer the tokens to the custody account, to be transferred through the TBR:

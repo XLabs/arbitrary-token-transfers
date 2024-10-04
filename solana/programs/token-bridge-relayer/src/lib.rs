@@ -77,7 +77,8 @@ pub mod token_bridge_relayer {
 
     /* Peer management */
 
-    /// Register a new peer for the given chain.
+    /// Register a new peer for the given chain. If this peer is the first one to be registered
+    /// on this chain,  it becomes the canonical peer for this chain.
     ///
     /// # Authorization
     ///
@@ -131,8 +132,11 @@ pub mod token_bridge_relayer {
     /// # Authorization
     ///
     /// Owner or Admin.
-    pub fn update_relayer_fee(ctx: Context<UpdateChainConfig>, relayer_fee: u32) -> Result<()> {
-        processor::update_relayer_fee(ctx, relayer_fee)
+    pub fn update_relayer_fee(
+        ctx: Context<UpdateChainConfig>,
+        relayer_fee_micro_usd: u32,
+    ) -> Result<()> {
+        processor::update_relayer_fee(ctx, relayer_fee_micro_usd)
     }
 
     /* Config update */
@@ -167,21 +171,21 @@ pub mod token_bridge_relayer {
     /// # Parameters
     ///
     /// - `dropoff_amount_micro`: the dropoff in µ-target-token.
-    /// - `max_fee_klam`: the maximum fee the user is willing to pay, in Klamports, aka µSOL.
+    /// - `max_fee_klam`: the maximum fee the user is willing to pay, in lamports.
     pub fn transfer_tokens(
         ctx: Context<OutboundTransfer>,
         recipient_address: [u8; 32],
         transferred_amount: u64,
         unwrap_intent: bool,
         dropoff_amount_micro: u32,
-        max_fee_klam: u64,
+        max_fee_lamports: u64,
     ) -> Result<()> {
         processor::transfer_tokens(
             ctx,
             transferred_amount,
             unwrap_intent,
             dropoff_amount_micro,
-            max_fee_klam,
+            max_fee_lamports,
             recipient_address,
         )
     }
