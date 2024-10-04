@@ -21,13 +21,7 @@ async function readChainConfig(
   if (solanaDependencies === undefined) {
     throw new Error(`No dependencies found for chain ${chain.chainId}`);
   }
-  const tbr = new SolanaTokenBridgeRelayer(
-    { connection },
-    {
-      tokenBridgeProgramId: new PublicKey(solanaDependencies.tokenBridge),
-      wormholeProgramId: new PublicKey(solanaDependencies.wormhole),
-    },
-  );
+  const tbr = new SolanaTokenBridgeRelayer({ connection });
 
   ecosystemChains.evm.networks.forEach(async (chain) => {
     try {

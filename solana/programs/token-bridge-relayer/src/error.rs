@@ -4,6 +4,11 @@ pub type TokenBridgeRelayerResult<T> = std::result::Result<T, TokenBridgeRelayer
 
 #[error_code]
 pub(crate) enum TokenBridgeRelayerError {
+    /// The number of admin accounts passed as arguments in `initialize` must match
+    /// the number of badges in `remaining_accounts`.
+    #[msg("AdminCountMismatch")]
+    AdminCountMismatch,
+
     /// Only the program's owner is permitted.
     #[msg("OwnerOnly")]
     OwnerOnly,
@@ -20,6 +25,10 @@ pub(crate) enum TokenBridgeRelayerError {
     #[msg("AlreadyTheOwner")]
     AlreadyTheOwner,
 
+    /// All chain IDs must be the same.
+    #[msg("ChainIdMismatch")]
+    ChainIdMismatch,
+
     /// Specified peer is already canonical.
     #[msg("AlreadyTheCanonicalPeer")]
     AlreadyTheCanonicalPeer,
@@ -27,14 +36,6 @@ pub(crate) enum TokenBridgeRelayerError {
     /// Fee exceed what the user has set as a maximum.
     #[msg("FeeExceedingMaximum")]
     FeeExceedingMaximum,
-
-    /// Deserialized recipient must be this program or the redeemer PDA.
-    #[msg("InvalidTransferToAddress")]
-    InvalidTransferToAddress,
-
-    /// Deserialized token chain is invalid.
-    #[msg("InvalidTransferToChain")]
-    InvalidTransferToChain,
 
     /// The fee recipient account is not the one that was configured.
     #[msg("WrongFeeRecipient")]
@@ -57,10 +58,6 @@ pub(crate) enum TokenBridgeRelayerError {
     #[msg("InvalidRecipient")]
     InvalidRecipient,
 
-    /// Token Bridge program's transfer is already redeemed.
-    #[msg("AlreadyRedeemed")]
-    AlreadyRedeemed,
-
     /// The EVM token price is zero.
     #[msg("EvmChainPriceNotSet")]
     EvmChainPriceNotSet,
@@ -72,4 +69,12 @@ pub(crate) enum TokenBridgeRelayerError {
     /// The peer sending the transfer is not the right one.
     #[msg("InvalidSendingPeer")]
     InvalidSendingPeer,
+
+    /// Solana cannot be registered as a chain in Solana.
+    #[msg("CannotRegisterSolana")]
+    CannotRegisterSolana,
+
+    /// The peer address is empty, please set a peer address.
+    #[msg("InvalidPeerAddress")]
+    InvalidPeerAddress,
 }

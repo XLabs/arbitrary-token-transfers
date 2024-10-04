@@ -20,20 +20,8 @@ pub struct TbrConfigState {
 }
 
 impl TbrConfigState {
-    // /// Has any authority:
-    // /// - Owner
-    // /// - Admin
-    // pub fn is_owner_or_admin(&self, key: &Pubkey) -> bool {
-    //     key == &self.owner || key == &self.admin
-    // }
-
-    /// Has owner authority:
-    pub fn is_owner(&self, key: &Pubkey) -> bool {
-        key == &self.owner
-    }
-
-    pub fn is_pending_owner(&self, key: &Pubkey) -> bool {
-        self.pending_owner.as_ref() == Some(key)
+    pub fn is_pending_owner(&self, account: &impl Key) -> bool {
+        self.pending_owner == Some(account.key())
     }
 
     /// Value `b"config"`.

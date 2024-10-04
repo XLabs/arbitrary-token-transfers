@@ -2,7 +2,7 @@
 
 use crate::{
     error::TokenBridgeRelayerError,
-    state::{AdminState, TbrConfigState},
+    state::{AuthBadgeState, TbrConfigState},
 };
 use anchor_lang::prelude::*;
 
@@ -33,8 +33,7 @@ pub fn submit_owner_transfer_request(
         TokenBridgeRelayerError::AlreadyTheOwner
     );
 
-    let tbr_config = &mut ctx.accounts.tbr_config;
-    tbr_config.pending_owner = Some(new_owner);
+    ctx.accounts.tbr_config.pending_owner = Some(new_owner);
 
     Ok(())
 }
@@ -44,34 +43,30 @@ pub struct ConfirmOwnerTransfer<'info> {
     #[account(mut)]
     pub new_owner: Signer<'info>,
 
-    #[account(mut)]
-    pub previous_owner: UncheckedAccount<'info>,
-
-    /// The admin badge for the new owner.
     #[account(
         init,
         payer = new_owner,
-        space = 8 + AdminState::INIT_SPACE,
-        seeds = [AdminState::SEED_PREFIX, new_owner.key.to_bytes().as_ref()],
+        space = 8 + AuthBadgeState::INIT_SPACE,
+        seeds = [AuthBadgeState::SEED_PREFIX, new_owner.key.to_bytes().as_ref()],
         bump
     )]
-    pub new_owner_badge: Account<'info, AdminState>,
+    pub auth_badge_new_owner: Account<'info, AuthBadgeState>,
 
     #[account(
         mut,
-        close = previous_owner,
-        seeds = [AdminState::SEED_PREFIX, previous_owner.key.to_bytes().as_ref()],
-        bump = previous_owner_badge_to_delete.bump
+        seeds = [AuthBadgeState::SEED_PREFIX, tbr_config.owner.to_bytes().as_ref()],
+        bump,
+        close = new_owner,
     )]
-    pub previous_owner_badge_to_delete: Account<'info, AdminState>,
+    pub auth_badge_previous_owner: Account<'info, AuthBadgeState>,
 
     /// Program Config account. This program requires that the [`signer`] specified
     /// in the context equals a pubkey specified in this account. Mutable,
     /// because we will update roles depending on the operation.
     #[account(
         mut,
-        seeds = [TbrConfigState::SEED_PREFIX],
-        bump = tbr_config.bump
+        constraint = tbr_config.is_pending_owner(&new_owner)
+            @ TokenBridgeRelayerError::PendingOwnerOnly
     )]
     pub tbr_config: Account<'info, TbrConfigState>,
 
@@ -79,18 +74,14 @@ pub struct ConfirmOwnerTransfer<'info> {
 }
 
 pub fn confirm_owner_transfer_request(ctx: Context<ConfirmOwnerTransfer>) -> Result<()> {
-    require!(
-        ctx.accounts
-            .tbr_config
-            .is_pending_owner(ctx.accounts.new_owner.key),
-        TokenBridgeRelayerError::PendingOwnerOnly
-    );
-
     let tbr_config = &mut ctx.accounts.tbr_config;
+
     tbr_config.owner = ctx.accounts.new_owner.key();
     tbr_config.pending_owner = None;
 
-    ctx.accounts.new_owner_badge.bump = ctx.bumps.new_owner_badge;
+    ctx.accounts.auth_badge_new_owner.set_inner(AuthBadgeState {
+        address: ctx.accounts.new_owner.key(),
+    });
 
     Ok(())
 }
@@ -105,15 +96,12 @@ pub struct CancelOwnerTransfer<'info> {
     #[account(
         mut,
         has_one = owner @ TokenBridgeRelayerError::OwnerOnly,
-        seeds = [TbrConfigState::SEED_PREFIX],
-        bump = tbr_config.bump
     )]
     pub tbr_config: Account<'info, TbrConfigState>,
 }
 
 pub fn cancel_owner_transfer_request(ctx: Context<CancelOwnerTransfer>) -> Result<()> {
-    let tbr_config = &mut ctx.accounts.tbr_config;
-    tbr_config.pending_owner = None;
+    ctx.accounts.tbr_config.pending_owner = None;
 
     Ok(())
 }

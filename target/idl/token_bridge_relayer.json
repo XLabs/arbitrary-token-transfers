@@ -1,5 +1,5 @@
 {
-  "address": "ATT7enfWTMV4dDTe2NQ2yBaTByuXXwrYRznsioQEUW6r",
+  "address": "7TLiBkpDGshV4o3jmacTCx93CLkmo3VjZ111AsijN9f8",
   "metadata": {
     "name": "token_bridge_relayer",
     "version": "3.0.0",
@@ -39,25 +39,10 @@
           "docs": [
             "Program Config account. This program requires that the [`owner`] specified",
             "in the context equals the owner role stored in the config."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          ]
         },
         {
-          "name": "admin_badge",
+          "name": "auth_badge",
           "writable": true,
           "pda": {
             "seeds": [
@@ -65,10 +50,14 @@
                 "kind": "const",
                 "value": [
                   97,
+                  117,
+                  116,
+                  104,
+                  98,
+                  97,
                   100,
-                  109,
-                  105,
-                  110
+                  103,
+                  101
                 ]
               },
               {
@@ -120,22 +109,7 @@
             "in the context equals a pubkey specified in this account. Mutable,",
             "because we will update roles depending on the operation."
           ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          "writable": true
         }
       ],
       "args": []
@@ -169,22 +143,7 @@
           "name": "tbr_config",
           "docs": [
             "This program's config."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          ]
         },
         {
           "name": "mint",
@@ -374,11 +333,7 @@
             "",
             "NOTE: The Token Bridge program's claim account is only initialized when",
             "a transfer is redeemed (and the boolean value `true` is written as",
-            "its data).",
-            "",
-            "The Token Bridge program will automatically fail if this transfer",
-            "is redeemed again. But we choose to short-circuit the failure as the",
-            "first evaluation of this instruction."
+            "its data)."
           ],
           "writable": true
         },
@@ -467,11 +422,11 @@
         },
         {
           "name": "wormhole_program",
-          "address": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"
+          "address": "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth"
         },
         {
           "name": "token_bridge_program",
-          "address": "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe"
+          "address": "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"
         },
         {
           "name": "rent",
@@ -512,14 +467,7 @@
           "signer": true
         },
         {
-          "name": "previous_owner",
-          "writable": true
-        },
-        {
-          "name": "new_owner_badge",
-          "docs": [
-            "The admin badge for the new owner."
-          ],
+          "name": "auth_badge_new_owner",
           "writable": true,
           "pda": {
             "seeds": [
@@ -527,10 +475,14 @@
                 "kind": "const",
                 "value": [
                   97,
+                  117,
+                  116,
+                  104,
+                  98,
+                  97,
                   100,
-                  109,
-                  105,
-                  110
+                  103,
+                  101
                 ]
               },
               {
@@ -541,7 +493,7 @@
           }
         },
         {
-          "name": "previous_owner_badge_to_delete",
+          "name": "auth_badge_previous_owner",
           "writable": true,
           "pda": {
             "seeds": [
@@ -549,15 +501,20 @@
                 "kind": "const",
                 "value": [
                   97,
+                  117,
+                  116,
+                  104,
+                  98,
+                  97,
                   100,
-                  109,
-                  105,
-                  110
+                  103,
+                  101
                 ]
               },
               {
                 "kind": "account",
-                "path": "previous_owner"
+                "path": "tbr_config.owner",
+                "account": "TbrConfigState"
               }
             ]
           }
@@ -569,22 +526,7 @@
             "in the context equals a pubkey specified in this account. Mutable,",
             "because we will update roles depending on the operation."
           ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          "writable": true
         },
         {
           "name": "system_program",
@@ -607,18 +549,22 @@
       ],
       "accounts": [
         {
-          "name": "owner",
+          "name": "deployer",
           "docs": [
-            "Owner of the program as set in the [`OwnerConfig`] account."
+            "Since we are passing on the upgarde authority, the original deployer is the only one",
+            "who can initialize the program."
           ],
           "writable": true,
           "signer": true
         },
         {
-          "name": "admin_badge",
+          "name": "owner",
           "docs": [
-            "The admin badge for the owner."
-          ],
+            "The designated owner of the program."
+          ]
+        },
+        {
+          "name": "auth_badge",
           "writable": true,
           "pda": {
             "seeds": [
@@ -626,10 +572,14 @@
                 "kind": "const",
                 "value": [
                   97,
+                  117,
+                  116,
+                  104,
+                  98,
+                  97,
                   100,
-                  109,
-                  105,
-                  110
+                  103,
+                  101
                 ]
               },
               {
@@ -660,6 +610,88 @@
                 ]
               }
             ]
+          }
+        },
+        {
+          "name": "program_data",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  95,
+                  229,
+                  130,
+                  69,
+                  46,
+                  141,
+                  178,
+                  231,
+                  56,
+                  213,
+                  199,
+                  161,
+                  79,
+                  236,
+                  191,
+                  130,
+                  165,
+                  181,
+                  246,
+                  134,
+                  44,
+                  135,
+                  169,
+                  19,
+                  212,
+                  103,
+                  182,
+                  152,
+                  69,
+                  169,
+                  9,
+                  75
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                2,
+                168,
+                246,
+                145,
+                78,
+                136,
+                161,
+                176,
+                226,
+                16,
+                21,
+                62,
+                247,
+                99,
+                174,
+                43,
+                0,
+                194,
+                185,
+                61,
+                22,
+                193,
+                36,
+                210,
+                192,
+                83,
+                122,
+                16,
+                4,
+                128,
+                0,
+                0
+              ]
+            }
           }
         },
         {
@@ -701,16 +733,32 @@
           }
         },
         {
+          "name": "bpf_loader_upgradeable",
+          "address": "BPFLoaderUpgradeab1e11111111111111111111111"
+        },
+        {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "fee_recipient",
+          "type": "pubkey"
+        },
+        {
+          "name": "admins",
+          "type": {
+            "vec": "pubkey"
+          }
+        }
+      ]
     },
     {
       "name": "register_peer",
       "docs": [
-        "Register a new peer for the given chain.",
+        "Register a new peer for the given chain. If this peer is the first one to be registered",
+        "on this chain,  it becomes the canonical peer for this chain.",
         "",
         "# Authorization",
         "",
@@ -736,50 +784,17 @@
           "signer": true
         },
         {
-          "name": "admin_badge",
+          "name": "auth_badge",
           "docs": [
-            "Proof that the signer is an admin or the owner."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  97,
-                  100,
-                  109,
-                  105,
-                  110
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "signer"
-              }
-            ]
-          }
+            "Proof that the signer is authorized."
+          ]
         },
         {
           "name": "tbr_config",
           "docs": [
             "Owner Config account. This program requires that the `signer` specified",
             "in the context equals an authorized pubkey specified in this account."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          ]
         },
         {
           "name": "peer",
@@ -872,79 +887,20 @@
       ],
       "accounts": [
         {
-          "name": "payer",
-          "writable": true,
-          "signer": true
-        },
-        {
           "name": "tbr_config",
           "docs": [
             "This program's config."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          ]
         },
         {
           "name": "chain_config",
           "docs": [
             "The peer config. We need to verify that the transfer is sent to the",
             "canonical peer."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  104,
-                  97,
-                  105,
-                  110,
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              },
-              {
-                "kind": "arg",
-                "path": "chain_id"
-              }
-            ]
-          }
+          ]
         },
         {
-          "name": "oracle_config",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          "name": "oracle_config"
         },
         {
           "name": "oracle_evm_prices",
@@ -965,18 +921,15 @@
                 ]
               },
               {
-                "kind": "arg",
-                "path": "chain_id"
+                "kind": "account",
+                "path": "chain_config.chain_id",
+                "account": "ChainConfigState"
               }
             ]
           }
         }
       ],
       "args": [
-        {
-          "name": "_chain_id",
-          "type": "u16"
-        },
         {
           "name": "dropoff_amount_micro",
           "type": "u32"
@@ -1009,81 +962,24 @@
           "signer": true
         },
         {
-          "name": "admin_badge",
+          "name": "auth_badge",
           "docs": [
-            "If the signer is an admin, prove it with this PDA."
-          ],
-          "optional": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  97,
-                  100,
-                  109,
-                  105,
-                  110
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "signer"
-              }
-            ]
-          }
+            "Proof that the signer is authorized."
+          ]
         },
         {
           "name": "tbr_config",
           "docs": [
             "Program Config account. This program requires that the [`owner`] specified",
             "in the context equals the owner role stored in the config."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          ]
         },
         {
-          "name": "admin_badge_to_be_removed",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  97,
-                  100,
-                  109,
-                  105,
-                  110
-                ]
-              },
-              {
-                "kind": "arg",
-                "path": "admin_to_be_removed"
-              }
-            ]
-          }
+          "name": "auth_badge_to_be_removed",
+          "writable": true
         }
       ],
-      "args": [
-        {
-          "name": "_admin_to_be_removed",
-          "type": "pubkey"
-        }
-      ]
+      "args": []
     },
     {
       "name": "set_pause_for_outbound_transfers",
@@ -1114,56 +1010,14 @@
           "signer": true
         },
         {
-          "name": "admin_badge",
+          "name": "auth_badge",
           "docs": [
-            "Proof that the signer is an admin or the owner."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  97,
-                  100,
-                  109,
-                  105,
-                  110
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "signer"
-              }
-            ]
-          }
+            "Proof that the signer is authorized."
+          ]
         },
         {
           "name": "chain_config",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  104,
-                  97,
-                  105,
-                  110,
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              },
-              {
-                "kind": "arg",
-                "path": "chain_id"
-              }
-            ]
-          }
+          "writable": true
         },
         {
           "name": "tbr_config",
@@ -1171,29 +1025,10 @@
             "Program Config account. This program requires that the [`signer`] specified",
             "in the context equals a pubkey specified in this account. Mutable,",
             "because we will update roles depending on the operation."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          ]
         }
       ],
       "args": [
-        {
-          "name": "_chain_id",
-          "type": "u16"
-        },
         {
           "name": "paused",
           "type": "bool"
@@ -1261,7 +1096,7 @@
         "# Parameters",
         "",
         "- `dropoff_amount_micro`: the dropoff in µ-target-token.",
-        "- `max_fee_klam`: the maximum fee the user is willing to pay, in Klamports, aka µSOL."
+        "- `max_fee_klam`: the maximum fee the user is willing to pay, in lamports."
       ],
       "discriminator": [
         54,
@@ -1287,53 +1122,14 @@
           "name": "tbr_config",
           "docs": [
             "This program's config."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          ]
         },
         {
           "name": "chain_config",
           "docs": [
             "The peer config. We need to verify that the transfer is sent to the",
             "canonical peer."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  104,
-                  97,
-                  105,
-                  110,
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              },
-              {
-                "kind": "arg",
-                "path": "recipient_chain"
-              }
-            ]
-          }
+          ]
         },
         {
           "name": "mint",
@@ -1390,22 +1186,7 @@
           ]
         },
         {
-          "name": "oracle_config",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          "name": "oracle_config"
         },
         {
           "name": "oracle_evm_prices",
@@ -1426,8 +1207,9 @@
                 ]
               },
               {
-                "kind": "arg",
-                "path": "recipient_chain"
+                "kind": "account",
+                "path": "chain_config.chain_id",
+                "account": "ChainConfigState"
               }
             ]
           }
@@ -1549,11 +1331,11 @@
         },
         {
           "name": "token_bridge_program",
-          "address": "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe"
+          "address": "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"
         },
         {
           "name": "wormhole_program",
-          "address": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"
+          "address": "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth"
         },
         {
           "name": "clock",
@@ -1565,10 +1347,6 @@
         }
       ],
       "args": [
-        {
-          "name": "recipient_chain",
-          "type": "u16"
-        },
         {
           "name": "recipient_address",
           "type": {
@@ -1591,7 +1369,7 @@
           "type": "u32"
         },
         {
-          "name": "max_fee_klam",
+          "name": "max_fee_lamports",
           "type": "u64"
         }
       ]
@@ -1632,95 +1410,21 @@
           "docs": [
             "Owner Config account. This program requires that the `owner` specified",
             "in the context equals the `owner` pubkey specified in this account."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          ]
         },
         {
-          "name": "peer",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  112,
-                  101,
-                  101,
-                  114
-                ]
-              },
-              {
-                "kind": "arg",
-                "path": "chain_id"
-              },
-              {
-                "kind": "arg",
-                "path": "peer_address"
-              }
-            ]
-          }
+          "name": "peer"
         },
         {
           "name": "chain_config",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  104,
-                  97,
-                  105,
-                  110,
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              },
-              {
-                "kind": "arg",
-                "path": "chain_id"
-              }
-            ]
-          }
+          "writable": true
         },
         {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
       ],
-      "args": [
-        {
-          "name": "_chain_id",
-          "type": "u16"
-        },
-        {
-          "name": "peer_address",
-          "type": {
-            "array": [
-              "u8",
-              32
-            ]
-          }
-        }
-      ]
+      "args": []
     },
     {
       "name": "update_evm_transaction_config",
@@ -1750,28 +1454,10 @@
           "signer": true
         },
         {
-          "name": "admin_badge",
+          "name": "auth_badge",
           "docs": [
-            "Proof that the signer is an admin or the owner."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  97,
-                  100,
-                  109,
-                  105,
-                  110
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "signer"
-              }
-            ]
-          }
+            "Proof that the signer is authorized."
+          ]
         },
         {
           "name": "tbr_config",
@@ -1780,22 +1466,7 @@
             "in the context equals a pubkey specified in this account. Mutable,",
             "because we will update roles depending on the operation."
           ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          "writable": true
         }
       ],
       "args": [
@@ -1837,28 +1508,10 @@
           "signer": true
         },
         {
-          "name": "admin_badge",
+          "name": "auth_badge",
           "docs": [
-            "Proof that the signer is an admin or the owner."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  97,
-                  100,
-                  109,
-                  105,
-                  110
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "signer"
-              }
-            ]
-          }
+            "Proof that the signer is authorized."
+          ]
         },
         {
           "name": "tbr_config",
@@ -1867,22 +1520,7 @@
             "in the context equals a pubkey specified in this account. Mutable,",
             "because we will update roles depending on the operation."
           ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          "writable": true
         }
       ],
       "args": [
@@ -1921,56 +1559,14 @@
           "signer": true
         },
         {
-          "name": "admin_badge",
+          "name": "auth_badge",
           "docs": [
-            "Proof that the signer is an admin or the owner."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  97,
-                  100,
-                  109,
-                  105,
-                  110
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "signer"
-              }
-            ]
-          }
+            "Proof that the signer is authorized."
+          ]
         },
         {
           "name": "chain_config",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  104,
-                  97,
-                  105,
-                  110,
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              },
-              {
-                "kind": "arg",
-                "path": "chain_id"
-              }
-            ]
-          }
+          "writable": true
         },
         {
           "name": "tbr_config",
@@ -1978,29 +1574,10 @@
             "Program Config account. This program requires that the [`signer`] specified",
             "in the context equals a pubkey specified in this account. Mutable,",
             "because we will update roles depending on the operation."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          ]
         }
       ],
       "args": [
-        {
-          "name": "_chain_id",
-          "type": "u16"
-        },
         {
           "name": "max_gas_dropoff_micro_token",
           "type": "u32"
@@ -2037,56 +1614,14 @@
           "signer": true
         },
         {
-          "name": "admin_badge",
+          "name": "auth_badge",
           "docs": [
-            "Proof that the signer is an admin or the owner."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  97,
-                  100,
-                  109,
-                  105,
-                  110
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "signer"
-              }
-            ]
-          }
+            "Proof that the signer is authorized."
+          ]
         },
         {
           "name": "chain_config",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  104,
-                  97,
-                  105,
-                  110,
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              },
-              {
-                "kind": "arg",
-                "path": "chain_id"
-              }
-            ]
-          }
+          "writable": true
         },
         {
           "name": "tbr_config",
@@ -2094,31 +1629,12 @@
             "Program Config account. This program requires that the [`signer`] specified",
             "in the context equals a pubkey specified in this account. Mutable,",
             "because we will update roles depending on the operation."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          ]
         }
       ],
       "args": [
         {
-          "name": "_chain_id",
-          "type": "u16"
-        },
-        {
-          "name": "relayer_fee",
+          "name": "relayer_fee_micro_usd",
           "type": "u32"
         }
       ]
@@ -2126,16 +1642,16 @@
   ],
   "accounts": [
     {
-      "name": "AdminState",
+      "name": "AuthBadgeState",
       "discriminator": [
-        190,
-        42,
-        124,
-        96,
-        242,
-        52,
-        141,
-        28
+        230,
+        136,
+        128,
+        117,
+        214,
+        51,
+        214,
+        152
       ]
     },
     {
@@ -2220,43 +1736,43 @@
   "errors": [
     {
       "code": 6000,
+      "name": "AdminCountMismatch",
+      "msg": "AdminCountMismatch"
+    },
+    {
+      "code": 6001,
       "name": "OwnerOnly",
       "msg": "OwnerOnly"
     },
     {
-      "code": 6001,
+      "code": 6002,
       "name": "PendingOwnerOnly",
       "msg": "PendingOwnerOnly"
     },
     {
-      "code": 6002,
+      "code": 6003,
       "name": "OwnerOrAdminOnly",
       "msg": "OwnerOrAdminOnly"
     },
     {
-      "code": 6003,
+      "code": 6004,
       "name": "AlreadyTheOwner",
       "msg": "AlreadyTheOwner"
     },
     {
-      "code": 6004,
+      "code": 6005,
+      "name": "ChainIdMismatch",
+      "msg": "ChainIdMismatch"
+    },
+    {
+      "code": 6006,
       "name": "AlreadyTheCanonicalPeer",
       "msg": "AlreadyTheCanonicalPeer"
     },
     {
-      "code": 6005,
+      "code": 6007,
       "name": "FeeExceedingMaximum",
       "msg": "FeeExceedingMaximum"
-    },
-    {
-      "code": 6006,
-      "name": "InvalidTransferToAddress",
-      "msg": "InvalidTransferToAddress"
-    },
-    {
-      "code": 6007,
-      "name": "InvalidTransferToChain",
-      "msg": "InvalidTransferToChain"
     },
     {
       "code": 6008,
@@ -2280,28 +1796,23 @@
     },
     {
       "code": 6012,
-      "name": "AlreadyRedeemed",
-      "msg": "AlreadyRedeemed"
-    },
-    {
-      "code": 6013,
       "name": "EvmChainPriceNotSet",
       "msg": "EvmChainPriceNotSet"
     },
     {
-      "code": 6014,
+      "code": 6013,
       "name": "PausedTransfers",
       "msg": "PausedTransfers"
     },
     {
-      "code": 6015,
+      "code": 6014,
       "name": "InvalidSendingPeer",
       "msg": "InvalidSendingPeer"
     }
   ],
   "types": [
     {
-      "name": "AdminState",
+      "name": "AuthBadgeState",
       "docs": [
         "A badge indicating that an admin account is authorized."
       ],
@@ -2309,8 +1820,8 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "bump",
-            "type": "u8"
+            "name": "address",
+            "type": "pubkey"
           }
         ]
       }
@@ -2323,6 +1834,10 @@
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "chain_id",
+            "type": "u16"
+          },
           {
             "name": "canonical_peer",
             "type": {
@@ -2349,10 +1864,6 @@
           {
             "name": "paused_outbound_transfers",
             "type": "bool"
-          },
-          {
-            "name": "bump",
-            "type": "u8"
           }
         ]
       }
@@ -2392,11 +1903,15 @@
     {
       "name": "PeerState",
       "docs": [
-        "A peer chain. Nothing is stored in it for now."
+        "A peer chain for sending token to or from."
       ],
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "chain_id",
+            "type": "u16"
+          },
           {
             "name": "address",
             "type": {
@@ -2405,14 +1920,6 @@
                 32
               ]
             }
-          },
-          {
-            "name": "chain",
-            "type": "u16"
-          },
-          {
-            "name": "bump",
-            "type": "u8"
           }
         ]
       }

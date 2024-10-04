@@ -17,6 +17,9 @@ cfg_if::cfg_if! {
     } else if #[cfg(feature = "tilt-devnet")] {
         declare_id!("46kv4wCpfEtLsHPDh4zm7jJb2pVdvke8Pj2ABYYJotFD");
         const WORMHOLE_MINT_AUTHORITY: Pubkey = anchor_lang::pubkey!("8P2wAnHr2t4pAVEyJftzz7k6wuCE7aP1VugNwehzCJJY");
+    } else if #[cfg(feature = "localnet")] {
+        declare_id!("7TLiBkpDGshV4o3jmacTCx93CLkmo3VjZ111AsijN9f8");
+        const WORMHOLE_MINT_AUTHORITY: Pubkey = anchor_lang::pubkey!("BCD75RNBHrJJpW4dXVagL5mPjzRLnVZq4YirJdjEYMV7");
     }
 }
 
@@ -34,8 +37,12 @@ pub mod constant {
 pub mod token_bridge_relayer {
     use super::*;
 
-    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
-        processor::initialize(ctx)
+    pub fn initialize<'a, 'b, 'c, 'info>(
+        ctx: Context<'a, 'b, 'c, 'info, Initialize<'info>>,
+        fee_recipient: Pubkey,
+        admins: Vec<Pubkey>,
+    ) -> Result<()> {
+        processor::initialize(ctx, fee_recipient, admins)
     }
 
     /* Roles */
@@ -64,13 +71,14 @@ pub mod token_bridge_relayer {
     }
 
     /// Removes a previously added admin account.
-    pub fn remove_admin(ctx: Context<RemoveAdmin>, _admin_to_be_removed: Pubkey) -> Result<()> {
+    pub fn remove_admin(ctx: Context<RemoveAdmin>) -> Result<()> {
         processor::remove_admin(ctx)
     }
 
     /* Peer management */
 
-    /// Register a new peer for the given chain.
+    /// Register a new peer for the given chain. If this peer is the first one to be registered
+    /// on this chain,  it becomes the canonical peer for this chain.
     ///
     /// # Authorization
     ///
@@ -88,12 +96,8 @@ pub mod token_bridge_relayer {
     /// # Authorization
     ///
     /// Owner.
-    pub fn update_canonical_peer(
-        ctx: Context<UpdateCanonicalPeer>,
-        _chain_id: u16,
-        peer_address: [u8; 32],
-    ) -> Result<()> {
-        processor::update_canonical_peer(ctx, peer_address)
+    pub fn update_canonical_peer(ctx: Context<UpdateCanonicalPeer>) -> Result<()> {
+        processor::update_canonical_peer(ctx)
     }
 
     /* Chain config */
@@ -105,7 +109,6 @@ pub mod token_bridge_relayer {
     /// Owner or Admin.
     pub fn set_pause_for_outbound_transfers(
         ctx: Context<UpdateChainConfig>,
-        _chain_id: u16,
         paused: bool,
     ) -> Result<()> {
         processor::set_pause_for_outbound_transfers(ctx, paused)
@@ -118,7 +121,6 @@ pub mod token_bridge_relayer {
     /// Owner or Admin.
     pub fn update_max_gas_dropoff(
         ctx: Context<UpdateChainConfig>,
-        _chain_id: u16,
         max_gas_dropoff_micro_token: u32,
     ) -> Result<()> {
         processor::update_max_gas_dropoff(ctx, max_gas_dropoff_micro_token)
@@ -132,10 +134,9 @@ pub mod token_bridge_relayer {
     /// Owner or Admin.
     pub fn update_relayer_fee(
         ctx: Context<UpdateChainConfig>,
-        _chain_id: u16,
-        relayer_fee: u32,
+        relayer_fee_micro_usd: u32,
     ) -> Result<()> {
-        processor::update_relayer_fee(ctx, relayer_fee)
+        processor::update_relayer_fee(ctx, relayer_fee_micro_usd)
     }
 
     /* Config update */
@@ -170,23 +171,21 @@ pub mod token_bridge_relayer {
     /// # Parameters
     ///
     /// - `dropoff_amount_micro`: the dropoff in µ-target-token.
-    /// - `max_fee_klam`: the maximum fee the user is willing to pay, in Klamports, aka µSOL.
+    /// - `max_fee_lamports`: the maximum fee the user is willing to pay, in lamports.
     pub fn transfer_tokens(
         ctx: Context<OutboundTransfer>,
-        recipient_chain: u16,
         recipient_address: [u8; 32],
         transferred_amount: u64,
         unwrap_intent: bool,
         dropoff_amount_micro: u32,
-        max_fee_klam: u64,
+        max_fee_lamports: u64,
     ) -> Result<()> {
         processor::transfer_tokens(
             ctx,
-            recipient_chain,
             transferred_amount,
             unwrap_intent,
             dropoff_amount_micro,
-            max_fee_klam,
+            max_fee_lamports,
             recipient_address,
         )
     }
@@ -199,11 +198,7 @@ pub mod token_bridge_relayer {
     /* Helpers */
 
     /// Returns a quote for a transfer, in µUSD.
-    pub fn relaying_fee(
-        ctx: Context<QuoteQuery>,
-        _chain_id: u16,
-        dropoff_amount_micro: u32,
-    ) -> Result<u64> {
+    pub fn relaying_fee(ctx: Context<QuoteQuery>, dropoff_amount_micro: u32) -> Result<u64> {
         processor::relaying_fee(ctx, dropoff_amount_micro)
     }
 }

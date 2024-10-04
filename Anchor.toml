@@ -9,14 +9,14 @@ resolution = true
 skip-lint = true
 
 [programs.localnet]
-token_bridge_relayer = "ATT7enfWTMV4dDTe2NQ2yBaTByuXXwrYRznsioQEUW6r"
+#token_bridge_relayer = "7TLiBkpDGshV4o3jmacTCx93CLkmo3VjZ111AsijN9f8"
+
+[test]
+upgradeable = true
 
 [[test.genesis]]
-address = "ATqjh2vkjogyVUUNmXQssQZNSFGgSA7Tm6P1UzEUg85s" # Mainnet in lib.rs
-program = "target/sbf-solana-solana/release/solana_price_oracle.so"
-
-# [test]
-# startup_wait = 8000
+address = "ATqjh2vkjogyVUUNmXQssQZNSFGgSA7Tm6P1UzEUg85s"
+program = "lib/relayer-infra-contracts/src/solana/target/sbf-solana-solana/release/solana_price_oracle.so"
 
 # [[test.genesis]]
 # address = "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth" # Mainnet in lib.rs
@@ -30,9 +30,9 @@ program = "target/sbf-solana-solana/release/solana_price_oracle.so"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
-wallet = "~/.config/solana/id.json"
+cluster = "localnet"
+wallet = "./target/deploy/token_bridge_relayer-keypair.json"
 
 [scripts]
 setup-test = "cargo build-sbf -- -p solana-price-oracle --target-dir target"
-test = "yarn ./solana build && yarn run mocha -t 1000000 solana/ts-build/tests/*.js"
+test = "yarn ./solana build:ts && yarn run mocha -t 1000000 solana/ts-build/tests/*.js"

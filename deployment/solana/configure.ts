@@ -22,13 +22,7 @@ async function configureSolanaTbr(
   if (solanaDependencies === undefined) {
     throw new Error(`No dependencies found for chain ${chain.chainId}`);
   }
-  const tbr = new SolanaTokenBridgeRelayer(
-    { connection },
-    {
-      tokenBridgeProgramId: new PublicKey(solanaDependencies.tokenBridge),
-      wormholeProgramId: new PublicKey(solanaDependencies.wormhole),
-    },
-  );
+  const tbr = new SolanaTokenBridgeRelayer({ connection });
 
   const config = await getChainConfig<SolanaTbrV3Config>('tbr-v3', chain.chainId);
 
