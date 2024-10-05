@@ -45,6 +45,9 @@ contract ERC20Mock is ERC20 {
 
 function craftTbrV3Vaa(
   IWormhole wormhole,
+  bytes32 originTokenBridge,
+  bytes32 originTBR,
+  bytes32 targetTBR,
   uint16 peerChain,
   uint16 tokenChain,
   bytes32 tokenAddress,
@@ -55,17 +58,17 @@ function craftTbrV3Vaa(
   bool unwrapIntent,
   uint64 sequence
 ) returns (bytes memory) {
-  bytes32 universalRecipient = toUniversalAddress(recipient);
   uint8 TOKEN_BRIDGE_PAYLOAD_ID = 3;
+  bytes32 universalRecipient = toUniversalAddress(recipient);
   
   bytes memory tokenBridgePayload = abi.encodePacked(
       TOKEN_BRIDGE_PAYLOAD_ID,
       amount,
       tokenAddress,
       tokenChain,
-      universalRecipient,
+      targetTBR,
       recipientChain,
-      toUniversalAddress(msg.sender),
+      originTBR,
       abi.encodePacked(
         TBR_V3_MESSAGE_VERSION,
         universalRecipient,
@@ -78,7 +81,7 @@ function craftTbrV3Vaa(
   (, bytes memory encoded) = WormholeOverride.craftVaa(
     wormhole, 
     peerChain, 
-    toUniversalAddress(msg.sender), 
+    originTokenBridge,
     sequence, 
     tokenBridgePayload
   );  

@@ -2,26 +2,29 @@
 
 pragma solidity ^0.8.25;
 
+import { makeBytes32, ERC20Mock, discardInsignificantBits, deNormalizeAmount } from "./utils/utils.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ISignatureTransfer, IAllowanceTransfer } from "permit2/IPermit2.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ITokenBridge } from "wormhole-sdk/interfaces/ITokenBridge.sol";
 import { BytesParsing } from "wormhole-sdk/libraries/BytesParsing.sol";
+import { IWETH } from "wormhole-sdk/interfaces/token/IWETH.sol";
 import { IPriceOracle } from "price-oracle/IPriceOracle.sol";
+import { toUniversalAddress } from "wormhole-sdk/Utils.sol";
+import { TbrTestBase } from "./utils/TbrTestBase.sol";
+import { IWethEvents } from "./utils/IWethEvents.sol";
+import { craftTbrV3Vaa } from "./utils/utils.sol";
 
 import "tbr/assets/TbrDispatcher.sol";
 import "tbr/assets/TbrUser.sol";
-import "tbr/assets/TbrUser.sol";
 import "tbr/assets/TbrIds.sol";
-
-import {TbrTestBase} from "./utils/TbrTestBase.sol";
-import {makeBytes32, ERC20Mock, discardInsignificantBits} from "./utils/utils.sol";
 
 contract UserTest is TbrTestBase {
   using BytesParsing for bytes;
 
   bytes32 SOLANA_CANONICAL_PEER  = makeBytes32("SOLANA_CANONICAL_PEER");
   bytes32 EVM_CANONICAL_PEER     = makeBytes32("EVM_CANONICAL_PEER");
+  bytes32 EVM_L2_CANONICAL_PEER  = makeBytes32("EVM_L2_CANONICAL_PEER");
   uint32  MAX_GAS_DROPOFF_AMOUNT = 10000;
   uint32  RELAY_FEE_AMOUNT       = 1000;
 
@@ -63,6 +66,17 @@ contract UserTest is TbrTestBase {
     );
     executeConfigCommand(
       abi.encodePacked(UPDATE_BASE_FEE_ID, EVM_CHAIN_ID, RELAY_FEE_AMOUNT)
+    );
+
+    // EVM L2 chain setup
+    executeConfigCommand(
+      abi.encodePacked(UPDATE_CANONICAL_PEER_ID, EVM_L2_CHAIN_ID, EVM_L2_CANONICAL_PEER)
+    );
+    executeConfigCommand(
+      abi.encodePacked(UPDATE_MAX_GAS_DROPOFF_ID, EVM_L2_CHAIN_ID, MAX_GAS_DROPOFF_AMOUNT)
+    );
+    executeConfigCommand(
+      abi.encodePacked(UPDATE_BASE_FEE_ID, EVM_L2_CHAIN_ID, RELAY_FEE_AMOUNT)
     );
   }
 
@@ -1231,4 +1245,253 @@ contract UserTest is TbrTestBase {
     assertEq(chainIsPaused, false);
     assertEq(response.length, offset);
   }
+
+  function testCompleteTransfer_gasToken(
+    uint256 amount,
+    uint32 gasDropoff,
+    uint64 sequence,
+    uint256 unallocatedBalance,
+    uint8 transferReturn
+  ) public {
+    gasDropoff = uint32(bound(gasDropoff, 0, MAX_GAS_DROPOFF_AMOUNT));
+    amount = bound(amount, 1, 1e10); // avoid overflow
+    unallocatedBalance = bound(unallocatedBalance, gasDropoff + transferReturn + amount, (gasDropoff + transferReturn + amount) * 10);
+    deal(address(this), unallocatedBalance);
+
+    uint16 peerChain = EVM_L2_CHAIN_ID;
+    bytes32 originTokenBridge = toUniversalAddress(EVM_L2_TOKEN_BRIDGE_ADDRESS);
+    bytes32 originTBR = EVM_L2_CANONICAL_PEER;
+    bytes32 targetTBR = toUniversalAddress(address(tbr));
+    uint16 tokenChain = 2;
+    uint16 recipientChain = tokenBridge.chainId();
+    bytes32 canonicalTokenAddress = WETH_CANONICAL_ADDRESS;
+    address recipient = makeAddr("recipient");
+    bool unwrapIntent = true;
+
+    vm.mockCall(
+      address(oracle),
+      abi.encodeWithSelector(IPriceOracle.get1959.selector),
+      abi.encode(abi.encodePacked(uint16(HOME_CHAIN_ID)))
+    );
+
+    bytes memory encodedVaa = craftTbrV3Vaa(
+      wormholeCore,
+      originTokenBridge,
+      originTBR,
+      targetTBR,
+      peerChain,
+      tokenChain,
+      canonicalTokenAddress,
+      amount,
+      recipientChain,
+      recipient,
+      gasDropoff,
+      unwrapIntent,
+      sequence
+    );
+
+    uint decimals = IERC20Metadata(address(gasToken)).decimals();
+    uint initialRecipienGasTokenBalance = recipient.balance;
+    uint initialCallerBalance = address(this).balance;
+
+    vm.expectEmit(address(tokenBridge));
+    emit ITokenBridge.TransferRedeemed(peerChain, originTokenBridge, sequence);
+
+    vm.expectEmit(address(gasToken));
+    emit IERC20.Transfer(address(tokenBridge), address(tbr), deNormalizeAmount(amount, uint8(decimals)));
+
+    vm.expectEmit(address(gasToken));
+    emit IWethEvents.Withdrawal(address(tbr), amount);
+
+    invokeTbr(
+      abi.encodePacked(
+        tbr.exec768.selector,
+        DISPATCHER_PROTOCOL_VERSION0,
+        COMPLETE_TRANSFER_ID,
+        encodedVaa
+      ),
+      unallocatedBalance
+    );
+
+    uint finalCallerBalance = address(this).balance;
+    assertEq(recipient.balance, initialRecipienGasTokenBalance + gasDropoff + amount);
+    assertEq(finalCallerBalance, initialCallerBalance - gasDropoff);
+  } 
+
+  function testCompleteTransfer_nonGasToken(
+    uint256 amount,
+    uint32 gasDropoff,
+    uint64 sequence,
+    uint256 unallocatedBalance,
+    uint8 transferReturn
+  ) public {
+    gasDropoff = uint32(bound(gasDropoff, 0, MAX_GAS_DROPOFF_AMOUNT));
+    amount = bound(amount, 1, 1e10); // avoid overflow
+    unallocatedBalance = bound(unallocatedBalance, gasDropoff + transferReturn, (gasDropoff + transferReturn) * 10);
+    deal(address(this), unallocatedBalance);
+
+    uint16 peerChain = EVM_L2_CHAIN_ID;
+    bytes32 originTokenBridge = toUniversalAddress(EVM_L2_TOKEN_BRIDGE_ADDRESS);
+    bytes32 originTBR = EVM_L2_CANONICAL_PEER;
+    bytes32 targetTBR = toUniversalAddress(address(tbr));
+    uint16 tokenChain = EVM_L2_CHAIN_ID;
+    uint16 recipientChain = tokenBridge.chainId();
+    bytes32 tokenAddress = toUniversalAddress(EVM_L2_TOKEN_WETH_TOKEN);
+    address recipient = makeAddr("recipient");
+    bool unwrapIntent = true;
+
+    bytes memory encodedVaa = craftTbrV3Vaa(
+      wormholeCore,
+      originTokenBridge,
+      originTBR,
+      targetTBR,
+      peerChain,
+      tokenChain,
+      tokenAddress,
+      amount,
+      recipientChain,
+      recipient,
+      gasDropoff,
+      unwrapIntent,
+      sequence
+    );
+
+    address tokenToTransfer = tokenBridge.wrappedAsset(tokenChain, tokenAddress);
+    uint decimals = IERC20Metadata(tokenToTransfer).decimals();
+    uint initialRecipienGasTokenBalance = recipient.balance;
+    uint initialRecipienTransferedTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
+    uint initialCallerBalance = address(this).balance;
+
+    vm.expectEmit(address(tokenBridge));
+    emit ITokenBridge.TransferRedeemed(peerChain, originTokenBridge, sequence);
+
+    vm.expectEmit(tokenToTransfer);
+    emit IERC20.Transfer(address(0), address(tbr), deNormalizeAmount(amount, uint8(decimals)));
+    
+    vm.expectEmit(tokenToTransfer);
+    emit IERC20.Transfer(address(tbr), recipient, amount);
+
+    invokeTbr(
+      abi.encodePacked(
+        tbr.exec768.selector,
+        DISPATCHER_PROTOCOL_VERSION0,
+        COMPLETE_TRANSFER_ID,
+        encodedVaa
+      ),
+      unallocatedBalance
+    );
+
+    uint finalRecipienTransferedTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
+    uint finalCallerBalance = address(this).balance;
+
+    assertEq(recipient.balance, initialRecipienGasTokenBalance + gasDropoff);
+    assertEq(finalRecipienTransferedTokenBalance, initialRecipienTransferedTokenBalance + amount);
+    assertEq(finalCallerBalance, initialCallerBalance - gasDropoff);
+  }
+
+  function testCompleteTransfer_UnrecognizedPeer(
+    uint16 peerChain,
+    uint256 amount,
+    uint32 gasDropoff,
+    bool unwrapIntent,
+    address recipient,
+    bytes32 originTokenBridge,
+    bytes32 targetTBR,
+    uint16 tokenChain,
+    uint16 recipientChain,
+    bytes32 tokenAddress,
+    uint64 sequence
+  ) public {
+    bytes32 originTBR = makeBytes32("FakePeer");
+    uint commandIndex = 0;
+
+    bytes memory encodedVaa = craftTbrV3Vaa(
+      wormholeCore,
+      originTokenBridge,
+      originTBR,
+      targetTBR,
+      peerChain,
+      tokenChain,
+      tokenAddress,
+      amount,
+      recipientChain,
+      recipient,
+      gasDropoff,
+      unwrapIntent,
+      sequence
+    );
+
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        UnrecognizedPeer.selector,
+        peerChain,
+        originTBR,
+        commandIndex 
+      )
+    );
+
+    invokeTbr(
+      abi.encodePacked(
+        tbr.exec768.selector,
+        DISPATCHER_PROTOCOL_VERSION0,
+        COMPLETE_TRANSFER_ID,
+        encodedVaa
+      )
+    );
+  }
+
+  function testCompleteTransfer_InsufficientGasDropoff(
+    uint256 amount,
+    uint32 gasDropoff,
+    bool unwrapIntent,
+    address recipient,
+    bytes32 originTokenBridge,
+    bytes32 targetTBR,
+    uint16 tokenChain,
+    uint16 recipientChain,
+    bytes32 tokenAddress,
+    uint64 sequence,
+    uint256 unallocatedBalance
+  ) public {
+    gasDropoff = uint32(bound(gasDropoff, 1, MAX_GAS_DROPOFF_AMOUNT));
+    unallocatedBalance = bound(unallocatedBalance, 0, gasDropoff - 1);
+    deal(address(this), unallocatedBalance);
+
+    uint16 peerChain = EVM_L2_CHAIN_ID;
+    bytes32 originTBR = EVM_L2_CANONICAL_PEER;
+    uint commandIndex = 0;
+
+    bytes memory encodedVaa = craftTbrV3Vaa(
+      wormholeCore,
+      originTokenBridge,
+      originTBR,
+      targetTBR,
+      peerChain,
+      tokenChain,
+      tokenAddress,
+      amount,
+      recipientChain,
+      recipient,
+      gasDropoff,
+      unwrapIntent,
+      sequence
+    );
+
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        InsufficientGasDropoff.selector,
+        commandIndex 
+      )
+    );
+
+    invokeTbr(
+      abi.encodePacked(
+        tbr.exec768.selector,
+        DISPATCHER_PROTOCOL_VERSION0,
+        COMPLETE_TRANSFER_ID,
+        encodedVaa
+      ),
+      unallocatedBalance
+    );
+  } 
 }
