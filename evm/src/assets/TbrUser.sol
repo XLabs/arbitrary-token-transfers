@@ -475,18 +475,23 @@ abstract contract TbrUser is TbrBase {
     // Perform redeem in TB
     tokenBridge.completeTransferWithPayload(vaa);
 
-    IERC20Metadata token = IERC20Metadata(tokenBridge.wrappedAsset(tokenOriginChain, tokenOriginAddress));
+    address token;
+    if (whChainId != tokenOriginChain) {
+      token = tokenBridge.wrappedAsset(tokenOriginChain, tokenOriginAddress);
+    } else {
+      token = fromUniversalAddress(tokenOriginAddress);
+    }
 
     // If an unwrap is desired, unwrap and call recipient with full amount
     uint totalGasTokenAmount = gasDropoff;
-    if (address(gasToken) == address(token) && unwrapIntent && gasErc20TokenizationIsExplicit) {
+    if (address(gasToken) == token && unwrapIntent && gasErc20TokenizationIsExplicit) {
       gasToken.withdraw(tokenAmount);
 
       totalGasTokenAmount += tokenAmount;
     }
     else {
       // Otherwise, transfer tokens and perform gas dropoff
-      SafeERC20.safeTransfer(token, recipient, tokenAmount);
+      SafeERC20.safeTransfer(IERC20Metadata(token), recipient, tokenAmount);
     }
     if (totalGasTokenAmount > 0) {
       // FIXME: we need to put an upper bound on the read bytes to ensure that the contract doesn't run out of gas.
