@@ -268,35 +268,8 @@ export type TokenBridgeRelayer = {
         {
           "name": "vaa",
           "docs": [
-            "Verified Wormhole message account. The Wormhole program verified",
-            "signatures and posted the account data here. Read-only."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  80,
-                  111,
-                  115,
-                  116,
-                  101,
-                  100,
-                  86,
-                  65,
-                  65
-                ]
-              },
-              {
-                "kind": "arg",
-                "path": "vaaHash"
-              }
-            ],
-            "program": {
-              "kind": "account",
-              "path": "wormholeProgram"
-            }
-          }
+            "Verified Wormhole message account. Read-only."
+          ]
         },
         {
           "name": "temporaryAccount",
@@ -439,17 +412,7 @@ export type TokenBridgeRelayer = {
           "address": "SysvarRent111111111111111111111111111111111"
         }
       ],
-      "args": [
-        {
-          "name": "vaaHash",
-          "type": {
-            "array": [
-              "u8",
-              32
-            ]
-          }
-        }
-      ]
+      "args": []
     },
     {
       "name": "confirmOwnerTransferRequest",
@@ -1102,7 +1065,7 @@ export type TokenBridgeRelayer = {
         "# Parameters",
         "",
         "- `dropoff_amount_micro`: the dropoff in µ-target-token.",
-        "- `max_fee_klam`: the maximum fee the user is willing to pay, in lamports."
+        "- `max_fee_lamports`: the maximum fee the user is willing to pay, in lamports."
       ],
       "discriminator": [
         54,
@@ -1814,6 +1777,16 @@ export type TokenBridgeRelayer = {
       "code": 6014,
       "name": "invalidSendingPeer",
       "msg": "invalidSendingPeer"
+    },
+    {
+      "code": 6015,
+      "name": "cannotRegisterSolana",
+      "msg": "cannotRegisterSolana"
+    },
+    {
+      "code": 6016,
+      "name": "invalidPeerAddress",
+      "msg": "invalidPeerAddress"
     }
   ],
   "types": [

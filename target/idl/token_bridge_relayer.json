@@ -262,35 +262,8 @@
         {
           "name": "vaa",
           "docs": [
-            "Verified Wormhole message account. The Wormhole program verified",
-            "signatures and posted the account data here. Read-only."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  80,
-                  111,
-                  115,
-                  116,
-                  101,
-                  100,
-                  86,
-                  65,
-                  65
-                ]
-              },
-              {
-                "kind": "arg",
-                "path": "vaa_hash"
-              }
-            ],
-            "program": {
-              "kind": "account",
-              "path": "wormhole_program"
-            }
-          }
+            "Verified Wormhole message account. Read-only."
+          ]
         },
         {
           "name": "temporary_account",
@@ -433,17 +406,7 @@
           "address": "SysvarRent111111111111111111111111111111111"
         }
       ],
-      "args": [
-        {
-          "name": "_vaa_hash",
-          "type": {
-            "array": [
-              "u8",
-              32
-            ]
-          }
-        }
-      ]
+      "args": []
     },
     {
       "name": "confirm_owner_transfer_request",
@@ -1096,7 +1059,7 @@
         "# Parameters",
         "",
         "- `dropoff_amount_micro`: the dropoff in µ-target-token.",
-        "- `max_fee_klam`: the maximum fee the user is willing to pay, in lamports."
+        "- `max_fee_lamports`: the maximum fee the user is willing to pay, in lamports."
       ],
       "discriminator": [
         54,
@@ -1808,6 +1771,16 @@
       "code": 6014,
       "name": "InvalidSendingPeer",
       "msg": "InvalidSendingPeer"
+    },
+    {
+      "code": 6015,
+      "name": "CannotRegisterSolana",
+      "msg": "CannotRegisterSolana"
+    },
+    {
+      "code": 6016,
+      "name": "InvalidPeerAddress",
+      "msg": "InvalidPeerAddress"
     }
   ],
   "types": [
