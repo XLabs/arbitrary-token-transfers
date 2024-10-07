@@ -12,7 +12,6 @@ import { IWETH } from "wormhole-sdk/interfaces/token/IWETH.sol";
 import { IPriceOracle } from "price-oracle/IPriceOracle.sol";
 import { toUniversalAddress } from "wormhole-sdk/Utils.sol";
 import { TbrTestBase } from "./utils/TbrTestBase.sol";
-import { IWethEvents } from "./utils/IWethEvents.sol";
 import { craftTbrV3Vaa } from "./utils/utils.sol";
 
 import "tbr/assets/TbrDispatcher.sol";
@@ -1301,7 +1300,7 @@ contract UserTest is TbrTestBase {
     emit IERC20.Transfer(address(tokenBridge), address(tbr), deNormalizeAmount(amount, uint8(decimals)));
 
     vm.expectEmit(address(gasToken));
-    emit IWethEvents.Withdrawal(address(tbr), amount);
+    emit IWETH.Withdrawal(address(tbr), amount);
 
     invokeTbr(
       abi.encodePacked(
