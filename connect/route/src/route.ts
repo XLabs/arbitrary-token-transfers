@@ -282,6 +282,7 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
           token: { address: 'native', chain: sourceChain },
         },
         eta,
+        warnings,
       };
     } catch (e) {
       console.error('Quote error:', e);
@@ -302,7 +303,7 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
     const fee = Number(quote.relayFee?.amount.amount || 0);
     const gasDropOff = quote.params.options.gasDropOff || { amount: 0n, decimals: 0 };
 
-    // TODO: how to specify chain specific args (e.g. acquireMode)?
+    // TODO: how to specify chain specific args (e.g. acquireMode)? Would need UI work
     const transferTxs = tbr.transfer({
       amount: BigInt(quote.params.amount),
       recipient: {
@@ -313,11 +314,7 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
       token: request.source.id,
       gasDropOff,
       fee,
-      // TODO: receive through config
-      unwrapIntent: true,
-      // TODO: fix types
-      // @ts-ignore
-      acquireMode: quote.params.options.acquireMode,
+      unwrapIntent: quote.params.options.unwrapIntent
     });
 
     const originTxs = await signAndSendWait(transferTxs, signer);
