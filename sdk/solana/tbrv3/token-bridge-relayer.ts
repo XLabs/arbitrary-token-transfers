@@ -82,11 +82,17 @@ export class SolanaTokenBridgeRelayer {
   private readonly wormholeProgramId: PublicKey;
   private readonly tokenBridgeProgramId: PublicKey;
 
-  constructor(provider: anchor.Provider, address?: string) {
-    const network = networkFromConnection(provider.connection);
+  /**
+   * Creates a SolanaTokenBridgeRelayer instance.
+   * When env.address is not provided, the IDL value is used.
+   * When env.network is not provided, the network is detected 
+   * using the provider url, which works for official solana nodes only.
+   */
+  constructor(provider: anchor.Provider, env: { address?: string, network?: Network } = {}) {
+    const network = env.network ?? networkFromConnection(provider.connection);
     myDebug('Network detected to be:', network);
 
-    this.program = new Program(patchAddress(IDL, address), provider);
+    this.program = new Program(patchAddress(IDL, env.address), provider);
     this.priceOracleClient = new SolanaPriceOracleClient(provider.connection);
     this.wormholeProgramId = new PublicKey(contracts.coreBridge(network, 'Solana'));
     this.tokenBridgeProgramId = new PublicKey(contracts.tokenBridge(network, 'Solana'));

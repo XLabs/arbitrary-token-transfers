@@ -29,9 +29,9 @@ export class TbrWrapper {
   constructor(provider: AnchorProvider, accountType: 'owner' | 'admin' | 'regular') {
     this.provider = provider;
     if (accountType === 'regular') {
-      this.client = new SolanaTokenBridgeRelayer(provider, LOCALNET_ADDRESS);
+      this.client = new SolanaTokenBridgeRelayer(provider, { address: LOCALNET_ADDRESS });
     } else {
-      this.client = new SolanaTokenBridgeRelayer({ connection: provider.connection }, LOCALNET_ADDRESS);
+      this.client = new SolanaTokenBridgeRelayer({ connection: provider.connection }, { address: LOCALNET_ADDRESS });
     }
     this.logs = {};
 
