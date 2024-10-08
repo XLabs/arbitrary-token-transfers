@@ -18,6 +18,8 @@ import {
 import { SolanaWormholeCore } from '@wormhole-foundation/sdk-solana-core';
 import { SolanaAutomaticTokenBridge } from '@wormhole-foundation/sdk-solana-tokenbridge';
 
+const LOCALNET_ADDRESS = '7TLiBkpDGshV4o3jmacTCx93CLkmo3VjZ111AsijN9f8';
+
 export class TbrWrapper {
   readonly client: SolanaTokenBridgeRelayer;
   readonly provider: AnchorProvider;
@@ -27,9 +29,9 @@ export class TbrWrapper {
   constructor(provider: AnchorProvider, accountType: 'owner' | 'admin' | 'regular') {
     this.provider = provider;
     if (accountType === 'regular') {
-      this.client = new SolanaTokenBridgeRelayer(provider);
+      this.client = new SolanaTokenBridgeRelayer(provider, LOCALNET_ADDRESS);
     } else {
-      this.client = new SolanaTokenBridgeRelayer({ connection: provider.connection });
+      this.client = new SolanaTokenBridgeRelayer({ connection: provider.connection }, LOCALNET_ADDRESS);
     }
     this.logs = {};
 

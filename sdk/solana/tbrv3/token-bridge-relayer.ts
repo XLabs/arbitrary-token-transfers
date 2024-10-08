@@ -82,11 +82,11 @@ export class SolanaTokenBridgeRelayer {
   private readonly wormholeProgramId: PublicKey;
   private readonly tokenBridgeProgramId: PublicKey;
 
-  constructor(provider: anchor.Provider) {
+  constructor(provider: anchor.Provider, address?: string) {
     const network = networkFromConnection(provider.connection);
     myDebug('Network detected to be:', network);
 
-    this.program = new Program(patchTest(provider.connection, IDL), provider);
+    this.program = new Program(patchAddress(IDL, address), provider);
     this.priceOracleClient = new SolanaPriceOracleClient(provider.connection);
     this.wormholeProgramId = new PublicKey(contracts.coreBridge(network, 'Solana'));
     this.tokenBridgeProgramId = new PublicKey(contracts.tokenBridge(network, 'Solana'));
@@ -986,12 +986,14 @@ function myDebug(message?: any, ...optionalParams: any[]) {
 }
 
 /**
- * Crappy fix for allowing the tests to run correctly.
+ * Crappy fix for allowing to override address to support multiple environments
  */
-function patchTest(connection: Connection, idl: any) {
-  const address: TokenBridgeRelayer['address'] = '7TLiBkpDGshV4o3jmacTCx93CLkmo3VjZ111AsijN9f8';
+function patchAddress(idl: any, address?: string) {
+  if (address) {
+    return { ...idl, address };
+  }
 
-  return connection.rpcEndpoint.includes('localhost') ? { ...idl, address } : idl;
+  return idl;
 }
 
 function bnToBigint(n: anchor.BN): bigint {
