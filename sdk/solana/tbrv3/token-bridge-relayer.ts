@@ -30,7 +30,7 @@ import {
 import { SolanaPriceOracleClient } from '@xlabs/solana-price-oracle-sdk';
 
 import { TokenBridgeRelayer } from './idl/token_bridge_relayer.js';
-import IDL from '/Users/felixdv/Dev/Xlabs/arbitrary-token-transfers/target/idl/token_bridge_relayer.json' with { type: 'json' };
+import IDL from '../../../target/idl/token_bridge_relayer.json' with { type: 'json' };
 import { deserializeTbrV3Message, VaaMessage, throwError } from 'common-arbitrary-token-transfer';
 import { BpfLoaderUpgradeableProgram } from './bpf-loader-upgradeable.js';
 
