@@ -13,7 +13,7 @@
     "../target/idl/token_bridge_relayer.json",
     "../target/types/token_bridge_relayer.ts"
   ],
-  "include": ["evm", "helpers", "config", "ethers-contracts", "solana"],
+  "include": ["evm", "helpers", "config", "ethers-contracts", "solana", "test"],
   "references": [
     { "path": "../sdk/evm/tsconfig.json" },
     { "path": "../sdk/solana/tsconfig.json" }
