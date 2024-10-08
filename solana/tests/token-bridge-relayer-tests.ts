@@ -12,7 +12,6 @@ import {
 } from './utils/helpers.js';
 import { TbrWrapper } from './utils/client-wrapper.js';
 import { SolanaPriceOracleClient, uaToArray } from '@xlabs-xyz/solana-arbitrary-token-transfers';
-import { wormholeProgramId, tokenBridgeProgramId } from './utils/helpers.js';
 import { expect } from 'chai';
 
 const ETHEREUM = 'Ethereum';
