@@ -14,17 +14,24 @@ skip-lint = true
 [test]
 upgradeable = true
 
+[test.validator]
+url = "https://api.mainnet-beta.solana.com"
+
 [[test.genesis]]
 address = "ATqjh2vkjogyVUUNmXQssQZNSFGgSA7Tm6P1UzEUg85s"
 program = "target/sbf-solana-solana/release/solana_price_oracle.so"
 
-# [[test.genesis]]
-# address = "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth" # Mainnet in lib.rs
-# program = "solana/tests/bridge.so"                      # Wormhole Core program
-#
-# [[test.genesis]]
-# address = "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb" # Mainnet in lib.rs
-# program = "solana/tests/token_bridge.so"
+### MPL Token Metadata
+[[test.validator.clone]]
+address = "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
+
+### Wormhole Core Bridge
+[[test.validator.clone]]
+address = "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth"
+
+### Wormhole Token Bridge
+[[test.validator.clone]]
+address = "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"
 
 [registry]
 url = "https://api.apr.dev"
