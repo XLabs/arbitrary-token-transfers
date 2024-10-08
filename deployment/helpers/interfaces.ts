@@ -45,6 +45,12 @@ export type Ecosystem = {
   }
 };
 
+export type SolanaTbrInitParams = {
+  owner: string;
+  feeRecipient: string;
+  admins: string[];
+}
+
 export type ContractsJson = Record<string, Deployment[]>;
 
 export interface ChainConfig {
