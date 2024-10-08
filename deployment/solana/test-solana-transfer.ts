@@ -102,9 +102,9 @@ async function sendTestTransaction(
           },
           token: {
             chain: tokenChain,
-            address: toUniversal(tokenChain, mint!.toBase58()),
+            address: toUniversal(testTransfer.tokenChain, testTransfer.sourceTokenAddress ?? testTransfer.tokenAddress!),
           },
-          userTokenAccount: new PublicKey(getEnv('TRANSFER_TOKEN_ACCOUNT')),
+          userTokenAccount: tokenAccount!,
           transferredAmount,
           gasDropoffAmount,
           maxFeeKlamports,
@@ -132,22 +132,21 @@ async function sendTestTransaction(
 
       // if transferring SOL first we have to wrap it
       if (testTransfer.tokenAddress && testTransfer.tokenAddress === NATIVE_MINT.toBase58()) {
-        const payerPk = new PublicKey(await signer.getAddress());
         const ata = await getAssociatedTokenAddress(
           mint!,
-          payerPk,
+          signerKey,
         );
 
         const ataIx = createAssociatedTokenAccountIdempotentInstruction(
-          payerPk,
+          signerKey,
           ata,
-          payerPk,
+          signerKey,
           mint!
         );
         ixs.push(ataIx);
 
         const transferSol = SystemProgram.transfer({
-          fromPubkey: payerPk,
+          fromPubkey: signerKey,
           toPubkey: ata,
           lamports: Number(testTransfer.transferredAmount),
         });
@@ -211,7 +210,7 @@ const uniqueTestTransfers: TestTransfer[] = [
     tokenChain: "Solana",
     fromChain: "Solana", 
     toChain: "OptimismSepolia",
-    skip: false,
+    skip: true,
   },
   {
     // case D (gas token)
@@ -226,14 +225,15 @@ const uniqueTestTransfers: TestTransfer[] = [
   },
   {
     // case E native evm token (wrapped on solana)
-    transferredAmount: '1',
+    transferredAmount: '1000000',
     gasDropoffAmount: '0',
     unwrapIntent: false,
-    tokenAddress: 'TBD',
-    tokenChain: "OptimismSepolia",
+    tokenAddress: '6F5YWWrUMNpee8C6BDUc6DmRvYRMDDTgJHwKhbXuifWs', // WETH
+    sourceTokenAddress: '0xeef12A83EE5b7161D3873317c8E0E7B76e0B5D9c',
+    tokenChain: "Sepolia",
     fromChain: "Solana", 
-    toChain: "OptimismSepolia",
-    skip: true,
+    toChain: "Sepolia",
+    skip: false,
   },
   {
     // case E native evm token (wrapped on solana)

@@ -103,6 +103,7 @@ export type TestTransfer = {
    * if not present the script will call transfer gas token
    */
   tokenAddress?: string;
+  sourceTokenAddress?: string;
   tokenChain: Chain;
   fromChain: Chain;
   toChain: Chain;
