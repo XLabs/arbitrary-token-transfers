@@ -3,16 +3,17 @@
   "version": "0.0.1",
   "scripts": {
     "build:evm": "FOUNDRY_PROFILE=production forge build --root=../evm && typechain --target=ethers-v6 --out-dir=./ethers-contracts ../evm/build-forge/*.sol/!(*.dbg).json --show-stack-traces",
-    "clean": "rm -r ts-build build",
+    "clean": "rm -rf ./ethers-contracts ./ts-build",
     "deploy:evm:localnet": "ENV=localnet tsx evm/deploy.ts",
     "deploy:evm:testnet": "ENV=testnet tsx evm/deploy.ts",
     "deploy:evm:mainnet": "ENV=mainnet tsx evm/deploy.ts",
     "parse:evm": "tsx evm/parse.ts",
+    "test:build": "tsc --project ./tsconfig.json",
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check"
   },
   "devDependencies": {
-    "@types/node": "20.16.5",
+    "@types/node": "20.16.10",
     "tsx": "^4.19.1",
     "typescript": "^5.6.2"
   },
@@ -32,7 +33,7 @@
     "@xlabs-xyz/solana-arbitrary-token-transfers": "workspace:*",
     "chalk": "^5.3.0",
     "dotenv": "^16.4.5",
-    "ethers": "^6.13.2",
+    "ethers": "^6.13.3",
     "typechain": "^8.3.2"
   }
 }

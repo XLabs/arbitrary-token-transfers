@@ -1,9 +1,9 @@
-import { expect } from "chai";
+import { assert, expect } from "chai";
 import { before } from "mocha";
-import { SupportedChains, TbrPartialTx, Tbrv3, BaseRelayingParams, RelayingFee, relayingFeesReturnLayout, baseRelayingConfigReturnLayout } from "../tbrv3/index.js";
+import { PartialTx, Tbrv3 } from "../tbrv3/index.js";
 import { ethers } from "ethers";
 import { UniversalAddress } from "@wormhole-foundation/sdk-definitions";
-import { encoding, LayoutToType } from "@wormhole-foundation/sdk-base";
+import { encoding } from "@wormhole-foundation/sdk-base";
 import config from "../../../deployment/config/localnet/contracts.json" with { type: "json" };
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
 
@@ -15,19 +15,6 @@ const rpc = {
 }[env];
 let tbrv3: Tbrv3;
 let signer: ethers.Signer;
-
-// Type tests
-// Variables with names starting with `expected` should typecheck. Their type is the desired type.
-// They're put into standalone statements so that they're not reported by linters.
-
-let testRelayingFeeType: RelayingFee = {} as any;
-const expectedRelayingFeeType: LayoutToType<typeof relayingFeesReturnLayout> = testRelayingFeeType;
-expectedRelayingFeeType;
-
-let testBaseRelayingParamsType: BaseRelayingParams = {} as any;
-const expectedBaseRelayingParamsType: LayoutToType<typeof baseRelayingConfigReturnLayout> = testBaseRelayingParamsType;
-expectedBaseRelayingParamsType;
-
 
 const peers = [
   { chain: "Sepolia", peer: new UniversalAddress(ethers.Wallet.createRandom().address) },
@@ -41,101 +28,205 @@ describe('TbrV3 SDK Integration test', () => {
     expect(rpc).to.not.be.undefined;
     expect(ownerPk).to.not.be.undefined;
 
-    const address = config.TbrV3Proxies[0].address;
-    tbrv3 = Tbrv3.fromRpcUrl(rpc!, "Testnet", address);
-    signer = new ethers.Wallet(ownerPk!, tbrv3.provider);
+    const address = new EvmAddress(config.TbrV3Proxies[0].address);
+    const provider = new ethers.JsonRpcProvider(rpc, undefined, {staticNetwork: true});
+
+    tbrv3 = Tbrv3.connect(wrapEthersProvider(provider), "Testnet", "Sepolia", address);
+    signer = new ethers.Wallet(ownerPk!, provider);
   });
 
   // governance commands
   it.skip("should set peers", async () => { // skipped as it requires TB to be present
-    const expectedPeers = peers.map(p => ({ chain: p.chain, peer: p.peer }));
-    const addPeersPartialTx = tbrv3.addPeers(expectedPeers);
+    const addPeersPartialTx = tbrv3.execTx(0n, [
+      {
+        command: "ConfigCommands",
+        commands: peers.map(({peer, chain}) => ({ command: "AddPeer", address: peer, chain })),
+      }
+    ]);
 
     const result = await awaitTx(addPeersPartialTx);
     expect(result!.status).to.equal(1);
 
-    const isPeer = await tbrv3.isPeer(expectedPeers[0].chain, expectedPeers[0].peer);
-    expect(isPeer).to.be.true;
+    const isPeer = await tbrv3.query([
+      {
+        query: "ConfigQueries",
+        queries: peers.map(({peer, chain}) => ({ query: "IsPeer", chain, address: peer })),
+      }
+    ]);
+    expect(isPeer).to.have.ordered.members(peers.map(() => true));
   }).timeout(timeout);
 
   it.skip("should update canonical peer", async () => {  // skipped as it requires TB to be present
-    const map: Map<SupportedChains, UniversalAddress> = new Map(peers.map(p => [p.chain, p.peer]));
-    const updateCanonicalPeerPartialTx = tbrv3.updateCanonicalPeers(map);
+    const updateCanonicalPeerPartialTx = tbrv3.execTx(0n, [
+      {
+        command: "ConfigCommands",
+        commands: peers.map(({peer, chain}) => ({command: "UpdateCanonicalPeer", chain, address: peer}))
+      }
+    ]);
 
     const result = await awaitTx(updateCanonicalPeerPartialTx);
 
     expect(result).to.not.be.undefined;
     expect(result!.status).to.equal(1);
 
-    const canonicalPeer = await tbrv3.canonicalPeer(peers[0].chain);
-    expect(canonicalPeer).to.be.equal(peers[0].peer);
+    const response = await tbrv3.query([
+      {
+        query: "ConfigQueries",
+        queries: [{ query: "CanonicalPeer", chain: peers[0].chain}]
+      }
+    ]);
+    for (const [i, query] of response.entries()) {
+      assert.isTrue(query.result.equals(peers[i].peer));
+    }
   }).timeout(timeout);
 
   it("should update max gas dropoffs", async () => {
     const expectedMaxGasDropoff = Math.round(Math.random() * 1000);
-    const map = new Map(peers.map(p => [p.chain, expectedMaxGasDropoff]));
-    const updateCanonicalPeerPartialTx = tbrv3.updateMaxGasDroppoffs(map);
+    const updateMaxGasDropoffPartialTx = tbrv3.execTx(0n, [
+      {
+        command: "ConfigCommands",
+        commands: peers.map(({chain}) => ({
+          command: "UpdateMaxGasDropoff",
+          chain,
+          value: expectedMaxGasDropoff,
+        }))
+      }
+    ]);
 
-    const result = await awaitTx(updateCanonicalPeerPartialTx);
+    const result = await awaitTx(updateMaxGasDropoffPartialTx);
 
     expect(result!.status).to.equal(1);
 
-    const maxGasDropoff = await tbrv3.maxGasDropoff(peers[0].chain);
-    expect(maxGasDropoff).to.be.equal(expectedMaxGasDropoff);
+    const maxGasDropoffs = await tbrv3.query([
+      {
+        query: "ConfigQueries",
+        queries: peers.map(({chain}) => ({
+          query: "MaxGasDropoff",
+          chain,
+          value: expectedMaxGasDropoff,
+        }))
+      }
+    ]);
+    for (const [i, maxGasDropoff] of maxGasDropoffs.entries()) {
+      expect(maxGasDropoff.result).to.be.equal(expectedMaxGasDropoff);
+    }
   }).timeout(timeout);
 
   it("should update relay fee", async () => {
     const expectedFee = Math.round(Math.random() * 1000);
-    const udpatedRelayerFeePartialTx = tbrv3.updateRelayFees(new Map(peers.map(p => [p.chain, expectedFee])));
+    const udpatedRelayerFeePartialTx = tbrv3.execTx(0n, [
+      {
+        command: "ConfigCommands",
+        commands: peers.map(({chain}) => ({command: "UpdateBaseFee", chain, value: expectedFee}))
+      }
+    ]);
 
     const result = await awaitTx(udpatedRelayerFeePartialTx);
 
     expect(result!.status).to.equal(1);
 
-    const fee = await tbrv3.relayFee(peers[0].chain);
-    expect(fee).to.equal(expectedFee);
+    const fees = await tbrv3.query([
+      {
+        query: "ConfigQueries",
+        queries: peers.map(({chain}) => ({query: "BaseFee", chain, value: expectedFee}))
+      }
+    ]);
+    for (const fee of fees) {
+      expect(fee.result).to.equal(expectedFee);
+    }
   }).timeout(timeout);
 
-  it("should update admin", async () => {
-    const evmAddress = new EvmAddress(ethers.Wallet.createRandom().address);
-    const expectedIsAdmin = Math.random() < 0.5;
-    const modifyAdminPartialTx = tbrv3.updateAdmin(expectedIsAdmin, evmAddress);
+  it("should add admin", async () => {
+    const evmAddress = new EvmAddress("0x00002000004000000f000000e00a000b000c000d");
+    const addAdminPartialTx = tbrv3.execTx(0n, [
+      {
+        command: "AccessControlCommands",
+        commands: [{command: "AddAdmin", address: evmAddress}]
+      }
+    ]);
 
-    const result = await awaitTx(modifyAdminPartialTx);
+    const result = await awaitTx(addAdminPartialTx);
 
     expect(result!.status).to.equal(1);
 
-    const isAdmin = await tbrv3.isAdmin(evmAddress);
-    expect(isAdmin).to.equal(expectedIsAdmin);
+    const isAdmin = await tbrv3.query([
+      {
+        query: "AccessControlQueries",
+        queries: [{query: "IsAdmin", address: evmAddress}]
+      }
+    ]);
+    expect(isAdmin[0].result).to.be.true;
   }).timeout(timeout);
+
+  // This test relies on the fact that we're not snapshotting state of the contracts.
+  it("should remove admin", async () => {
+    const evmAddress = new EvmAddress("0x00002000004000000f000000e00a000b000c000d");
+    const revokeAdminPartialTx = tbrv3.execTx(0n, [
+      {
+        command: "AccessControlCommands",
+        commands: [{command: "RevokeAdmin", address: evmAddress}]
+      }
+    ]);
+
+    const result = await awaitTx(revokeAdminPartialTx);
+
+    expect(result!.status).to.equal(1);
+
+    const isAdmin = await tbrv3.query([
+      {
+        query: "AccessControlQueries",
+        queries: [{query: "IsAdmin", address: evmAddress}]
+      }
+    ]);
+    expect(isAdmin[0].result).to.be.false;
+  }).timeout(timeout)
 
   // governance queries
 
   it("should obtain owner", async () => {
-    const owner = await tbrv3.owner();
-    expect(owner).to.equal(await signer.getAddress());
+    const owner = await tbrv3.query([
+      {
+        query: "AccessControlQueries",
+        queries: [{query: "Owner"}]
+      }
+    ]);
+    assert.isTrue(owner[0].result.equals(new EvmAddress(await signer.getAddress())))
   }).timeout(timeout);
 
   // relaying queries
 
   it("should obtain relaying fee", async () => {
-    const relayingFee = await tbrv3.relayingFee({ targetChain: "Sepolia", gasDropoff: 1 });
+    const estimate = {
+      tokens: [new EvmAddress("0x000000000000000000000000000000000000000a")],
+      transferRequests: [{ targetChain: "Sepolia", gasDropoff: 1 }],
+    } as const;
+    const relayingFee = await tbrv3.relayingFee(estimate);
     expect(relayingFee).to.not.be.undefined;
   }).timeout(timeout);
 
   it("should obtain base relaying params", async () => {
-    const baseRelayingParams = await tbrv3.baseRelayingParams("Sepolia");
+    const baseRelayingParams = await tbrv3.query([
+      {
+        query: "BaseRelayingConfig",
+        targetChain: "Sepolia",
+      }
+    ]);
     expect(baseRelayingParams).to.not.be.undefined;
   }).timeout(timeout);
 
   it("should tell if chain is supported", async () => {
-    const isSupported = await tbrv3.isChainSupported("Sepolia");
+    const isSupported = await tbrv3.query([
+      {
+        query: "ConfigQueries",
+        queries: [{query: "IsChainSupported", chain: "Sepolia"}]
+      }
+    ]);
     expect(isSupported).to.be.false; // adding canonical peers is skipped
   });
 
 });
 
-const awaitTx = async (partialTx: TbrPartialTx) => {
+const awaitTx = async (partialTx: PartialTx) => {
   try {
     const tx = await signer.sendTransaction({ ...partialTx, data: encoding.hex.encode(partialTx.data, true) });
     const receipt = await tx.wait();
@@ -144,4 +235,14 @@ const awaitTx = async (partialTx: TbrPartialTx) => {
     console.error(error);
     throw error;
   }
+}
+
+function wrapEthersProvider(ethersProvider: ethers.Provider) {
+  return { ethCall: async ({to, data}: Omit<PartialTx, "value">): Promise<Uint8Array> => {
+    const result = await ethersProvider.call({
+      to,
+      data: ethers.hexlify(data),
+    });
+    return ethers.getBytes(result);
+  }};
 }

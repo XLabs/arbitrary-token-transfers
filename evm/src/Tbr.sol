@@ -30,15 +30,20 @@ contract Tbr is TbrDispatcher {
   function _proxyConstructor(bytes calldata args) internal override {
     uint offset = 0;
 
-    address owner;
-    address admin;
     address feeRecipient;
-    (owner,        offset) = args.asAddressCdUnchecked(offset);
-    (admin,        offset) = args.asAddressCdUnchecked(offset);
+    address owner;
     (feeRecipient, offset) = args.asAddressCdUnchecked(offset);
+    (owner,        offset) = args.asAddressCdUnchecked(offset);
+    uint8 adminCount;
+    (adminCount,   offset) = args.asUint8CdUnchecked(offset);
+    address[] memory admins = new address[](adminCount);
+    for (uint i = 0; i < adminCount; ++i) {
+      (admins[i],  offset) = args.asAddressCdUnchecked(offset);
+    }
 
     args.checkLengthCd(offset);
 
-    _governanceConstruction(owner, admin, payable(feeRecipient));
+    _accessControlConstruction(owner, admins);
+    _configConstruction(payable(feeRecipient));
   }
 }

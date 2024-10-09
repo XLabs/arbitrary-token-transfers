@@ -1,5 +1,5 @@
-mod admin;
-pub use admin::*;
+mod auth;
+pub use auth::*;
 
 mod config;
 pub use config::*;

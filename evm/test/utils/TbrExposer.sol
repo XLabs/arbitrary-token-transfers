@@ -2,11 +2,11 @@
 
 pragma solidity ^0.8.25;
 
-import {Tbr} from "tbr/Tbr.sol";
-import {ITokenBridge} from "wormhole-sdk/interfaces/ITokenBridge.sol";
-import {IWETH} from "wormhole-sdk/interfaces/token/IWETH.sol";
-import {IPermit2} from "permit2/IPermit2.sol";
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import { ITokenBridge } from "wormhole-sdk/interfaces/ITokenBridge.sol";
+import { IWETH } from "wormhole-sdk/interfaces/token/IWETH.sol";
+import { IPermit2 } from "permit2/IPermit2.sol";
+import { Tbr } from "tbr/Tbr.sol";
 
 contract TbrExposer is Tbr {
 
@@ -42,16 +42,8 @@ contract TbrExposer is Tbr {
 
   function exposedGetTargetChainData(
     uint16 targetChain
-  ) public view returns (bytes32, uint32, uint32, bool, bool) {
+  ) public view returns (bytes32, uint32, uint32, bool) {
     return _getTargetChainData(targetChain);
-  }
-
-  function exposedSetChainTxSizeSensitive(uint16 chainId, bool txSizeSensitive) public {
-    _setChainTxSizeSensitive(chainId, txSizeSensitive);
-  }
-
-  function exposedIsChainTxSizeSensitive(uint16 chainId) public view returns (bool) {
-    return _isChainTxSizeSensitive(chainId);
   }
 
   function exposedSetMaxGasDropoff(uint16 chainId, uint32 maxGasDropoff) public {
@@ -77,10 +69,9 @@ contract TbrExposer is Tbr {
   function exposedQuoteRelay(
     uint16 chainId,
     uint32 gasDropoff,
-    uint32 baseFee,
-    bool txSizeSensitive
+    uint32 baseFee
   ) public view returns (uint256, uint256) {
-    return _quoteRelay(chainId, gasDropoff, baseFee, txSizeSensitive);
+    return _quoteRelay(chainId, gasDropoff, baseFee);
   }
 
   function exposedSetBaseFee(uint16 chainId, uint32 fee) public {

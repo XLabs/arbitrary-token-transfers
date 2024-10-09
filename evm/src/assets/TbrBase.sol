@@ -36,10 +36,6 @@ struct ChainData {
    * @notice If the chain is paused, no outbound transfers will be allowed
    */
   bool paused;
-  /**
-   * @notice If the chain is sensitive to the transaction size, i.e. if commits a transaction to another chain
-   */
-  bool txSizeSensitive;
 }
 
 struct TbrChainState {
@@ -82,6 +78,7 @@ error ChainIsNotRegistered(uint16 chainId);
  */
 error PaymentFailure(address target);
 
+
 abstract contract TbrBase is PriceOracleIntegration {
   using BytesParsing for bytes;
 
@@ -106,9 +103,9 @@ abstract contract TbrBase is PriceOracleIntegration {
     IWETH initGasToken,
     bool initGasErc20TokenizationIsExplicit
   ) PriceOracleIntegration(oracle) {
-    permit2 = initPermit2;
-    whChainId = _oracleChainId();
     wormholeCore = initTokenBridge.wormhole();
+    whChainId = _oracleChainId();
+    permit2 = initPermit2;
     tokenBridge = initTokenBridge;
     gasToken = initGasToken;
     gasErc20TokenizationIsExplicit = initGasErc20TokenizationIsExplicit;
@@ -116,14 +113,13 @@ abstract contract TbrBase is PriceOracleIntegration {
 
   function _getTargetChainData(
     uint16 targetChain
-  ) internal view returns (bytes32, uint32, uint32, bool, bool) {
+  ) internal view returns (bytes32, uint32, uint32, bool) {
     ChainData storage state = tbrChainState(targetChain);
     return (
       state.canonicalPeer,
       state.baseFee,
       state.maxGasDropoff,
-      state.paused,
-      state.txSizeSensitive
+      state.paused
     );
   }
 
@@ -147,18 +143,6 @@ abstract contract TbrBase is PriceOracleIntegration {
       state.canonicalPeer = peer;
 
     state.peers[peer] = true;
-  }
-
-  function _isChainTxSizeSensitive(uint16 targetChain) internal view returns (bool) {
-    return tbrChainState(targetChain).txSizeSensitive;
-  }
-
-  function _setChainTxSizeSensitive(uint16 targetChain, bool txSizeSensitive) internal {
-    ChainData storage state = tbrChainState(targetChain);
-    if (state.canonicalPeer == bytes32(0)) {
-      revert ChainIsNotRegistered(targetChain);
-    }
-    state.txSizeSensitive = txSizeSensitive;
   }
 
   function _getCanonicalPeer(uint16 targetChain) internal view returns (bytes32) {

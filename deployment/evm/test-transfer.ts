@@ -7,12 +7,13 @@ import {
   TestTransfer,
 } from '../helpers';
 import { ethers } from 'ethers';
-import { getProvider, runOnEvms, sendTx } from '../helpers/evm';
-import { SupportedChains, Tbrv3, Transfer } from '@xlabs-xyz/evm-arbitrary-token-transfers';
-import { toUniversal } from '@wormhole-foundation/sdk-definitions';
-import { Chain, chainToPlatform } from '@wormhole-foundation/sdk-base';
+import { getProvider, runOnEvms, sendTxCatch, wrapEthersProvider } from '../helpers/evm';
+import { SupportedChain, Tbrv3, Transfer } from '@xlabs-xyz/evm-arbitrary-token-transfers';
+import { resolveWrappedToken, toUniversal } from '@wormhole-foundation/sdk-definitions';
+import { Chain, chainIdToChain, chainToPlatform } from '@wormhole-foundation/sdk-base';
 import { inspect } from 'util';
 import { solanaOperatingChains } from '../helpers/solana';
+import { EvmAddress } from '@wormhole-foundation/sdk-evm/dist/cjs';
 
 const processName = 'att-evm-test-transfer';
 const chains = evm.evmOperatingChains();
@@ -58,6 +59,17 @@ async function run() {
   console.log(`Process ${processName} finished after ${timeMs} miliseconds`);
 }
 
+function getNativeWrappedToken(chain: EvmChainInfo) {
+  let token;
+  try {
+    ([, { address: token }] = resolveWrappedToken(chain.network, chain.name as Exclude<SupportedChain, "Solana">, "native"));
+  } catch {}
+  if (token === undefined) {
+    throw new Error(`Could not find gas token for chain ${chain.name}`);
+  }
+  return new EvmAddress(token);
+}
+
 async function sendTestTransaction(
   chain: EvmChainInfo,
   signer: ethers.Signer,
@@ -65,7 +77,9 @@ async function sendTestTransaction(
   testTransfer: TestTransfer,
 ): Promise<void> {
   try {
-    const inputToken = testTransfer.tokenAddress;
+    const inputToken = testTransfer.tokenAddress !== undefined
+      ? new EvmAddress(testTransfer.tokenAddress)
+      : getNativeWrappedToken(chain);
     const gasDropoff = Number(testTransfer.gasDropoffAmount);
     const inputAmountInAtomic = BigInt(testTransfer.transferredAmount);
     const unwrapIntent = testTransfer.unwrapIntent;
@@ -80,11 +94,17 @@ async function sendTestTransaction(
 
     console.log(`Operating chain: ${inspect(chain)}`);
 
-    const tbrv3ProxyAddress = getContractAddress('TbrV3Proxies', chain.chainId);
+    const tbrv3ProxyAddress = new EvmAddress(getContractAddress('TbrV3Proxies', chain.chainId));
     const provider = getProvider(chain);
-    const tbrv3 = new Tbrv3(provider, chain.network, tbrv3ProxyAddress);
+    const tbrv3 = Tbrv3.connect(
+      wrapEthersProvider(provider!),
+      chain.network,
+      chainIdToChain(chain.chainId),
+      tbrv3ProxyAddress
+    );
     const targetChains = availableChains.filter((c) => c.name === testTransfer.toChain);
 
+    let allAllowances = {};
     const promises = await Promise.allSettled(
       targetChains
         .filter((targetChain) => chain.chainId !== targetChain.chainId)
@@ -97,9 +117,11 @@ async function sendTestTransaction(
                 ? await signer.getAddress()
                 : getEnv('SOLANA_RECIPIENT_ADDRESS');
 
-            const isChainSupported = await tbrv3.isChainSupported(
-              targetChain.name as SupportedChains,
-            );
+            const [{result: isChainSupported}] = await tbrv3.query([
+              {
+                query: "ConfigQueries", queries: [{ query: "IsChainSupported", chain: targetChain.name as SupportedChain}]
+              }
+            ]);
 
             if (!isChainSupported) {
               console.error(`Chain ${targetChain.name} is not supported`);
@@ -111,30 +133,35 @@ async function sendTestTransaction(
               gasDropoff,
             });
 
-            const feeEstimation = (
+            const {feeEstimations, allowances} = (
               await tbrv3.relayingFee({
-                targetChain: targetChain.name as SupportedChains,
-                gasDropoff,
+                tokens: [new EvmAddress(inputToken)],
+                transferRequests: [{
+                  targetChain: targetChain.name as SupportedChain,
+                  gasDropoff,
+                }],
               })
-            )[0];
+            );
 
+            const feeEstimation = feeEstimations[0];
             log(`Fee estimation ${chain.name}->${targetChain.name}: ${inspect(feeEstimation)}`);
 
+            allAllowances = {...allAllowances, allowances};
             return {
               args: {
-                method: inputToken ? 'TransferTokenWithRelay' : 'TransferGasTokenWithRelay',
+                method: testTransfer.tokenAddress ? 'TransferTokenWithRelay' : 'TransferGasTokenWithRelay',
                 acquireMode: { mode: 'Preapproved' },
                 inputAmountInAtomic,
                 gasDropoff,
                 recipient: {
-                  chain: targetChain.name as Chain,
+                  chain: targetChain.name as SupportedChain,
                   address: toUniversal(targetChain.name as Chain, address),
                 },
                 inputToken,
                 unwrapIntent,
               },
               feeEstimation,
-            } as Transfer;
+            } satisfies Transfer;
           } catch (err) {
             console.error(`Error creating transfer for ${chain.name}->${targetChain.name}: ${err}`);
             throw err;
@@ -151,23 +178,23 @@ async function sendTestTransaction(
     }
 
     log(`Executing ${transfers.length} transfers`, transfers);
-    const { to, value, data } = tbrv3.transferWithRelay(...transfers);
+    const { to, value, data } = tbrv3.transferWithRelay(allAllowances, ...transfers);
 
-    const { receipt, error } = await sendTx(signer, {
+    const { receipt, error } = await sendTxCatch(signer, {
       to,
       value: (value * 110n) / 100n,
       data: ethers.hexlify(data),
     });
 
     if (error) {
-      console.error(`Error: ${error}`);
+      console.error(`Error: ${(error as any)?.stack ?? error}`);
     }
 
     if (receipt) {
       log(`Receipt: ${inspect(receipt)}`);
     }
-  } catch (err) {
-    console.error(`Error running ${processName}: ${err}`);
+  } catch (error) {
+    console.error(`Error running ${processName}: ${(error as any)?.stack ?? error}}`);
   }
 }
 

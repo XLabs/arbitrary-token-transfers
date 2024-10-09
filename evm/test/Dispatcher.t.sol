@@ -2,11 +2,10 @@
 
 pragma solidity ^0.8.25;
 
-import "wormhole-sdk/libraries/BytesParsing.sol";
-import { TbrTestBase } from "./utils/TbrTestBase.sol";
-import "tbr/assets/TbrDispatcher.sol";
-import "tbr/assets/TbrGovernance.sol";
+import { BytesParsing } from "wormhole-sdk/libraries/BytesParsing.sol";
 import { DISPATCHER_PROTOCOL_VERSION0 } from "tbr/assets/TbrIds.sol";
+import { TbrTestBase } from "./utils/TbrTestBase.sol";
+import { UnsupportedVersion, InvalidCommand } from "tbr/assets/TbrDispatcher.sol";
 
 contract DispatcherTest is TbrTestBase {
   using BytesParsing for bytes;
@@ -40,7 +39,7 @@ contract DispatcherTest is TbrTestBase {
     vm.expectRevert(
       abi.encodeWithSelector(UnsupportedVersion.selector, wrongVersion)
     );
-    invokeTbr(
+    invokeStaticTbr(
       abi.encodePacked(tbr.get1959.selector, wrongVersion)
     );
 
@@ -50,7 +49,7 @@ contract DispatcherTest is TbrTestBase {
     vm.expectRevert(
       abi.encodeWithSelector(InvalidCommand.selector, fakeQuery, expextedQueryIndex)
     );
-    invokeTbr(
+    invokeStaticTbr(
       abi.encodePacked(tbr.get1959.selector, DISPATCHER_PROTOCOL_VERSION0, fakeQuery)
     );
   }

@@ -15,10 +15,10 @@
   "scripts": {
     "build:ts": "tsc --noEmit -p ./tsconfig.json && tsup",
     "build": "yarn run build:ts",
+    "clean": "rm -r ts-build",
     "prettier": "prettier --write .",
     "test:integration": "tsc -p ./test/tsconfig.json && mocha build-test/test/integration.tbrv3.test.js",
-    "test:deploy:integration": "yarn workspace deployment run deploy:evm:localnet && yarn test:integration",
-    "clean": "rm -r ts-build"
+    "test:deploy:integration": "yarn workspace deployment run deploy:evm:localnet && yarn test:integration"
   },
   "files": [
     "ts-build",
@@ -35,15 +35,15 @@
     "@wormhole-foundation/sdk-base": "0.10.9",
     "@wormhole-foundation/sdk-definitions": "0.10.9",
     "@wormhole-foundation/sdk-evm": "0.10.9",
-    "ethers": "^6.13.2"
+    "ethers": "^6.13.3"
   },
   "devDependencies": {
     "@types/chai": "^4.3.19",
     "@types/mocha": "^10",
-    "@types/node": "20.16.5",
+    "@types/node": "20.16.10",
     "chai": "^5.1.1",
     "mocha": "^10.7.3",
-    "tsup": "^8.2.4",
+    "tsup": "^8.3.0",
     "tsx": "4.19.1",
     "typescript": "5.6.2"
   },

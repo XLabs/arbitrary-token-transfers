@@ -13,7 +13,6 @@ use wormhole_anchor_sdk::{
 };
 
 #[derive(Accounts)]
-#[instruction(vaa_hash: [u8; 32])]
 pub struct CompleteTransfer<'info> {
     /// Payer will pay for completing the Wormhole transfer tokens and create temporary
     /// token account.
@@ -21,10 +20,6 @@ pub struct CompleteTransfer<'info> {
     pub payer: Signer<'info>,
 
     /// This program's config.
-    #[account(
-        seeds = [TbrConfigState::SEED_PREFIX],
-        bump = tbr_config.bump
-    )]
     pub tbr_config: Box<Account<'info, TbrConfigState>>,
 
     /// Mint info. This is the SPL token that will be bridged over to the
@@ -51,18 +46,7 @@ pub struct CompleteTransfer<'info> {
     #[account(mut)]
     pub recipient: AccountInfo<'info>,
 
-    /// Verified Wormhole message account. The Wormhole program verified
-    /// signatures and posted the account data here. Read-only.
-    #[account(
-        seeds = [
-            wormhole::SEED_PREFIX_POSTED_VAA,
-            &vaa_hash
-        ],
-        seeds::program = wormhole_program.key(),
-        bump,
-        constraint = vaa.data().to() == crate::ID @ TokenBridgeRelayerError::InvalidTransferToAddress,
-        constraint = vaa.data().to_chain() == wormhole::CHAIN_ID_SOLANA @ TokenBridgeRelayerError::InvalidTransferToChain,
-    )]
+    /// Verified Wormhole message account. Read-only.
     pub vaa: Account<'info, PostedRelayerMessage>,
 
     /// Program's temporary token account. This account is created before the
@@ -83,15 +67,17 @@ pub struct CompleteTransfer<'info> {
     )]
     pub temporary_account: Account<'info, TokenAccount>,
 
+    #[account(
+        constraint = {
+            peer.address == *vaa.data().from_address()
+        } @ TokenBridgeRelayerError::InvalidSendingPeer
+    )]
     pub peer: Account<'info, PeerState>,
 
     /// CHECK: Token Bridge config. Read-only.
     pub token_bridge_config: UncheckedAccount<'info>,
 
-    #[account(
-        mut,
-        constraint = token_bridge_claim.data_is_empty() @ TokenBridgeRelayerError::AlreadyRedeemed
-    )]
+    #[account(mut)]
     /// CHECK: Token Bridge claim account. It stores a boolean, whose value
     /// is true if the bridged assets have been claimed. If the transfer has
     /// not been redeemed, this account will not exist yet.
@@ -99,11 +85,7 @@ pub struct CompleteTransfer<'info> {
     /// NOTE: The Token Bridge program's claim account is only initialized when
     /// a transfer is redeemed (and the boolean value `true` is written as
     /// its data).
-    ///
-    /// The Token Bridge program will automatically fail if this transfer
-    /// is redeemed again. But we choose to short-circuit the failure as the
-    /// first evaluation of this instruction.
-    pub token_bridge_claim: AccountInfo<'info>,
+    pub token_bridge_claim: UncheckedAccount<'info>,
 
     /// CHECK: Token Bridge foreign endpoint. This account should really be one
     /// endpoint per chain, but the PDA allows for multiple endpoints for each
@@ -160,12 +142,13 @@ pub struct CompleteTransfer<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub fn complete_transfer(ctx: Context<CompleteTransfer>) -> Result<()> {
+pub fn complete_transfer(mut ctx: Context<CompleteTransfer>) -> Result<()> {
     let RelayerMessage::V0 {
         recipient,
         gas_dropoff_amount,
         unwrap_intent,
     } = *ctx.accounts.vaa.message().data();
+    let gas_dropoff_amount = denormalize_dropoff_to_lamports(gas_dropoff_amount);
 
     let tbr_config_seeds = &[
         TbrConfigState::SEED_PREFIX.as_ref(),
@@ -182,17 +165,17 @@ pub fn complete_transfer(ctx: Context<CompleteTransfer>) -> Result<()> {
         TokenBridgeRelayerError::InvalidRecipient
     );
 
-    ctx.accounts.peer.check_origin(&ctx.accounts.vaa)?;
-
     // The tokens are transferred into the temporary_account:
     if is_native(&ctx)? {
+        msg!("Native transfer");
         token_bridge_complete_native(&ctx, redeemer_seeds)?;
     } else {
+        msg!("Wrapped transfer");
         token_bridge_complete_wrapped(&ctx, redeemer_seeds)?;
     }
 
     redeem_gas(&ctx, gas_dropoff_amount)?;
-    redeem_token(&ctx, unwrap_intent, tbr_config_seeds)?;
+    redeem_token(&mut ctx, unwrap_intent, tbr_config_seeds)?;
 
     Ok(())
 }
@@ -292,11 +275,7 @@ fn token_bridge_complete_wrapped(
 }
 
 /// If the transfer includes a gas dropoff, the gas will be transferred to the recipient.
-fn redeem_gas(ctx: &Context<CompleteTransfer>, gas_dropoff_amount: u32) -> Result<()> {
-    // Denormalize the gas_dropoff_amount.
-    // Since it is transferred as Klamports, we need to convert it to lamports:
-    let gas_dropoff_amount = u64::from(gas_dropoff_amount) * 1_000;
-
+fn redeem_gas(ctx: &Context<CompleteTransfer>, gas_dropoff_amount: u64) -> Result<()> {
     // Transfer lamports from the payer to the recipient if any and if they're different accounts:
     if gas_dropoff_amount > 0 && ctx.accounts.payer.key != ctx.accounts.recipient.key {
         anchor_lang::system_program::transfer(
@@ -315,14 +294,18 @@ fn redeem_gas(ctx: &Context<CompleteTransfer>, gas_dropoff_amount: u32) -> Resul
 }
 
 fn redeem_token(
-    ctx: &Context<CompleteTransfer>,
+    ctx: &mut Context<CompleteTransfer>,
     unwrap_intent: bool,
     tbr_config_seeds: &[&[u8]],
 ) -> Result<()> {
     let unwrap_spl_sol_as_sol = unwrap_intent && ctx.accounts.mint.key() == native_mint::ID;
-    let token_amount = ctx.accounts.temporary_account.amount;
+    let token_amount = {
+        ctx.accounts.temporary_account.reload()?;
+        ctx.accounts.temporary_account.amount
+    };
 
     if unwrap_spl_sol_as_sol {
+        msg!("Native token to be unwrapped");
         // The SPL SOLs are transferred to the payer as gas:
         anchor_spl::token::close_account(CpiContext::new_with_signer(
             ctx.accounts.token_program.to_account_info(),
@@ -348,6 +331,7 @@ fn redeem_token(
             )?;
         }
     } else {
+        msg!("Non-native token, or user asked not to unwrap");
         // Transfer the SPL tokens from temporary_account to recipent_token_account
         anchor_spl::token::transfer(
             CpiContext::new_with_signer(
@@ -376,4 +360,10 @@ fn redeem_token(
     }
 
     Ok(())
+}
+
+/// The amount in the VAA is normalized to be in micro-token (so µSOL here) and
+/// we need to get the value in lamports.
+fn denormalize_dropoff_to_lamports(amount: u32) -> u64 {
+    u64::from(amount) * 1_000
 }

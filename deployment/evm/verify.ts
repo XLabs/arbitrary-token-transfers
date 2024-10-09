@@ -6,6 +6,7 @@ import { EvmTbrV3Config } from "../config/config.types";
 import { Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
 import { encoding } from "@wormhole-foundation/sdk-base";
 import { ethers } from "ethers";
+import { EvmAddress } from "@wormhole-foundation/sdk-evm/dist/cjs";
 
 evm.runOnEvms("bytecode-verification-token-router", async (chain, signer, log) => {
   // The root path of the foundry project
@@ -18,17 +19,17 @@ evm.runOnEvms("bytecode-verification-token-router", async (chain, signer, log) =
   }
 
   const zero = ethers.ZeroAddress;
-  const ownerOverride = process.env[`OWNER_ADDRESS_${chain.name.toUpperCase()}`] ?? zero;
+  const ownerOverride = new EvmAddress(process.env[`OWNER_ADDRESS_${chain.name.toUpperCase()}`] ?? zero);
   const implementationAddressOverride = process.env[`IMPLEMENTATION_ADDRESS_${chain.name.toUpperCase()}`] ?? zero;
 
   for (let [verifier, data] of Object.entries(verifiers)) {
     const apiKey = typeof data === 'string' ? data : data.key;
     const verifierUrl = typeof data === 'string' ? undefined : data.apiUrl;
     const config = await getChainConfig<EvmTbrV3Config>("tbr-v3", chain.chainId);
-    const permit2 = await getDependencyAddress("permit2", chain);
-    const tokenBridge = await getDependencyAddress("tokenBridge", chain);
-    const oracle = await getDependencyAddress("oracle", chain);
-    const initGasToken = await getDependencyAddress("initGasToken", chain);
+    const permit2 = getDependencyAddress("permit2", chain);
+    const tokenBridge = getDependencyAddress("tokenBridge", chain);
+    const oracle = getDependencyAddress("oracle", chain);
+    const initGasToken = getDependencyAddress("initGasToken", chain);
 
     // Implementation data
     const implementationName = "Tbr";
@@ -53,10 +54,14 @@ evm.runOnEvms("bytecode-verification-token-router", async (chain, signer, log) =
     const proxyName = "Proxy";
     const proxyPath = 'lib/wormhole-solidity-sdk/src/proxy/Proxy.sol';
     const proxyAddress = getContractAddress("TbrV3Proxies", chain.chainId);
+    const owner = config.owner !== undefined ? new EvmAddress(config.owner) : ownerOverride;
+    const admin = config.admin !== undefined ? new EvmAddress(config.admin) : ownerOverride;
+    const feeRecipient = config.feeRecipient !== undefined ? new EvmAddress(config.feeRecipient) : ownerOverride;
     const proxyConstructorArgs = Tbrv3.proxyConstructor(
-      config.owner || ownerOverride,
-      config.admin || ownerOverride,
-      config.feeRecipient || ownerOverride,
+      owner,
+      // TODO: accept more admins in the config
+      [admin],
+      feeRecipient,
     );
     // Implementation address might be different if upgrades have been executed
     const proxyImplementationAddress = implementationAddressOverride === zero ? implementationAddress : implementationAddressOverride;

@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/token_bridge_relayer.json`.
  */
 export type TokenBridgeRelayer = {
-  "address": "ATT7enfWTMV4dDTe2NQ2yBaTByuXXwrYRznsioQEUW6r",
+  "address": "7TLiBkpDGshV4o3jmacTCx93CLkmo3VjZ111AsijN9f8",
   "metadata": {
     "name": "tokenBridgeRelayer",
     "version": "3.0.0",
@@ -45,25 +45,10 @@ export type TokenBridgeRelayer = {
           "docs": [
             "Program Config account. This program requires that the [`owner`] specified",
             "in the context equals the owner role stored in the config."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          ]
         },
         {
-          "name": "adminBadge",
+          "name": "authBadge",
           "writable": true,
           "pda": {
             "seeds": [
@@ -71,10 +56,14 @@ export type TokenBridgeRelayer = {
                 "kind": "const",
                 "value": [
                   97,
+                  117,
+                  116,
+                  104,
+                  98,
+                  97,
                   100,
-                  109,
-                  105,
-                  110
+                  103,
+                  101
                 ]
               },
               {
@@ -126,22 +115,7 @@ export type TokenBridgeRelayer = {
             "in the context equals a pubkey specified in this account. Mutable,",
             "because we will update roles depending on the operation."
           ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          "writable": true
         }
       ],
       "args": []
@@ -175,22 +149,7 @@ export type TokenBridgeRelayer = {
           "name": "tbrConfig",
           "docs": [
             "This program's config."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          ]
         },
         {
           "name": "mint",
@@ -309,35 +268,8 @@ export type TokenBridgeRelayer = {
         {
           "name": "vaa",
           "docs": [
-            "Verified Wormhole message account. The Wormhole program verified",
-            "signatures and posted the account data here. Read-only."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  80,
-                  111,
-                  115,
-                  116,
-                  101,
-                  100,
-                  86,
-                  65,
-                  65
-                ]
-              },
-              {
-                "kind": "arg",
-                "path": "vaaHash"
-              }
-            ],
-            "program": {
-              "kind": "account",
-              "path": "wormholeProgram"
-            }
-          }
+            "Verified Wormhole message account. Read-only."
+          ]
         },
         {
           "name": "temporaryAccount",
@@ -380,11 +312,7 @@ export type TokenBridgeRelayer = {
             "",
             "NOTE: The Token Bridge program's claim account is only initialized when",
             "a transfer is redeemed (and the boolean value `true` is written as",
-            "its data).",
-            "",
-            "The Token Bridge program will automatically fail if this transfer",
-            "is redeemed again. But we choose to short-circuit the failure as the",
-            "first evaluation of this instruction."
+            "its data)."
           ],
           "writable": true
         },
@@ -473,28 +401,18 @@ export type TokenBridgeRelayer = {
         },
         {
           "name": "wormholeProgram",
-          "address": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"
+          "address": "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth"
         },
         {
           "name": "tokenBridgeProgram",
-          "address": "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe"
+          "address": "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"
         },
         {
           "name": "rent",
           "address": "SysvarRent111111111111111111111111111111111"
         }
       ],
-      "args": [
-        {
-          "name": "vaaHash",
-          "type": {
-            "array": [
-              "u8",
-              32
-            ]
-          }
-        }
-      ]
+      "args": []
     },
     {
       "name": "confirmOwnerTransferRequest",
@@ -518,14 +436,7 @@ export type TokenBridgeRelayer = {
           "signer": true
         },
         {
-          "name": "previousOwner",
-          "writable": true
-        },
-        {
-          "name": "newOwnerBadge",
-          "docs": [
-            "The admin badge for the new owner."
-          ],
+          "name": "authBadgeNewOwner",
           "writable": true,
           "pda": {
             "seeds": [
@@ -533,10 +444,14 @@ export type TokenBridgeRelayer = {
                 "kind": "const",
                 "value": [
                   97,
+                  117,
+                  116,
+                  104,
+                  98,
+                  97,
                   100,
-                  109,
-                  105,
-                  110
+                  103,
+                  101
                 ]
               },
               {
@@ -547,7 +462,7 @@ export type TokenBridgeRelayer = {
           }
         },
         {
-          "name": "previousOwnerBadgeToDelete",
+          "name": "authBadgePreviousOwner",
           "writable": true,
           "pda": {
             "seeds": [
@@ -555,15 +470,20 @@ export type TokenBridgeRelayer = {
                 "kind": "const",
                 "value": [
                   97,
+                  117,
+                  116,
+                  104,
+                  98,
+                  97,
                   100,
-                  109,
-                  105,
-                  110
+                  103,
+                  101
                 ]
               },
               {
                 "kind": "account",
-                "path": "previousOwner"
+                "path": "tbr_config.owner",
+                "account": "tbrConfigState"
               }
             ]
           }
@@ -575,22 +495,7 @@ export type TokenBridgeRelayer = {
             "in the context equals a pubkey specified in this account. Mutable,",
             "because we will update roles depending on the operation."
           ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          "writable": true
         },
         {
           "name": "systemProgram",
@@ -613,18 +518,22 @@ export type TokenBridgeRelayer = {
       ],
       "accounts": [
         {
-          "name": "owner",
+          "name": "deployer",
           "docs": [
-            "Owner of the program as set in the [`OwnerConfig`] account."
+            "Since we are passing on the upgarde authority, the original deployer is the only one",
+            "who can initialize the program."
           ],
           "writable": true,
           "signer": true
         },
         {
-          "name": "adminBadge",
+          "name": "owner",
           "docs": [
-            "The admin badge for the owner."
-          ],
+            "The designated owner of the program."
+          ]
+        },
+        {
+          "name": "authBadge",
           "writable": true,
           "pda": {
             "seeds": [
@@ -632,10 +541,14 @@ export type TokenBridgeRelayer = {
                 "kind": "const",
                 "value": [
                   97,
+                  117,
+                  116,
+                  104,
+                  98,
+                  97,
                   100,
-                  109,
-                  105,
-                  110
+                  103,
+                  101
                 ]
               },
               {
@@ -666,6 +579,88 @@ export type TokenBridgeRelayer = {
                 ]
               }
             ]
+          }
+        },
+        {
+          "name": "programData",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  95,
+                  229,
+                  130,
+                  69,
+                  46,
+                  141,
+                  178,
+                  231,
+                  56,
+                  213,
+                  199,
+                  161,
+                  79,
+                  236,
+                  191,
+                  130,
+                  165,
+                  181,
+                  246,
+                  134,
+                  44,
+                  135,
+                  169,
+                  19,
+                  212,
+                  103,
+                  182,
+                  152,
+                  69,
+                  169,
+                  9,
+                  75
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                2,
+                168,
+                246,
+                145,
+                78,
+                136,
+                161,
+                176,
+                226,
+                16,
+                21,
+                62,
+                247,
+                99,
+                174,
+                43,
+                0,
+                194,
+                185,
+                61,
+                22,
+                193,
+                36,
+                210,
+                192,
+                83,
+                122,
+                16,
+                4,
+                128,
+                0,
+                0
+              ]
+            }
           }
         },
         {
@@ -707,16 +702,32 @@ export type TokenBridgeRelayer = {
           }
         },
         {
+          "name": "bpfLoaderUpgradeable",
+          "address": "BPFLoaderUpgradeab1e11111111111111111111111"
+        },
+        {
           "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "feeRecipient",
+          "type": "pubkey"
+        },
+        {
+          "name": "admins",
+          "type": {
+            "vec": "pubkey"
+          }
+        }
+      ]
     },
     {
       "name": "registerPeer",
       "docs": [
-        "Register a new peer for the given chain.",
+        "Register a new peer for the given chain. If this peer is the first one to be registered",
+        "on this chain,  it becomes the canonical peer for this chain.",
         "",
         "# Authorization",
         "",
@@ -742,50 +753,17 @@ export type TokenBridgeRelayer = {
           "signer": true
         },
         {
-          "name": "adminBadge",
+          "name": "authBadge",
           "docs": [
-            "Proof that the signer is an admin or the owner."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  97,
-                  100,
-                  109,
-                  105,
-                  110
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "signer"
-              }
-            ]
-          }
+            "Proof that the signer is authorized."
+          ]
         },
         {
           "name": "tbrConfig",
           "docs": [
             "Owner Config account. This program requires that the `signer` specified",
             "in the context equals an authorized pubkey specified in this account."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          ]
         },
         {
           "name": "peer",
@@ -878,79 +856,20 @@ export type TokenBridgeRelayer = {
       ],
       "accounts": [
         {
-          "name": "payer",
-          "writable": true,
-          "signer": true
-        },
-        {
           "name": "tbrConfig",
           "docs": [
             "This program's config."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          ]
         },
         {
           "name": "chainConfig",
           "docs": [
             "The peer config. We need to verify that the transfer is sent to the",
             "canonical peer."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  104,
-                  97,
-                  105,
-                  110,
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              },
-              {
-                "kind": "arg",
-                "path": "chainId"
-              }
-            ]
-          }
+          ]
         },
         {
-          "name": "oracleConfig",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          "name": "oracleConfig"
         },
         {
           "name": "oracleEvmPrices",
@@ -971,18 +890,15 @@ export type TokenBridgeRelayer = {
                 ]
               },
               {
-                "kind": "arg",
-                "path": "chainId"
+                "kind": "account",
+                "path": "chain_config.chain_id",
+                "account": "chainConfigState"
               }
             ]
           }
         }
       ],
       "args": [
-        {
-          "name": "chainId",
-          "type": "u16"
-        },
         {
           "name": "dropoffAmountMicro",
           "type": "u32"
@@ -1015,81 +931,24 @@ export type TokenBridgeRelayer = {
           "signer": true
         },
         {
-          "name": "adminBadge",
+          "name": "authBadge",
           "docs": [
-            "If the signer is an admin, prove it with this PDA."
-          ],
-          "optional": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  97,
-                  100,
-                  109,
-                  105,
-                  110
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "signer"
-              }
-            ]
-          }
+            "Proof that the signer is authorized."
+          ]
         },
         {
           "name": "tbrConfig",
           "docs": [
             "Program Config account. This program requires that the [`owner`] specified",
             "in the context equals the owner role stored in the config."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          ]
         },
         {
-          "name": "adminBadgeToBeRemoved",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  97,
-                  100,
-                  109,
-                  105,
-                  110
-                ]
-              },
-              {
-                "kind": "arg",
-                "path": "adminToBeRemoved"
-              }
-            ]
-          }
+          "name": "authBadgeToBeRemoved",
+          "writable": true
         }
       ],
-      "args": [
-        {
-          "name": "adminToBeRemoved",
-          "type": "pubkey"
-        }
-      ]
+      "args": []
     },
     {
       "name": "setPauseForOutboundTransfers",
@@ -1120,56 +979,14 @@ export type TokenBridgeRelayer = {
           "signer": true
         },
         {
-          "name": "adminBadge",
+          "name": "authBadge",
           "docs": [
-            "Proof that the signer is an admin or the owner."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  97,
-                  100,
-                  109,
-                  105,
-                  110
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "signer"
-              }
-            ]
-          }
+            "Proof that the signer is authorized."
+          ]
         },
         {
           "name": "chainConfig",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  104,
-                  97,
-                  105,
-                  110,
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              },
-              {
-                "kind": "arg",
-                "path": "chainId"
-              }
-            ]
-          }
+          "writable": true
         },
         {
           "name": "tbrConfig",
@@ -1177,29 +994,10 @@ export type TokenBridgeRelayer = {
             "Program Config account. This program requires that the [`signer`] specified",
             "in the context equals a pubkey specified in this account. Mutable,",
             "because we will update roles depending on the operation."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          ]
         }
       ],
       "args": [
-        {
-          "name": "chainId",
-          "type": "u16"
-        },
         {
           "name": "paused",
           "type": "bool"
@@ -1267,7 +1065,7 @@ export type TokenBridgeRelayer = {
         "# Parameters",
         "",
         "- `dropoff_amount_micro`: the dropoff in µ-target-token.",
-        "- `max_fee_klam`: the maximum fee the user is willing to pay, in Klamports, aka µSOL."
+        "- `max_fee_lamports`: the maximum fee the user is willing to pay, in lamports."
       ],
       "discriminator": [
         54,
@@ -1293,53 +1091,14 @@ export type TokenBridgeRelayer = {
           "name": "tbrConfig",
           "docs": [
             "This program's config."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          ]
         },
         {
           "name": "chainConfig",
           "docs": [
             "The peer config. We need to verify that the transfer is sent to the",
             "canonical peer."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  104,
-                  97,
-                  105,
-                  110,
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              },
-              {
-                "kind": "arg",
-                "path": "recipientChain"
-              }
-            ]
-          }
+          ]
         },
         {
           "name": "mint",
@@ -1396,22 +1155,7 @@ export type TokenBridgeRelayer = {
           ]
         },
         {
-          "name": "oracleConfig",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          "name": "oracleConfig"
         },
         {
           "name": "oracleEvmPrices",
@@ -1432,8 +1176,9 @@ export type TokenBridgeRelayer = {
                 ]
               },
               {
-                "kind": "arg",
-                "path": "recipientChain"
+                "kind": "account",
+                "path": "chain_config.chain_id",
+                "account": "chainConfigState"
               }
             ]
           }
@@ -1555,11 +1300,11 @@ export type TokenBridgeRelayer = {
         },
         {
           "name": "tokenBridgeProgram",
-          "address": "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe"
+          "address": "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"
         },
         {
           "name": "wormholeProgram",
-          "address": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"
+          "address": "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth"
         },
         {
           "name": "clock",
@@ -1571,10 +1316,6 @@ export type TokenBridgeRelayer = {
         }
       ],
       "args": [
-        {
-          "name": "recipientChain",
-          "type": "u16"
-        },
         {
           "name": "recipientAddress",
           "type": {
@@ -1597,7 +1338,7 @@ export type TokenBridgeRelayer = {
           "type": "u32"
         },
         {
-          "name": "maxFeeKlam",
+          "name": "maxFeeLamports",
           "type": "u64"
         }
       ]
@@ -1638,95 +1379,21 @@ export type TokenBridgeRelayer = {
           "docs": [
             "Owner Config account. This program requires that the `owner` specified",
             "in the context equals the `owner` pubkey specified in this account."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          ]
         },
         {
-          "name": "peer",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  112,
-                  101,
-                  101,
-                  114
-                ]
-              },
-              {
-                "kind": "arg",
-                "path": "chainId"
-              },
-              {
-                "kind": "arg",
-                "path": "peerAddress"
-              }
-            ]
-          }
+          "name": "peer"
         },
         {
           "name": "chainConfig",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  104,
-                  97,
-                  105,
-                  110,
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              },
-              {
-                "kind": "arg",
-                "path": "chainId"
-              }
-            ]
-          }
+          "writable": true
         },
         {
           "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
-      "args": [
-        {
-          "name": "chainId",
-          "type": "u16"
-        },
-        {
-          "name": "peerAddress",
-          "type": {
-            "array": [
-              "u8",
-              32
-            ]
-          }
-        }
-      ]
+      "args": []
     },
     {
       "name": "updateEvmTransactionConfig",
@@ -1756,28 +1423,10 @@ export type TokenBridgeRelayer = {
           "signer": true
         },
         {
-          "name": "adminBadge",
+          "name": "authBadge",
           "docs": [
-            "Proof that the signer is an admin or the owner."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  97,
-                  100,
-                  109,
-                  105,
-                  110
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "signer"
-              }
-            ]
-          }
+            "Proof that the signer is authorized."
+          ]
         },
         {
           "name": "tbrConfig",
@@ -1786,22 +1435,7 @@ export type TokenBridgeRelayer = {
             "in the context equals a pubkey specified in this account. Mutable,",
             "because we will update roles depending on the operation."
           ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          "writable": true
         }
       ],
       "args": [
@@ -1843,28 +1477,10 @@ export type TokenBridgeRelayer = {
           "signer": true
         },
         {
-          "name": "adminBadge",
+          "name": "authBadge",
           "docs": [
-            "Proof that the signer is an admin or the owner."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  97,
-                  100,
-                  109,
-                  105,
-                  110
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "signer"
-              }
-            ]
-          }
+            "Proof that the signer is authorized."
+          ]
         },
         {
           "name": "tbrConfig",
@@ -1873,22 +1489,7 @@ export type TokenBridgeRelayer = {
             "in the context equals a pubkey specified in this account. Mutable,",
             "because we will update roles depending on the operation."
           ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          "writable": true
         }
       ],
       "args": [
@@ -1927,56 +1528,14 @@ export type TokenBridgeRelayer = {
           "signer": true
         },
         {
-          "name": "adminBadge",
+          "name": "authBadge",
           "docs": [
-            "Proof that the signer is an admin or the owner."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  97,
-                  100,
-                  109,
-                  105,
-                  110
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "signer"
-              }
-            ]
-          }
+            "Proof that the signer is authorized."
+          ]
         },
         {
           "name": "chainConfig",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  104,
-                  97,
-                  105,
-                  110,
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              },
-              {
-                "kind": "arg",
-                "path": "chainId"
-              }
-            ]
-          }
+          "writable": true
         },
         {
           "name": "tbrConfig",
@@ -1984,29 +1543,10 @@ export type TokenBridgeRelayer = {
             "Program Config account. This program requires that the [`signer`] specified",
             "in the context equals a pubkey specified in this account. Mutable,",
             "because we will update roles depending on the operation."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          ]
         }
       ],
       "args": [
-        {
-          "name": "chainId",
-          "type": "u16"
-        },
         {
           "name": "maxGasDropoffMicroToken",
           "type": "u32"
@@ -2043,56 +1583,14 @@ export type TokenBridgeRelayer = {
           "signer": true
         },
         {
-          "name": "adminBadge",
+          "name": "authBadge",
           "docs": [
-            "Proof that the signer is an admin or the owner."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  97,
-                  100,
-                  109,
-                  105,
-                  110
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "signer"
-              }
-            ]
-          }
+            "Proof that the signer is authorized."
+          ]
         },
         {
           "name": "chainConfig",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  104,
-                  97,
-                  105,
-                  110,
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              },
-              {
-                "kind": "arg",
-                "path": "chainId"
-              }
-            ]
-          }
+          "writable": true
         },
         {
           "name": "tbrConfig",
@@ -2100,31 +1598,12 @@ export type TokenBridgeRelayer = {
             "Program Config account. This program requires that the [`signer`] specified",
             "in the context equals a pubkey specified in this account. Mutable,",
             "because we will update roles depending on the operation."
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          ]
         }
       ],
       "args": [
         {
-          "name": "chainId",
-          "type": "u16"
-        },
-        {
-          "name": "relayerFee",
+          "name": "relayerFeeMicroUsd",
           "type": "u32"
         }
       ]
@@ -2132,16 +1611,16 @@ export type TokenBridgeRelayer = {
   ],
   "accounts": [
     {
-      "name": "adminState",
+      "name": "authBadgeState",
       "discriminator": [
-        190,
-        42,
-        124,
-        96,
-        242,
-        52,
-        141,
-        28
+        230,
+        136,
+        128,
+        117,
+        214,
+        51,
+        214,
+        152
       ]
     },
     {
@@ -2226,43 +1705,43 @@ export type TokenBridgeRelayer = {
   "errors": [
     {
       "code": 6000,
+      "name": "adminCountMismatch",
+      "msg": "adminCountMismatch"
+    },
+    {
+      "code": 6001,
       "name": "ownerOnly",
       "msg": "ownerOnly"
     },
     {
-      "code": 6001,
+      "code": 6002,
       "name": "pendingOwnerOnly",
       "msg": "pendingOwnerOnly"
     },
     {
-      "code": 6002,
+      "code": 6003,
       "name": "ownerOrAdminOnly",
       "msg": "ownerOrAdminOnly"
     },
     {
-      "code": 6003,
+      "code": 6004,
       "name": "alreadyTheOwner",
       "msg": "alreadyTheOwner"
     },
     {
-      "code": 6004,
+      "code": 6005,
+      "name": "chainIdMismatch",
+      "msg": "chainIdMismatch"
+    },
+    {
+      "code": 6006,
       "name": "alreadyTheCanonicalPeer",
       "msg": "alreadyTheCanonicalPeer"
     },
     {
-      "code": 6005,
+      "code": 6007,
       "name": "feeExceedingMaximum",
       "msg": "feeExceedingMaximum"
-    },
-    {
-      "code": 6006,
-      "name": "invalidTransferToAddress",
-      "msg": "invalidTransferToAddress"
-    },
-    {
-      "code": 6007,
-      "name": "invalidTransferToChain",
-      "msg": "invalidTransferToChain"
     },
     {
       "code": 6008,
@@ -2286,28 +1765,33 @@ export type TokenBridgeRelayer = {
     },
     {
       "code": 6012,
-      "name": "alreadyRedeemed",
-      "msg": "alreadyRedeemed"
-    },
-    {
-      "code": 6013,
       "name": "evmChainPriceNotSet",
       "msg": "evmChainPriceNotSet"
     },
     {
-      "code": 6014,
+      "code": 6013,
       "name": "pausedTransfers",
       "msg": "pausedTransfers"
     },
     {
-      "code": 6015,
+      "code": 6014,
       "name": "invalidSendingPeer",
       "msg": "invalidSendingPeer"
+    },
+    {
+      "code": 6015,
+      "name": "cannotRegisterSolana",
+      "msg": "cannotRegisterSolana"
+    },
+    {
+      "code": 6016,
+      "name": "invalidPeerAddress",
+      "msg": "invalidPeerAddress"
     }
   ],
   "types": [
     {
-      "name": "adminState",
+      "name": "authBadgeState",
       "docs": [
         "A badge indicating that an admin account is authorized."
       ],
@@ -2315,8 +1799,8 @@ export type TokenBridgeRelayer = {
         "kind": "struct",
         "fields": [
           {
-            "name": "bump",
-            "type": "u8"
+            "name": "address",
+            "type": "pubkey"
           }
         ]
       }
@@ -2329,6 +1813,10 @@ export type TokenBridgeRelayer = {
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "chainId",
+            "type": "u16"
+          },
           {
             "name": "canonicalPeer",
             "type": {
@@ -2355,10 +1843,6 @@ export type TokenBridgeRelayer = {
           {
             "name": "pausedOutboundTransfers",
             "type": "bool"
-          },
-          {
-            "name": "bump",
-            "type": "u8"
           }
         ]
       }
@@ -2398,11 +1882,15 @@ export type TokenBridgeRelayer = {
     {
       "name": "peerState",
       "docs": [
-        "A peer chain. Nothing is stored in it for now."
+        "A peer chain for sending token to or from."
       ],
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "chainId",
+            "type": "u16"
+          },
           {
             "name": "address",
             "type": {
@@ -2411,14 +1899,6 @@ export type TokenBridgeRelayer = {
                 32
               ]
             }
-          },
-          {
-            "name": "chain",
-            "type": "u16"
-          },
-          {
-            "name": "bump",
-            "type": "u8"
           }
         ]
       }

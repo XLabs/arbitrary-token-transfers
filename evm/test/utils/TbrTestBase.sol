@@ -2,29 +2,41 @@
 
 pragma solidity ^0.8.25;
 
-import {IWormhole} from "wormhole-sdk/interfaces/IWormhole.sol";
-import {IWETH} from "wormhole-sdk/interfaces/token/IWETH.sol";
-import "wormhole-sdk/interfaces/ITokenBridge.sol";
-import "wormhole-sdk/libraries/BytesParsing.sol";
-import {reRevert} from "wormhole-sdk/Utils.sol";
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {IPermit2} from "permit2/IPermit2.sol";
-import "wormhole-sdk/proxy/Proxy.sol";
-
-import "price-oracle/assets/types/SolanaFeeParams.sol";
-import "price-oracle/assets/types/EvmFeeParams.sol";
-import "price-oracle/assets/types/ParamLibs.sol";
-import "price-oracle/PriceOracle.sol";
-import {Tbr} from "tbr/Tbr.sol";
-import "./TbrExposer.sol";
-
+import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import { SolanaFeeParams } from "price-oracle/assets/types/SolanaFeeParams.sol";
+import { EvmFeeParams } from "price-oracle/assets/types/EvmFeeParams.sol";
+import { ITokenBridge } from "wormhole-sdk/interfaces/ITokenBridge.sol";
+import { BytesParsing } from "wormhole-sdk/libraries/BytesParsing.sol";
+import { IWormhole } from "wormhole-sdk/interfaces/IWormhole.sol";
+import { IWETH } from "wormhole-sdk/interfaces/token/IWETH.sol";
+import { IPriceOracle } from "price-oracle/IPriceOracle.sol";
+import { PriceOracle } from "price-oracle/PriceOracle.sol";
+import { Proxy } from "wormhole-sdk/proxy/Proxy.sol";
+import { reRevert } from "wormhole-sdk/Utils.sol";
+import { IPermit2 } from "permit2/IPermit2.sol";
+import { TbrExposer } from "./TbrExposer.sol";
+import { Tbr } from "tbr/Tbr.sol";
 import "forge-std/Test.sol";
+import {
+  PricePerByte,
+  GasPrice,
+  GasTokenPrice,
+  AccountOverhead,
+  AccountSizeCost
+} from "price-oracle/assets/types/ParamLibs.sol";
 
 contract TbrTestBase is Test {
   using BytesParsing for bytes;
 
-  uint16 SOLANA_CHAIN_ID = 1;
-  uint16 EVM_CHAIN_ID    = 3;
+  uint16  SOLANA_CHAIN_ID = 1;
+  uint16  HOME_CHAIN_ID   = 2;
+  uint16  EVM_CHAIN_ID    = 3;
+
+  // Arbitrum data
+  uint16  EVM_L2_CHAIN_ID = 23;
+  address EVM_L2_TOKEN_WETH_TOKEN = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
+  address EVM_L2_TOKEN_BRIDGE_ADDRESS = 0x0b2402144Bb366A632D14B83F244D2e0e21bD39c;
+  bytes32 WETH_CANONICAL_ADDRESS = 0x000000000000000000000000C02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
 
   address      immutable owner;
   address      immutable admin;
@@ -37,7 +49,7 @@ contract TbrTestBase is Test {
   bool         immutable gasErc20TokenizationIsExplicit;
   
   IERC20Metadata immutable usdt;
-  IWormhole    immutable wormholeCore;
+  IWormhole      immutable wormholeCore;
 
   address     tbrImplementation;
   PriceOracle priceOracle;
@@ -62,10 +74,12 @@ contract TbrTestBase is Test {
   function _setUp1() internal virtual { }
 
   function setUp() public {
+    uint8 adminCount = 1;
+
     vm.mockCall(
-      oracle, 
-      abi.encodeWithSelector(priceOracle.get1959.selector), 
-      abi.encode(EVM_CHAIN_ID)
+      address(oracle),
+      abi.encodeWithSelector(IPriceOracle.get1959.selector),
+      abi.encode(abi.encodePacked(uint16(HOME_CHAIN_ID)))
     );
 
     tbrImplementation = address(new Tbr(
@@ -79,9 +93,10 @@ contract TbrTestBase is Test {
     tbr = Tbr(payable(new Proxy(
       tbrImplementation,
       abi.encodePacked(
+        feeRecipient,
         owner,
-        admin,
-        feeRecipient
+        adminCount,
+        admin
       )
     )));
 
@@ -127,23 +142,39 @@ contract TbrTestBase is Test {
   function setUpOracle() internal {
     address assistant = makeAddr("assistant");
     EvmFeeParams evmFeeParams;
-    evmFeeParams = evmFeeParams.pricePerByte(PricePerByte.wrap(1e6));
+    evmFeeParams = evmFeeParams.pricePerByte(PricePerByte.wrap(0));
     evmFeeParams = evmFeeParams.gasPrice(GasPrice.wrap(1e6));
     evmFeeParams = evmFeeParams.gasTokenPrice(GasTokenPrice.wrap(1e12));
+
+    EvmFeeParams evmL2FeeParams;
+    evmL2FeeParams = evmL2FeeParams.pricePerByte(PricePerByte.wrap(1e6));
+    evmL2FeeParams = evmL2FeeParams.gasPrice(GasPrice.wrap(1e6));
+    evmL2FeeParams = evmL2FeeParams.gasTokenPrice(GasTokenPrice.wrap(1e12));
 
     SolanaFeeParams solanaFeeParams;
     solanaFeeParams = solanaFeeParams.accountOverhead(AccountOverhead.wrap(1e9)); 
     solanaFeeParams = solanaFeeParams.accountSizeCost(AccountSizeCost.wrap(1e9));
     solanaFeeParams = solanaFeeParams.gasTokenPrice(GasTokenPrice.wrap(1e12));
 
+    vm.mockCall(
+      address(wormholeCore),
+      abi.encodeWithSelector(wormholeCore.chainId.selector),
+      abi.encode(HOME_CHAIN_ID)
+    );
+
     priceOracle = PriceOracle(address(new Proxy(
-      address(new PriceOracle(EVM_CHAIN_ID)),
+      address(new PriceOracle(wormholeCore)),
       abi.encodePacked(
         owner,
+        uint8(1),
         admin,
         assistant,
+        HOME_CHAIN_ID,
+        evmFeeParams,
         EVM_CHAIN_ID,
         evmFeeParams,
+        EVM_L2_CHAIN_ID,
+        evmL2FeeParams,
         SOLANA_CHAIN_ID,
         solanaFeeParams
       )

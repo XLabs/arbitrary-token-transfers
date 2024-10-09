@@ -2,14 +2,16 @@ use crate::{
     error::{TokenBridgeRelayerError, TokenBridgeRelayerResult},
     state::{ChainConfigState, TbrConfigState},
 };
-use anchor_lang::{prelude::*, solana_program::program_option::COption};
+use anchor_lang::{
+    prelude::*,
+    solana_program::{native_token::LAMPORTS_PER_SOL, program_option::COption},
+};
 use solana_price_oracle::state::{EvmPricesAccount, PriceOracleConfigAccount};
 
-const KLAM_PER_SOL: u64 = 1_000_000;
 const MWEI_PER_MICRO_ETH: u64 = 1_000_000;
 const MWEI_PER_ETH: u128 = 1_000_000_000_000;
 
-/// Returns the transfer fee in Klamports aka µSOL.
+/// Returns the transfer fee in lamports.
 ///
 /// If `price_per_byte` is set to 0, it means that the transaction size does
 /// not matter.
@@ -64,8 +66,8 @@ pub fn calculate_total_fee(
     .expect("Overflow")
         + u64::from(chain_config.relayer_fee_micro_usd);
 
-    // µSOL/SOL * μusd / μusd/SOL
-    Ok((KLAM_PER_SOL * total_fees_micro_usd) / oracle_config.sol_price)
+    // lamports/SOL * μusd / μusd/SOL
+    Ok((LAMPORTS_PER_SOL * total_fees_micro_usd) / oracle_config.sol_price)
 }
 
 /// This is a basic security against a wrong manip, to be sure that the prices

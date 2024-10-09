@@ -1,15 +1,15 @@
 {
   "name": "@xlabs-xyz/solana-arbitrary-token-transfers",
-  "version": "0.0.2-alpha0",
+  "version": "0.0.2-alpha2",
   "license": "ISC",
   "type": "module",
-  "module": "ts-build/tbrv3/index.js",
-  "types": "ts-build/tbrv3/index.d.ts",
+  "module": "ts-build/index.js",
+  "types": "ts-build/index.d.ts",
   "exports": {
     ".": {
-      "types": "./ts-build/tbrv3/index.d.ts",
-      "require": "./ts-build/tbrv3/index.cjs",
-      "import": "./ts-build/tbrv3/index.js"
+      "types": "./ts-build/index.d.ts",
+      "require": "./ts-build/index.cjs",
+      "import": "./ts-build/index.js"
     }
   },
   "files": [
@@ -18,6 +18,7 @@
   "scripts": {
     "build:ts": "tsc --noEmit -p ./tsconfig.json && tsup",
     "build": "yarn run build:ts",
+    "clean": "rm -r ts-build",
     "prettier": "prettier --write ."
   },
   "dependencies": {
@@ -25,27 +26,27 @@
     "@solana/web3.js": "^1.95.3",
     "@wormhole-foundation/sdk-base": "^0.10.9",
     "@wormhole-foundation/sdk-definitions": "^0.10.9",
+    "@wormhole-foundation/sdk-solana": "^0.10.9",
     "@wormhole-foundation/sdk-solana-tokenbridge": "^0.10.9",
-    "@xlabs/solana-price-oracle-sdk": "^0.0.4",
-    "borsh": "^2.0.0",
-    "common-arbitrary-token-transfer": "workspace:^"
+    "@xlabs/solana-price-oracle-sdk": "^0.0.7",
+    "borsh": "^2.0.0"
   },
   "devDependencies": {
-    "@types/node": "20.16.5",
-    "tsup": "^8.2.4",
+    "@types/node": "20.16.10",
+    "tsup": "^8.3.0",
     "tsx": "4.19.1",
     "typescript": "5.6.2"
   },
   "tsup": {
     "entry": [
-      "tbrv3/index.ts"
+      "index.ts"
     ],
     "tsconfig": "tsconfig.build.json",
     "splitting": false,
     "sourcemap": true,
     "minify": false,
     "clean": true,
-    "outDir": "ts-build/tbrv3",
+    "outDir": "ts-build",
     "format": [
       "esm",
       "cjs"
@@ -58,6 +59,9 @@
       "@wormhole-foundation/sdk-definitions",
       "@wormhole-foundation/sdk-base",
       "@wormhole-foundation/sdk-solana-tokenbridge"
+    ],
+    "noExternal": [
+      "common-arbitrary-token-transfer"
     ]
   }
 }

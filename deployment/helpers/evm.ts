@@ -1,6 +1,10 @@
 import { ethers } from "ethers";
 import { ChainInfo, ecosystemChains, EvmScriptCb, getEnv, EvmChainInfo, UncheckedConstructorArgs } from "./index.js";
 import { toChain } from "@wormhole-foundation/sdk-base";
+import { PartialTx } from "@xlabs-xyz/evm-arbitrary-token-transfers";
+
+// Ensures EvmAddress is registered
+import "@wormhole-foundation/sdk-evm";
 
 export async function runOnEvms(scriptName: string, cb: EvmScriptCb) {
   const chains = evmOperatingChains() as EvmChainInfo[];
@@ -78,24 +82,75 @@ export function getProvider(
   }
 
   let provider = new ethers.JsonRpcProvider(
-    providerRpc,  
+    providerRpc,
+    undefined,
+    {staticNetwork: true},
   );
 
   return provider;
 }
 
+export function wrapEthersProvider(ethersProvider: ethers.Provider) {
+  return { ethCall: async ({to, data}: Omit<PartialTx, "value">): Promise<Uint8Array> => {
+    const result = await ethersProvider.call({
+      to,
+      data: ethers.hexlify(data),
+    });
+    return ethers.getBytes(result);
+  }};
+}
+
+export async function sendTxCatch(
+  signer: ethers.Signer,
+  tx: ethers.TransactionRequest
+): Promise<{
+  error?: unknown | Error;
+  receipt: null | ethers.TransactionReceipt;
+  txid?: string;
+}> {
+  let receipt;
+  let txid;
+  try {
+    const sentTx = await signer.sendTransaction(tx);
+    txid = sentTx.hash;
+    receipt = await sentTx.wait();
+  } catch (error) {
+    // console.error("Error sending transaction", error);
+    return { receipt: null, txid, error }
+  }
+
+  if (receipt === null) {
+    // This shouldn't happen normally
+    return { receipt, txid, error: new Error(`Transaction receipt for txid ${txid} is missing.`) };
+  }
+
+  return {
+    receipt,
+    txid,
+    ...(receipt.status !== 1
+      ? {error: new Error(`Transaction execution failed. Txid: ${txid}`)}
+      : {})
+  };
+}
+
+
 export async function sendTx(
   signer: ethers.Signer,
   tx: ethers.TransactionRequest
-): Promise<{ error?: any, receipt: null | ethers.TransactionReceipt }> {
-  try {
-    const sentTx = await signer.sendTransaction(tx);
-    const receipt = await sentTx.wait();
-    return receipt?.status === 1 ? { receipt } : { receipt: null, error: "Transaction failed" };
-  } catch (error) {
-    console.error("Error sending transaction", error);
-    return { receipt: null, error }
+): Promise<{
+  receipt: ethers.TransactionReceipt;
+  txid: string;
+}> {
+  const result = await sendTxCatch(signer, tx);
+
+  if (result.error !== undefined) {
+    throw result.error;
   }
+
+  return {
+    receipt: result.receipt!,
+    txid: result.txid!,
+  };
 }
 
 export function getVerifyCommand({

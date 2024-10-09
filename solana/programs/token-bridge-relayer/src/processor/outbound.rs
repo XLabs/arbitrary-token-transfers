@@ -21,10 +21,6 @@ use wormhole_anchor_sdk::{
 /// The other side will mint a wrapped token issued by Wormhole.
 /// The other side will unbound a native ERC-20 token.
 #[derive(Accounts)]
-#[instruction(
-    recipient_chain: u16,
-    recipient_address: [u8; 32],
-)]
 pub struct OutboundTransfer<'info> {
     /// Payer will pay Wormhole fee to transfer tokens and create temporary
     /// token account.
@@ -32,21 +28,13 @@ pub struct OutboundTransfer<'info> {
     pub payer: Signer<'info>,
 
     /// This program's config.
-    #[account(
-        has_one = fee_recipient @ TokenBridgeRelayerError::WrongFeeRecipient,
-        seeds = [TbrConfigState::SEED_PREFIX],
-        bump = tbr_config.bump
-    )]
+    #[account(has_one = fee_recipient @ TokenBridgeRelayerError::WrongFeeRecipient)]
     pub tbr_config: Box<Account<'info, TbrConfigState>>,
 
     /// The peer config. We need to verify that the transfer is sent to the
     /// canonical peer.
     #[account(
-        seeds = [
-            ChainConfigState::SEED_PREFIX,
-            recipient_chain.to_be_bytes().as_ref(),
-        ],
-        bump = chain_config.bump
+        constraint = (!chain_config.paused_outbound_transfers) @ TokenBridgeRelayerError::PausedTransfers
     )]
     pub chain_config: Box<Account<'info, ChainConfigState>>,
 
@@ -87,15 +75,10 @@ pub struct OutboundTransfer<'info> {
     #[account(mut)]
     pub fee_recipient: UncheckedAccount<'info>,
 
-    #[account(
-        seeds = [PriceOracleConfigAccount::SEED_PREFIX],
-        seeds::program = PriceOracle::id(),
-        bump,
-    )]
     pub oracle_config: Box<Account<'info, PriceOracleConfigAccount>>,
 
     #[account(
-        seeds = [EvmPricesAccount::SEED_PREFIX, recipient_chain.to_be_bytes().as_ref()],
+        seeds = [EvmPricesAccount::SEED_PREFIX, chain_config.chain_id.to_be_bytes().as_ref()],
         seeds::program = PriceOracle::id(),
         bump,
     )]
@@ -191,14 +174,13 @@ pub struct OutboundTransfer<'info> {
 
 pub fn transfer_tokens(
     mut ctx: Context<OutboundTransfer>,
-    recipient_chain: u16,
     transferred_amount: u64,
     unwrap_intent: bool,
     dropoff_amount_micro: u32,
-    max_fee_klam: u64,
+    max_fee_lamports: u64,
     recipient_address: [u8; 32],
 ) -> Result<()> {
-    ctx.accounts.chain_config.transfer_allowed()?;
+    let recipient_chain = ctx.accounts.chain_config.chain_id;
 
     let tbr_config_seeds = &[
         TbrConfigState::SEED_PREFIX.as_ref(),
@@ -215,7 +197,7 @@ pub fn transfer_tokens(
         &[ctx.accounts.tbr_config.sender_bump],
     ];
 
-    let total_fees_klam = calculate_total_fee(
+    let total_fees_lamports = calculate_total_fee(
         &ctx.accounts.tbr_config,
         &ctx.accounts.chain_config,
         &ctx.accounts.oracle_evm_prices,
@@ -223,7 +205,7 @@ pub fn transfer_tokens(
         dropoff_amount_micro,
     )?;
     require!(
-        total_fees_klam <= max_fee_klam,
+        total_fees_lamports <= max_fee_lamports,
         TokenBridgeRelayerError::FeeExceedingMaximum
     );
 
@@ -236,7 +218,7 @@ pub fn transfer_tokens(
                 to: ctx.accounts.fee_recipient.to_account_info(),
             },
         ),
-        total_fees_klam,
+        total_fees_lamports,
     )?;
 
     // Transfer the tokens to the custody account, to be transferred through the TBR:

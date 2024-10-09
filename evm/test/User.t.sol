@@ -2,31 +2,34 @@
 
 pragma solidity ^0.8.25;
 
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {ISignatureTransfer, IAllowanceTransfer} from "permit2/IPermit2.sol";
-import {IPriceOracle} from "price-oracle/IPriceOracle.sol";
-import "wormhole-sdk/interfaces/ITokenBridge.sol";
-import "wormhole-sdk/libraries/BytesParsing.sol";
+import { makeBytes32, ERC20Mock, discardInsignificantBits, deNormalizeAmount } from "./utils/utils.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { ISignatureTransfer, IAllowanceTransfer } from "permit2/IPermit2.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { ITokenBridge } from "wormhole-sdk/interfaces/ITokenBridge.sol";
+import { BytesParsing } from "wormhole-sdk/libraries/BytesParsing.sol";
+import { IWETH } from "wormhole-sdk/interfaces/token/IWETH.sol";
+import { IPriceOracle } from "price-oracle/IPriceOracle.sol";
+import { toUniversalAddress } from "wormhole-sdk/Utils.sol";
+import { TbrTestBase } from "./utils/TbrTestBase.sol";
+import { craftTbrV3Vaa } from "./utils/utils.sol";
 
 import "tbr/assets/TbrDispatcher.sol";
 import "tbr/assets/TbrUser.sol";
-import "tbr/assets/TbrUser.sol";
 import "tbr/assets/TbrIds.sol";
-
-import {TbrTestBase} from "./utils/TbrTestBase.sol";
-import {makeBytes32, ERC20Mock, discardInsignificantBits} from "./utils/utils.sol";
 
 contract UserTest is TbrTestBase {
   using BytesParsing for bytes;
 
   bytes32 SOLANA_CANONICAL_PEER  = makeBytes32("SOLANA_CANONICAL_PEER");
   bytes32 EVM_CANONICAL_PEER     = makeBytes32("EVM_CANONICAL_PEER");
+  bytes32 EVM_L2_CANONICAL_PEER  = makeBytes32("EVM_L2_CANONICAL_PEER");
   uint32  MAX_GAS_DROPOFF_AMOUNT = 10000;
   uint32  RELAY_FEE_AMOUNT       = 1000;
 
   receive() external payable {}
 
-  function executeGovernanceCommand(bytes memory command) internal {
+  function executeConfigCommand(bytes memory command) internal {
     uint8 commandCount = 1;
 
     vm.prank(owner);
@@ -34,7 +37,7 @@ contract UserTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector,
         DISPATCHER_PROTOCOL_VERSION0,
-        GOVERNANCE_ID,
+        CONFIG_ID,
         commandCount,
         command
       )
@@ -43,35 +46,40 @@ contract UserTest is TbrTestBase {
 
   function _setUp1() internal override {
     // Solana chain setup
-    executeGovernanceCommand(
+    executeConfigCommand(
       abi.encodePacked(UPDATE_CANONICAL_PEER_ID, SOLANA_CHAIN_ID, SOLANA_CANONICAL_PEER)
     );
-    executeGovernanceCommand(
+    executeConfigCommand(
       abi.encodePacked(UPDATE_MAX_GAS_DROPOFF_ID, SOLANA_CHAIN_ID, MAX_GAS_DROPOFF_AMOUNT)
     );
-    executeGovernanceCommand(
-      abi.encodePacked(UPDATE_TX_SIZE_SENSITIVE_ID, SOLANA_CHAIN_ID, bool(false))
-    );
-    executeGovernanceCommand(
+    executeConfigCommand(
       abi.encodePacked(UPDATE_BASE_FEE_ID, SOLANA_CHAIN_ID, RELAY_FEE_AMOUNT)
     );
 
     // EVM chain setup
-    executeGovernanceCommand(
+    executeConfigCommand(
       abi.encodePacked(UPDATE_CANONICAL_PEER_ID, EVM_CHAIN_ID, EVM_CANONICAL_PEER)
     );
-    executeGovernanceCommand(
+    executeConfigCommand(
       abi.encodePacked(UPDATE_MAX_GAS_DROPOFF_ID, EVM_CHAIN_ID, MAX_GAS_DROPOFF_AMOUNT)
     );
-    executeGovernanceCommand(
-      abi.encodePacked(UPDATE_TX_SIZE_SENSITIVE_ID, EVM_CHAIN_ID, bool(true))
-    );
-    executeGovernanceCommand(
+    executeConfigCommand(
       abi.encodePacked(UPDATE_BASE_FEE_ID, EVM_CHAIN_ID, RELAY_FEE_AMOUNT)
+    );
+
+    // EVM L2 chain setup
+    executeConfigCommand(
+      abi.encodePacked(UPDATE_CANONICAL_PEER_ID, EVM_L2_CHAIN_ID, EVM_L2_CANONICAL_PEER)
+    );
+    executeConfigCommand(
+      abi.encodePacked(UPDATE_MAX_GAS_DROPOFF_ID, EVM_L2_CHAIN_ID, MAX_GAS_DROPOFF_AMOUNT)
+    );
+    executeConfigCommand(
+      abi.encodePacked(UPDATE_BASE_FEE_ID, EVM_L2_CHAIN_ID, RELAY_FEE_AMOUNT)
     );
   }
 
-  function testTransferTokenWithRelay(
+  function testTransferTokenWithRelaySimple(
     uint256 tokenAmount,
     uint32 gasDropoff,
     bytes32 recipient,
@@ -144,9 +152,100 @@ contract UserTest is TbrTestBase {
       1
     );
 
+    vm.expectEmit(address(usdt));
+    emit IERC20.Approval(address(tbr), address(tokenBridge), type(uint256).max);
+
     vm.expectEmit(address(tbr));
     emit TransferRequested(address(this), sequence, gasDropoff, feeQuote);
 
+    invokeTbr(
+      abi.encodePacked(
+        tbr.exec768.selector,
+        DISPATCHER_PROTOCOL_VERSION0,
+        APPROVE_TOKEN_ID,
+        usdt,
+        TRANSFER_TOKEN_WITH_RELAY_ID,
+        targetChain,
+        recipient,
+        gasDropoff,
+        tokenAmount,
+        usdt,
+        unwrapIntent,
+        ACQUIRE_PREAPPROVED
+      ),
+      unallocatedBalance
+    );
+
+    assertEq(address(this).balance, initialCallerBalance - feeQuote - wormholeFee);
+    assertEq(address(feeRecipient).balance, initialFeeRecipientBalance + feeQuote);
+  }
+
+  function testTransferTokenWithRelay_InsufficientAllowance(
+    uint256 tokenAmount,
+    uint32 gasDropoff,
+    bytes32 recipient,
+    uint256 feeQuote,
+    uint256 unallocatedBalance,
+    uint256 wormholeFee
+  ) public {
+    // use a bound max value in order to prevent overflow
+    uint boundMaxValue = 1e12;
+    wormholeFee = bound(wormholeFee, 1, boundMaxValue);
+    feeQuote = bound(feeQuote, 1, boundMaxValue);
+    tokenAmount = bound(tokenAmount, 1, type(uint56).max);
+    vm.assume(recipient != bytes32(0));
+    gasDropoff = uint32(bound(gasDropoff, 0, MAX_GAS_DROPOFF_AMOUNT));
+    unallocatedBalance = bound(unallocatedBalance, feeQuote + wormholeFee, (feeQuote + wormholeFee) * 10);
+    deal(address(this), unallocatedBalance);
+    deal(address(usdt), address(this), tokenAmount);
+    SafeERC20.safeApprove(usdt, address(tbr), tokenAmount);
+
+    uint16 targetChain = SOLANA_CHAIN_ID;
+    bool unwrapIntent = false;
+    bytes memory tbrMessage = abi.encodePacked(
+      TBR_V3_MESSAGE_VERSION,
+      recipient,
+      gasDropoff,
+      unwrapIntent
+    );
+
+    uint64 sequence = 1;
+    vm.mockCall(
+      address(wormholeCore),
+      abi.encodeWithSelector(wormholeCore.publishMessage.selector),
+      abi.encode(sequence)
+    );
+
+    vm.mockCall(
+      address(oracle),
+      abi.encodeWithSelector(IPriceOracle.get1959.selector),
+      abi.encode(abi.encodePacked(uint256(feeQuote)))
+    );
+
+    vm.mockCall(
+      address(wormholeCore),
+      abi.encodeWithSelector(
+        wormholeCore.messageFee.selector
+      ),
+      abi.encode(uint256(wormholeFee))
+    );
+
+    vm.expectCall(
+      address(tokenBridge),
+      wormholeFee,
+      abi.encodeWithSelector(
+        tokenBridge.transferTokensWithPayload.selector,
+        usdt,
+        tokenAmount,
+        targetChain,
+        SOLANA_CANONICAL_PEER,
+        0,
+        tbrMessage
+      ),
+      1
+    );
+
+    vm.expectRevert("SafeERC20: low-level call failed");
     invokeTbr(
       abi.encodePacked(
         tbr.exec768.selector,
@@ -156,15 +255,12 @@ contract UserTest is TbrTestBase {
         recipient,
         gasDropoff,
         tokenAmount,
-        address(usdt),
+        usdt,
         unwrapIntent,
         ACQUIRE_PREAPPROVED
       ),
       unallocatedBalance
     );
-
-    assertEq(address(this).balance, initialCallerBalance - feeQuote - wormholeFee);
-    assertEq(address(feeRecipient).balance, initialFeeRecipientBalance + feeQuote);
   }
 
   function testTransferTokenWithRelayDoubleTransfer(
@@ -223,6 +319,9 @@ contract UserTest is TbrTestBase {
       abi.encode(uint256(wormholeFee))
     );
 
+    vm.expectEmit(address(token));
+    emit IERC20.Approval(address(tbr), address(tokenBridge), type(uint256).max);
+
     vm.expectEmit(address(tbr));
     emit TransferRequested(address(this), sequence, gasDropoff, feeQuote);
 
@@ -230,12 +329,14 @@ contract UserTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector,
         DISPATCHER_PROTOCOL_VERSION0,
+        APPROVE_TOKEN_ID,
+        token,
         TRANSFER_TOKEN_WITH_RELAY_ID,
         targetChain,
         recipient,
         gasDropoff,
         firstTokenAmount,
-        address(token),
+        token,
         unwrapIntent,
         ACQUIRE_PREAPPROVED
       ),
@@ -277,7 +378,7 @@ contract UserTest is TbrTestBase {
         recipient,
         gasDropoff,
         secondTokenAmount,
-        address(token),
+        token,
         unwrapIntent,
         ACQUIRE_PREAPPROVED
       ),
@@ -404,6 +505,9 @@ contract UserTest is TbrTestBase {
       1
     );
 
+    vm.expectEmit(address(gasToken));
+    emit IERC20.Approval(address(tbr), address(tokenBridge), type(uint256).max);
+
     vm.expectEmit(address(tbr));
     emit TransferRequested(address(this), sequence, gasDropoff, feeQuote);
 
@@ -411,6 +515,8 @@ contract UserTest is TbrTestBase {
       abi.encodePacked(
         tbr.exec768.selector,
         DISPATCHER_PROTOCOL_VERSION0,
+        APPROVE_TOKEN_ID,
+        gasToken,
         TRANSFER_GAS_TOKEN_WITH_RELAY_ID,
         targetChain,
         recipient,
@@ -424,6 +530,76 @@ contract UserTest is TbrTestBase {
     uint256 dust = tokenAmount - finalTokenAmount;
     assertEq(address(this).balance, initialCallerBalance + dust - feeQuote - tokenAmount, "balance of caller is incorrect");
     assertEq(address(feeRecipient).balance, initialFeeRecipientBalance + feeQuote, "balance of fee recipient is incorrect");
+  }
+
+  function testTransferGasTokenWithRelay_InsufficientAllowance(
+    uint256 tokenAmount,
+    uint32 gasDropoff,
+    bytes32 recipient,
+    uint256 feeQuote,
+    uint256 unallocatedBalance
+  ) public {
+    // use a bound max value in order to prevent overflow
+    uint8 decimals = IERC20Metadata(address(gasToken)).decimals();
+    uint8 minDecimals = decimals <= 8 ? 0 : decimals - 8;
+    uint boundMaxValue = 10 ** (minDecimals + 6);
+    tokenAmount = bound(tokenAmount, 10 ** minDecimals, boundMaxValue);
+    gasDropoff = uint32(bound(gasDropoff, 1, MAX_GAS_DROPOFF_AMOUNT));
+    feeQuote = bound(feeQuote, 1, boundMaxValue);
+    unallocatedBalance = bound(unallocatedBalance, feeQuote + tokenAmount, (feeQuote + tokenAmount) * 5);
+    vm.assume(recipient != bytes32(0));
+    deal(address(this), unallocatedBalance);
+
+    uint16 targetChain = SOLANA_CHAIN_ID;
+    bool unwrapIntent = false;
+    bytes memory tbrMessage = abi.encodePacked(
+      TBR_V3_MESSAGE_VERSION,
+      recipient,
+      gasDropoff,
+      unwrapIntent
+    );
+
+    uint64 sequence = 1;
+    vm.mockCall(
+      address(wormholeCore),
+      abi.encodeWithSelector(wormholeCore.publishMessage.selector),
+      abi.encode(sequence)
+    );
+
+    vm.mockCall(
+      address(oracle),
+      abi.encodeWithSelector(IPriceOracle.get1959.selector),
+      abi.encode(abi.encodePacked(uint256(feeQuote)))
+    );
+
+    uint256 finalTokenAmount = discardInsignificantBits(tokenAmount, IERC20Metadata(address(gasToken)).decimals());
+    vm.expectCall(
+      address(tokenBridge),
+      abi.encodeWithSelector(
+        tokenBridge.transferTokensWithPayload.selector,
+        address(gasToken),
+        finalTokenAmount,
+        targetChain,
+        SOLANA_CANONICAL_PEER,
+        0,
+        tbrMessage
+      ),
+      1
+    );
+
+    vm.expectRevert("SafeERC20: low-level call failed");
+    invokeTbr(
+      abi.encodePacked(
+        tbr.exec768.selector,
+        DISPATCHER_PROTOCOL_VERSION0,
+        TRANSFER_GAS_TOKEN_WITH_RELAY_ID,
+        targetChain,
+        recipient,
+        gasDropoff,
+        tokenAmount
+      ),
+      unallocatedBalance
+    );
   }
 
   function testTransferGasTokenWithRelay_FeesInsufficient(
@@ -940,7 +1116,47 @@ contract UserTest is TbrTestBase {
       abi.encode(abi.encodePacked(uint256(feeQuote)))
     );
 
-    bytes memory response = invokeTbr(
+    bytes memory response = invokeStaticTbr(
+      abi.encodePacked(
+        tbr.get1959.selector,
+        DISPATCHER_PROTOCOL_VERSION0,
+        RELAY_FEE_ID,
+        SOLANA_CHAIN_ID,
+        gasDropoff
+      )
+    );
+
+    uint offset;
+    bool isPaused;
+    uint64 fee;
+    (isPaused, offset) = response.asBoolUnchecked(offset);
+    (fee, offset) = response.asUint64Unchecked(offset);
+    assertEq(isPaused, false);
+    assertEq(fee, expectedFee);
+  }
+
+  function testRelayFee_RemainderBelowMwei(uint32 gasDropoff) public {
+    gasDropoff = uint32(bound(gasDropoff, 1, MAX_GAS_DROPOFF_AMOUNT));
+    uint256 feeQuote = 1e6;
+    uint64 expectedFee = uint64(feeQuote) / 1e6 + 1;
+
+    vm.mockCall(
+      address(oracle),
+      abi.encodeWithSelector(IPriceOracle.get1959.selector),
+      abi.encode(abi.encodePacked(uint256(feeQuote)))
+    );
+
+    // Less than 1kWei
+    uint fakeWormholeFee = 100;
+    vm.mockCall(
+      address(wormholeCore),
+      abi.encodeWithSelector(
+        wormholeCore.messageFee.selector
+      ),
+      abi.encode(uint256(fakeWormholeFee))
+    );
+
+    bytes memory response = invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector,
         DISPATCHER_PROTOCOL_VERSION0,
@@ -970,8 +1186,7 @@ contract UserTest is TbrTestBase {
         commandIndex
       )
     );
-
-    invokeTbr(
+    invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector,
         DISPATCHER_PROTOCOL_VERSION0,
@@ -982,8 +1197,8 @@ contract UserTest is TbrTestBase {
     );
   }
 
-  function testBaseRelayingConfig() public {
-    bytes memory response = invokeTbr(
+  function testBaseRelayingConfig() public view {
+    bytes memory response = invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector,
         DISPATCHER_PROTOCOL_VERSION0,
@@ -995,22 +1210,20 @@ contract UserTest is TbrTestBase {
     uint offset;
     bytes32 peer;
     bool chainIsPaused;
-    bool txSizeSensitive;
     uint32 maxGasDropoff;
     uint32 baseFee;
     (peer, offset) = response.asBytes32Unchecked(offset);
     (baseFee, offset) = response.asUint32Unchecked(offset);
     (maxGasDropoff, offset) = response.asUint32Unchecked(offset);
     (chainIsPaused, offset) = response.asBoolUnchecked(offset);
-    (txSizeSensitive, offset) = response.asBoolUnchecked(offset);
 
     assertEq(peer, SOLANA_CANONICAL_PEER);
     assertEq(baseFee, RELAY_FEE_AMOUNT);
     assertEq(maxGasDropoff, MAX_GAS_DROPOFF_AMOUNT);
     assertEq(chainIsPaused, false);
-    assertEq(txSizeSensitive, false);
+    assertEq(response.length, offset);
 
-    response = invokeTbr(
+    response = invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector,
         DISPATCHER_PROTOCOL_VERSION0,
@@ -1024,12 +1237,260 @@ contract UserTest is TbrTestBase {
     (baseFee, offset) = response.asUint32Unchecked(offset);
     (maxGasDropoff, offset) = response.asUint32Unchecked(offset);
     (chainIsPaused, offset) = response.asBoolUnchecked(offset);
-    (txSizeSensitive, offset) = response.asBoolUnchecked(offset);
 
     assertEq(peer, EVM_CANONICAL_PEER);
     assertEq(baseFee, RELAY_FEE_AMOUNT);
     assertEq(maxGasDropoff, MAX_GAS_DROPOFF_AMOUNT);
     assertEq(chainIsPaused, false);
-    assertEq(txSizeSensitive, true);
+    assertEq(response.length, offset);
   }
+
+  function testCompleteTransfer_gasToken(
+    uint256 amount,
+    uint32 gasDropoff,
+    uint64 sequence,
+    uint256 unallocatedBalance,
+    uint8 transferReturn
+  ) public {
+    gasDropoff = uint32(bound(gasDropoff, 0, MAX_GAS_DROPOFF_AMOUNT));
+    amount = bound(amount, 1, 1e10); // avoid overflow
+    unallocatedBalance = bound(unallocatedBalance, gasDropoff + transferReturn + amount, (gasDropoff + transferReturn + amount) * 10);
+    deal(address(this), unallocatedBalance);
+
+    uint16 peerChain = EVM_L2_CHAIN_ID;
+    bytes32 originTokenBridge = toUniversalAddress(EVM_L2_TOKEN_BRIDGE_ADDRESS);
+    bytes32 originTBR = EVM_L2_CANONICAL_PEER;
+    bytes32 targetTBR = toUniversalAddress(address(tbr));
+    uint16 tokenChain = 2;
+    uint16 recipientChain = tokenBridge.chainId();
+    bytes32 canonicalTokenAddress = WETH_CANONICAL_ADDRESS;
+    address recipient = makeAddr("recipient");
+    bool unwrapIntent = true;
+
+    vm.mockCall(
+      address(oracle),
+      abi.encodeWithSelector(IPriceOracle.get1959.selector),
+      abi.encode(abi.encodePacked(uint16(HOME_CHAIN_ID)))
+    );
+
+    bytes memory encodedVaa = craftTbrV3Vaa(
+      wormholeCore,
+      originTokenBridge,
+      originTBR,
+      targetTBR,
+      peerChain,
+      tokenChain,
+      canonicalTokenAddress,
+      amount,
+      recipientChain,
+      recipient,
+      gasDropoff,
+      unwrapIntent,
+      sequence
+    );
+
+    uint decimals = IERC20Metadata(address(gasToken)).decimals();
+    uint initialRecipienGasTokenBalance = recipient.balance;
+    uint initialCallerBalance = address(this).balance;
+
+    vm.expectEmit(address(tokenBridge));
+    emit ITokenBridge.TransferRedeemed(peerChain, originTokenBridge, sequence);
+
+    vm.expectEmit(address(gasToken));
+    emit IERC20.Transfer(address(tokenBridge), address(tbr), deNormalizeAmount(amount, uint8(decimals)));
+
+    vm.expectEmit(address(gasToken));
+    emit IWETH.Withdrawal(address(tbr), amount);
+
+    invokeTbr(
+      abi.encodePacked(
+        tbr.exec768.selector,
+        DISPATCHER_PROTOCOL_VERSION0,
+        COMPLETE_TRANSFER_ID,
+        encodedVaa
+      ),
+      unallocatedBalance
+    );
+
+    uint finalCallerBalance = address(this).balance;
+    assertEq(recipient.balance, initialRecipienGasTokenBalance + gasDropoff + amount);
+    assertEq(finalCallerBalance, initialCallerBalance - gasDropoff);
+  } 
+
+  function testCompleteTransfer_nonGasToken(
+    uint256 amount,
+    uint32 gasDropoff,
+    uint64 sequence,
+    uint256 unallocatedBalance,
+    uint8 transferReturn
+  ) public {
+    gasDropoff = uint32(bound(gasDropoff, 0, MAX_GAS_DROPOFF_AMOUNT));
+    amount = bound(amount, 1, 1e10); // avoid overflow
+    unallocatedBalance = bound(unallocatedBalance, gasDropoff + transferReturn, (gasDropoff + transferReturn) * 10);
+    deal(address(this), unallocatedBalance);
+
+    uint16 peerChain = EVM_L2_CHAIN_ID;
+    bytes32 originTokenBridge = toUniversalAddress(EVM_L2_TOKEN_BRIDGE_ADDRESS);
+    bytes32 originTBR = EVM_L2_CANONICAL_PEER;
+    bytes32 targetTBR = toUniversalAddress(address(tbr));
+    uint16 tokenChain = EVM_L2_CHAIN_ID;
+    uint16 recipientChain = tokenBridge.chainId();
+    bytes32 tokenAddress = toUniversalAddress(EVM_L2_TOKEN_WETH_TOKEN);
+    address recipient = makeAddr("recipient");
+    bool unwrapIntent = true;
+
+    bytes memory encodedVaa = craftTbrV3Vaa(
+      wormholeCore,
+      originTokenBridge,
+      originTBR,
+      targetTBR,
+      peerChain,
+      tokenChain,
+      tokenAddress,
+      amount,
+      recipientChain,
+      recipient,
+      gasDropoff,
+      unwrapIntent,
+      sequence
+    );
+
+    address tokenToTransfer = tokenBridge.wrappedAsset(tokenChain, tokenAddress);
+    uint decimals = IERC20Metadata(tokenToTransfer).decimals();
+    uint initialRecipienGasTokenBalance = recipient.balance;
+    uint initialRecipienTransferedTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
+    uint initialCallerBalance = address(this).balance;
+
+    vm.expectEmit(address(tokenBridge));
+    emit ITokenBridge.TransferRedeemed(peerChain, originTokenBridge, sequence);
+
+    vm.expectEmit(tokenToTransfer);
+    emit IERC20.Transfer(address(0), address(tbr), deNormalizeAmount(amount, uint8(decimals)));
+    
+    vm.expectEmit(tokenToTransfer);
+    emit IERC20.Transfer(address(tbr), recipient, amount);
+
+    invokeTbr(
+      abi.encodePacked(
+        tbr.exec768.selector,
+        DISPATCHER_PROTOCOL_VERSION0,
+        COMPLETE_TRANSFER_ID,
+        encodedVaa
+      ),
+      unallocatedBalance
+    );
+
+    uint finalRecipienTransferedTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
+    uint finalCallerBalance = address(this).balance;
+
+    assertEq(recipient.balance, initialRecipienGasTokenBalance + gasDropoff);
+    assertEq(finalRecipienTransferedTokenBalance, initialRecipienTransferedTokenBalance + amount);
+    assertEq(finalCallerBalance, initialCallerBalance - gasDropoff);
+  }
+
+  function testCompleteTransfer_UnrecognizedPeer(
+    uint16 peerChain,
+    uint256 amount,
+    uint32 gasDropoff,
+    bool unwrapIntent,
+    address recipient,
+    bytes32 originTokenBridge,
+    bytes32 targetTBR,
+    uint16 tokenChain,
+    uint16 recipientChain,
+    bytes32 tokenAddress,
+    uint64 sequence
+  ) public {
+    bytes32 originTBR = makeBytes32("FakePeer");
+    uint commandIndex = 0;
+
+    bytes memory encodedVaa = craftTbrV3Vaa(
+      wormholeCore,
+      originTokenBridge,
+      originTBR,
+      targetTBR,
+      peerChain,
+      tokenChain,
+      tokenAddress,
+      amount,
+      recipientChain,
+      recipient,
+      gasDropoff,
+      unwrapIntent,
+      sequence
+    );
+
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        UnrecognizedPeer.selector,
+        peerChain,
+        originTBR,
+        commandIndex 
+      )
+    );
+
+    invokeTbr(
+      abi.encodePacked(
+        tbr.exec768.selector,
+        DISPATCHER_PROTOCOL_VERSION0,
+        COMPLETE_TRANSFER_ID,
+        encodedVaa
+      )
+    );
+  }
+
+  function testCompleteTransfer_InsufficientGasDropoff(
+    uint256 amount,
+    uint32 gasDropoff,
+    bool unwrapIntent,
+    address recipient,
+    bytes32 originTokenBridge,
+    bytes32 targetTBR,
+    uint16 tokenChain,
+    uint16 recipientChain,
+    bytes32 tokenAddress,
+    uint64 sequence,
+    uint256 unallocatedBalance
+  ) public {
+    gasDropoff = uint32(bound(gasDropoff, 1, MAX_GAS_DROPOFF_AMOUNT));
+    unallocatedBalance = bound(unallocatedBalance, 0, gasDropoff - 1);
+    deal(address(this), unallocatedBalance);
+
+    uint16 peerChain = EVM_L2_CHAIN_ID;
+    bytes32 originTBR = EVM_L2_CANONICAL_PEER;
+    uint commandIndex = 0;
+
+    bytes memory encodedVaa = craftTbrV3Vaa(
+      wormholeCore,
+      originTokenBridge,
+      originTBR,
+      targetTBR,
+      peerChain,
+      tokenChain,
+      tokenAddress,
+      amount,
+      recipientChain,
+      recipient,
+      gasDropoff,
+      unwrapIntent,
+      sequence
+    );
+
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        InsufficientGasDropoff.selector,
+        commandIndex 
+      )
+    );
+
+    invokeTbr(
+      abi.encodePacked(
+        tbr.exec768.selector,
+        DISPATCHER_PROTOCOL_VERSION0,
+        COMPLETE_TRANSFER_ID,
+        encodedVaa
+      ),
+      unallocatedBalance
+    );
+  } 
 }

@@ -2,11 +2,14 @@
 
 pragma solidity ^0.8.25;
 
-import {BytesParsing} from "wormhole-sdk/libraries/BytesParsing.sol";
-import {RawDispatcher} from "wormhole-sdk/RawDispatcher.sol";
-import {TbrGovernance} from "./TbrGovernance.sol";
-import {InvalidCommand} from "./TbrBase.sol";
-import {TbrUser} from "./TbrUser.sol";
+import { BytesParsing } from "wormhole-sdk/libraries/BytesParsing.sol";
+import { SweepTokens } from "./sharedComponents/SweepTokens.sol";
+import { RawDispatcher } from "wormhole-sdk/RawDispatcher.sol";
+import { Upgrade } from "./sharedComponents/Upgrade.sol";
+import { InvalidCommand } from "./TbrBase.sol";
+import { TbrConfig } from "./TbrConfig.sol";
+import { TbrUser } from "./TbrUser.sol";
+import "./sharedComponents/ids.sol";
 import "./TbrIds.sol";
 
 /**
@@ -14,7 +17,7 @@ import "./TbrIds.sol";
  */
 error UnsupportedVersion(uint8 version);
 
-abstract contract TbrDispatcher is RawDispatcher, TbrGovernance, TbrUser {
+abstract contract TbrDispatcher is RawDispatcher, TbrConfig, TbrUser, SweepTokens, Upgrade {
   using BytesParsing for bytes;
 
   function _exec(bytes calldata data) internal override returns (bytes memory) { unchecked {
@@ -50,13 +53,20 @@ abstract contract TbrDispatcher is RawDispatcher, TbrGovernance, TbrUser {
         uint256 gasDropoffSpent;
         (gasDropoffSpent, offset) = _completeTransfer(data, offset, senderRefund, commandIndex);
         senderRefund -= gasDropoffSpent;
+      } else if (command == APPROVE_TOKEN_ID)
+        offset = _approveToken(data, offset);
+      else if (command == CONFIG_ID)
+        offset = _batchConfigCommands(data, offset);
+      else {
+        bool dispatched;
+          (dispatched, offset) = dispatchExecAccessControl(data, offset, command);
+        if (!dispatched)
+          (dispatched, offset) = dispatchExecUpgrade(data, offset, command);
+        if (!dispatched)
+          (dispatched, offset) = dispatchExecSweepTokens(data, offset, command);
+        if (!dispatched)
+          revert InvalidCommand(command, commandIndex);
       }
-      else if (command == GOVERNANCE_ID)
-        offset = _batchGovernanceCommands(data, offset);
-      else if (command == ACQUIRE_OWNERSHIP_ID)
-        _acquireOwnership();
-      else
-        revert InvalidCommand(command, commandIndex);
 
       ++commandIndex;
     }
@@ -87,10 +97,18 @@ abstract contract TbrDispatcher is RawDispatcher, TbrGovernance, TbrUser {
         (result, offset) = _relayFee(data, offset, queryIndex);
       else if (query == BASE_RELAYING_CONFIG_ID)
         (result, offset) = _baseRelayingConfig(data, offset, queryIndex);
-      else if (query == GOVERNANCE_QUERIES_ID)
+      else if (query == CONFIG_QUERIES_ID)
         (result, offset) = _batchGovernanceQueries(data, offset);
-      else
-        revert InvalidCommand(query, queryIndex);
+      else if (query == ALLOWANCE_TOKEN_BRIDGE_ID)
+        (result, offset) = _allowanceTokenBridge(data, offset);
+      else {
+        bool dispatched;
+        (dispatched, result, offset) = dispatchQueryAccessControl(data, offset, query);
+        if (!dispatched)
+          (dispatched, result, offset) = dispatchQueryUpgrade(data, offset, query);
+        if (!dispatched)
+          revert InvalidCommand(query, queryIndex);
+      }
 
       ret = abi.encodePacked(ret, result);
       ++queryIndex;
