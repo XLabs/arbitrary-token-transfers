@@ -2,15 +2,15 @@ import {
   evm,
   EvmChainInfo,
   getChainConfig,
-  getDependencyAddress,
   writeDeployedContract
 } from "../helpers";
 import { EvmTbrV3Config } from "../config/config.types";
 import { ethers } from "ethers";
 import { encoding } from "@wormhole-foundation/sdk-base";
-import { Tbr__factory, Proxy__factory } from "../ethers-contracts/index.js";
+import { Proxy__factory } from "../ethers-contracts/index.js";
 import { getSigner } from "../helpers/evm";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm/dist/cjs";
+import { deployRelayerImplementation } from "./deploy-implementation";
 
 
 const processName = "tbr-v3";
@@ -18,7 +18,6 @@ const chains = evm.evmOperatingChains();
 
 async function run() {
   console.log(`Start ${processName}!`);
-
 
   const results = await Promise.all(
     chains.map(async (chain) => {
@@ -72,33 +71,6 @@ async function deployTbrV3Relayer(chain: EvmChainInfo, config: EvmTbrV3Config) {
     implementation,
     proxy,
   };
-}
-
-async function deployRelayerImplementation(chain: EvmChainInfo, config: EvmTbrV3Config) {
-  console.log("deployRelayerImplementation " + chain.chainId);
-  const signer = await getSigner(chain);
-
-  const factory = new Tbr__factory(signer);
-
-  const permit2 = getDependencyAddress("permit2", chain);
-  const tokenBridge = getDependencyAddress("tokenBridge", chain);
-  const oracle = getDependencyAddress("oracle", chain);
-  const initGasToken = getDependencyAddress("initGasToken", chain);
-
-  const contract = await factory.deploy(permit2, tokenBridge, oracle, initGasToken, config.initGasErc20TokenizationIsExplicit);
-
-  const tx = contract.deploymentTransaction();
-  if (tx === null) {
-    throw new Error("Implementation deployment transaction is missing")
-  }
-  const receipt = await tx.wait();
-  if (receipt?.status !== 1) {
-    throw new Error("Implementation deployment failed with status " + receipt?.status);
-  }
-  
-  const address = await contract.getAddress();
-  console.log("Successfully deployed implementation at " + address);
-  return { address, chainId: chain.chainId, constructorArgs: [ permit2, tokenBridge, oracle, initGasToken, config.initGasErc20TokenizationIsExplicit ] };
 }
 
 async function deployProxy(

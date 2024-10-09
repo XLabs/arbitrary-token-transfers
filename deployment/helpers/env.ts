@@ -1,13 +1,14 @@
 import fs from "fs";
 import { ethers } from "ethers";
 import { validateSolAddress } from "./solana.js";
-import { ChainConfig, ChainInfo, ContractsJson, Dependencies, DependenciesConfig, Ecosystem, VerificationApiKeys, UncheckedConstructorArgs } from "./interfaces.js";
+import { ChainConfig, ChainInfo, ContractsJson, Dependencies, DependenciesConfig, Ecosystem, VerificationApiKeys, UncheckedConstructorArgs, SolanaTbrInitParams } from "./interfaces.js";
 import { getSigner } from "./evm.js";
 // TODO: support different env files
 import 'dotenv/config';
 import { ChainId, contracts as connectDependencies, toChain } from "@wormhole-foundation/sdk-base";
 
 export const env = getEnv("ENV");
+export const network = env === "mainnet" ? "Mainnet" : "Testnet";
 export const contracts = loadContracts();
 export const dependencies = loadDependencies();
 export const ecosystemChains = loadEcosystem();
@@ -30,6 +31,10 @@ function loadContracts<T extends ContractsJson>() {
 
 function loadEcosystem(): Ecosystem {
   return loadJson<Ecosystem>("ecosystem");
+}
+
+export function loadSolanaTbrInitParams(): SolanaTbrInitParams {
+  return loadJson<SolanaTbrInitParams>("solana-tbr-init");
 }
 
 export function loadVerificationApiKeys() {
@@ -152,12 +157,8 @@ export async function getContractInstance(
   return factory.connect(contractAddress, signer);
 }
 
-export function getDeploymentArgs(contractName: string, whChainId: ChainId): UncheckedConstructorArgs {
+export function getDeploymentArgs(contractName: string, whChainId: ChainId): UncheckedConstructorArgs | undefined {
   const constructorArgs = contracts[contractName]?.find((c) => c.chainId === whChainId)?.constructorArgs;
-
-  if (!constructorArgs) {
-    throw new Error(`No constructorArgs found for ${contractName} contract for chain ${whChainId}`);
-  }
 
   return constructorArgs;
 }

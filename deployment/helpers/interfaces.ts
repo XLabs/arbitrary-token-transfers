@@ -45,6 +45,12 @@ export type Ecosystem = {
   }
 };
 
+export type SolanaTbrInitParams = {
+  owner: string;
+  feeRecipient: string;
+  admins: string[];
+}
+
 export type ContractsJson = Record<string, Deployment[]>;
 
 export interface ChainConfig {
@@ -97,6 +103,7 @@ export type TestTransfer = {
    * if not present the script will call transfer gas token
    */
   tokenAddress?: string;
+  sourceTokenAddress?: string;
   tokenChain: Chain;
   fromChain: Chain;
   toChain: Chain;
