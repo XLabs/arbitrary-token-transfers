@@ -1,5 +1,4 @@
-import anchor from '@coral-xyz/anchor';
-import { Program } from '@coral-xyz/anchor';
+import { BN, IdlAccounts, Program, Provider, web3 } from '@coral-xyz/anchor';
 import {
   PublicKey,
   Connection,
@@ -65,11 +64,11 @@ export interface TransferWrappedParameters {
   unwrapIntent: boolean;
 }
 
-export type TbrConfigAccount = anchor.IdlAccounts<TokenBridgeRelayer>['tbrConfigState'];
-export type ChainConfigAccount = anchor.IdlAccounts<TokenBridgeRelayer>['chainConfigState'];
-export type PeerAccount = anchor.IdlAccounts<TokenBridgeRelayer>['peerState'];
-export type SignerSequenceAccount = anchor.IdlAccounts<TokenBridgeRelayer>['signerSequenceState'];
-export type AuthBadgeAccount = anchor.IdlAccounts<TokenBridgeRelayer>['authBadgeState'];
+export type TbrConfigAccount = IdlAccounts<TokenBridgeRelayer>['tbrConfigState'];
+export type ChainConfigAccount = IdlAccounts<TokenBridgeRelayer>['chainConfigState'];
+export type PeerAccount = IdlAccounts<TokenBridgeRelayer>['peerState'];
+export type SignerSequenceAccount = IdlAccounts<TokenBridgeRelayer>['signerSequenceState'];
+export type AuthBadgeAccount = IdlAccounts<TokenBridgeRelayer>['authBadgeState'];
 
 /**
  * Transforms a `UniversalAddress` into an array of numbers `number[]`.
@@ -77,12 +76,12 @@ export type AuthBadgeAccount = anchor.IdlAccounts<TokenBridgeRelayer>['authBadge
 export const uaToArray = (ua: UniversalAddress): number[] => Array.from(ua.toUint8Array());
 
 export class SolanaTokenBridgeRelayer {
-  public readonly program: anchor.Program<TokenBridgeRelayer>;
+  public readonly program: Program<TokenBridgeRelayer>;
   private readonly priceOracleClient: SolanaPriceOracleClient;
   private readonly wormholeProgramId: PublicKey;
   private readonly tokenBridgeProgramId: PublicKey;
 
-  constructor(provider: anchor.Provider) {
+  constructor(provider: Provider) {
     const network = networkFromConnection(provider.connection);
     myDebug('Network detected to be:', network);
 
@@ -150,7 +149,7 @@ export class SolanaTokenBridgeRelayer {
           transactionGas: bigint;
           transactionSize: bigint;
         };
-        admins: anchor.web3.PublicKey[];
+        admins: web3.PublicKey[];
         chains: {
           [chain: string]: {
             maxGasDropoffMicroToken: number;
@@ -160,9 +159,9 @@ export class SolanaTokenBridgeRelayer {
             peers: UniversalAddress[];
           };
         };
-        owner: anchor.web3.PublicKey;
-        pendingOwner: anchor.web3.PublicKey | null;
-        feeRecipient: anchor.web3.PublicKey;
+        owner: web3.PublicKey;
+        pendingOwner: web3.PublicKey | null;
+        feeRecipient: web3.PublicKey;
       }> => {
         const [
           admins,
@@ -217,12 +216,12 @@ export class SolanaTokenBridgeRelayer {
     };
   }
 
-  private async payerSequenceNumber(payer: PublicKey): Promise<anchor.BN> {
+  private async payerSequenceNumber(payer: PublicKey): Promise<BN> {
     const impl = async (payer: PublicKey) => {
       try {
         return (await this.read.signerSequence(payer)).value;
       } catch {
-        return new anchor.BN(0);
+        return new BN(0);
       }
     };
 
@@ -735,7 +734,7 @@ const pda = {
   vaa: (programId: PublicKey, vaaHash: Uint8Array) =>
     PublicKey.findProgramAddressSync([Buffer.from('PostedVAA'), vaaHash], programId)[0],
 
-  wormholeMessage: (programId: PublicKey, payer: PublicKey, payerSequence: anchor.BN) => {
+  wormholeMessage: (programId: PublicKey, payer: PublicKey, payerSequence: BN) => {
     const buf = Buffer.alloc(8);
 
     buf.writeBigInt64BE(BigInt(payerSequence.toString()), 0);
@@ -747,7 +746,7 @@ const pda = {
   },
 };
 
-function assertProvider(provider: anchor.Provider) {
+function assertProvider(provider: Provider) {
   if (provider.sendAndConfirm === undefined) {
     throw new Error('The client must be created with a full provider to use this method');
   }
@@ -994,10 +993,10 @@ function patchTest(connection: Connection, idl: any) {
   return connection.rpcEndpoint.includes('localhost') ? { ...idl, address } : idl;
 }
 
-function bnToBigint(n: anchor.BN): bigint {
+function bnToBigint(n: BN): bigint {
   return BigInt(n.toString());
 }
 
-function bigintToBn(n: bigint): anchor.BN {
-  return new anchor.BN(n.toString());
+function bigintToBn(n: bigint): BN {
+  return new BN(n.toString());
 }

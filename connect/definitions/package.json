@@ -34,7 +34,7 @@
     "@wormhole-foundation/sdk-definitions": "0.10.9",
     "@wormhole-foundation/sdk-evm": "0.10.9",
     "common-arbitrary-token-transfer": "workspace:*",
-    "ethers": "^6.13.2"
+    "ethers": "^6.13.3"
   },
   "devDependencies": {
     "@types/node": "20.14.14",

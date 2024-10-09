@@ -1,4 +1,3 @@
-import { BN } from '@coral-xyz/anchor';
 import {
   createAssociatedTokenAccountInstruction,
   createSyncNativeInstruction,
@@ -68,14 +67,7 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     if (!contracts.coreBridge) throw new Error('CoreBridge contract not defined');
 
     this.chain = new SolanaChain(chainName, new SolanaPlatform(this.network));
-
-    this.client = new SolanaTokenBridgeRelayer(
-      { connection },
-      {
-        tokenBridgeProgramId: new PublicKey(contracts.tokenBridge),
-        wormholeProgramId: new PublicKey(contracts.coreBridge),
-      },
-    );
+    this.client = new SolanaTokenBridgeRelayer({ connection });
   }
 
   static async fromRpc<N extends Network>(
@@ -120,6 +112,11 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     }
   }
 
+  async isChainAvailable(chain: SupportedChains): Promise<boolean> {
+    const { pausedOutboundTransfers } = await this.client.read.chainConfig(chain);
+    return pausedOutboundTransfers;
+  }
+
   async *transfer(params: TransferParams<C>): AsyncGenerator<SolanaUnsignedTransaction<N, C>> {
     const mint = this.mintAddress(params.token.address);
 
@@ -160,8 +157,8 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
             chain: params.recipient.chain,
             address: params.recipient.address.toUniversalAddress(),
           },
-          transferredAmount: new BN(params.amount.toString()),
-          maxFeeKlamports: new BN(params.fee.toString() || 0),
+          transferredAmount: BigInt(params.amount.toString()),
+          maxFeeLamports: BigInt(params.fee.toString() || 0),
           gasDropoffAmount,
           tokenAccount: ata,
           mint,
@@ -176,9 +173,9 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
             address: params.recipient.address.toUniversalAddress(),
           },
           userTokenAccount: ata,
-          transferredAmount: new BN(params.amount.toString()),
+          transferredAmount: BigInt(params.amount.toString()),
           gasDropoffAmount,
-          maxFeeKlamports: new BN(params.fee.toString() || 0),
+          maxFeeLamports: BigInt(params.fee.toString() || 0),
           unwrapIntent: params.unwrapIntent,
           token,
         }),
@@ -258,6 +255,7 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     const feeInBaseUnits = BigInt((Number(fee) * LAMPORTS_PER_SOL) / 1_000_000);
 
     return {
+      allowances: {},
       fee: feeInBaseUnits,
       isPaused: chainConfig.pausedOutboundTransfers,
     };
@@ -270,7 +268,7 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
       maxGasDropoff: config.maxGasDropoffMicroToken,
       baseFee: config.relayerFeeMicroUsd,
       paused: config.pausedOutboundTransfers,
-      peer: new UniversalAddress(new Uint8Array(config.canonicalPeer)),
+      canonicalPeer: new UniversalAddress(new Uint8Array(config.canonicalPeer)),
     };
   }
 

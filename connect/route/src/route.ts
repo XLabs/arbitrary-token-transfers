@@ -20,7 +20,7 @@ import {
   TransferState,
   Wormhole,
 } from '@wormhole-foundation/sdk-connect';
-import { isNative, toNative } from '@wormhole-foundation/sdk-definitions';
+import { isNative, TokenAddress, toNative, UniversalAddress, UniversalOrNative } from '@wormhole-foundation/sdk-definitions';
 import {
   SupportedChains,
   tokenBridgeRelayerV3Chains,
@@ -35,6 +35,10 @@ interface TransferOptions {
 
 interface ValidatedTransferOptions extends TransferOptions {
   gasDropOff: sdkAmount.Amount;
+}
+
+interface QuotedTransferOptions extends ValidatedTransferOptions {
+  allowances: Record<string, bigint>;
 }
 
 type Receipt = TransferReceipt<AttestationReceipt<'AutomaticTokenBridgeV3'>>;
@@ -85,12 +89,7 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
   async isAvailable(request: routes.RouteTransferRequest<N>): Promise<boolean> {
     const tbr = await request.fromChain.getProtocol('AutomaticTokenBridgeV3');
 
-    const { isPaused } = await tbr.relayingFee({
-      targetChain: request.toChain.chain as any,
-      gasDropoff: 0n,
-    });
-
-    return !isPaused;
+    return tbr.isChainAvailable(request.toChain.chain);
   }
 
   async validate(
@@ -202,11 +201,19 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
     return warnings;
   }
 
+  // private async getTokenContractAddress(srcChain: ChainContext<N>, token: TokenId): Promise<UniversalAddress> {
+  //   const address = token.address;
+  //   if (isNative(address)) {
+  //     const srcWrapped = await srcChain.getNativeWrappedTokenId();
+  //   }
+  //   return new UniversalAddress(address.);
+  // }
+
   async quote(
     request: routes.RouteTransferRequest<N>,
     params: routes.ValidatedTransferParams<ValidatedTransferOptions>,
   ): Promise<
-    routes.QuoteResult<TransferOptions, routes.ValidatedTransferParams<ValidatedTransferOptions>>
+    routes.QuoteResult<TransferOptions, routes.ValidatedTransferParams<QuotedTransferOptions>>
   > {
     try {
       const sourceChain = request.fromChain.chain;
@@ -220,7 +227,9 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
 
       const gasDropoff = BigInt(params.options.gasDropOff?.amount) || 0n;
 
-      const { fee, isPaused } = await tbr.relayingFee({
+      const srcWrapped = await request.fromChain.getNativeWrappedTokenId();
+      const { allowances, fee, isPaused } = await tbr.relayingFee({
+        token: request.source.id.address === 'native' ? srcWrapped.address as UniversalOrNative<SupportedChains> : request.source.id.address,
         gasDropoff,
         targetChain,
       });
@@ -268,7 +277,13 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
           amount: dstAmount,
           token: dstToken,
         },
-        params,
+        params: {
+          ...params,
+          options: {
+            ...params.options,
+            allowances,
+          }
+        },
         destinationNativeGas: {
           amount: gasDropoff.toString(),
           decimals: dstNativeDecimals,
@@ -293,7 +308,7 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
   async initiate(
     request: routes.RouteTransferRequest<N>,
     signer: Signer,
-    quote: routes.Quote<TransferOptions, routes.ValidatedTransferParams<ValidatedTransferOptions>>,
+    quote: routes.Quote<TransferOptions, routes.ValidatedTransferParams<QuotedTransferOptions>>,
     to: ChainAddress<SupportedChains>,
   ): Promise<Receipt> {
     if (isSignOnlySigner(signer)) throw new Error('Signer must be able to send transactions');
@@ -314,6 +329,7 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
       token: request.source.id,
       gasDropOff,
       fee,
+      allowances: quote.params.options.allowances,
       unwrapIntent: quote.params.options.unwrapIntent
     });
 

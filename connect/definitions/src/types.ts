@@ -16,10 +16,16 @@ export function isSupportedChain(chain: Chain): chain is SupportedChains {
 }
 
 export interface BaseRelayingParams {
-  peer: UniversalAddress;
+  canonicalPeer: UniversalAddress;
   paused: boolean;
   maxGasDropoff: number;
   baseFee: number;
+}
+
+export interface RelayingFee {
+  allowances: Record<string, bigint>;
+  fee: bigint;
+  isPaused: boolean;
 }
 
 export interface TransferParams<C extends Chain> {
@@ -29,10 +35,12 @@ export interface TransferParams<C extends Chain> {
   amount: bigint;
   gasDropOff: amount.Amount;
   fee: number;
+  allowances: Record<string, bigint>;
   unwrapIntent: boolean;
 }
 
 export type RelayingFeesParams = {
+  token: UniversalAddress;
   gasDropoff: bigint;
   targetChain: SupportedChains;
 };

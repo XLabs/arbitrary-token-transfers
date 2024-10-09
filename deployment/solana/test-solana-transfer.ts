@@ -105,9 +105,9 @@ async function sendTestTransaction(
             address: toUniversal(tokenChain, mint!.toBase58()),
           },
           userTokenAccount: new PublicKey(getEnv('TRANSFER_TOKEN_ACCOUNT')),
-          transferredAmount,
+          transferredAmount: BigInt(transferredAmount.toString()),
           gasDropoffAmount,
-          maxFeeKlamports,
+          maxFeeLamports: BigInt(maxFeeKlamports.toString()),
           unwrapIntent,
         } satisfies TransferWrappedParameters;
 
@@ -120,9 +120,9 @@ async function sendTestTransaction(
           },
           mint: mint!,
           tokenAccount: tokenAccount!,
-          transferredAmount,
+          transferredAmount: BigInt(transferredAmount.toString()),
           gasDropoffAmount,
-          maxFeeKlamports,
+          maxFeeLamports: BigInt(maxFeeKlamports.toString()),
           unwrapIntent,
         } satisfies TransferNativeParameters;
 

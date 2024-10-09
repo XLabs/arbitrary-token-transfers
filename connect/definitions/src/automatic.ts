@@ -7,6 +7,7 @@ import {
 } from '@wormhole-foundation/sdk-definitions';
 import {
   BaseRelayingParams,
+  RelayingFee,
   RelayingFeesParams,
   SupportedChains,
   TransferParams,
@@ -28,11 +29,6 @@ declare module '@wormhole-foundation/sdk-definitions' {
   }
 }
 
-export interface RelayingFee {
-  fee: bigint;
-  isPaused: boolean;
-}
-
 export interface AutomaticTokenBridgeV3<N extends Network, C extends Chain, DO = any> {
   transfer(args: TransferParams<C>): AsyncGenerator<UnsignedTransaction<N, C>>;
 
@@ -40,6 +36,8 @@ export interface AutomaticTokenBridgeV3<N extends Network, C extends Chain, DO =
     vaa: VAA<'AutomaticTokenBridgeV3:TransferWithRelay'>,
     payer?: AccountAddress<C>,
   ): AsyncGenerator<UnsignedTransaction<N, C>>;
+
+  isChainAvailable(chain: SupportedChains): Promise<boolean>;
 
   relayingFee(args: RelayingFeesParams): Promise<RelayingFee>;
 

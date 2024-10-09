@@ -49,8 +49,8 @@ async function configureSolanaTbr(
     log(`Updating EVM Transaction config.`);
     const ix = await tbr.updateEvmTransactionConfig(
       signerKey,
-      new BN(evmTxGas.toString()),
-      new BN(evmTxSize.toString()),
+      BigInt(evmTxGas.toString()),
+      BigInt(evmTxSize.toString()),
     );
 
     await ledgerSignAndSend(connection, [ix], []);

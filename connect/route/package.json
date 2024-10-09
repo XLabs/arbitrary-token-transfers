@@ -37,7 +37,7 @@
     "@xlabs-xyz/arbitrary-token-transfer-evm-route": "workspace:^0.0.1-alpha1",
     "@xlabs-xyz/arbitrary-token-transfer-solana-route": "workspace:^0.0.1-alpha1",
     "@xlabs-xyz/arbitrary-token-transfers-definitions": "workspace:^0.0.1-alpha1",
-    "ethers": "^6.13.2"
+    "ethers": "^6.13.3"
   },
   "devDependencies": {
     "@types/node": "20.14.14",

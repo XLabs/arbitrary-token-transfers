@@ -5,9 +5,10 @@ import {
   LayoutToType,
   Network,
 } from '@wormhole-foundation/sdk-base';
-import { ChainsConfig, Contracts, isNative, VAA } from '@wormhole-foundation/sdk-definitions';
+import { ChainsConfig, Contracts, isNative, resolveWrappedToken, toNative, VAA } from '@wormhole-foundation/sdk-definitions';
 import '@wormhole-foundation/sdk-evm';
 import {
+  EvmAddress,
   EvmChains,
   EvmPlatform,
   EvmPlatformType,
@@ -19,11 +20,13 @@ import {
   isSupportedChain,
   RelayingFee,
   RelayingFeesParams,
+  SupportedChains,
   tokenBridgeRelayerV3Contracts,
   TransferParams,
 } from '@xlabs-xyz/arbitrary-token-transfers-definitions';
-import { acquireModeItem, SupportedChains, Tbrv3 } from '@xlabs-xyz/evm-arbitrary-token-transfers';
+import { acquireModeItem, Tbrv3 } from '@xlabs-xyz/evm-arbitrary-token-transfers';
 import { Provider } from 'ethers';
+import { wrapEthersProvider } from './utils.js';
 
 const WHOLE_EVM_GAS_TOKEN_UNITS = 1e18;
 
@@ -51,13 +54,22 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
     if (network === 'Devnet') throw new Error('AutomaticTokenBridge not supported on Devnet');
     const address = tokenBridgeRelayerV3Contracts.get(network, chain);
     if (!address) throw new Error(`TokenBridgeRelayerV3 contract not defined for chain ${chain}`);
-    this.tbr = new Tbrv3(provider, network, address);
+
+    const [ resolvedGasToken, gasToken ] = resolveWrappedToken(network, chain, 'native');
+    if (!resolvedGasToken || isNative(gasToken.address)) throw new Error(`Failed to resolve gas token for chain ${chain}`);
+    this.tbr = new Tbrv3(
+      wrapEthersProvider(provider),
+      new EvmAddress(address),
+      toNative(chain, gasToken.address.toUint8Array())
+    );
   }
 
   static async fromRpc<N extends Network>(
     provider: Provider,
     config: ChainsConfig<N, EvmPlatformType>,
   ): Promise<AutomaticTokenBridgeV3EVM<N, EvmChains>> {
+    // TODO: different ethers version on the sdk evm package
+    // @ts-ignore
     const [network, chain] = await EvmPlatform.chainFromRpc(provider);
 
     const conf = config[chain]!;
@@ -82,31 +94,33 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
 
     // convert the fee and gas dropoff back from wei to eth
     // TODO: find a better way in order to avoid precision issues (use sdk amount)
-
     const fee = Number(params.fee || 0) / WHOLE_EVM_GAS_TOKEN_UNITS;
     const gasDropoff =
       Number(params.gasDropOff?.amount || 0) / this.getChainWholeUnit(recipientChain);
 
-    const transferParams = await this.tbr.transferWithRelay({
-      args: {
-        method: isNative(params.token.address)
-          ? 'TransferGasTokenWithRelay'
-          : 'TransferTokenWithRelay',
-        acquireMode: params.acquireMode,
-        gasDropoff,
-        inputAmountInAtomic: params.amount,
-        inputToken: params.token.address.toString(),
-        recipient: {
-          address: params.recipient.address.toUniversalAddress(),
-          chain: recipientChain,
+    const transferParams = await this.tbr.transferWithRelay(
+      params.allowances,
+      {
+        args: {
+          method: isNative(params.token.address)
+            ? 'TransferGasTokenWithRelay'
+            : 'TransferTokenWithRelay',
+          acquireMode: params.acquireMode,
+          gasDropoff,
+          inputAmountInAtomic: params.amount,
+          inputToken: new EvmAddress(params.token.address),
+          recipient: {
+            address: params.recipient.address.toUniversalAddress(),
+            chain: recipientChain,
+          },
+          unwrapIntent: true, // TODO: receive as option/param?
         },
-        unwrapIntent: true, // TODO: receive as option/param?
-      },
-      feeEstimation: {
-        fee,
-        isPaused: false,
-      },
-    });
+        feeEstimation: {
+          fee,
+          isPaused: false,
+        },
+      }
+    );
 
     // yield the transfer tx
     yield new EvmUnsignedTransaction(
@@ -134,12 +148,14 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
     switch (mode.mode) {
       case 'Preapproved':
         const token = EvmPlatform.getTokenImplementation(
+          // TODO: different ethers version on the sdk evm package
+          // @ts-ignore
           this.provider,
           tokenAddress.toNative(this.chain).toString(),
         );
-        const allowance = await token.allowance(transfer.sender.toString(), this.tbr.address);
+        const allowance = await token.allowance(transfer.sender.toString(), this.tbr.address.toString());
         if (allowance < BigInt(transfer.amount)) {
-          const tx = await token.approve.populateTransaction(this.tbr.address, transfer.amount);
+          const tx = await token.approve.populateTransaction(this.tbr.address.toString(), transfer.amount);
           return new EvmUnsignedTransaction(
             tx,
             this.network,
@@ -174,6 +190,17 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
     );
   }
 
+  async isChainAvailable(chain: SupportedChains): Promise<boolean> {
+    const [{ result: isPaused }, { result: isSupported }] = await this.tbr.query([
+      { query: 'ConfigQueries', queries: [
+        { query: 'IsChainPaused', chain },
+        { query: 'IsChainSupported', chain },
+      ]},
+    ]);
+
+    return !isPaused && isSupported;
+  }
+
   private getChainWholeUnit(chain: SupportedChains): number {
     const destinationDecimals = decimals.nativeDecimals.get(chainToPlatform(chain));
     if (!destinationDecimals) throw new Error(`Decimals not defined for chain ${chain}`);
@@ -181,23 +208,30 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
   }
 
   async relayingFee(args: RelayingFeesParams): Promise<RelayingFee> {
-    const [{ fee: rawFee, isPaused }] = await this.tbr.relayingFee({
-      ...args,
-      gasDropoff: Number(args.gasDropoff) / this.getChainWholeUnit(args.targetChain),
+    const { allowances, feeEstimations } = await this.tbr.relayingFee({
+      tokens: [new EvmAddress(args.token)],
+      transferRequests: [{
+        targetChain: args.targetChain,
+        gasDropoff: Number(args.gasDropoff) / this.getChainWholeUnit(args.targetChain),
+      }]
     });
+    const [{ fee: rawFee, isPaused }] = feeEstimations;
 
     // convert from eth to wei since the ui needs it in base units
     const fee = BigInt(Math.floor(rawFee * WHOLE_EVM_GAS_TOKEN_UNITS));
 
     return {
+      allowances,
       isPaused,
       fee,
     };
   }
 
-  async baseRelayingParams(chain: SupportedChains): Promise<BaseRelayingParams> {
-    const [params] = await this.tbr.baseRelayingParams(chain);
-    return params;
+  async baseRelayingParams(targetChain: SupportedChains): Promise<BaseRelayingParams> {
+    const [params] = await this.tbr.query([{ query: 'BaseRelayingConfig', targetChain }]);
+    return {
+      ...params.result,
+    };
   }
 
   getDefaultOptions(): EvmOptions {
