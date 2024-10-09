@@ -1,6 +1,6 @@
 {
   "name": "@xlabs-xyz/solana-arbitrary-token-transfers",
-  "version": "0.0.2-alpha3",
+  "version": "0.0.2-alpha4",
   "license": "ISC",
   "type": "module",
   "module": "ts-build/index.js",
