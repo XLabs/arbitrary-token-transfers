@@ -22,7 +22,6 @@ module 0x0::TBRv3 {
 		fee_recipient: address,
 
 		// TODO: Maybe Table instead? Or an AdminCap and OwnerCap?
-		// RFI: Why does this exist? What is a non-canonical admin?
 		admins: VecSet<address>,
 
 		// TODO: Maybe a Table instead? Or a vector?
@@ -79,6 +78,9 @@ module 0x0::TBRv3 {
 	}
 
 	/*
+	// TODO: These three functions need to be implemented with some kind of higher level module.
+	// so they can correctly capture the upgrade semantics
+
 	/// Updates the owner account. This needs to be either cancelled or approved.
 	public fun submit_owner_transfer_request(
 		new_owner: address,
@@ -126,7 +128,7 @@ module 0x0::TBRv3 {
 		};
 
 		state.admins.remove(&admin_to_be_removed);
-		false
+		true
 	}
 
 	/* Peer management */
