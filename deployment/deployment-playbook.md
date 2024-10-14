@@ -27,9 +27,10 @@ After running, you should be ready to execute the deployment if no errors occurr
 2. Change directory to root of TBRv3 repository.
 3. Update or create `./deployment/config/testnet/key.env` with deployment key.
 4. Adjust `./deployment/config/testnet/ecosystem.json` with desired operating chains.
-5. Execute
+5. Export ENV=testnet 
+6. Execute
 ```shell
 cd deployment
-source ./evm/testnet.env && yarn tsx ./evm/deploy.ts
+source ./config/testnet/key.env && yarn tsx ./evm/deploy.ts
 ```
-6. Register peers with `source ./evm/testnet.env && yarn tsx ./evm/register-peers.ts`
+6. Register peers with `source ./config/testnet/key.env && yarn tsx ./evm/register-peers.ts`
