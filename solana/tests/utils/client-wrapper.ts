@@ -12,13 +12,12 @@ import {
   sendAndConfirmIxs,
   wormholeProgramId,
   tokenBridgeProgramId,
-  newProvider,
-  keypairFromFile,
+  keypairFromArray,
 } from './helpers.js';
 import { SolanaWormholeCore } from '@wormhole-foundation/sdk-solana-core';
 import { SolanaAutomaticTokenBridge } from '@wormhole-foundation/sdk-solana-tokenbridge';
 
-const LOCALNET_ADDRESS = '7TLiBkpDGshV4o3jmacTCx93CLkmo3VjZ111AsijN9f8';
+import testProgramKeypair from '../../programs/token-bridge-relayer/test-program-keypair.json';
 
 export class TbrWrapper {
   readonly client: SolanaTokenBridgeRelayer;
@@ -28,11 +27,15 @@ export class TbrWrapper {
 
   constructor(provider: AnchorProvider, accountType: 'owner' | 'admin' | 'regular') {
     this.provider = provider;
-    if (accountType === 'regular') {
-      this.client = new SolanaTokenBridgeRelayer(provider, { address: LOCALNET_ADDRESS });
-    } else {
-      this.client = new SolanaTokenBridgeRelayer({ connection: provider.connection }, { address: LOCALNET_ADDRESS });
-    }
+    const clientProvider =
+      accountType === 'regular' ? provider : { connection: provider.connection };
+
+    this.client = new SolanaTokenBridgeRelayer(
+      clientProvider,
+      'Localnet',
+      keypairFromArray(testProgramKeypair).publicKey,
+    );
+
     this.logs = {};
 
     this.logsSubscriptionId = provider.connection.onLogs(
@@ -64,19 +67,12 @@ export class TbrWrapper {
     }
   }
 
-  static async initialize(args: {
+  async initialize(args: {
     owner: PublicKey;
     feeRecipient: PublicKey;
     admins: PublicKey[];
   }): Promise<TransactionSignature> {
-    const authorityProvider = newProvider(
-      await keypairFromFile('./target/deploy/token_bridge_relayer-keypair.json'),
-    );
-    const client = new SolanaTokenBridgeRelayer(authorityProvider);
-    console.log('Authority Key --', authorityProvider.publicKey.toString());
-    console.log('Program ID -----', client.program.programId.toString());
-
-    return sendAndConfirmIxs(authorityProvider, await client.initialize(args));
+    return sendAndConfirmIxs(this.provider, await this.client.initialize(args));
   }
 
   async submitOwnerTransferRequest(newOwner: PublicKey): Promise<TransactionSignature> {

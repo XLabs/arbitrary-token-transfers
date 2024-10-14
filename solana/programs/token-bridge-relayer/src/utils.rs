@@ -6,7 +6,7 @@ use anchor_lang::{
     prelude::*,
     solana_program::{native_token::LAMPORTS_PER_SOL, program_option::COption},
 };
-use solana_price_oracle::state::{EvmPricesAccount, PriceOracleConfigAccount};
+use solana_price_oracle::state::{EvmPricesState, PriceOracleConfigState};
 
 const MWEI_PER_MICRO_ETH: u64 = 1_000_000;
 const MWEI_PER_ETH: u128 = 1_000_000_000_000;
@@ -26,8 +26,8 @@ const MWEI_PER_ETH: u128 = 1_000_000_000_000;
 pub fn calculate_total_fee(
     config: &TbrConfigState,
     chain_config: &ChainConfigState,
-    oracle_evm_prices: &EvmPricesAccount,
-    oracle_config: &PriceOracleConfigAccount,
+    oracle_evm_prices: &EvmPricesState,
+    oracle_config: &PriceOracleConfigState,
     dropoff_amount_micro: u32,
 ) -> Result<u64> {
     check_prices_are_set(oracle_evm_prices)?;
@@ -72,7 +72,7 @@ pub fn calculate_total_fee(
 
 /// This is a basic security against a wrong manip, to be sure that the prices
 /// have been set correctly.
-fn check_prices_are_set(evm_prices: &EvmPricesAccount) -> Result<()> {
+fn check_prices_are_set(evm_prices: &EvmPricesState) -> Result<()> {
     require_neq!(
         evm_prices.gas_price,
         0,
@@ -94,7 +94,7 @@ fn check_prices_are_set(evm_prices: &EvmPricesAccount) -> Result<()> {
 pub fn create_native_check(
     mint_authority: COption<Pubkey>,
 ) -> impl Fn(bool) -> TokenBridgeRelayerResult<bool> {
-    let is_wormhole_mint = mint_authority == COption::Some(crate::WORMHOLE_MINT_AUTHORITY);
+    let is_wormhole_mint = mint_authority == COption::Some(crate::id::WORMHOLE_MINT_AUTHORITY);
 
     return move |expected_native| {
         // Valid values: either:

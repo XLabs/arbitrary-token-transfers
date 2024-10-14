@@ -7,17 +7,18 @@ import {
   newProvider,
   requestAirdrop,
   deployProgram,
-  putProgramKeyBackInIdl,
   keypairFromFile,
 } from './utils/helpers.js';
 import { TbrWrapper } from './utils/client-wrapper.js';
-import { SolanaPriceOracleClient, uaToArray } from '@xlabs-xyz/solana-arbitrary-token-transfers';
+import { SolanaPriceOracle, uaToArray } from '@xlabs-xyz/solana-arbitrary-token-transfers';
 import { expect } from 'chai';
 
 const ETHEREUM = 'Ethereum';
 const ETHEREUM_ID = chainToChainId(ETHEREUM);
 const OASIS = 'Oasis';
 const OASIS_ID = chainToChainId(OASIS);
+
+const authorityKeypairPath = './target/deploy/token_bridge_relayer-keypair.json';
 
 describe('Token Bridge Relayer Program', () => {
   const clients = (['owner', 'owner', 'admin', 'admin', 'admin', 'regular'] as const).map(
@@ -31,9 +32,7 @@ describe('Token Bridge Relayer Program', () => {
     adminClient3,
     unauthorizedClient,
   ] = clients;
-
-  const oracleOwner = newProvider();
-  const oracleOwnerClient = new SolanaPriceOracleClient(oracleOwner.connection);
+  let upgradeAuthorityClient: TbrWrapper;
 
   const wormholeCoreOwner = newProvider();
   //const wormholeCoreClient = new WormholeCoreWrapper(wormholeCoreOwner);
@@ -57,50 +56,64 @@ describe('Token Bridge Relayer Program', () => {
 
   before(async () => {
     await Promise.all(clients.map((client) => requestAirdrop(client.provider)));
+    upgradeAuthorityClient = new TbrWrapper(
+      newProvider(await keypairFromFile(authorityKeypairPath)),
+      'owner',
+    );
 
     // Program Deployment
     // ============
 
-    const authorityKeypairPath = './target/deploy/token_bridge_relayer-keypair.json';
-    const authorityProvider = newProvider(await keypairFromFile(authorityKeypairPath));
-    await requestAirdrop(authorityProvider);
-    deployProgram(
-      './solana/tests/program.json',
-      authorityKeypairPath,
-      './target/sbf-solana-solana/release/token_bridge_relayer.so',
-    );
-    await putProgramKeyBackInIdl('7TLiBkpDGshV4o3jmacTCx93CLkmo3VjZ111AsijN9f8');
+    await Promise.all([
+      // Token Bridge Relayer
+      deployProgram(
+        './solana/programs/token-bridge-relayer/test-program-keypair.json',
+        authorityKeypairPath,
+        './target/sbf-solana-solana/release/token_bridge_relayer.so',
+      ),
+      // Price Oracle
+      deployProgram(
+        './lib/relayer-infra-contracts/src/solana/programs/price-oracle/test-program-keypair.json',
+        authorityKeypairPath,
+        './lib/relayer-infra-contracts/src/solana/target/sbf-solana-solana/release/solana_price_oracle.so',
+      ),
+    ]);
 
     // Oracle Setup
     // ============
 
-    await requestAirdrop(oracleOwner);
-
-    await oracleOwner.sendAndConfirm(
+    const oracleAuthorityProvider = newProvider(await keypairFromFile(authorityKeypairPath));
+    const oracleAuthorityClient = new SolanaPriceOracle(oracleAuthorityProvider.connection);
+    await oracleAuthorityProvider.sendAndConfirm(
       new Transaction().add(
-        await oracleOwnerClient.initialize(oracleOwner.publicKey),
-        await oracleOwnerClient.registerEvmPrices(oracleOwner.publicKey, {
+        await oracleAuthorityClient.initialize(oracleAuthorityProvider.publicKey, [], []),
+        await oracleAuthorityClient.registerEvmPrices(oracleAuthorityProvider.publicKey, {
           chain: ETHEREUM,
           gasPrice: 2117, // 1 gas costs 2117 Mwei
           pricePerByte: 0, // ETH does not care about transaction size
-          gasTokenPrice: new anchor.BN(789_000_000), // ETH is at $789
+          gasTokenPrice: 789_000_000n, // ETH is at $789
         }),
-        await oracleOwnerClient.updateSolPrice(oracleOwner.publicKey, new anchor.BN(113_000_000)), // SOL is at $113
+        await oracleAuthorityClient.updateSolPrice(oracleAuthorityProvider.publicKey, 113_000_000n), // SOL is at $113
       ),
     );
 
     // Wormhole Core Setup
     // ===================
     //await wormholeCoreClient.initialize();
+
+    //console.log('Now waiting for 40s');
+    //setTimeout(() => {}, 40000); //Wait for 40 seconds
+    throw new Error('oops');
   });
 
   after(async () => {
     // Prevents the tests to be stuck, by closing the open channels.
+    clients.push(upgradeAuthorityClient);
     await Promise.all(clients.map((client) => client.close()));
   });
 
   it('Is initialized!', async () => {
-    await TbrWrapper.initialize({
+    await upgradeAuthorityClient.initialize({
       feeRecipient,
       owner: ownerClient.publicKey,
       admins: [adminClient1.publicKey, adminClient2.publicKey],

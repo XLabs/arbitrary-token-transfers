@@ -9,6 +9,7 @@ import {
   clusterApiUrl,
   Cluster,
   LAMPORTS_PER_SOL,
+  Keypair,
 } from '@solana/web3.js';
 import * as borsh from 'borsh';
 import {
@@ -17,7 +18,6 @@ import {
   encoding,
   contracts,
   Network,
-  chain,
   chainIdToChain,
 } from '@wormhole-foundation/sdk-base';
 import { UniversalAddress } from '@wormhole-foundation/sdk-definitions';
@@ -27,17 +27,19 @@ import {
   getCompleteTransferNativeWithPayloadCpiAccounts,
   getCompleteTransferWrappedWithPayloadCpiAccounts,
 } from '@wormhole-foundation/sdk-solana-tokenbridge';
-import { SolanaPriceOracleClient } from '@xlabs/solana-price-oracle-sdk';
+import { SolanaPriceOracle } from '@xlabs/solana-price-oracle-sdk';
+import { deserializeTbrV3Message, VaaMessage, throwError } from 'common-arbitrary-token-transfer';
+import { BpfLoaderUpgradeableProgram } from './bpf-loader-upgradeable.js';
 
 import { TokenBridgeRelayer } from './idl/token_bridge_relayer.js';
 import IDL from '../../../target/idl/token_bridge_relayer.json' with { type: 'json' };
-import { deserializeTbrV3Message, VaaMessage, throwError } from 'common-arbitrary-token-transfer';
-import { BpfLoaderUpgradeableProgram } from './bpf-loader-upgradeable.js';
+import networkConfig from '../../../solana/programs/token-bridge-relayer/network.json';
+import testProgramKeypair from '../../../solana/programs/token-bridge-relayer/test-program-keypair.json';
 
 // Export IDL
 export * from './idl/token_bridge_relayer.js';
 export const idl = IDL;
-export { SolanaPriceOracleClient } from '@xlabs/solana-price-oracle-sdk';
+export { SolanaPriceOracle } from '@xlabs/solana-price-oracle-sdk';
 export type { VaaMessage } from 'common-arbitrary-token-transfer';
 
 export interface WormholeAddress {
@@ -71,6 +73,8 @@ export type PeerAccount = anchor.IdlAccounts<TokenBridgeRelayer>['peerState'];
 export type SignerSequenceAccount = anchor.IdlAccounts<TokenBridgeRelayer>['signerSequenceState'];
 export type AuthBadgeAccount = anchor.IdlAccounts<TokenBridgeRelayer>['authBadgeState'];
 
+export type NetworkOrLocal = Network | 'Localnet';
+
 /**
  * Transforms a `UniversalAddress` into an array of numbers `number[]`.
  */
@@ -78,24 +82,28 @@ export const uaToArray = (ua: UniversalAddress): number[] => Array.from(ua.toUin
 
 export class SolanaTokenBridgeRelayer {
   public readonly program: anchor.Program<TokenBridgeRelayer>;
-  private readonly priceOracleClient: SolanaPriceOracleClient;
+  private readonly priceOracleClient: SolanaPriceOracle;
   private readonly wormholeProgramId: PublicKey;
   private readonly tokenBridgeProgramId: PublicKey;
 
   /**
    * Creates a SolanaTokenBridgeRelayer instance.
-   * When env.address is not provided, the IDL value is used.
-   * When env.network is not provided, the network is detected 
-   * using the provider url, which works for official solana nodes only.
    */
-  constructor(provider: anchor.Provider, env: { address?: string, network?: Network } = {}) {
-    const network = env.network ?? networkFromConnection(provider.connection);
-    myDebug('Network detected to be:', network);
+  constructor(provider: anchor.Provider, network: NetworkOrLocal, programId: PublicKey) {
+    const wormholeNetwork = network === 'Localnet' ? 'Mainnet' : network;
 
-    this.program = new Program(patchAddress(IDL, env.address), provider);
-    this.priceOracleClient = new SolanaPriceOracleClient(provider.connection);
-    this.wormholeProgramId = new PublicKey(contracts.coreBridge(network, 'Solana'));
-    this.tokenBridgeProgramId = new PublicKey(contracts.tokenBridge(network, 'Solana'));
+    this.program = new Program(patchAddress(IDL, programId), provider);
+    this.priceOracleClient = new SolanaPriceOracle(provider.connection);
+    this.wormholeProgramId = new PublicKey(contracts.coreBridge(wormholeNetwork, 'Solana'));
+    this.tokenBridgeProgramId = new PublicKey(contracts.tokenBridge(wormholeNetwork, 'Solana'));
+  }
+
+  static async create(provider: anchor.Provider): Promise<SolanaTokenBridgeRelayer> {
+    const network = await networkFromConnection(provider.connection);
+    const programId = await programIdFromNetwork(network);
+    myDebug('Detected environment', { network, programId });
+
+    return new SolanaTokenBridgeRelayer(provider, network, programId);
   }
 
   get connection(): Connection {
@@ -260,11 +268,13 @@ export class SolanaTokenBridgeRelayer {
     const program = new BpfLoaderUpgradeableProgram(this.program.programId, this.connection);
     const deployer =
       (await program.getdata()).upgradeAuthority ?? throwError('The program must be upgradeable');
+    console.log('program data address', program.dataAddress);
 
     return await this.program.methods
       .initialize(feeRecipient, admins)
-      .accounts({
+      .accountsPartial({
         deployer,
+        programData: program.dataAddress,
         owner,
       })
       .remainingAccounts(authBadges)
@@ -525,8 +535,8 @@ export class SolanaTokenBridgeRelayer {
       userTokenAccount,
       temporaryAccount: pda.temporary(this.program.programId, mint),
       feeRecipient,
-      oracleConfig: this.priceOracleClient.address.config(),
-      oracleEvmPrices: this.priceOracleClient.address.evmPrices(recipient.chain),
+      oracleConfig: this.priceOracleClient.account.config().address,
+      oracleEvmPrices: this.priceOracleClient.account.evmPrices(recipient.chain).address,
       ...tokenBridgeAccounts,
       wormholeMessage: pda.wormholeMessage(this.program.programId, signer, payerSequenceNumber),
       payerSequence: this.address.signerSequence(signer),
@@ -582,8 +592,8 @@ export class SolanaTokenBridgeRelayer {
       userTokenAccount,
       temporaryAccount: pda.temporary(this.program.programId, tokenBridgeAccounts.mint),
       feeRecipient,
-      oracleConfig: this.priceOracleClient.address.config(),
-      oracleEvmPrices: this.priceOracleClient.address.evmPrices(recipient.chain),
+      oracleConfig: this.priceOracleClient.account.config().address,
+      oracleEvmPrices: this.priceOracleClient.account.evmPrices(recipient.chain).address,
       ...tokenBridgeAccounts,
       wormholeMessage: pda.wormholeMessage(this.program.programId, signer, payerSequenceNumber),
       payerSequence: this.address.signerSequence(signer),
@@ -638,10 +648,7 @@ export class SolanaTokenBridgeRelayer {
 
     myDebug('completeNativeTransfer:', accounts);
 
-    return this.program.methods
-      .completeTransfer()
-      .accountsPartial(accounts)
-      .instruction();
+    return this.program.methods.completeTransfer().accountsPartial(accounts).instruction();
   }
 
   /**
@@ -677,10 +684,7 @@ export class SolanaTokenBridgeRelayer {
 
     myDebug('completeWrappedTransfer:', accounts);
 
-    return this.program.methods
-      .completeTransfer()
-      .accountsPartial(accounts)
-      .instruction();
+    return this.program.methods.completeTransfer().accountsPartial(accounts).instruction();
   }
 
   /* Queries */
@@ -699,8 +703,8 @@ export class SolanaTokenBridgeRelayer {
       .accountsStrict({
         tbrConfig: this.address.config(),
         chainConfig: this.address.chainConfig(chain),
-        oracleConfig: this.priceOracleClient.address.config(),
-        oracleEvmPrices: this.priceOracleClient.address.evmPrices(chain),
+        oracleConfig: this.priceOracleClient.account.config().address,
+        oracleEvmPrices: this.priceOracleClient.account.evmPrices(chain).address,
       })
       .rpc({ commitment: 'confirmed' });
     const txResponse = await this.connection.getTransaction(tx, {
@@ -967,23 +971,38 @@ function completeWrappedTokenBridgeAccounts(params: {
 /**
  * Detects the network from a Solana connection.
  */
-function networkFromConnection(connection: Connection): Network {
-  function clusterRpcEndpoint(cluster: Cluster) {
-    return new Connection(clusterApiUrl(cluster), 'singleGossip').rpcEndpoint;
+async function networkFromConnection(connection: Connection): Promise<NetworkOrLocal> {
+  function genesisHash(cluster: Cluster) {
+    return new Connection(clusterApiUrl(cluster), 'singleGossip').getGenesisHash();
   }
-  const mainnet = clusterRpcEndpoint('mainnet-beta');
-  const devnet = clusterRpcEndpoint('devnet');
-  const testnet = clusterRpcEndpoint('testnet');
+  const [mainnet, devnet, testnet] = await Promise.all([
+    genesisHash('mainnet-beta'),
+    genesisHash('devnet'),
+    genesisHash('testnet'),
+  ]);
 
-  switch (connection.rpcEndpoint) {
+  switch (await connection.getGenesisHash()) {
     case mainnet:
       return 'Mainnet';
     case devnet:
       return 'Devnet';
     case testnet:
       return 'Testnet';
-    default: // We consider that it is localnet, and use the mainnet values:
-      return 'Mainnet';
+    default:
+      return 'Localnet';
+  }
+}
+
+async function programIdFromNetwork(network: NetworkOrLocal) {
+  switch (network) {
+    case 'Mainnet':
+      return new PublicKey(networkConfig.mainnet);
+    case 'Devnet':
+      return new PublicKey(networkConfig.devnet);
+    case 'Testnet':
+      return new PublicKey(networkConfig.testnet);
+    case 'Localnet':
+      return Keypair.fromSecretKey(Uint8Array.from(testProgramKeypair)).publicKey;
   }
 }
 
@@ -994,18 +1013,18 @@ function myDebug(message?: any, ...optionalParams: any[]) {
 /**
  * Crappy fix for allowing to override address to support multiple environments
  */
-function patchAddress(idl: any, address?: string) {
+function patchAddress(idl: any, address?: PublicKey) {
   if (address) {
-    return { ...idl, address };
+    return { ...idl, address: address.toString() };
   }
 
   return idl;
 }
 
-function bnToBigint(n: anchor.BN): bigint {
-  return BigInt(n.toString());
+export function bnToBigint(n: anchor.BN): bigint {
+  return BigInt(`0x${n.toString('hex')}`);
 }
 
-function bigintToBn(n: bigint): anchor.BN {
-  return new anchor.BN(n.toString());
+export function bigintToBn(n: bigint): anchor.BN {
+  return new anchor.BN(`${n.toString(16)}`, 'hex');
 }
