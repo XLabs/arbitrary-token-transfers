@@ -2,12 +2,12 @@
   "TbrV3": [
     {
       "chainId": 10002,
-      "address": "0x3Bc865474FC34dEa988Fd46Af86F4d469F735eb1",
+      "address": "0x0975f2186419A319D8e8a322aC292d1bD859abeB",
       "constructorArgs": [
         "0x000000000022D473030F116dDEE9F6B43aC78BA3",
         "0xDB5492265f6038831E89f495670FF909aDe94bd9",
-        "0xC26b5b530F001e00F67ad7B4f7c33003fA72C65b",
-        "0x7b79995e5f793a07bc00c21412e50ecae098e7f9",
+        "0x2a17CD094f45f3574E10C584FE53FB1074087794",
+        "0xeef12A83EE5b7161D3873317c8E0E7B76e0B5D9c",
         true
       ]
     },
@@ -48,15 +48,26 @@
         "0xF194afDf50B03e69Bd7D057c1Aa9e10c9954E4C9",
         true
       ]
+    },
+    {
+      "chainId": 10003,
+      "address": "0x5c0528bbB41d67996334297A0C988AaFeec76EDA",
+      "constructorArgs": [
+        "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+        "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e",
+        "0x64B46956c50eC3B554482F430a740AEb2643dEdB",
+        "0x980B62Da83eFf3D4576C647993b0c1D7faf17c73",
+        true
+      ]
     }
   ],
   "TbrV3Proxies": [
     {
       "chainId": 10002,
-      "address": "0x77A70bCA55813ec70528184F7Cb02eFeD71D6031",
+      "address": "0xDc74c34F88d17895e31792439eaCE7cB1ed17d3a",
       "constructorArgs": [
-        "0x3Bc865474FC34dEa988Fd46Af86F4d469F735eb1",
-        "0x6f9b66c711a46d9c37706396ec8444bf6c8e7b176f9b66c711a46d9c37706396ec8444bf6c8e7b176f9b66c711a46d9c37706396ec8444bf6c8e7b17"
+        "0x0975f2186419A319D8e8a322aC292d1bD859abeB",
+        "0xef14dd4a5b485ff12661450b1f0d1c1fd37db84eef14dd4a5b485ff12661450b1f0d1c1fd37db84e01ef14dd4a5b485ff12661450b1f0d1c1fd37db84e"
       ]
     },
     {
@@ -79,6 +90,14 @@
       "chainId": 14,
       "address": "0xdbe75EfF77dF67524B13c38e07d2451456098DC7",
       "constructorArgs": []
+    },
+    {
+      "chainId": 10003,
+      "address": "0x7Ab71581b33948DdD07a4995a594d631BC4D2988",
+      "constructorArgs": [
+        "0x5c0528bbB41d67996334297A0C988AaFeec76EDA",
+        "0xef14dd4a5b485ff12661450b1f0d1c1fd37db84eef14dd4a5b485ff12661450b1f0d1c1fd37db84e01ef14dd4a5b485ff12661450b1f0d1c1fd37db84e"
+      ]
     }
   ]
 }

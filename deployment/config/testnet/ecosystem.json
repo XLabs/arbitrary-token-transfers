@@ -1,5 +1,5 @@
 {
-  "operatingChains": [1, 14, 10002, 10004, 10005],
+  "operatingChains": [10002, 10003],
   "evm": {
     "networks": [
       {
@@ -22,6 +22,7 @@
         "name": "ArbitrumSepolia",
         "evmNetworkId": 421614,
         "chainId": 10003,
+        "network": "Testnet",
         "rpc": "https://sepolia-rollup.arbitrum.io/rpc",
         "wormholeAddress": "0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35"
       },
