@@ -18,7 +18,7 @@ import {
 import { SolanaWormholeCore } from '@wormhole-foundation/sdk-solana-core';
 import { SolanaAutomaticTokenBridge } from '@wormhole-foundation/sdk-solana-tokenbridge';
 
-import testProgramKeypair from '../../programs/token-bridge-relayer/test-program-keypair.json';
+import testProgramKeypair from '../../programs/token-bridge-relayer/test-program-keypair.json' with { type: 'json' };
 
 export class TbrWrapper {
   readonly client: SolanaTokenBridgeRelayer;

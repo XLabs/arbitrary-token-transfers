@@ -35,4 +35,4 @@ wallet = "./target/deploy/token_bridge_relayer-keypair.json"
 
 [scripts]
 setup-test = "cargo build-sbf -- -p solana-price-oracle --target-dir target"
-test = "yarn ./solana build:ts && yarn run mocha -t 1000000 solana/ts-build/tests/*.js"
+test = "yarn ./solana build:ts && yarn run mocha --require=tsx/esm -t 1000000 solana/ts-build/tests/*.js"

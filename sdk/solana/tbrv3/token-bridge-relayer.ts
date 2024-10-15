@@ -33,8 +33,8 @@ import { BpfLoaderUpgradeableProgram } from './bpf-loader-upgradeable.js';
 
 import { TokenBridgeRelayer as IdlType } from './idl/token_bridge_relayer.js';
 import IDL from '../../../target/idl/token_bridge_relayer.json' with { type: 'json' };
-import networkConfig from '../../../solana/programs/token-bridge-relayer/network.json';
-import testProgramKeypair from '../../../solana/programs/token-bridge-relayer/test-program-keypair.json';
+import networkConfig from '../../../solana/programs/token-bridge-relayer/network.json' with { type: 'json' };
+import testProgramKeypair from '../../../solana/programs/token-bridge-relayer/test-program-keypair.json' with { type: 'json' };
 
 // Export IDL
 export * from './idl/token_bridge_relayer.js';

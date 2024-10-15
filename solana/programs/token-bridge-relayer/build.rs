@@ -21,6 +21,7 @@ const TEST_KEYPAIR_PATH: &str = "test-program-keypair.json";
 fn main() -> Result<()> {
     // Tell Cargo that if the JSON file changes, or the env variable, to rerun this build script:
     println!("cargo:rerun-if-changed=network.json");
+    println!("cargo:rerun-if-changed=src/id.rs");
 
     // Generate the id.rs file:
     let network = Network::deserialize("network.json")?;
