@@ -4,7 +4,7 @@ use crate::{
 };
 use anchor_lang::prelude::*;
 use solana_price_oracle::{
-    state::{EvmPricesAccount, PriceOracleConfigAccount},
+    state::{EvmPricesState, PriceOracleConfigState},
     PriceOracle,
 };
 
@@ -17,14 +17,14 @@ pub struct QuoteQuery<'info> {
     /// canonical peer.
     pub chain_config: Account<'info, ChainConfigState>,
 
-    pub oracle_config: Account<'info, PriceOracleConfigAccount>,
+    pub oracle_config: Account<'info, PriceOracleConfigState>,
 
     #[account(
-        seeds = [EvmPricesAccount::SEED_PREFIX, chain_config.chain_id.to_be_bytes().as_ref()],
+        seeds = [EvmPricesState::SEED_PREFIX, chain_config.chain_id.to_be_bytes().as_ref()],
         seeds::program = PriceOracle::id(),
         bump,
     )]
-    pub oracle_evm_prices: Account<'info, EvmPricesAccount>,
+    pub oracle_evm_prices: Account<'info, EvmPricesState>,
 }
 
 pub fn relaying_fee(ctx: Context<QuoteQuery>, dropoff_amount: u32) -> Result<u64> {
