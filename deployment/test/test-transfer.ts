@@ -12,8 +12,8 @@ import {
 import { ethers } from 'ethers';
 import { getProvider, runOnEvms, sendTxCatch, wrapEthersProvider } from '../helpers/evm';
 import { SupportedChain, Tbrv3, Transfer } from '@xlabs-xyz/evm-arbitrary-token-transfers';
-import { resolveWrappedToken, toUniversal } from '@wormhole-foundation/sdk-definitions';
-import { Chain, chainIdToChain, chainToPlatform } from '@wormhole-foundation/sdk-base';
+import { buildConfig, create, getProtocolInitializer, resolveWrappedToken, toUniversal, UniversalAddress } from '@wormhole-foundation/sdk-definitions';
+import { Chain, chainIdToChain, chainToPlatform, contracts } from '@wormhole-foundation/sdk-base';
 import { inspect } from 'util';
 import { solanaOperatingChains, getConnection, ledgerSignAndSend, runOnSolana, SolanaSigner } from '../helpers/solana';
 import { EvmAddress } from '@wormhole-foundation/sdk-evm';
@@ -30,13 +30,16 @@ import {
   NATIVE_MINT
 } from '@solana/spl-token';
 
+import { ethers_contracts } from "@wormhole-foundation/sdk-evm-tokenbridge";
+
+
 const processName = 'att-test-transfer';
 const chains = evm.evmOperatingChains();
 const availableChains = chains.concat(solanaOperatingChains());
 const usdcAddresses = {
   OptimismSepolia: '0x5fd84259d66Cd46123540766Be93DFE6D43130D7',
   Sepolia: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
-  Celo: '	0x2F25deB3848C207fc8E0c34035B3Ba7fC157602B',
+  Celo: ' 0x2F25deB3848C207fc8E0c34035B3Ba7fC157602B',
   Solana: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU'
 };
 
@@ -108,6 +111,28 @@ async function run() {
   console.log(`Process ${processName} finished after ${timeMs} miliseconds`);
 }
 
+async function getLocalToken(tokenAddress: UniversalAddress, tokenChain: Chain, localChain: EvmChainInfo): Promise<EvmAddress> {
+  let token;
+  const localChainName = localChain.name as "Solana" | "Avalanche";
+  const tokenBridgeAddress = contracts.tokenBridge(localChain.network, localChain.name as Exclude<SupportedChain, "Sepolia" | "BaseSepolia" | "OptimismSepolia">);
+  // const thing = getProtocolInitializer(chainToPlatform(localChainName), "TokenBridge");
+  const provider = getProvider(localChain);
+  // ethers v6 provider typechecking chokes up with private members when you have a different version.
+  // This probably sounds like a Wormhole SDK API defect imo.
+  // The ContractReader interface does allow you to pass in specific functions for several query primitives.
+  // Maybe we need to create a helper function that creates this interface for an ethers v6 in an easy and predictable way.
+  const tokenBridge = ethers_contracts.Bridge__factory.connect(tokenBridgeAddress, {provider: provider as any});
+  const thing2 = await create(chainToPlatform(localChainName), "TokenBridge", provider, buildConfig(localChain.network));
+  // new thing(localChain.network, localChainName, provider, contracts)
+  token = await thing2.getWrappedAsset({ chain: tokenChain, address: tokenAddress });
+
+  if (token !== undefined) {
+    return new EvmAddress(token);
+  }
+
+  throw new Error(`Could not find gas token for chain ${localChain.name}`);
+}
+
 function getNativeWrappedToken(chain: EvmChainInfo) {
   let token;
   try {
@@ -116,7 +141,7 @@ function getNativeWrappedToken(chain: EvmChainInfo) {
   if (token === undefined) {
     throw new Error(`Could not find gas token for chain ${chain.name}`);
   }
-  return new EvmAddress(token);
+  return token;
 }
 
 async function sendEvmTestTransaction(
@@ -127,7 +152,7 @@ async function sendEvmTestTransaction(
 ): Promise<void> {
   try {
     const inputToken = testTransfer.tokenAddress !== undefined
-      ? new EvmAddress(testTransfer.tokenAddress)
+      ? await getLocalToken(testTransfer.tokenAddress, testTransfer.tokenChain, chain)
       : getNativeWrappedToken(chain);
     const gasDropoff = Number(testTransfer.gasDropoffAmount);
     const inputAmountInAtomic = BigInt(testTransfer.transferredAmount);
