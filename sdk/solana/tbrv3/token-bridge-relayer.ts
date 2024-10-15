@@ -87,7 +87,8 @@ export class SolanaTokenBridgeRelayer {
   private readonly tokenBridgeProgramId: PublicKey;
 
   /**
-   * Creates a SolanaTokenBridgeRelayer instance.
+   * Creates a SolanaTokenBridgeRelayer instance. To let the arguments be found automatically,
+   * use `SolanaTokenBridgeRelayer.create`.
    */
   constructor(
     provider: anchor.Provider,
@@ -103,9 +104,12 @@ export class SolanaTokenBridgeRelayer {
     this.tokenBridgeProgramId = new PublicKey(contracts.tokenBridge(wormholeNetwork, 'Solana'));
   }
 
+  /**
+   * Creates a new instance by using the values in `network.json` in the program directory.
+   */
   static async create(provider: anchor.Provider): Promise<SolanaTokenBridgeRelayer> {
     const network = await networkFromConnection(provider.connection);
-    const programId = await programIdFromNetwork(network);
+    const programId = programIdFromNetwork(network);
     const priceOracle = await SolanaPriceOracle.create(provider.connection);
     myDebug('Detected environment', {
       network,
@@ -999,7 +1003,7 @@ async function networkFromConnection(connection: Connection): Promise<NetworkOrL
   }
 }
 
-async function programIdFromNetwork(network: NetworkOrLocal) {
+function programIdFromNetwork(network: NetworkOrLocal) {
   switch (network) {
     case 'Mainnet':
       return new PublicKey(networkConfig.mainnet);
