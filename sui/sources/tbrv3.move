@@ -147,7 +147,7 @@ module 0x0::TBRv3 {
 		if (!check_owner_or_admin(state, ctx)) {
 			return false
 		};
-		
+
 		// TODO: What does this do? It seems like there is no use for anything besides the canonical peer.
 
 		false
@@ -276,6 +276,7 @@ module 0x0::TBRv3 {
 
 	/* Transfers */
 
+	/* We comment the transfer functions out for now
 	public struct TransferTokensRequest<phantom T> {
 		payer: address,
 		token: Coin<T>,
@@ -316,6 +317,8 @@ module 0x0::TBRv3 {
 	): bool {
 		false
 	}
+
+	*/
 
 	/* Helpers */
 
