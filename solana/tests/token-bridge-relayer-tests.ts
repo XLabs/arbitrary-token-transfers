@@ -7,10 +7,13 @@ import {
   requestAirdrop,
   deployProgram,
   keypairFromFile,
+  keypairFromArray,
 } from './utils/helpers.js';
 import { TbrWrapper } from './utils/client-wrapper.js';
 import { SolanaPriceOracle, uaToArray } from '@xlabs-xyz/solana-arbitrary-token-transfers';
 import { expect } from 'chai';
+
+import oracleKeypair from './oracle-program-keypair.json' with { type: 'json' };
 
 const ETHEREUM = 'Ethereum';
 const ETHEREUM_ID = chainToChainId(ETHEREUM);
@@ -22,7 +25,7 @@ const authorityKeypairPath = './target/deploy/token_bridge_relayer-keypair.json'
 describe('Token Bridge Relayer Program', () => {
   const oracleClient = new SolanaPriceOracle(
     newProvider().connection,
-    new PublicKey('CefQJaxQTV28gCf4MMd1PgDHgCcRmuEHZgXZwjJReUY3'),
+    keypairFromArray(oracleKeypair).publicKey,
   );
   const clients = (['owner', 'owner', 'admin', 'admin', 'admin', 'regular'] as const).map(
     (typeAccount) => TbrWrapper.from(newProvider(), typeAccount, oracleClient),
@@ -100,10 +103,6 @@ describe('Token Bridge Relayer Program', () => {
     // Wormhole Core Setup
     // ===================
     //await wormholeCoreClient.initialize();
-
-    //console.log('Now waiting for 40s');
-    //setTimeout(() => {}, 40000); //Wait for 40 seconds
-    throw new Error('oops');
   });
 
   after(async () => {

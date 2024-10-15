@@ -164,5 +164,5 @@ export async function deployProgram(
   while (programAccount === null) {
     programAccount = await connection.getAccountInfo(programDataAddress, 'finalized');
   }
-  console.log('Found programAccount:', { programDataAddress, programId, programAccount });
+  //console.log('Found programAccount:', { programDataAddress, programId, programAccount });
 }

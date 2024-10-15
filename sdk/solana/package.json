@@ -28,7 +28,7 @@
     "@wormhole-foundation/sdk-definitions": "^0.11",
     "@wormhole-foundation/sdk-solana": "^0.11",
     "@wormhole-foundation/sdk-solana-tokenbridge": "^0.11",
-    "@xlabs/solana-price-oracle-sdk": "0.0.10",
+    "@xlabs/solana-price-oracle-sdk": "0.0.12",
     "borsh": "^2.0.0"
   },
   "devDependencies": {

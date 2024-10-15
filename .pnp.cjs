@@ -2303,7 +2303,7 @@ const RAW_RUNTIME_STATE =
           ["@wormhole-foundation/sdk-definitions", "npm:0.11.0"],\
           ["@wormhole-foundation/sdk-solana", "npm:0.11.0"],\
           ["@wormhole-foundation/sdk-solana-tokenbridge", "npm:0.11.0"],\
-          ["@xlabs/solana-price-oracle-sdk", "npm:0.0.10::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40xlabs%2Fsolana-price-oracle-sdk%2F0.0.10%2F54c8f9307fddc082a065019d7352189aa10b6919"],\
+          ["@xlabs/solana-price-oracle-sdk", "npm:0.0.12::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40xlabs%2Fsolana-price-oracle-sdk%2F0.0.12%2F56b8ef5110a6184b33ff60ccb4c9431074451e69"],\
           ["borsh", "npm:2.0.0"],\
           ["tsup", "virtual:056deaaa1268de825ebb7f2126e3a2787838e2876e69eb46bc3ce4857072f92cede74aabe3915aa2d505c2a087a7d59d9170f4e7cc6428f30bd09123b7267c8f#npm:8.3.0"],\
           ["tsx", "npm:4.19.1"],\
@@ -2313,10 +2313,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@xlabs/solana-price-oracle-sdk", [\
-      ["npm:0.0.10::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40xlabs%2Fsolana-price-oracle-sdk%2F0.0.10%2F54c8f9307fddc082a065019d7352189aa10b6919", {\
-        "packageLocation": "./.yarn/cache/@xlabs-solana-price-oracle-sdk-npm-0.0.10-dd35225627-1e2782cae4.zip/node_modules/@xlabs/solana-price-oracle-sdk/",\
+      ["npm:0.0.12::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40xlabs%2Fsolana-price-oracle-sdk%2F0.0.12%2F56b8ef5110a6184b33ff60ccb4c9431074451e69", {\
+        "packageLocation": "./.yarn/cache/@xlabs-solana-price-oracle-sdk-npm-0.0.12-743aa029ba-ec6718f461.zip/node_modules/@xlabs/solana-price-oracle-sdk/",\
         "packageDependencies": [\
-          ["@xlabs/solana-price-oracle-sdk", "npm:0.0.10::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40xlabs%2Fsolana-price-oracle-sdk%2F0.0.10%2F54c8f9307fddc082a065019d7352189aa10b6919"],\
+          ["@xlabs/solana-price-oracle-sdk", "npm:0.0.12::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40xlabs%2Fsolana-price-oracle-sdk%2F0.0.12%2F56b8ef5110a6184b33ff60ccb4c9431074451e69"],\
           ["@coral-xyz/anchor", "npm:0.30.1"],\
           ["@solana/web3.js", "npm:1.95.3"],\
           ["@wormhole-foundation/sdk-base", "npm:0.11.0"],\

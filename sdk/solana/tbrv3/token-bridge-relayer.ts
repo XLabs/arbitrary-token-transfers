@@ -106,8 +106,12 @@ export class SolanaTokenBridgeRelayer {
   static async create(provider: anchor.Provider): Promise<SolanaTokenBridgeRelayer> {
     const network = await networkFromConnection(provider.connection);
     const programId = await programIdFromNetwork(network);
-    myDebug('Detected environment', { network, programId });
     const priceOracle = await SolanaPriceOracle.create(provider.connection);
+    myDebug('Detected environment', {
+      network,
+      relayerProgramId: programId.toString(),
+      oracleProgramId: priceOracle.program.programId.toString(),
+    });
 
     return new SolanaTokenBridgeRelayer(provider, network, programId, priceOracle);
   }
@@ -290,7 +294,6 @@ export class SolanaTokenBridgeRelayer {
     const program = new BpfLoaderUpgradeableProgram(this.program.programId, this.connection);
     const deployer =
       (await program.getdata()).upgradeAuthority ?? throwError('The program must be upgradeable');
-    console.log('program data address', program.dataAddress);
 
     return await this.program.methods
       .initialize(feeRecipient, admins)
