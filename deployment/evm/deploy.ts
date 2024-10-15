@@ -9,7 +9,7 @@ import { ethers } from "ethers";
 import { encoding } from "@wormhole-foundation/sdk-base";
 import { Proxy__factory } from "../ethers-contracts/index.js";
 import { getSigner } from "../helpers/evm";
-import { EvmAddress } from "@wormhole-foundation/sdk-evm/dist/cjs";
+import { EvmAddress } from "@wormhole-foundation/sdk-evm";
 import { deployRelayerImplementation } from "./deploy-implementation";
 
 

@@ -1,7 +1,15 @@
 {
-  "operatingChains": [1, 14, 10002, 10004, 10005],
+  "operatingChains": [6],
   "evm": {
     "networks": [
+      {
+        "name": "Fuji",
+        "externalId": 43113,
+        "chainId": 6,
+        "rpc": "https://api.avax-test.network/ext/bc/C/rpc",
+        "network": "Testnet",
+        "wormholeAddress": "0x7bbcE28e64B3F8b84d876Ab298393c38ad7aac4C"
+      },
       {
         "name": "Celo",
         "externalId": 44787,
@@ -22,6 +30,7 @@
         "name": "ArbitrumSepolia",
         "evmNetworkId": 421614,
         "chainId": 10003,
+        "network": "Testnet",
         "rpc": "https://sepolia-rollup.arbitrum.io/rpc",
         "wormholeAddress": "0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35"
       },
