@@ -31,7 +31,7 @@ import { SolanaPriceOracle } from '@xlabs/solana-price-oracle-sdk';
 import { deserializeTbrV3Message, VaaMessage, throwError } from 'common-arbitrary-token-transfer';
 import { BpfLoaderUpgradeableProgram } from './bpf-loader-upgradeable.js';
 
-import { TokenBridgeRelayer } from './idl/token_bridge_relayer.js';
+import { TokenBridgeRelayer as IdlType } from './idl/token_bridge_relayer.js';
 import IDL from '../../../target/idl/token_bridge_relayer.json' with { type: 'json' };
 import networkConfig from '../../../solana/programs/token-bridge-relayer/network.json';
 import testProgramKeypair from '../../../solana/programs/token-bridge-relayer/test-program-keypair.json';
@@ -67,11 +67,11 @@ export interface TransferWrappedParameters {
   unwrapIntent: boolean;
 }
 
-export type TbrConfigAccount = anchor.IdlAccounts<TokenBridgeRelayer>['tbrConfigState'];
-export type ChainConfigAccount = anchor.IdlAccounts<TokenBridgeRelayer>['chainConfigState'];
-export type PeerAccount = anchor.IdlAccounts<TokenBridgeRelayer>['peerState'];
-export type SignerSequenceAccount = anchor.IdlAccounts<TokenBridgeRelayer>['signerSequenceState'];
-export type AuthBadgeAccount = anchor.IdlAccounts<TokenBridgeRelayer>['authBadgeState'];
+export type TbrConfigAccount = anchor.IdlAccounts<IdlType>['tbrConfigState'];
+export type ChainConfigAccount = anchor.IdlAccounts<IdlType>['chainConfigState'];
+export type PeerAccount = anchor.IdlAccounts<IdlType>['peerState'];
+export type SignerSequenceAccount = anchor.IdlAccounts<IdlType>['signerSequenceState'];
+export type AuthBadgeAccount = anchor.IdlAccounts<IdlType>['authBadgeState'];
 
 export type NetworkOrLocal = Network | 'Localnet';
 
@@ -81,7 +81,7 @@ export type NetworkOrLocal = Network | 'Localnet';
 export const uaToArray = (ua: UniversalAddress): number[] => Array.from(ua.toUint8Array());
 
 export class SolanaTokenBridgeRelayer {
-  public readonly program: anchor.Program<TokenBridgeRelayer>;
+  public readonly program: anchor.Program<IdlType>;
   private readonly priceOracleClient: SolanaPriceOracle;
   private readonly wormholeProgramId: PublicKey;
   private readonly tokenBridgeProgramId: PublicKey;
@@ -89,11 +89,16 @@ export class SolanaTokenBridgeRelayer {
   /**
    * Creates a SolanaTokenBridgeRelayer instance.
    */
-  constructor(provider: anchor.Provider, network: NetworkOrLocal, programId: PublicKey) {
+  constructor(
+    provider: anchor.Provider,
+    network: NetworkOrLocal,
+    programId: PublicKey,
+    priceOracle: SolanaPriceOracle,
+  ) {
     const wormholeNetwork = network === 'Localnet' ? 'Mainnet' : network;
 
     this.program = new Program(patchAddress(IDL, programId), provider);
-    this.priceOracleClient = new SolanaPriceOracle(provider.connection);
+    this.priceOracleClient = priceOracle;
     this.wormholeProgramId = new PublicKey(contracts.coreBridge(wormholeNetwork, 'Solana'));
     this.tokenBridgeProgramId = new PublicKey(contracts.tokenBridge(wormholeNetwork, 'Solana'));
   }
@@ -102,28 +107,64 @@ export class SolanaTokenBridgeRelayer {
     const network = await networkFromConnection(provider.connection);
     const programId = await programIdFromNetwork(network);
     myDebug('Detected environment', { network, programId });
+    const priceOracle = await SolanaPriceOracle.create(provider.connection);
 
-    return new SolanaTokenBridgeRelayer(provider, network, programId);
+    return new SolanaTokenBridgeRelayer(provider, network, programId, priceOracle);
   }
 
   get connection(): Connection {
     return this.program.provider.connection;
   }
 
-  get address() {
+  /** Raw Solana accounts. */
+  get account() {
     return {
-      config: () => pda.tbrConfig(this.program.programId),
-      chainConfig: (chain: Chain) => pda.chainConfig(this.program.programId, chain),
+      config: () => this.accountInfo(this.program.account.tbrConfigState, [Buffer.from('config')]),
+      chainConfig: (chain: Chain) =>
+        this.accountInfo(this.program.account.chainConfigState, [
+          Buffer.from('chainconfig'),
+          chainSeed(chain),
+        ]),
       peer: (chain: Chain, peerAddress: UniversalAddress) =>
-        pda.peer(this.program.programId, chain, peerAddress),
-      signerSequence: (signer: PublicKey) => pda.signerSequence(this.program.programId, signer),
-      authBadge: (account: PublicKey) => pda.authBadge(this.program.programId, account),
+        this.accountInfo(this.program.account.peerState, [
+          Buffer.from('peer'),
+          chainSeed(chain),
+          peerAddress.toUint8Array(),
+        ]),
+      signerSequence: (signer: PublicKey) =>
+        this.accountInfo(this.program.account.signerSequenceState, [
+          Buffer.from('seq'),
+          signer.toBuffer(),
+        ]),
+      authBadge: (account: PublicKey) =>
+        this.accountInfo(this.program.account.authBadgeState, [
+          Buffer.from('authbadge'),
+          account.toBuffer(),
+        ]),
+
+      temporary: (mint: PublicKey) =>
+        findPda(this.program.programId, [Buffer.from('tmp'), mint.toBuffer()]),
+      vaa: (vaaHash: Uint8Array) =>
+        findPda(this.wormholeProgramId, [Buffer.from('PostedVAA'), vaaHash]),
+      wormholeMessage: (payer: PublicKey, payerSequence: anchor.BN) => {
+        const buf = Buffer.alloc(8);
+        buf.writeBigInt64BE(BigInt(payerSequence.toString()), 0);
+        return findPda(this.program.programId, [Buffer.from('bridged'), payer.toBuffer(), buf]);
+      },
     };
   }
 
   get read() {
     return {
-      /* High level data */
+      config: async () =>
+        this.account
+          .config()
+          .fetch()
+          .then(({ evmTransactionGas, evmTransactionSize, ...rest }) => ({
+            evmTransactionGas: bnToBigint(evmTransactionGas),
+            evmTransactionSize: bnToBigint(evmTransactionSize),
+            ...rest,
+          })),
       allAdminAccounts: async () => {
         const [accounts, owner] = await Promise.all([
           this.program.account.authBadgeState.all().then((state) => state.map((pa) => pa.account)),
@@ -209,32 +250,13 @@ export class SolanaTokenBridgeRelayer {
           }, {}),
         };
       },
-
-      /* Solana accounts */
-      config: async () => {
-        const { evmTransactionGas, evmTransactionSize, ...rest } =
-          await this.program.account.tbrConfigState.fetch(this.address.config());
-        return {
-          evmTransactionGas: bnToBigint(evmTransactionGas),
-          evmTransactionSize: bnToBigint(evmTransactionSize),
-          ...rest,
-        };
-      },
-      chainConfig: (chain: Chain) =>
-        this.program.account.chainConfigState.fetch(this.address.chainConfig(chain)),
-      peer: (chain: Chain, peerAddress: UniversalAddress) =>
-        this.program.account.peerState.fetch(this.address.peer(chain, peerAddress)),
-      signerSequence: (signer: PublicKey) =>
-        this.program.account.signerSequenceState.fetch(this.address.signerSequence(signer)),
-      authBadge: (account: PublicKey) =>
-        this.program.account.authBadgeState.fetch(this.address.authBadge(account)),
     };
   }
 
   private async payerSequenceNumber(payer: PublicKey): Promise<anchor.BN> {
     const impl = async (payer: PublicKey) => {
       try {
-        return (await this.read.signerSequence(payer)).value;
+        return (await this.account.signerSequence(payer).fetch()).value;
       } catch {
         return new anchor.BN(0);
       }
@@ -260,7 +282,7 @@ export class SolanaTokenBridgeRelayer {
     admins: PublicKey[];
   }): Promise<TransactionInstruction> {
     const authBadges = admins.map((key) => ({
-      pubkey: this.address.authBadge(key),
+      pubkey: this.account.authBadge(key).address,
       isSigner: false,
       isWritable: true,
     }));
@@ -307,7 +329,7 @@ export class SolanaTokenBridgeRelayer {
       .confirmOwnerTransferRequest()
       .accounts({
         newOwner: config.pendingOwner ?? throwError('No pending owner in the program'),
-        tbrConfig: this.address.config(),
+        tbrConfig: this.account.config().address,
       })
       .instruction();
   }
@@ -322,7 +344,7 @@ export class SolanaTokenBridgeRelayer {
       .cancelOwnerTransferRequest()
       .accountsStrict({
         owner: config.owner,
-        tbrConfig: this.address.config(),
+        tbrConfig: this.account.config().address,
       })
       .instruction();
   }
@@ -337,8 +359,8 @@ export class SolanaTokenBridgeRelayer {
       .addAdmin(newAdmin)
       .accountsStrict({
         owner: config.owner,
-        tbrConfig: this.address.config(),
-        authBadge: this.address.authBadge(newAdmin),
+        tbrConfig: this.account.config().address,
+        authBadge: this.account.authBadge(newAdmin).address,
         systemProgram: SystemProgram.programId,
       })
       .instruction();
@@ -352,9 +374,9 @@ export class SolanaTokenBridgeRelayer {
       .removeAdmin()
       .accountsStrict({
         signer,
-        authBadge: this.address.authBadge(signer),
-        tbrConfig: this.address.config(),
-        authBadgeToBeRemoved: this.address.authBadge(adminToRemove),
+        authBadge: this.account.authBadge(signer).address,
+        tbrConfig: this.account.config().address,
+        authBadgeToBeRemoved: this.account.authBadge(adminToRemove).address,
       })
       .instruction();
   }
@@ -373,10 +395,10 @@ export class SolanaTokenBridgeRelayer {
       .registerPeer(chainToChainId(chain), uaToArray(peerAddress))
       .accountsStrict({
         signer,
-        authBadge: this.address.authBadge(signer),
-        tbrConfig: this.address.config(),
-        peer: this.address.peer(chain, peerAddress),
-        chainConfig: this.address.chainConfig(chain),
+        authBadge: this.account.authBadge(signer).address,
+        tbrConfig: this.account.config().address,
+        peer: this.account.peer(chain, peerAddress).address,
+        chainConfig: this.account.chainConfig(chain).address,
         systemProgram: SystemProgram.programId,
       })
       .instruction();
@@ -395,9 +417,9 @@ export class SolanaTokenBridgeRelayer {
       .updateCanonicalPeer()
       .accountsStrict({
         owner: config.owner,
-        tbrConfig: this.address.config(),
-        peer: this.address.peer(chain, peerAddress),
-        chainConfig: this.address.chainConfig(chain),
+        tbrConfig: this.account.config().address,
+        peer: this.account.peer(chain, peerAddress).address,
+        chainConfig: this.account.chainConfig(chain).address,
         systemProgram: SystemProgram.programId,
       })
       .instruction();
@@ -417,9 +439,9 @@ export class SolanaTokenBridgeRelayer {
       .setPauseForOutboundTransfers(paused)
       .accountsStrict({
         signer,
-        authBadge: this.address.authBadge(signer),
-        chainConfig: this.address.chainConfig(chain),
-        tbrConfig: this.address.config(),
+        authBadge: this.account.authBadge(signer).address,
+        chainConfig: this.account.chainConfig(chain).address,
+        tbrConfig: this.account.config().address,
       })
       .instruction();
   }
@@ -436,9 +458,9 @@ export class SolanaTokenBridgeRelayer {
       .updateMaxGasDropoff(maxGasDropoff)
       .accountsStrict({
         signer,
-        authBadge: this.address.authBadge(signer),
-        chainConfig: this.address.chainConfig(chain),
-        tbrConfig: this.address.config(),
+        authBadge: this.account.authBadge(signer).address,
+        chainConfig: this.account.chainConfig(chain).address,
+        tbrConfig: this.account.config().address,
       })
       .instruction();
   }
@@ -455,9 +477,9 @@ export class SolanaTokenBridgeRelayer {
       .updateRelayerFee(relayerFee)
       .accountsStrict({
         signer,
-        authBadge: this.address.authBadge(signer),
-        chainConfig: this.address.chainConfig(chain),
-        tbrConfig: this.address.config(),
+        authBadge: this.account.authBadge(signer).address,
+        chainConfig: this.account.chainConfig(chain).address,
+        tbrConfig: this.account.config().address,
       })
       .instruction();
   }
@@ -475,8 +497,8 @@ export class SolanaTokenBridgeRelayer {
       .updateFeeRecipient(newFeeRecipient)
       .accounts({
         signer,
-        authBadge: this.address.authBadge(signer),
-        tbrConfig: this.address.config(),
+        authBadge: this.account.authBadge(signer).address,
+        tbrConfig: this.account.config().address,
       })
       .instruction();
   }
@@ -493,8 +515,8 @@ export class SolanaTokenBridgeRelayer {
       .updateEvmTransactionConfig(bigintToBn(evmTransactionGas), bigintToBn(evmTransactionSize))
       .accounts({
         signer,
-        authBadge: this.address.authBadge(signer),
-        tbrConfig: this.address.config(),
+        authBadge: this.account.authBadge(signer).address,
+        tbrConfig: this.account.config().address,
       })
       .instruction();
   }
@@ -529,17 +551,17 @@ export class SolanaTokenBridgeRelayer {
     });
     const accounts = {
       payer: signer,
-      tbrConfig: this.address.config(),
-      chainConfig: this.address.chainConfig(recipient.chain),
+      tbrConfig: this.account.config().address,
+      chainConfig: this.account.chainConfig(recipient.chain).address,
       mint,
       userTokenAccount,
-      temporaryAccount: pda.temporary(this.program.programId, mint),
+      temporaryAccount: this.account.temporary(mint).address,
       feeRecipient,
       oracleConfig: this.priceOracleClient.account.config().address,
       oracleEvmPrices: this.priceOracleClient.account.evmPrices(recipient.chain).address,
       ...tokenBridgeAccounts,
-      wormholeMessage: pda.wormholeMessage(this.program.programId, signer, payerSequenceNumber),
-      payerSequence: this.address.signerSequence(signer),
+      wormholeMessage: this.account.wormholeMessage(signer, payerSequenceNumber).address,
+      payerSequence: this.account.signerSequence(signer).address,
       tokenBridgeProgram: this.tokenBridgeProgramId,
       wormholeProgram: this.wormholeProgramId,
     };
@@ -587,16 +609,16 @@ export class SolanaTokenBridgeRelayer {
     });
     const accounts = {
       payer: signer,
-      tbrConfig: this.address.config(),
-      chainConfig: this.address.chainConfig(recipient.chain),
+      tbrConfig: this.account.config().address,
+      chainConfig: this.account.chainConfig(recipient.chain).address,
       userTokenAccount,
-      temporaryAccount: pda.temporary(this.program.programId, tokenBridgeAccounts.mint),
+      temporaryAccount: this.account.temporary(tokenBridgeAccounts.mint).address,
       feeRecipient,
       oracleConfig: this.priceOracleClient.account.config().address,
       oracleEvmPrices: this.priceOracleClient.account.evmPrices(recipient.chain).address,
       ...tokenBridgeAccounts,
-      wormholeMessage: pda.wormholeMessage(this.program.programId, signer, payerSequenceNumber),
-      payerSequence: this.address.signerSequence(signer),
+      wormholeMessage: this.account.wormholeMessage(signer, payerSequenceNumber).address,
+      payerSequence: this.account.signerSequence(signer).address,
       tokenBridgeProgram: this.tokenBridgeProgramId,
       wormholeProgram: this.wormholeProgramId,
     };
@@ -635,15 +657,15 @@ export class SolanaTokenBridgeRelayer {
     const { recipient } = deserializeTbrV3Message(vaa);
     const accounts = {
       payer: signer,
-      tbrConfig: this.address.config(),
+      tbrConfig: this.account.config().address,
       recipientTokenAccount,
       recipient: new PublicKey(recipient.address),
-      vaa: pda.vaa(this.wormholeProgramId, vaa.hash),
-      temporaryAccount: pda.temporary(this.program.programId, tokenBridgeAccounts.mint),
+      vaa: this.account.vaa(vaa.hash).address,
+      temporaryAccount: this.account.temporary(tokenBridgeAccounts.mint).address,
       ...tokenBridgeAccounts,
       tokenBridgeProgram: this.tokenBridgeProgramId,
       wormholeProgram: this.wormholeProgramId,
-      peer: pda.peer(this.program.programId, vaa.emitterChain, vaa.payload.from),
+      peer: this.account.peer(vaa.emitterChain, vaa.payload.from).address,
     };
 
     myDebug('completeNativeTransfer:', accounts);
@@ -671,15 +693,15 @@ export class SolanaTokenBridgeRelayer {
     const { recipient } = deserializeTbrV3Message(vaa);
     const accounts = {
       payer: signer,
-      tbrConfig: this.address.config(),
+      tbrConfig: this.account.config().address,
       recipientTokenAccount,
       recipient: new PublicKey(recipient.address),
-      vaa: pda.vaa(this.wormholeProgramId, vaa.hash),
-      temporaryAccount: pda.temporary(this.program.programId, tokenBridgeAccounts.mint),
+      vaa: this.account.vaa(vaa.hash).address,
+      temporaryAccount: this.account.temporary(tokenBridgeAccounts.mint).address,
       ...tokenBridgeAccounts,
       tokenBridgeProgram: this.tokenBridgeProgramId,
       wormholeProgram: this.wormholeProgramId,
-      peer: pda.peer(this.program.programId, vaa.emitterChain, vaa.payload.from),
+      peer: this.account.peer(vaa.emitterChain, vaa.payload.from).address,
     };
 
     myDebug('completeWrappedTransfer:', accounts);
@@ -701,8 +723,8 @@ export class SolanaTokenBridgeRelayer {
     const tx = await this.program.methods
       .relayingFee(dropoffAmount)
       .accountsStrict({
-        tbrConfig: this.address.config(),
-        chainConfig: this.address.chainConfig(chain),
+        tbrConfig: this.account.config().address,
+        chainConfig: this.account.chainConfig(chain).address,
         oracleConfig: this.priceOracleClient.account.config().address,
         oracleEvmPrices: this.priceOracleClient.account.evmPrices(chain).address,
       })
@@ -715,47 +737,28 @@ export class SolanaTokenBridgeRelayer {
 
     return Number(result) / LAMPORTS_PER_SOL;
   }
+
+  private accountInfo<A extends keyof anchor.IdlAccounts<IdlType>>(
+    account: anchor.AccountClient<IdlType, A>,
+    seeds: Array<Buffer | Uint8Array>,
+  ) {
+    const { address, seed } = findPda(this.program.programId, seeds);
+    return {
+      address,
+      seed,
+      fetch: () => account.fetch(address),
+    };
+  }
 }
 
 const chainSeed = (chain: Chain) => encoding.bignum.toBytes(chainToChainId(chain), 2);
-const pda = {
-  tbrConfig: (programId: PublicKey) =>
-    PublicKey.findProgramAddressSync([Buffer.from('config')], programId)[0],
-
-  peer: (programId: PublicKey, chain: Chain, peerAddress: UniversalAddress) =>
-    PublicKey.findProgramAddressSync(
-      [Buffer.from('peer'), chainSeed(chain), peerAddress.toUint8Array()],
-      programId,
-    )[0],
-
-  chainConfig: (programId: PublicKey, chain: Chain) =>
-    PublicKey.findProgramAddressSync([Buffer.from('chainconfig'), chainSeed(chain)], programId)[0],
-
-  signerSequence: (programId: PublicKey, signer: PublicKey) =>
-    PublicKey.findProgramAddressSync([Buffer.from('seq'), signer.toBuffer()], programId)[0],
-
-  authBadge: (programId: PublicKey, account: PublicKey) =>
-    PublicKey.findProgramAddressSync([Buffer.from('authbadge'), account.toBuffer()], programId)[0],
-
-  // Internal:
-
-  temporary: (programId: PublicKey, mint: PublicKey) =>
-    PublicKey.findProgramAddressSync([Buffer.from('tmp'), mint.toBuffer()], programId)[0],
-
-  vaa: (programId: PublicKey, vaaHash: Uint8Array) =>
-    PublicKey.findProgramAddressSync([Buffer.from('PostedVAA'), vaaHash], programId)[0],
-
-  wormholeMessage: (programId: PublicKey, payer: PublicKey, payerSequence: anchor.BN) => {
-    const buf = Buffer.alloc(8);
-
-    buf.writeBigInt64BE(BigInt(payerSequence.toString()), 0);
-
-    return PublicKey.findProgramAddressSync(
-      [Buffer.from('bridged'), payer.toBuffer(), buf],
-      programId,
-    )[0];
-  },
-};
+function findPda(programId: PublicKey, seeds: Array<Buffer | Uint8Array>) {
+  const [address, seed] = PublicKey.findProgramAddressSync(seeds, programId);
+  return {
+    address,
+    seed,
+  };
+}
 
 function assertProvider(provider: anchor.Provider) {
   if (provider.sendAndConfirm === undefined) {

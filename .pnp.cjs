@@ -2305,7 +2305,7 @@ const RAW_RUNTIME_STATE =
           ["@wormhole-foundation/sdk-definitions", "npm:0.11.0"],\
           ["@wormhole-foundation/sdk-solana", "npm:0.11.0"],\
           ["@wormhole-foundation/sdk-solana-tokenbridge", "npm:0.11.0"],\
-          ["@xlabs/solana-price-oracle-sdk", "link:./lib/../../relayer-infra-contracts/src/solana/::locator=%40xlabs-xyz%2Fsolana-arbitrary-token-transfers%40workspace%3Asdk%2Fsolana"],\
+          ["@xlabs/solana-price-oracle-sdk", "npm:0.0.9::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40xlabs%2Fsolana-price-oracle-sdk%2F0.0.9%2Fbaaa3306c801645eb7b0c15f199d2685731163e1"],\
           ["borsh", "npm:2.0.0"],\
           ["tsup", "virtual:056deaaa1268de825ebb7f2126e3a2787838e2876e69eb46bc3ce4857072f92cede74aabe3915aa2d505c2a087a7d59d9170f4e7cc6428f30bd09123b7267c8f#npm:8.3.0"],\
           ["tsx", "npm:4.19.1"],\
@@ -2315,13 +2315,17 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@xlabs/solana-price-oracle-sdk", [\
-      ["link:./lib/../../relayer-infra-contracts/src/solana/::locator=%40xlabs-xyz%2Fsolana-arbitrary-token-transfers%40workspace%3Asdk%2Fsolana", {\
-        "packageLocation": "./sdk/relayer-infra-contracts/src/solana/",\
+      ["npm:0.0.9::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40xlabs%2Fsolana-price-oracle-sdk%2F0.0.9%2Fbaaa3306c801645eb7b0c15f199d2685731163e1", {\
+        "packageLocation": "./.yarn/cache/@xlabs-solana-price-oracle-sdk-npm-0.0.9-0385bf8662-35a55f5b66.zip/node_modules/@xlabs/solana-price-oracle-sdk/",\
         "packageDependencies": [\
-          ["@xlabs/solana-price-oracle-sdk", "link:./lib/../../relayer-infra-contracts/src/solana/::locator=%40xlabs-xyz%2Fsolana-arbitrary-token-transfers%40workspace%3Asdk%2Fsolana"]\
+          ["@xlabs/solana-price-oracle-sdk", "npm:0.0.9::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40xlabs%2Fsolana-price-oracle-sdk%2F0.0.9%2Fbaaa3306c801645eb7b0c15f199d2685731163e1"],\
+          ["@coral-xyz/anchor", "npm:0.30.1"],\
+          ["@solana/web3.js", "npm:1.95.3"],\
+          ["@wormhole-foundation/sdk-base", "npm:0.11.0"],\
+          ["@wormhole-foundation/sdk-definitions", "npm:0.11.0"],\
+          ["@wormhole-foundation/sdk-solana", "npm:0.11.0"]\
         ],\
-        "linkType": "SOFT",\
-        "discardFromLookup": true\
+        "linkType": "HARD"\
       }]\
     ]],\
     ["@yarnpkg/types", [\
@@ -3092,8 +3096,8 @@ const RAW_RUNTIME_STATE =
           ["common-arbitrary-token-transfer", "workspace:sdk/common"],\
           ["@types/bn.js", "npm:5.1.5"],\
           ["@types/node", "npm:20.16.10"],\
-          ["@wormhole-foundation/sdk-base", "npm:0.10.9"],\
-          ["@wormhole-foundation/sdk-definitions", "npm:0.10.9"],\
+          ["@wormhole-foundation/sdk-base", "npm:0.11.0"],\
+          ["@wormhole-foundation/sdk-definitions", "npm:0.11.0"],\
           ["bn.js", "npm:5.2.1"],\
           ["tsup", "virtual:056deaaa1268de825ebb7f2126e3a2787838e2876e69eb46bc3ce4857072f92cede74aabe3915aa2d505c2a087a7d59d9170f4e7cc6428f30bd09123b7267c8f#npm:8.3.0"],\
           ["tsx", "npm:4.19.1"],\

@@ -1,8 +1,9 @@
-import { AnchorProvider, BN } from '@coral-xyz/anchor';
+import { AnchorProvider } from '@coral-xyz/anchor';
 import { PublicKey, TransactionSignature } from '@solana/web3.js';
 import { Chain } from '@wormhole-foundation/sdk-base';
 import { UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import {
+  SolanaPriceOracle,
   SolanaTokenBridgeRelayer,
   TransferNativeParameters,
   TransferWrappedParameters,
@@ -25,17 +26,9 @@ export class TbrWrapper {
   readonly logs: { [key: string]: string[] };
   readonly logsSubscriptionId: number;
 
-  constructor(provider: AnchorProvider, accountType: 'owner' | 'admin' | 'regular') {
+  constructor(provider: AnchorProvider, tbrClient: SolanaTokenBridgeRelayer) {
     this.provider = provider;
-    const clientProvider =
-      accountType === 'regular' ? provider : { connection: provider.connection };
-
-    this.client = new SolanaTokenBridgeRelayer(
-      clientProvider,
-      'Localnet',
-      keypairFromArray(testProgramKeypair).publicKey,
-    );
-
+    this.client = tbrClient;
     this.logs = {};
 
     this.logsSubscriptionId = provider.connection.onLogs(
@@ -44,14 +37,43 @@ export class TbrWrapper {
     );
   }
 
+  static from(
+    provider: AnchorProvider,
+    accountType: 'owner' | 'admin' | 'regular',
+    oracleClient: SolanaPriceOracle,
+  ) {
+    const clientProvider =
+      accountType === 'regular' ? provider : { connection: provider.connection };
+
+    const client = new SolanaTokenBridgeRelayer(
+      clientProvider,
+      'Localnet',
+      keypairFromArray(testProgramKeypair).publicKey,
+      oracleClient,
+    );
+
+    return new TbrWrapper(provider, client);
+  }
+
+  static async create(provider: AnchorProvider) {
+    const client = await SolanaTokenBridgeRelayer.create({ connection: provider.connection });
+
+    return new TbrWrapper(provider, client);
+  }
+
   get publicKey(): PublicKey {
     return this.provider.publicKey;
+  }
+
+  get account() {
+    return this.client.account;
   }
 
   get read() {
     return this.client.read;
   }
 
+  /** Unregister the logs event so that the test does not hang. */
   async close() {
     await this.provider.connection.removeOnLogsListener(this.logsSubscriptionId);
   }
