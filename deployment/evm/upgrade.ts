@@ -41,7 +41,7 @@ async function run() {
       console.log(`Successfully deployed to chain ${result.chainId}`);
 
       writeDeployedContract(result.chainId, "TbrV3", result.implementation?.address ?? "", result.implementation?.constructorArgs ?? []);
-      writeDeployedContract(result.chainId, "TbrV3Proxies", result.proxy?.address ?? "", result.proxy?.constructorArgs ?? []);
+      writeDeployedContract(result.chainId, "TbrV3Proxies", result.proxy?.address.toString() ?? "", result.proxy?.constructorArgs ?? []);
     }
   }
 

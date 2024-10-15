@@ -1896,10 +1896,15 @@ dependencies = [
 
 [[package]]
 name = "solana-price-oracle"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anchor-lang",
+ "anyhow",
+ "bs58 0.5.1",
  "cfg-if",
+ "ed25519-dalek",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
