@@ -76,7 +76,7 @@ describe('Token Bridge Relayer Program', () => {
       deployProgram(
         './lib/relayer-infra-contracts/src/solana/programs/price-oracle/test-program-keypair.json',
         authorityKeypairPath,
-        './lib/relayer-infra-contracts/src/solana/target/sbf-solana-solana/release/solana_price_oracle.so',
+        './target/sbf-solana-solana/release/solana_price_oracle.so',
       ),
     ]);
 
