@@ -1,7 +1,15 @@
 {
-  "operatingChains": [10002, 10003],
+  "operatingChains": [6],
   "evm": {
     "networks": [
+      {
+        "name": "Fuji",
+        "externalId": 43113,
+        "chainId": 6,
+        "rpc": "https://api.avax-test.network/ext/bc/C/rpc",
+        "network": "Testnet",
+        "wormholeAddress": "0x7bbcE28e64B3F8b84d876Ab298393c38ad7aac4C"
+      },
       {
         "name": "Celo",
         "externalId": 44787,
