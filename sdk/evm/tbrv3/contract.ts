@@ -79,7 +79,7 @@ export type TokenBridgeAllowances = Readonly<Record<string, bigint>>;
 
 export interface RelayingFeeResult {
   allowances: TokenBridgeAllowances;
-  feeEstimations: RoArray<RootQuery & { query: "RelayFee" } & RelayingFeeReturn>;
+  feeEstimations: RoArray<RelayingFeeReturn>;
 }
 
 export type TransferTokenWithRelayInput =
@@ -366,7 +366,8 @@ export class Tbrv3 {
 
     const queryResults = await this.query([...relayFeeQueries, ...allowanceQueries]);
 
-    const ret: any = {allowanceQueries: {}, feeEstimations: []};
+    const ret: { allowanceQueries: Record<string, bigint>, feeEstimations: RelayingFeeReturn[] }
+      = {allowanceQueries: {}, feeEstimations: []};
     for (const qRes of queryResults)
       if (qRes.query === "RelayFee") {
         const {result, ...args} = qRes;
@@ -375,7 +376,10 @@ export class Tbrv3 {
       else
         ret.allowanceQueries[qRes.inputToken.toString()] = qRes.result;
 
-    return ret;
+    return {
+      feeEstimations: [ ...ret.feeEstimations ],
+      allowances: { ...ret.allowanceQueries }
+    };
   }
 }
 
