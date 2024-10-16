@@ -13,7 +13,8 @@
     }
   },
   "scripts": {
-    "build": "tsc -p ./tsconfig.json && tsup",
+    "build": "yarn run build:ts",
+    "build:ts": "tsc -p ./tsconfig.json && tsup",
     "lint:fix": "prettier \"src/**/*{.js,.ts}\" -w",
     "lint": "prettier \"src/**/*{.js,.ts}\" --check",
     "clean": "rm -r ts-build build"
@@ -33,8 +34,8 @@
     "@wormhole-foundation/sdk-base": "0.10.9",
     "@wormhole-foundation/sdk-definitions": "0.10.9",
     "@wormhole-foundation/sdk-evm": "0.10.9",
-    "@xlabs-xyz/arbitrary-token-transfers-definitions": "workspace:^0.0.1-alpha1",
-    "@xlabs-xyz/evm-arbitrary-token-transfers": "workspace:^0.0.1-alpha1",
+    "@xlabs-xyz/arbitrary-token-transfers-definitions": "workspace:*",
+    "@xlabs-xyz/evm-arbitrary-token-transfers": "workspace:*",
     "ethers": "^6.13.3"
   },
   "devDependencies": {

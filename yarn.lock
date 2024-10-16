@@ -1883,7 +1883,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xlabs-xyz/arbitrary-token-transfer-evm-route@workspace:^0.0.1-alpha1, @xlabs-xyz/arbitrary-token-transfer-evm-route@workspace:connect/platforms/evm":
+"@xlabs-xyz/arbitrary-token-transfer-evm-route@workspace:*, @xlabs-xyz/arbitrary-token-transfer-evm-route@workspace:connect/platforms/evm":
   version: 0.0.0-use.local
   resolution: "@xlabs-xyz/arbitrary-token-transfer-evm-route@workspace:connect/platforms/evm"
   dependencies:
@@ -1891,8 +1891,8 @@ __metadata:
     "@wormhole-foundation/sdk-base": "npm:0.10.9"
     "@wormhole-foundation/sdk-definitions": "npm:0.10.9"
     "@wormhole-foundation/sdk-evm": "npm:0.10.9"
-    "@xlabs-xyz/arbitrary-token-transfers-definitions": "workspace:^0.0.1-alpha1"
-    "@xlabs-xyz/evm-arbitrary-token-transfers": "workspace:^0.0.1-alpha1"
+    "@xlabs-xyz/arbitrary-token-transfers-definitions": "workspace:*"
+    "@xlabs-xyz/evm-arbitrary-token-transfers": "workspace:*"
     ethers: "npm:^6.13.3"
     prettier: "npm:^3.3.3"
     tsup: "npm:^8.2.4"
@@ -1910,9 +1910,9 @@ __metadata:
     "@wormhole-foundation/sdk-connect": "npm:0.10.9"
     "@wormhole-foundation/sdk-definitions": "npm:0.10.9"
     "@wormhole-foundation/sdk-evm": "npm:0.10.9"
-    "@xlabs-xyz/arbitrary-token-transfer-evm-route": "workspace:^0.0.1-alpha1"
-    "@xlabs-xyz/arbitrary-token-transfer-solana-route": "workspace:^0.0.1-alpha1"
-    "@xlabs-xyz/arbitrary-token-transfers-definitions": "workspace:^0.0.1-alpha1"
+    "@xlabs-xyz/arbitrary-token-transfer-evm-route": "workspace:*"
+    "@xlabs-xyz/arbitrary-token-transfer-solana-route": "workspace:*"
+    "@xlabs-xyz/arbitrary-token-transfers-definitions": "workspace:*"
     ethers: "npm:^6.13.3"
     prettier: "npm:^3.3.3"
     tsup: "npm:^8.2.4"
@@ -1921,7 +1921,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xlabs-xyz/arbitrary-token-transfer-solana-route@workspace:^0.0.1-alpha1, @xlabs-xyz/arbitrary-token-transfer-solana-route@workspace:connect/platforms/solana":
+"@xlabs-xyz/arbitrary-token-transfer-solana-route@workspace:*, @xlabs-xyz/arbitrary-token-transfer-solana-route@workspace:connect/platforms/solana":
   version: 0.0.0-use.local
   resolution: "@xlabs-xyz/arbitrary-token-transfer-solana-route@workspace:connect/platforms/solana"
   dependencies:
@@ -1932,7 +1932,7 @@ __metadata:
     "@wormhole-foundation/sdk-base": "npm:0.10.9"
     "@wormhole-foundation/sdk-definitions": "npm:0.10.9"
     "@wormhole-foundation/sdk-solana": "npm:0.10.9"
-    "@xlabs-xyz/arbitrary-token-transfers-definitions": "workspace:^0.0.1-alpha1"
+    "@xlabs-xyz/arbitrary-token-transfers-definitions": "workspace:*"
     "@xlabs-xyz/solana-arbitrary-token-transfers": "workspace:*"
     prettier: "npm:^3.3.3"
     tsup: "npm:^8.2.4"
@@ -1941,7 +1941,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xlabs-xyz/arbitrary-token-transfers-definitions@workspace:^0.0.1-alpha1, @xlabs-xyz/arbitrary-token-transfers-definitions@workspace:connect/definitions":
+"@xlabs-xyz/arbitrary-token-transfers-definitions@workspace:*, @xlabs-xyz/arbitrary-token-transfers-definitions@workspace:connect/definitions":
   version: 0.0.0-use.local
   resolution: "@xlabs-xyz/arbitrary-token-transfers-definitions@workspace:connect/definitions"
   dependencies:
@@ -1958,7 +1958,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xlabs-xyz/evm-arbitrary-token-transfers@workspace:*, @xlabs-xyz/evm-arbitrary-token-transfers@workspace:^0.0.1-alpha1, @xlabs-xyz/evm-arbitrary-token-transfers@workspace:sdk/evm":
+"@xlabs-xyz/evm-arbitrary-token-transfers@workspace:*, @xlabs-xyz/evm-arbitrary-token-transfers@workspace:sdk/evm":
   version: 0.0.0-use.local
   resolution: "@xlabs-xyz/evm-arbitrary-token-transfers@workspace:sdk/evm"
   dependencies:
