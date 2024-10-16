@@ -1,5 +1,5 @@
 import { AnchorError } from '@coral-xyz/anchor';
-import { assert } from './utils/helpers';
+import { assert } from './utils/helpers.js';
 
 describe('promise failure helper', () => {
   it('Fails when promise resolves', (done) => {

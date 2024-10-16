@@ -1,4 +1,3 @@
-import anchor from '@coral-xyz/anchor';
 import { chainToChainId } from '@wormhole-foundation/sdk-base';
 import { UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import { PublicKey, SendTransactionError, Transaction } from '@solana/web3.js';
@@ -7,21 +6,29 @@ import {
   newProvider,
   requestAirdrop,
   deployProgram,
-  putProgramKeyBackInIdl,
   keypairFromFile,
+  keypairFromArray,
 } from './utils/helpers.js';
 import { TbrWrapper } from './utils/client-wrapper.js';
-import { SolanaPriceOracleClient, uaToArray } from '@xlabs-xyz/solana-arbitrary-token-transfers';
+import { SolanaPriceOracle, uaToArray } from '@xlabs-xyz/solana-arbitrary-token-transfers';
 import { expect } from 'chai';
+
+import oracleKeypair from './oracle-program-keypair.json' with { type: 'json' };
 
 const ETHEREUM = 'Ethereum';
 const ETHEREUM_ID = chainToChainId(ETHEREUM);
 const OASIS = 'Oasis';
 const OASIS_ID = chainToChainId(OASIS);
 
+const authorityKeypairPath = './target/deploy/token_bridge_relayer-keypair.json';
+
 describe('Token Bridge Relayer Program', () => {
+  const oracleClient = new SolanaPriceOracle(
+    newProvider().connection,
+    keypairFromArray(oracleKeypair).publicKey,
+  );
   const clients = (['owner', 'owner', 'admin', 'admin', 'admin', 'regular'] as const).map(
-    (typeAccount) => new TbrWrapper(newProvider(), typeAccount),
+    (typeAccount) => TbrWrapper.from(newProvider(), typeAccount, oracleClient),
   );
   const [
     ownerClient,
@@ -31,9 +38,6 @@ describe('Token Bridge Relayer Program', () => {
     adminClient3,
     unauthorizedClient,
   ] = clients;
-
-  const oracleOwner = newProvider();
-  const oracleOwnerClient = new SolanaPriceOracleClient(oracleOwner.connection);
 
   const wormholeCoreOwner = newProvider();
   //const wormholeCoreClient = new WormholeCoreWrapper(wormholeCoreOwner);
@@ -61,31 +65,38 @@ describe('Token Bridge Relayer Program', () => {
     // Program Deployment
     // ============
 
-    const authorityKeypairPath = './target/deploy/token_bridge_relayer-keypair.json';
-    const authorityProvider = newProvider(await keypairFromFile(authorityKeypairPath));
-    await requestAirdrop(authorityProvider);
-    deployProgram(
-      './solana/tests/program.json',
-      authorityKeypairPath,
-      './target/sbf-solana-solana/release/token_bridge_relayer.so',
-    );
-    await putProgramKeyBackInIdl('7TLiBkpDGshV4o3jmacTCx93CLkmo3VjZ111AsijN9f8');
+    await Promise.all([
+      // Token Bridge Relayer
+      deployProgram(
+        './solana/programs/token-bridge-relayer/test-program-keypair.json',
+        authorityKeypairPath,
+        './target/sbf-solana-solana/release/token_bridge_relayer.so',
+      ),
+      // Price Oracle
+      deployProgram(
+        './lib/relayer-infra-contracts/src/solana/programs/price-oracle/test-program-keypair.json',
+        authorityKeypairPath,
+        './target/sbf-solana-solana/release/solana_price_oracle.so',
+      ),
+    ]);
 
     // Oracle Setup
     // ============
 
-    await requestAirdrop(oracleOwner);
-
-    await oracleOwner.sendAndConfirm(
+    const oracleAuthorityProvider = newProvider(await keypairFromFile(authorityKeypairPath));
+    const oracleAuthorityClient = await SolanaPriceOracle.create(
+      oracleAuthorityProvider.connection,
+    );
+    await oracleAuthorityProvider.sendAndConfirm(
       new Transaction().add(
-        await oracleOwnerClient.initialize(oracleOwner.publicKey),
-        await oracleOwnerClient.registerEvmPrices(oracleOwner.publicKey, {
+        await oracleAuthorityClient.initialize(oracleAuthorityProvider.publicKey, [], []),
+        await oracleAuthorityClient.registerEvmPrices(oracleAuthorityProvider.publicKey, {
           chain: ETHEREUM,
           gasPrice: 2117, // 1 gas costs 2117 Mwei
           pricePerByte: 0, // ETH does not care about transaction size
-          gasTokenPrice: new anchor.BN(789_000_000), // ETH is at $789
+          gasTokenPrice: 789_000_000n, // ETH is at $789
         }),
-        await oracleOwnerClient.updateSolPrice(oracleOwner.publicKey, new anchor.BN(113_000_000)), // SOL is at $113
+        await oracleAuthorityClient.updateSolPrice(oracleAuthorityProvider.publicKey, 113_000_000n), // SOL is at $113
       ),
     );
 
@@ -100,7 +111,11 @@ describe('Token Bridge Relayer Program', () => {
   });
 
   it('Is initialized!', async () => {
-    await TbrWrapper.initialize({
+    const upgradeAuthorityClient = await TbrWrapper.create(
+      newProvider(await keypairFromFile(authorityKeypairPath)),
+    );
+
+    await upgradeAuthorityClient.initialize({
       feeRecipient,
       owner: ownerClient.publicKey,
       admins: [adminClient1.publicKey, adminClient2.publicKey],
@@ -110,21 +125,23 @@ describe('Token Bridge Relayer Program', () => {
     assert.key(config.owner).equal(ownerClient.publicKey);
 
     // The owner has an auth badge:
-    expect(await unauthorizedClient.read.authBadge(ownerClient.publicKey)).deep.equal({
+    expect(await unauthorizedClient.account.authBadge(ownerClient.publicKey).fetch()).deep.equal({
       address: ownerClient.publicKey,
     });
 
     // The admins have an auth badge:
-    expect(await unauthorizedClient.read.authBadge(adminClient1.publicKey)).deep.equal({
+    expect(await unauthorizedClient.account.authBadge(adminClient1.publicKey).fetch()).deep.equal({
       address: adminClient1.publicKey,
     });
-    expect(await unauthorizedClient.read.authBadge(adminClient2.publicKey)).deep.equal({
+    expect(await unauthorizedClient.account.authBadge(adminClient2.publicKey).fetch()).deep.equal({
       address: adminClient2.publicKey,
     });
 
     // Verify that the accounts reader works:
     const adminAccounts = await unauthorizedClient.client.read.allAdminAccounts();
     assert.array(adminAccounts).equal([adminClient1.publicKey, adminClient2.publicKey]);
+
+    await upgradeAuthorityClient.close();
   });
 
   describe('Roles', () => {
@@ -142,12 +159,14 @@ describe('Token Bridge Relayer Program', () => {
       await newOwnerClient.confirmOwnerTransferRequest();
 
       // The owner has an admin badge:
-      expect(await unauthorizedClient.read.authBadge(newOwnerClient.publicKey)).deep.equal({
+      expect(
+        await unauthorizedClient.account.authBadge(newOwnerClient.publicKey).fetch(),
+      ).deep.equal({
         address: newOwnerClient.publicKey,
       });
 
       // The previous owner doesn't have a badge anymore:
-      await assert.promise(newOwnerClient.read.authBadge(ownerClient.publicKey)).fails();
+      await assert.promise(newOwnerClient.account.authBadge(ownerClient.publicKey).fetch()).fails();
     });
 
     it('Correctly cancels an ownership transfer', async () => {
@@ -168,25 +187,33 @@ describe('Token Bridge Relayer Program', () => {
       await newOwnerClient.addAdmin(adminClient3.publicKey);
 
       // It now has an auth badge:
-      expect(await unauthorizedClient.read.authBadge(adminClient3.publicKey)).deep.equal({
-        address: adminClient3.publicKey,
-      });
+      expect(await unauthorizedClient.account.authBadge(adminClient3.publicKey).fetch()).deep.equal(
+        {
+          address: adminClient3.publicKey,
+        },
+      );
 
       // The owner can also remove admins:
       await newOwnerClient.removeAdmin(adminClient3.publicKey);
 
       // No admin auth badge anymore:
-      await assert.promise(newOwnerClient.read.authBadge(adminClient3.publicKey)).fails();
+      await assert
+        .promise(newOwnerClient.account.authBadge(adminClient3.publicKey).fetch())
+        .fails();
     });
 
     it('Admins can remove admin roles', async () => {
       // Admin2 can remove admin1:
       await adminClient2.removeAdmin(adminClient1.publicKey);
-      await assert.promise(newOwnerClient.read.authBadge(adminClient1.publicKey)).fails();
+      await assert
+        .promise(newOwnerClient.account.authBadge(adminClient1.publicKey).fetch())
+        .fails();
 
       // Admin2 can remove itself:
       await adminClient2.removeAdmin(adminClient2.publicKey);
-      await assert.promise(newOwnerClient.read.authBadge(adminClient2.publicKey)).fails();
+      await assert
+        .promise(newOwnerClient.account.authBadge(adminClient2.publicKey).fetch())
+        .fails();
 
       // Let's reinstate admin1 and admin2 back:
       await newOwnerClient.addAdmin(adminClient1.publicKey);
@@ -195,7 +222,7 @@ describe('Token Bridge Relayer Program', () => {
 
     it('Admin cannot add admin', async () => {
       await assert.promise(adminClient1.addAdmin(adminClient3.publicKey)).fails();
-      await assert.promise(adminClient1.read.authBadge(adminClient3.publicKey)).fails();
+      await assert.promise(adminClient1.account.authBadge(adminClient3.publicKey).fetch()).fails();
     });
 
     it('Unauthorized cannot add or remove an admin', async () => {
@@ -211,47 +238,47 @@ describe('Token Bridge Relayer Program', () => {
   describe('Peers', () => {
     it('Registers peers', async () => {
       await newOwnerClient.registerPeer(ETHEREUM, ethereumPeer1);
-      assert.chainConfig(await unauthorizedClient.read.chainConfig(ETHEREUM)).equal({
+      assert.chainConfig(await unauthorizedClient.account.chainConfig(ETHEREUM).fetch()).equal({
         chainId: ETHEREUM_ID,
         canonicalPeer: uaToArray(ethereumPeer1),
         maxGasDropoffMicroToken: 0,
         pausedOutboundTransfers: true,
         relayerFeeMicroUsd: 0,
       });
-      expect(await unauthorizedClient.read.peer(ETHEREUM, ethereumPeer1)).deep.include({
+      expect(await unauthorizedClient.account.peer(ETHEREUM, ethereumPeer1).fetch()).deep.include({
         chainId: ETHEREUM_ID,
         address: uaToArray(ethereumPeer1),
       });
 
       await adminClient1.registerPeer(ETHEREUM, ethereumPeer2);
-      assert.chainConfig(await unauthorizedClient.read.chainConfig(ETHEREUM)).equal({
+      assert.chainConfig(await unauthorizedClient.account.chainConfig(ETHEREUM).fetch()).equal({
         chainId: ETHEREUM_ID,
         canonicalPeer: uaToArray(ethereumPeer1),
         maxGasDropoffMicroToken: 0,
         pausedOutboundTransfers: true,
         relayerFeeMicroUsd: 0,
       });
-      expect(await unauthorizedClient.read.peer(ETHEREUM, ethereumPeer2)).deep.include({
+      expect(await unauthorizedClient.account.peer(ETHEREUM, ethereumPeer2).fetch()).deep.include({
         chainId: ETHEREUM_ID,
         address: uaToArray(ethereumPeer2),
       });
 
       await adminClient1.registerPeer(OASIS, oasisPeer);
-      assert.chainConfig(await unauthorizedClient.read.chainConfig(OASIS)).equal({
+      assert.chainConfig(await unauthorizedClient.account.chainConfig(OASIS).fetch()).equal({
         chainId: OASIS_ID,
         canonicalPeer: uaToArray(oasisPeer),
         maxGasDropoffMicroToken: 0,
         pausedOutboundTransfers: true,
         relayerFeeMicroUsd: 0,
       });
-      assert.chainConfig(await unauthorizedClient.read.chainConfig(ETHEREUM)).equal({
+      assert.chainConfig(await unauthorizedClient.account.chainConfig(ETHEREUM).fetch()).equal({
         chainId: ETHEREUM_ID,
         canonicalPeer: uaToArray(ethereumPeer1),
         maxGasDropoffMicroToken: 0,
         pausedOutboundTransfers: true,
         relayerFeeMicroUsd: 0,
       });
-      expect(await unauthorizedClient.read.peer(OASIS, oasisPeer)).deep.include({
+      expect(await unauthorizedClient.account.peer(OASIS, oasisPeer).fetch()).deep.include({
         chainId: OASIS_ID,
         address: uaToArray(oasisPeer),
       });
@@ -260,7 +287,7 @@ describe('Token Bridge Relayer Program', () => {
     it('Updates the canonical peer to another one', async () => {
       await newOwnerClient.updateCanonicalPeer(ETHEREUM, ethereumPeer2);
 
-      assert.chainConfig(await unauthorizedClient.read.chainConfig(ETHEREUM)).equal({
+      assert.chainConfig(await unauthorizedClient.account.chainConfig(ETHEREUM).fetch()).equal({
         chainId: ETHEREUM_ID,
         canonicalPeer: uaToArray(ethereumPeer2),
         maxGasDropoffMicroToken: 0,
@@ -309,7 +336,7 @@ describe('Token Bridge Relayer Program', () => {
         adminClient1.updateRelayerFee(ETHEREUM, relayerFeeMicroUsd),
       ]);
 
-      assert.chainConfig(await unauthorizedClient.read.chainConfig(ETHEREUM)).equal({
+      assert.chainConfig(await unauthorizedClient.account.chainConfig(ETHEREUM).fetch()).equal({
         chainId: ETHEREUM_ID,
         canonicalPeer: uaToArray(ethereumPeer2),
         maxGasDropoffMicroToken,

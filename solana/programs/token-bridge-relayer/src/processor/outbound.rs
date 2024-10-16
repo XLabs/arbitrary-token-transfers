@@ -8,7 +8,7 @@ use crate::{
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use solana_price_oracle::{
-    state::{EvmPricesAccount, PriceOracleConfigAccount},
+    state::{EvmPricesState, PriceOracleConfigState},
     PriceOracle,
 };
 use wormhole_anchor_sdk::{
@@ -75,14 +75,14 @@ pub struct OutboundTransfer<'info> {
     #[account(mut)]
     pub fee_recipient: UncheckedAccount<'info>,
 
-    pub oracle_config: Box<Account<'info, PriceOracleConfigAccount>>,
+    pub oracle_config: Box<Account<'info, PriceOracleConfigState>>,
 
     #[account(
-        seeds = [EvmPricesAccount::SEED_PREFIX, chain_config.chain_id.to_be_bytes().as_ref()],
+        seeds = [EvmPricesState::SEED_PREFIX, chain_config.chain_id.to_be_bytes().as_ref()],
         seeds::program = PriceOracle::id(),
         bump,
     )]
-    pub oracle_evm_prices: Box<Account<'info, EvmPricesAccount>>,
+    pub oracle_evm_prices: Box<Account<'info, EvmPricesState>>,
 
     /// CHECK: Token Bridge config. Read-only.
     pub token_bridge_config: UncheckedAccount<'info>,

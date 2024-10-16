@@ -1,11 +1,5 @@
 import anchor from '@coral-xyz/anchor';
-import {
-  Cluster,
-  clusterApiUrl,
-  Connection,
-  PublicKey,
-  TransactionInstruction,
-} from '@solana/web3.js';
+import { Connection, PublicKey, TransactionInstruction } from '@solana/web3.js';
 import { CustomConversion, Layout, layout, Network } from '@wormhole-foundation/sdk-base';
 //import { programDataLayout } from '@wormhole-foundation/sdk-solana/utils/utils/';
 import { throwError } from 'common-arbitrary-token-transfer';

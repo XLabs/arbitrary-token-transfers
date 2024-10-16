@@ -43,6 +43,7 @@ target/*
 !target/idl/
 !target/types/
 .anchor/
+solana/programs/token-bridge-relayer/src/id.rs
 
 # keys
 verification-api-keys.json

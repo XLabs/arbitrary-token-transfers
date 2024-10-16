@@ -401,11 +401,11 @@ export type TokenBridgeRelayer = {
         },
         {
           "name": "wormholeProgram",
-          "address": "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth"
+          "address": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"
         },
         {
           "name": "tokenBridgeProgram",
-          "address": "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"
+          "address": "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe"
         },
         {
           "name": "rent",
@@ -1300,11 +1300,11 @@ export type TokenBridgeRelayer = {
         },
         {
           "name": "tokenBridgeProgram",
-          "address": "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"
+          "address": "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe"
         },
         {
           "name": "wormholeProgram",
-          "address": "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth"
+          "address": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"
         },
         {
           "name": "clock",
@@ -1637,16 +1637,16 @@ export type TokenBridgeRelayer = {
       ]
     },
     {
-      "name": "evmPricesAccount",
+      "name": "evmPricesState",
       "discriminator": [
-        222,
-        30,
-        172,
-        90,
-        189,
-        184,
-        118,
-        31
+        96,
+        16,
+        101,
+        97,
+        209,
+        101,
+        197,
+        178
       ]
     },
     {
@@ -1663,16 +1663,16 @@ export type TokenBridgeRelayer = {
       ]
     },
     {
-      "name": "priceOracleConfigAccount",
+      "name": "priceOracleConfigState",
       "discriminator": [
-        192,
-        215,
-        139,
-        0,
-        191,
-        210,
-        185,
-        218
+        86,
+        37,
+        173,
+        69,
+        170,
+        230,
+        127,
+        150
       ]
     },
     {
@@ -1848,13 +1848,20 @@ export type TokenBridgeRelayer = {
       }
     },
     {
-      "name": "evmPricesAccount",
+      "name": "evmPricesState",
       "docs": [
         "EVM chains prices."
       ],
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "chainId",
+            "docs": [
+              "The chain that will be read or updated is identified by this field."
+            ],
+            "type": "u16"
+          },
           {
             "name": "gasPrice",
             "docs": [
@@ -1904,7 +1911,7 @@ export type TokenBridgeRelayer = {
       }
     },
     {
-      "name": "priceOracleConfigAccount",
+      "name": "priceOracleConfigState",
       "docs": [
         "The program's main account."
       ],
@@ -1915,20 +1922,6 @@ export type TokenBridgeRelayer = {
             "name": "owner",
             "docs": [
               "Program's owner."
-            ],
-            "type": "pubkey"
-          },
-          {
-            "name": "admin",
-            "docs": [
-              "Program's admin. Can be used to update the prices or appoint a new assistant."
-            ],
-            "type": "pubkey"
-          },
-          {
-            "name": "assistant",
-            "docs": [
-              "Program's assistant. Can be used to update the prices."
             ],
             "type": "pubkey"
           },
