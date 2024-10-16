@@ -105,7 +105,7 @@ async function sendTestTransaction(
             address: toUniversal(testTransfer.tokenChain, testTransfer.sourceTokenAddress ?? testTransfer.tokenAddress!),
           },
           userTokenAccount: tokenAccount!,
-          transferredAmount,
+          transferredAmount: BigInt(transferredAmount.toString()),
           gasDropoffAmount,
           maxFeeLamports: BigInt(maxFeeKlamports.toString()),
           unwrapIntent,

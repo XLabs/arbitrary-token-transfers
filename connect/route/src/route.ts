@@ -320,6 +320,7 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
 
     // TODO: how to specify chain specific args (e.g. acquireMode)? Would need UI work
     const transferTxs = tbr.transfer({
+      ...quote.params.options,
       amount: BigInt(quote.params.amount),
       recipient: {
         address: to.address.toUniversalAddress(),
@@ -330,7 +331,7 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
       gasDropOff,
       fee,
       allowances: quote.params.options.allowances,
-      unwrapIntent: quote.params.options.unwrapIntent
+      unwrapIntent: quote.params.options.unwrapIntent,
     });
 
     const originTxs = await signAndSendWait(transferTxs, signer);

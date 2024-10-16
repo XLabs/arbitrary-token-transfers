@@ -3,6 +3,7 @@ import {
   decimals,
   encoding,
   LayoutToType,
+  nativeChainIds,
   Network,
 } from '@wormhole-foundation/sdk-base';
 import { ChainsConfig, Contracts, isNative, resolveWrappedToken, toNative, VAA } from '@wormhole-foundation/sdk-definitions';
@@ -44,6 +45,7 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
   implements AutomaticTokenBridgeV3<N, C, EvmOptions>
 {
   private readonly tbr: Tbrv3;
+  private readonly networkId: bigint;
 
   constructor(
     readonly network: N,
@@ -62,6 +64,11 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
       new EvmAddress(address),
       toNative(chain, gasToken.address.toUint8Array())
     );
+
+    this.networkId = nativeChainIds.networkChainToNativeChainId.get(
+      this.network,
+      this.chain,
+    ) as bigint;
   }
 
   static async fromRpc<N extends Network>(
@@ -128,7 +135,8 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
         data: encoding.hex.encode(transferParams.data, true),
         to: transferParams.to,
         // TODO: is the buffer necessary?
-        value: transferParams.value + BigInt(Number(transferParams.value) * 0.05),
+        value: transferParams.value + BigInt(Math.ceil(Number(transferParams.value) * 0.05)),
+        chainId: this.networkId
       },
       this.network,
       this.chain,
@@ -157,7 +165,7 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
         if (allowance < BigInt(transfer.amount)) {
           const tx = await token.approve.populateTransaction(this.tbr.address.toString(), transfer.amount);
           return new EvmUnsignedTransaction(
-            tx,
+            { ...tx, chainId: this.networkId },
             this.network,
             this.chain,
             'AutomaticTokenBridgeV3.approve',
