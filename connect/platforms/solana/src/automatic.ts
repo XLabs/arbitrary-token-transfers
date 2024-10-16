@@ -35,6 +35,7 @@ import {
   RelayingFee,
   RelayingFeesParams,
   SupportedChains,
+  tokenBridgeRelayerV3Contracts,
   TransferParams,
 } from '@xlabs-xyz/arbitrary-token-transfers-definitions';
 import {
@@ -66,8 +67,12 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     if (!contracts.tokenBridge) throw new Error('TokenBridge contract not defined');
     if (!contracts.coreBridge) throw new Error('CoreBridge contract not defined');
 
+    const address = tokenBridgeRelayerV3Contracts.get(network, chainName);
+
     this.chain = new SolanaChain(chainName, new SolanaPlatform(this.network));
-    this.client = new SolanaTokenBridgeRelayer({ connection });
+    this.client = new SolanaTokenBridgeRelayer({ connection },
+      { address, network }
+    );
   }
 
   static async fromRpc<N extends Network>(
