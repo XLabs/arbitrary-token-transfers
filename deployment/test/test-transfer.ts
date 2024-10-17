@@ -66,13 +66,10 @@ async function run() {
   })) : uniqueTestTransfers;
 
   await runOnEvms('send-test-transactions', async (chain, signer, logFn) => {
-    const transfersFromChain = tests.filter((testTransfer) =>
-      !testTransfer.skip &&
-      testTransfer.fromChain === chain.name
-    );
-    logFn(`Transfers from ${chain.name}: ${transfersFromChain.length}`);
+    const transfers = tests.filter((testTransfer) => !testTransfer.skip && testTransfer.fromChain === chain.name);
+    logFn(`Transfers from ${chain.name}: ${transfers.length}`);
 
-    const promises = transfersFromChain.map(async (testTransfer) => {
+    const promises = transfers.map(async (testTransfer) => {
       try {
         await sendEvmTestTransaction(
           chain,
@@ -94,7 +91,6 @@ async function run() {
 
     const promises = transfers.map(async (testTransfer) => {
       try {
-
         await sendSolanaTestTransaction(
           chain,
           signer,
