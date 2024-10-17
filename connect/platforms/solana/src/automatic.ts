@@ -70,9 +70,7 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     const address = tokenBridgeRelayerV3Contracts.get(network, chainName);
 
     this.chain = new SolanaChain(chainName, new SolanaPlatform(this.network));
-    this.client = new SolanaTokenBridgeRelayer({ connection },
-      { address, network }
-    );
+    this.client = new SolanaTokenBridgeRelayer({ connection }, { address, network });
   }
 
   static async fromRpc<N extends Network>(

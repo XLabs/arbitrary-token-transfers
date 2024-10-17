@@ -20,7 +20,13 @@ import {
   TransferState,
   Wormhole,
 } from '@wormhole-foundation/sdk-connect';
-import { isNative, TokenAddress, toNative, UniversalAddress, UniversalOrNative } from '@wormhole-foundation/sdk-definitions';
+import {
+  isNative,
+  TokenAddress,
+  toNative,
+  UniversalAddress,
+  UniversalOrNative,
+} from '@wormhole-foundation/sdk-definitions';
 import {
   SupportedChains,
   tokenBridgeRelayerV3Chains,
@@ -229,7 +235,10 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
 
       const srcWrapped = await request.fromChain.getNativeWrappedTokenId();
       const { allowances, fee, isPaused } = await tbr.relayingFee({
-        token: request.source.id.address === 'native' ? srcWrapped.address as UniversalOrNative<SupportedChains> : request.source.id.address,
+        token:
+          request.source.id.address === 'native'
+            ? (srcWrapped.address as UniversalOrNative<SupportedChains>)
+            : request.source.id.address,
         gasDropoff,
         targetChain,
       });
@@ -282,7 +291,7 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
           options: {
             ...params.options,
             allowances,
-          }
+          },
         },
         destinationNativeGas: {
           amount: gasDropoff.toString(),

@@ -12,8 +12,5 @@
   },
   "include": ["src"],
   "exclude": ["ts-build"],
-  "references": [
-    { "path": "../../../sdk/evm" },
-    { "path": "../../definitions" },
-  ]
+  "references": [{ "path": "../../../sdk/evm" }, { "path": "../../definitions" }]
 }

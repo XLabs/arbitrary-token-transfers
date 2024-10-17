@@ -12,8 +12,5 @@
   },
   "include": ["src"],
   "exclude": ["ts-build"],
-  "references": [
-    { "path": "../../../sdk/solana" },
-    { "path": "../../definitions" },
-  ]
+  "references": [{ "path": "../../../sdk/solana" }, { "path": "../../definitions" }]
 }
