@@ -2,11 +2,13 @@ import {
   dependencies,
   evm,
   EvmChainInfo,
+  EvmScriptCb,
   getContractAddress,
   getEnv,
   getEnvOrDefault,
   LoggerFn,
   SolanaChainInfo,
+  SolanaScriptCb,
   TestTransfer,
 } from '../helpers';
 import { ethers } from 'ethers';
@@ -65,44 +67,36 @@ async function run() {
     ...rest,
   })) : uniqueTestTransfers;
 
-  await runOnEvms('send-test-transactions', async (chain, signer, logFn) => {
+  const sendTransaction: EvmScriptCb & SolanaScriptCb =  async (chain, signer, logFn) => {
     const transfers = tests.filter((testTransfer) => !testTransfer.skip && testTransfer.fromChain === chain.name);
     logFn(`Transfers from ${chain.name}: ${transfers.length}`);
 
     const promises = transfers.map(async (testTransfer) => {
       try {
-        await sendEvmTestTransaction(
-          chain,
-          signer,
-          logFn,
-          testTransfer,
-        );
+        if (chain.name === "Solana") {
+          await sendSolanaTestTransaction(
+            chain as SolanaChainInfo,
+            signer as SolanaSigner,
+            logFn,
+            testTransfer,
+          );
+        } else {
+          await sendEvmTestTransaction(
+            chain,
+            signer as ethers.Signer,
+            logFn,
+            testTransfer,
+          );
+        }
       } catch (error) {
         console.error(`Error executing script for test: ${inspect(testTransfer)}`, error);
       }
     });
     await Promise.allSettled(promises);
-  });
+  };
 
-
-  await runOnSolana('send-test-transactions', async (chain, signer, logFn) => {
-    const transfers = tests.filter((testTransfer) => !testTransfer.skip && testTransfer.fromChain === chain.name);
-    logFn(`Transfers from ${chain.name}: ${transfers.length}`);
-
-    const promises = transfers.map(async (testTransfer) => {
-      try {
-        await sendSolanaTestTransaction(
-          chain,
-          signer,
-          logFn,
-          testTransfer,
-        );
-      } catch (error) {
-        console.error(`Error executing script for test: ${inspect(testTransfer)}`, error);
-      }
-    });
-    await Promise.allSettled(promises);
-  });
+  await runOnEvms('send-test-transactions', sendTransaction);
+  await runOnSolana('send-test-transactions', sendTransaction);
 
   const timeMs = Number(process.hrtime.bigint() - start) / 1e6;
   console.log(`Process ${processName} finished after ${timeMs} miliseconds`);
