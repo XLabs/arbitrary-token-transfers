@@ -31,13 +31,19 @@
       "path": "./sdk/solana/tsconfig.json"
     },
     {
+      "path": "./sdk/sui/tsconfig.json"
+    },
+    {
       "path": "./deployment"
+    },
+    {
+      "path": "./evm/tsconfig.json"
     },
     {
       "path": "./solana/tsconfig.json"
     },
     {
-      "path": "./evm/tsconfig.json"
+      "path": "./sui/tsconfig.json"
     }
   ]
 }

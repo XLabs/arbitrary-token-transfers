@@ -1,0 +1,58 @@
+{
+  "name": "@xlabs-xyz/sui-arbitrary-token-transfers",
+  "version": "0.0.1",
+  "license": "ISC",
+  "type": "module",
+  "module": "ts-build/tbrv3/index.js",
+  "types": "ts-build/tbrv3/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./ts-build/tbrv3/index.d.ts",
+      "require": "./ts-build/tbrv3/index.cjs",
+      "import": "./ts-build/tbrv3/index.js"
+    }
+  },
+  "files": [
+    "ts-build"
+  ],
+  "scripts": {
+    "build:ts": "tsc --noEmit -p ./tsconfig.json && tsup",
+    "build": "yarn run build:ts",
+    "prettier": "prettier --write ."
+  },
+  "dependencies": {
+    
+  },
+  "devDependencies": {
+    "@types/node": "20.16.5",
+    "tsup": "^8.2.4",
+    "tsx": "4.19.1",
+    "typescript": "5.6.2"
+  },
+  "tsup": {
+    "entry": [
+      "tbrv3/index.ts"
+    ],
+    "tsconfig": "tsconfig.build.json",
+    "splitting": false,
+    "sourcemap": true,
+    "minify": false,
+    "clean": true,
+    "outDir": "ts-build/tbrv3",
+    "format": [
+      "esm",
+      "cjs"
+    ],
+    "dts": {
+      "resolve": true
+    },
+    "external": [
+      "@internal/loader",
+      "@wormhole-foundation/sdk-definitions",
+      "@wormhole-foundation/sdk-base"
+    ],
+    "noExternal": [
+      "common-arbitrary-token-transfer"
+    ]
+  }
+}

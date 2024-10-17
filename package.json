@@ -43,8 +43,10 @@
     "sdk/common",
     "sdk/evm",
     "sdk/solana",
+    "sdk/sui",
     "evm",
     "solana",
+    "sui",
     "deployment"
   ],
   "packageManager": "yarn@4.4.1"

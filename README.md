@@ -12,7 +12,7 @@ This repo contains a root package and 5 workspaces:
 ## Clean installation
 
 - Run `yarn` to install all the global dependencies.
-- Checkout submodules: `git submodules update --init`
+- Checkout submodules: `git submodule update --init`
 - Make sure no previous builds output is present `yarn clean:all`
 
 Depending on the desired target environment you have 2 different build options:
