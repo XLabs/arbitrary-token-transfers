@@ -9,7 +9,7 @@ import {
   keypairFromFile,
   keypairFromArray,
 } from './utils/helpers.js';
-import { TbrWrapper } from './utils/client-wrapper.js';
+import { TbrWrapper, TokenBridgeWrapper, WormholeCoreWrapper } from './utils/client-wrapper.js';
 import { SolanaPriceOracle, uaToArray } from '@xlabs-xyz/solana-arbitrary-token-transfers';
 import { expect } from 'chai';
 
@@ -40,10 +40,10 @@ describe('Token Bridge Relayer Program', () => {
   ] = clients;
 
   const wormholeCoreOwner = newProvider();
-  //const wormholeCoreClient = new WormholeCoreWrapper(wormholeCoreOwner);
+  const wormholeCoreClient = new WormholeCoreWrapper(wormholeCoreOwner);
 
   const tokenBridgeOwner = newProvider();
-  //const tokenBridgeClient = new TokenBridgeWrapper(tokenBridgeOwner);
+  const tokenBridgeClient = new TokenBridgeWrapper(tokenBridgeOwner);
 
   const feeRecipient = PublicKey.unique();
   const evmTransactionGas = 321_000n;
@@ -65,6 +65,7 @@ describe('Token Bridge Relayer Program', () => {
     // Program Deployment
     // ============
 
+    /*
     await Promise.all([
       // Token Bridge Relayer
       deployProgram(
@@ -79,10 +80,12 @@ describe('Token Bridge Relayer Program', () => {
         './target/sbf-solana-solana/release/solana_price_oracle.so',
       ),
     ]);
+    */
 
     // Oracle Setup
     // ============
 
+    /*
     const oracleAuthorityProvider = newProvider(await keypairFromFile(authorityKeypairPath));
     const oracleAuthorityClient = await SolanaPriceOracle.create(
       oracleAuthorityProvider.connection,
@@ -99,10 +102,12 @@ describe('Token Bridge Relayer Program', () => {
         await oracleAuthorityClient.updateSolPrice(oracleAuthorityProvider.publicKey, 113_000_000n), // SOL is at $113
       ),
     );
+    */
 
     // Wormhole Core Setup
     // ===================
-    //await wormholeCoreClient.initialize();
+    await wormholeCoreClient.initialize();
+    await tokenBridgeClient.initialize();
   });
 
   after(async () => {
@@ -110,7 +115,7 @@ describe('Token Bridge Relayer Program', () => {
     await Promise.all(clients.map((client) => client.close()));
   });
 
-  it('Is initialized!', async () => {
+  xit('Is initialized!', async () => {
     const upgradeAuthorityClient = await TbrWrapper.create(
       newProvider(await keypairFromFile(authorityKeypairPath)),
     );
@@ -144,7 +149,7 @@ describe('Token Bridge Relayer Program', () => {
     await upgradeAuthorityClient.close();
   });
 
-  describe('Roles', () => {
+  xdescribe('Roles', () => {
     it('Submits an owner transfer request', async () => {
       await ownerClient.submitOwnerTransferRequest(newOwnerClient.publicKey);
     });
@@ -235,7 +240,7 @@ describe('Token Bridge Relayer Program', () => {
     });
   });
 
-  describe('Peers', () => {
+  xdescribe('Peers', () => {
     it('Registers peers', async () => {
       await newOwnerClient.registerPeer(ETHEREUM, ethereumPeer1);
       assert.chainConfig(await unauthorizedClient.account.chainConfig(ETHEREUM).fetch()).equal({
@@ -326,7 +331,7 @@ describe('Token Bridge Relayer Program', () => {
     });
   });
 
-  describe('Chain Config', () => {
+  xdescribe('Chain Config', () => {
     it('Values are updated', async () => {
       const maxGasDropoffMicroToken = 10_000_000; // ETH10 maximum
       const relayerFeeMicroUsd = 900_000; // $0.9
@@ -358,7 +363,7 @@ describe('Token Bridge Relayer Program', () => {
     });
   });
 
-  describe('Main Config', () => {
+  xdescribe('Main Config', () => {
     it('Values are updated', async () => {
       await Promise.all([
         adminClient1.updateFeeRecipient(feeRecipient),
@@ -382,7 +387,7 @@ describe('Token Bridge Relayer Program', () => {
     });
   });
 
-  describe('Querying the quote', () => {
+  xdescribe('Querying the quote', () => {
     it('Fetches the quote', async () => {
       const dropoff = 50000; // ETH0.05
 

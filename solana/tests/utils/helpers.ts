@@ -9,6 +9,7 @@ import {
   Keypair,
   RpcResponseAndContext,
   SignatureResult,
+  AccountInfo,
 } from '@solana/web3.js';
 import {
   BpfLoaderUpgradeableProgram,
@@ -22,8 +23,10 @@ import { exec } from 'child_process';
 const execAsync = promisify(exec);
 
 const LOCALHOST = 'http://localhost:8899';
-export const wormholeProgramId = new PublicKey('worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth');
-export const tokenBridgeProgramId = new PublicKey('wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb');
+export const wormholeContracts = {
+  coreBridge: 'worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth',
+  tokenBridge: 'wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb',
+};
 
 export interface ErrorConstructor {
   new (...args: any[]): Error;
@@ -160,7 +163,7 @@ export async function deployProgram(
   const connection = AnchorProvider.local().connection;
   const bpfProgram = new BpfLoaderUpgradeableProgram(programId, connection);
   const programDataAddress = bpfProgram.dataAddress;
-  let programAccount = null;
+  let programAccount: AccountInfo<Buffer> | null = null;
   while (programAccount === null) {
     programAccount = await connection.getAccountInfo(programDataAddress, 'finalized');
   }
