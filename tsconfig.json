@@ -31,13 +31,10 @@
       "path": "./sdk/solana/tsconfig.json"
     },
     {
-      "path": "./deployment"
-    },
-    {
       "path": "./solana/tsconfig.json"
     },
     {
-      "path": "./evm/tsconfig.json"
+      "path": "./deployment"
     }
   ]
 }
