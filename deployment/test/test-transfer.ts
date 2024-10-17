@@ -12,8 +12,8 @@ import {
 import { ethers } from 'ethers';
 import { getProvider, runOnEvms, sendTxCatch, wrapEthersProvider } from '../helpers/evm';
 import { SupportedChain, Tbrv3, Transfer } from '@xlabs-xyz/evm-arbitrary-token-transfers';
-import { buildConfig, create, getProtocolInitializer, resolveWrappedToken, toUniversal, UniversalAddress } from '@wormhole-foundation/sdk-definitions';
-import { Chain, chainIdToChain, chainToPlatform, contracts } from '@wormhole-foundation/sdk-base';
+import { resolveWrappedToken, toUniversal, UniversalAddress } from '@wormhole-foundation/sdk-definitions';
+import { Chain, chainIdToChain, chainToChainId, chainToPlatform, contracts } from '@wormhole-foundation/sdk-base';
 import { inspect } from 'util';
 import { solanaOperatingChains, getConnection, ledgerSignAndSend, runOnSolana, SolanaSigner } from '../helpers/solana';
 import { EvmAddress } from '@wormhole-foundation/sdk-evm';
@@ -31,6 +31,7 @@ import {
 } from '@solana/spl-token';
 
 import { ethers_contracts } from "@wormhole-foundation/sdk-evm-tokenbridge";
+import { deriveWrappedMintKey } from '@wormhole-foundation/sdk-solana-tokenbridge';
 
 
 const processName = 'att-test-transfer';
@@ -111,26 +112,28 @@ async function run() {
   console.log(`Process ${processName} finished after ${timeMs} miliseconds`);
 }
 
-async function getLocalToken(tokenAddress: UniversalAddress, tokenChain: Chain, localChain: EvmChainInfo): Promise<EvmAddress> {
-  let token;
-  const localChainName = localChain.name as "Solana" | "Avalanche";
+async function getLocalToken(tokenAddress: UniversalAddress, tokenChain: Chain, localChain: EvmChainInfo | SolanaChainInfo): Promise<UniversalAddress> {
+  if (localChain.name === tokenChain) {
+    return tokenAddress;
+  }
+
   const tokenBridgeAddress = contracts.tokenBridge(localChain.network, localChain.name as Exclude<SupportedChain, "Sepolia" | "BaseSepolia" | "OptimismSepolia">);
-  // const thing = getProtocolInitializer(chainToPlatform(localChainName), "TokenBridge");
+  if (localChain.name === "Solana") {
+    if (tokenChain === "Solana") {
+      return tokenAddress;
+    }
+    return toUniversal("Solana", deriveWrappedMintKey(tokenBridgeAddress, chainToChainId(tokenChain), tokenAddress.toUint8Array()).toBytes());
+  }
+
   const provider = getProvider(localChain);
   // ethers v6 provider typechecking chokes up with private members when you have a different version.
   // This probably sounds like a Wormhole SDK API defect imo.
   // The ContractReader interface does allow you to pass in specific functions for several query primitives.
   // Maybe we need to create a helper function that creates this interface for an ethers v6 in an easy and predictable way.
+  // Alternatively, ethers should be a peer dependency instead.
   const tokenBridge = ethers_contracts.Bridge__factory.connect(tokenBridgeAddress, {provider: provider as any});
-  const thing2 = await create(chainToPlatform(localChainName), "TokenBridge", provider, buildConfig(localChain.network));
-  // new thing(localChain.network, localChainName, provider, contracts)
-  token = await thing2.getWrappedAsset({ chain: tokenChain, address: tokenAddress });
-
-  if (token !== undefined) {
-    return new EvmAddress(token);
-  }
-
-  throw new Error(`Could not find gas token for chain ${localChain.name}`);
+  const token = await tokenBridge.wrappedAsset(chainToChainId(tokenChain), tokenAddress.toString());
+  return toUniversal(localChain.name as Chain, token);
 }
 
 function getNativeWrappedToken(chain: EvmChainInfo) {
@@ -151,9 +154,9 @@ async function sendEvmTestTransaction(
   testTransfer: TestTransfer,
 ): Promise<void> {
   try {
-    const inputToken = testTransfer.tokenAddress !== undefined
-      ? await getLocalToken(testTransfer.tokenAddress, testTransfer.tokenChain, chain)
-      : getNativeWrappedToken(chain);
+    const inputToken = new EvmAddress(testTransfer.tokenAddress !== undefined
+      ? await getLocalToken(toUniversal(testTransfer.tokenChain, testTransfer.tokenAddress), testTransfer.tokenChain, chain)
+      : getNativeWrappedToken(chain));
     const gasDropoff = Number(testTransfer.gasDropoffAmount);
     const inputAmountInAtomic = BigInt(testTransfer.transferredAmount);
     const unwrapIntent = testTransfer.unwrapIntent;
@@ -209,7 +212,7 @@ async function sendEvmTestTransaction(
 
             const {feeEstimations, allowances} = (
               await tbrv3.relayingFee({
-                tokens: [new EvmAddress(inputToken)],
+                tokens: [inputToken],
                 transferRequests: [{
                   targetChain: targetChain.name as SupportedChain,
                   gasDropoff,
@@ -282,7 +285,7 @@ async function sendSolanaTestTransaction(
   const transferredAmount = BigInt(testTransfer.transferredAmount);
   const unwrapIntent = testTransfer.unwrapIntent;
 
-  const mint = testTransfer.tokenAddress ? new PublicKey(testTransfer.tokenAddress) : undefined;
+  const mint = testTransfer.tokenAddress ? new PublicKey(testTransfer.tokenAddress) : NATIVE_MINT;
   const tokenAccount = getAta(await signer.getAddress(), mint);
 
   const maxFeeSol = BigInt(getEnvOrDefault('MAX_FEE_SOL', '5000'));
@@ -308,7 +311,7 @@ async function sendSolanaTestTransaction(
         throw new Error(`No dependencies found for chain ${chain.chainId}`);
       }
 
-      const tbr = new SolanaTokenBridgeRelayer({ connection });
+      const tbr = await SolanaTokenBridgeRelayer.create({ connection });
 
       const evmAddress = getEnv('RECIPIENT_EVM_ADDRESS');
       const maxFeeLamports = BigInt(getEnvOrDefault('MAX_FEE_KLAMPORTS', '5000000'));
@@ -326,7 +329,7 @@ async function sendSolanaTestTransaction(
             chain: tokenChain,
             address: toUniversal(testTransfer.tokenChain, testTransfer.sourceTokenAddress ?? testTransfer.tokenAddress!),
           },
-          userTokenAccount: tokenAccount!,
+          userTokenAccount: tokenAccount,
           transferredAmount,
           gasDropoffAmount,
           maxFeeLamports,
@@ -340,8 +343,8 @@ async function sendSolanaTestTransaction(
             chain: targetChain.name as Chain,
             address: toUniversal(targetChain.name as Chain, evmAddress),
           },
-          mint: mint!,
-          tokenAccount: tokenAccount!,
+          mint,
+          tokenAccount,
           transferredAmount,
           gasDropoffAmount,
           maxFeeLamports,
@@ -382,10 +385,7 @@ async function sendSolanaTestTransaction(
   );
 }
 
-function getAta(signer: Buffer, mint?: PublicKey) {
-  if (!mint) {
-    return undefined;
-  }
+function getAta(signer: Buffer, mint: PublicKey) {
   const tokenProgramId = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
   const associatedTokenProgramId = new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL');
 
