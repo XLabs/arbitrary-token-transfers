@@ -6,6 +6,7 @@ import { getSigner } from "./evm.js";
 // TODO: support different env files
 import 'dotenv/config';
 import { ChainId, contracts as connectDependencies, toChain } from "@wormhole-foundation/sdk-base";
+import { inspect } from "util";
 
 export const env = getEnv("ENV");
 export const network = env === "mainnet" ? "Mainnet" : "Testnet";
@@ -55,6 +56,17 @@ export function getEnv(env: string): string {
     throw Error(`Env var not set: ${env}`);
   }
   return v;
+}
+
+/**
+ * Reads env vars and returns the first one that is defined and non empty.
+ */
+export function resolveEnv(envNames: string[]): string {
+  for (const env of envNames) {
+    const v = process.env[env];
+    if (v) return v;
+  }
+  throw Error(`Env vars not set: ${inspect(envNames)}`);
 }
 
 export function getChainInfo(chainId: ChainId): ChainInfo {

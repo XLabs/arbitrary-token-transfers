@@ -25,8 +25,4 @@ line_length = 100
 multiline_func_header = "params_first"
 # wrap_comments = true
 
-
-[profile.production]
-via_ir = true
-
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
