@@ -1,4 +1,5 @@
 import { AnchorProvider } from '@coral-xyz/anchor';
+import anchor from '@coral-xyz/anchor';
 import { PublicKey, TransactionSignature } from '@solana/web3.js';
 import { Chain } from '@wormhole-foundation/sdk-base';
 import { UniversalAddress } from '@wormhole-foundation/sdk-definitions';
@@ -9,12 +10,14 @@ import {
   TransferWrappedParameters,
   VaaMessage,
 } from '@xlabs-xyz/solana-arbitrary-token-transfers';
-import { sendAndConfirmIxs, wormholeContracts, keypairFromArray } from './helpers.js';
+import { sendAndConfirmIxs, TestsHelper, wormholeContracts } from './helpers.js';
 import { SolanaWormholeCore } from '@wormhole-foundation/sdk-solana-core';
 import { SolanaTokenBridge } from '@wormhole-foundation/sdk-solana-tokenbridge';
 //import evm from '@wormhole-foundation/sdk/platforms/evm';
 
 import testProgramKeypair from '../../programs/token-bridge-relayer/test-program-keypair.json' with { type: 'json' };
+
+const $ = new TestsHelper();
 
 export class TbrWrapper {
   readonly client: SolanaTokenBridgeRelayer;
@@ -44,7 +47,7 @@ export class TbrWrapper {
     const client = new SolanaTokenBridgeRelayer(
       clientProvider,
       'Localnet',
-      keypairFromArray(testProgramKeypair).publicKey,
+      $.pubkey.from(testProgramKeypair),
       oracleClient,
     );
 
@@ -219,7 +222,24 @@ export class WormholeCoreWrapper {
   }
 
   async initialize() {
-    //todo
+    const guardianSetExpirationTime = 1_000_000;
+    const fee = new anchor.BN(1_000_000);
+    const initialGuardians = [];
+
+    const [config, guardianSet, feeCollector] = await $.airdrop($.keypair.several(3));
+
+    // https://github.com/wormhole-foundation/wormhole/blob/main/solana/bridge/program/src/api/initialize.rs
+    const ix = await this.client.coreBridge.methods
+      .initialize(guardianSetExpirationTime, fee, initialGuardians)
+      .accounts({
+        bridge: config.publicKey,
+        guardianSet: guardianSet.publicKey,
+        feeCollector: feeCollector.publicKey,
+        payer: this.provider.publicKey,
+      })
+      .instruction();
+
+    return await sendAndConfirmIxs(this.provider, ix);
   }
 }
 

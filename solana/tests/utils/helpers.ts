@@ -7,14 +7,9 @@ import {
   Connection,
   LAMPORTS_PER_SOL,
   Keypair,
-  RpcResponseAndContext,
-  SignatureResult,
   AccountInfo,
 } from '@solana/web3.js';
-import {
-  BpfLoaderUpgradeableProgram,
-  ChainConfigAccount,
-} from '@xlabs-xyz/solana-arbitrary-token-transfers';
+import { ChainConfigAccount } from '@xlabs-xyz/solana-arbitrary-token-transfers';
 import { expect } from 'chai';
 import fs from 'fs/promises';
 import { promisify } from 'util';
@@ -100,72 +95,110 @@ export async function sendAndConfirmIxs(
   return provider.sendAndConfirm(tx);
 }
 
-export function newProvider(keypair?: Keypair): AnchorProvider {
-  const connection = new Connection(LOCALHOST, 'processed');
-  const wallet = new Wallet(keypair ?? new Keypair());
-
-  return new AnchorProvider(connection, wallet);
-}
-
-export async function requestAirdrop(provider: Provider) {
-  if (provider.publicKey === undefined) {
+type HasPublicKey = PublicKey | Keypair | Wallet | Provider;
+function extractPubkey(from: HasPublicKey): PublicKey {
+  if (from instanceof PublicKey) {
+    return from;
+  } else if (from instanceof Keypair) {
+    return from.publicKey;
+  } else if (from instanceof Wallet) {
+    return from.publicKey;
+  } else if (from.publicKey !== undefined) {
+    return from.publicKey;
+  } else {
     throw new Error('The provider must have a public key to request airdrop');
   }
-
-  //console.log('Airdropping to', provider.publicKey.toString());
-  await confirmTransaction(
-    provider,
-    await provider.connection.requestAirdrop(provider.publicKey, 20 * LAMPORTS_PER_SOL),
-  );
 }
 
-export async function confirmTransaction(
-  provider: Provider,
-  signature: TransactionSignature,
-): Promise<RpcResponseAndContext<SignatureResult>> {
-  const latestBlockHash = await provider.connection.getLatestBlockhash();
+export class TestsHelper {
+  static readonly LOCALHOST = 'http://localhost:8899';
+  readonly connection: Connection;
 
-  return provider.connection.confirmTransaction({
-    signature,
-    blockhash: latestBlockHash.blockhash,
-    lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
-  });
-}
+  private static readonly connections = {};
 
-export async function keypairFromFile(path: string) {
-  return Keypair.fromSecretKey(
-    Uint8Array.from(JSON.parse(await fs.readFile(path, { encoding: 'utf8' }))),
-  );
-}
-
-export function keypairFromArray(keypair: number[]) {
-  return Keypair.fromSecretKey(Uint8Array.from(keypair));
-}
-
-/**
- *
- * @param programKeyPairPath The path to the JSON keypair.
- * @param authorityKeyPairPath The path to the program authority.
- * @param artifactPath The .so file.
- */
-export async function deployProgram(
-  programKeyPairPath: string,
-  authorityKeyPairPath: string,
-  artifactPath: string,
-) {
-  // Deploy:
-  await execAsync(
-    `solana --url ${LOCALHOST} -k ${authorityKeyPairPath} program deploy ${artifactPath} --program-id ${programKeyPairPath}`,
-  );
-
-  // Wait for deploy to be finalized. Don't remove.
-  const programId = await keypairFromFile(programKeyPairPath).then((kp) => kp.publicKey);
-  const connection = AnchorProvider.local().connection;
-  const bpfProgram = new BpfLoaderUpgradeableProgram(programId, connection);
-  const programDataAddress = bpfProgram.dataAddress;
-  let programAccount: AccountInfo<Buffer> | null = null;
-  while (programAccount === null) {
-    programAccount = await connection.getAccountInfo(programDataAddress, 'finalized');
+  constructor(commitment: 'processed' | 'confirmed' | 'finalized' = 'processed') {
+    if (TestsHelper.connections[commitment] === undefined) {
+      TestsHelper.connections[commitment] = new Connection(LOCALHOST, commitment);
+    }
+    this.connection = TestsHelper.connections[commitment];
   }
-  //console.log('Found programAccount:', { programDataAddress, programId, programAccount });
+
+  pubkey = {
+    read: async (path: string): Promise<PublicKey> =>
+      this.keypair.read(path).then((kp) => kp.publicKey),
+    from: (bytes: number[]): PublicKey => this.keypair.from(bytes).publicKey,
+  };
+
+  keypair = {
+    read: async (path: string): Promise<Keypair> =>
+      this.keypair.from(JSON.parse(await fs.readFile(path, { encoding: 'utf8' }))),
+    from: (bytes: number[]): Keypair => Keypair.fromSecretKey(Uint8Array.from(bytes)),
+    several: (amount: number): Keypair[] => Array.from({ length: amount }).map(Keypair.generate),
+  };
+
+  provider = {
+    gen: (): AnchorProvider => this.providerFromKeypair(Keypair.generate()),
+    read: async (path: string): Promise<AnchorProvider> =>
+      this.providerFromKeypair(await this.keypair.read(path)),
+    from: (bytesOrKeypair: number[] | Keypair): AnchorProvider =>
+      this.providerFromKeypair(
+        Array.isArray(bytesOrKeypair) ? this.keypair.from(bytesOrKeypair) : bytesOrKeypair,
+      ),
+    several: (amount: number): AnchorProvider[] =>
+      Array.from({ length: amount }).map(this.provider.gen),
+  };
+
+  /** Confirm a transaction. */
+  async confirm(signature: TransactionSignature) {
+    const latestBlockHash = await this.connection.getLatestBlockhash();
+
+    return this.connection.confirmTransaction({
+      signature,
+      blockhash: latestBlockHash.blockhash,
+      lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
+    });
+  }
+
+  /** Request airdrop to an account or several ones. */
+  async airdrop<T extends HasPublicKey | HasPublicKey[]>(to: T): Promise<T> {
+    const request = async (account: PublicKey) =>
+      this.confirm(await this.connection.requestAirdrop(account, 50 * LAMPORTS_PER_SOL));
+
+    if (Array.isArray(to)) {
+      await Promise.all(to.map((account) => request(extractPubkey(account))));
+    } else {
+      await request(extractPubkey(to));
+    }
+
+    return to;
+  }
+
+  /** Deploy a new program. */
+  async deploy(paths: { programKeypair: string; authorityKeypair: string; binary: string }) {
+    const { programKeypair, authorityKeypair, binary } = paths;
+    const BpfProgramId = new PublicKey('BPFLoaderUpgradeab1e11111111111111111111111');
+
+    // Deploy:
+    await execAsync(
+      `solana --url ${LOCALHOST} -k ${authorityKeypair} program deploy ${binary} --program-id ${programKeypair}`,
+    );
+
+    // Wait for deploy to be finalized. Don't remove.
+    const programId = await this.pubkey.read(programKeypair);
+    const programDataAddress = PublicKey.findProgramAddressSync(
+      [programId.toBuffer()],
+      BpfProgramId,
+    )[0];
+    let programAccount: AccountInfo<Buffer> | null = null;
+    while (programAccount === null) {
+      programAccount = await this.connection.getAccountInfo(programDataAddress, 'finalized');
+    }
+    //console.log('Found programAccount:', { programDataAddress, programId, programAccount });
+  }
+
+  // PRIVATE
+
+  private providerFromKeypair(keypair: Keypair) {
+    return new AnchorProvider(this.connection, new Wallet(keypair));
+  }
 }
