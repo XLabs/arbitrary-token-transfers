@@ -53,6 +53,8 @@ const usdcAddresses = {
  *
  * Optionally, you can define the following:
  * - FLIP_ROUTES: set to true if you want to transfer the tokens in the opposite direction. Use after all the relays were redeemed to ensure you have the tokens.
+ * - EVM_WALLET_KEY: EVM override for private key
+ * - SOLANA_WALLET_KEY: Solana override for private key
  */
 
 

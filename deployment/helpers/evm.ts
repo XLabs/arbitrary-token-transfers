@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { ChainInfo, ecosystemChains, EvmScriptCb, getEnv, EvmChainInfo, UncheckedConstructorArgs } from "./index.js";
+import { ChainInfo, ecosystemChains, EvmScriptCb, getEnv, EvmChainInfo, UncheckedConstructorArgs, resolveEnv } from "./index.js";
 import { toChain } from "@wormhole-foundation/sdk-base";
 import { PartialTx } from "@xlabs-xyz/evm-arbitrary-token-transfers";
 
@@ -59,7 +59,7 @@ export function evmOperatingChains(): EvmChainInfo[] {
 };
 
 export async function getSigner(chain: ChainInfo): Promise<ethers.Signer> {
-  const privateKey = getEnv("WALLET_KEY");
+  const privateKey = resolveEnv(["EVM_WALLET_KEY", "WALLET_KEY"]);
   if (privateKey == "ledger") {
     const { LedgerSigner } = await import("@xlabs-xyz/ledger-signer-ethers-v6");
 
