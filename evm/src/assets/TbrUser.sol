@@ -4,6 +4,7 @@ pragma solidity ^0.8.25;
 
 import {CHAIN_ID_SOLANA} from "wormhole-sdk/constants/Chains.sol";
 import {BytesParsing} from "wormhole-sdk/libraries/BytesParsing.sol";
+import {PermitParsing} from "wormhole-sdk/libraries/PermitParsing.sol";
 import {fromUniversalAddress, reRevert} from "wormhole-sdk/Utils.sol";
 import {IWETH} from "wormhole-sdk/interfaces/token/IWETH.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -237,7 +238,7 @@ abstract contract TbrUser is TbrBase {
     else if (acquireMode == ACQUIRE_PERMIT) {
       uint256 value; uint256 deadline; bytes32 r; bytes32 s; uint8 v;
       (value, deadline, r, s, v, offset) =
-        Permit2Parsing._parsePermit(data, offset);
+        PermitParsing.asPermitCdUnchecked(data, offset);
       //allow failure to prevent front-running griefing attacks
       //  (i.e. getting permit from mempool and submitting it to the token contract directly)
       try
@@ -250,7 +251,7 @@ abstract contract TbrUser is TbrBase {
     else if (acquireMode == ACQUIRE_PERMIT2TRANSFER) {
       uint256 amount; uint256 nonce; uint256 sigDeadline; bytes memory signature;
       (amount, nonce, sigDeadline, signature, offset) =
-        Permit2Parsing._parsePermit2Transfer(data, offset);
+        PermitParsing.asPermit2TransferCdUnchecked(data, offset);
 
       permit2.permitTransferFrom(
         ISignatureTransfer.PermitTransferFrom({
@@ -269,7 +270,7 @@ abstract contract TbrUser is TbrBase {
     else if (acquireMode == ACQUIRE_PERMIT2PERMIT) {
       uint160 amount; uint48 expiration; uint48 nonce; uint256 sigDeadline; bytes memory signature;
       (amount, expiration, nonce, sigDeadline, signature, offset) =
-        Permit2Parsing._parsePermit2Permit(data, offset);
+        PermitParsing.asPermit2PermitCdUnchecked(data, offset);
       //allow failure to prevent front-running griefing attacks
       try
         permit2.permit(
@@ -619,60 +620,4 @@ library TokenBridgeVAAParser {
     if (dataOffset != retOffset)
       revert InvalidVaaLength(commandIndex);
   }}
-}
-
-//TODO move to a shared library (this is not the last time we need this)
-library Permit2Parsing {
-  using BytesParsing for bytes;
-
-  uint constant SIGNATURE_SIZE = 65;
-
-  function _parsePermit(
-    bytes calldata params,
-    uint offset
-  ) internal pure returns (uint256, uint256, bytes32, bytes32, uint8, uint) {
-    uint256 value;
-    uint256 deadline;
-    bytes32 r;
-    bytes32 s;
-    uint8 v;
-    (value,    offset) = params.asUint256CdUnchecked(offset);
-    (deadline, offset) = params.asUint256CdUnchecked(offset);
-    (r,        offset) = params.asBytes32CdUnchecked(offset);
-    (s,        offset) = params.asBytes32CdUnchecked(offset);
-    (v,        offset) = params.asUint8CdUnchecked(offset);
-    return (value, deadline, r, s, v, offset);
-  }
-
-  function _parsePermit2Permit(
-    bytes calldata params,
-    uint offset
-  ) internal pure returns (uint160, uint48, uint48, uint256, bytes memory, uint) {
-    uint160 amount;
-    uint48 expiration;
-    uint48 nonce;
-    uint256 sigDeadline;
-    bytes memory signature;
-    (amount,      offset) = params.asUint160CdUnchecked(offset);
-    (expiration,  offset) = params.asUint48CdUnchecked(offset);
-    (nonce,       offset) = params.asUint48CdUnchecked(offset);
-    (sigDeadline, offset) = params.asUint256CdUnchecked(offset);
-    (signature,   offset) = params.sliceCdUnchecked(offset, SIGNATURE_SIZE);
-    return (amount, expiration, nonce, sigDeadline, signature, offset);
-  }
-
-  function _parsePermit2Transfer(
-    bytes calldata params,
-    uint offset
-  ) internal pure returns (uint256, uint256, uint256, bytes memory, uint) {
-    uint256 amount;
-    uint256 nonce;
-    uint256 sigDeadline;
-    bytes memory signature;
-    (amount,      offset) = params.asUint256CdUnchecked(offset);
-    (nonce,       offset) = params.asUint256CdUnchecked(offset);
-    (sigDeadline, offset) = params.asUint256CdUnchecked(offset);
-    (signature,   offset) = params.sliceCdUnchecked(offset, SIGNATURE_SIZE);
-    return (amount, nonce, sigDeadline, signature, offset);
-  }
 }
