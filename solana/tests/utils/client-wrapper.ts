@@ -1,6 +1,6 @@
 import { AnchorProvider } from '@coral-xyz/anchor';
 import anchor from '@coral-xyz/anchor';
-import { PublicKey, TransactionSignature } from '@solana/web3.js';
+import { Keypair, PublicKey, TransactionSignature } from '@solana/web3.js';
 import { Chain } from '@wormhole-foundation/sdk-base';
 import { UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import {
@@ -219,6 +219,7 @@ export class WormholeCoreWrapper {
       provider.connection,
       wormholeContracts,
     );
+    (this.client.coreBridge.idl.instructions[0].accounts[1].isSigner as boolean) = true;
   }
 
   async initialize() {
@@ -226,20 +227,20 @@ export class WormholeCoreWrapper {
     const fee = new anchor.BN(1_000_000);
     const initialGuardians = [];
 
-    const [config, guardianSet, feeCollector] = await $.airdrop($.keypair.several(3));
-
+    const guardianSet = await $.airdrop(Keypair.generate());
     // https://github.com/wormhole-foundation/wormhole/blob/main/solana/bridge/program/src/api/initialize.rs
     const ix = await this.client.coreBridge.methods
       .initialize(guardianSetExpirationTime, fee, initialGuardians)
       .accounts({
-        bridge: config.publicKey,
+        bridge: new PublicKey('2yVjuQwpsvdsrywzsJJVs9Ueh4zayyo5DYJbBNc3DDpn'),
         guardianSet: guardianSet.publicKey,
-        feeCollector: feeCollector.publicKey,
+        feeCollector: new PublicKey('9bFNrXNb2WTx8fMHXCheaZqkLZ3YCCaiqTftHxeintHy'),
         payer: this.provider.publicKey,
       })
+      .signers([guardianSet])
       .instruction();
 
-    return await sendAndConfirmIxs(this.provider, ix);
+    return await sendAndConfirmIxs(this.provider, ix, [guardianSet]);
   }
 }
 
@@ -258,6 +259,14 @@ export class TokenBridgeWrapper {
   }
 
   async initialize() {
-    //todo
+    const ix = this.client.tokenBridge.methods
+      .initialize(new PublicKey(wormholeContracts.coreBridge))
+      .accounts({
+        payer: this.provider.publicKey,
+        config: new PublicKey('DapiQYH3BGonhN8cngWcXQ6SrqSm3cwysoznoHr6Sbsx'),
+      })
+      .instruction();
+
+    return await sendAndConfirmIxs(this.provider, ix);
   }
 }

@@ -18,13 +18,13 @@ upgradeable = true
 #address = "CefQJaxQTV28gCf4MMd1PgDHgCcRmuEHZgXZwjJReUY3"
 #program = "../relayer-infra-contracts/src/solana/target/sbf-solana-solana/release/solana_price_oracle.so"
 
-# [[test.genesis]]
-# address = "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth" # Mainnet in lib.rs
-# program = "solana/tests/bridge.so"                      # Wormhole Core program
-#
-# [[test.genesis]]
-# address = "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb" # Mainnet in lib.rs
-# program = "solana/tests/token_bridge.so"
+[[test.genesis]]
+address = "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth" # Mainnet in lib.rs
+program = "solana/tests/bridge.so"                      # Wormhole Core program
+
+[[test.genesis]]
+address = "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb" # Mainnet in lib.rs
+program = "solana/tests/token_bridge.so"
 
 [registry]
 url = "https://api.apr.dev"

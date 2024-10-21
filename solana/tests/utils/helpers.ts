@@ -8,6 +8,7 @@ import {
   LAMPORTS_PER_SOL,
   Keypair,
   AccountInfo,
+  Signer,
 } from '@solana/web3.js';
 import { ChainConfigAccount } from '@xlabs-xyz/solana-arbitrary-token-transfers';
 import { expect } from 'chai';
@@ -88,11 +89,17 @@ export const assert = {
 
 export async function sendAndConfirmIxs(
   provider: AnchorProvider,
-  ...ixs: Array<TransactionInstruction | Promise<TransactionInstruction>>
+  ixs:
+    | TransactionInstruction
+    | Promise<TransactionInstruction>
+    | Array<TransactionInstruction | Promise<TransactionInstruction>>,
+  signers?: Signer[],
 ): Promise<TransactionSignature> {
-  const tx = new Transaction().add(...(await Promise.all(ixs)));
+  const tx = Array.isArray(ixs)
+    ? new Transaction().add(...(await Promise.all(ixs)))
+    : new Transaction().add(await ixs);
 
-  return provider.sendAndConfirm(tx);
+  return provider.sendAndConfirm(tx, signers);
 }
 
 type HasPublicKey = PublicKey | Keypair | Wallet | Provider;
