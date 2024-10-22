@@ -84,7 +84,7 @@ async function configureSolanaTbr(
       !currentChainConfig ||
       currentChainConfig.maxGasDropoffMicroToken.toString() !== desiredChainConfig.maxGasDropoff
     ) {
-      await log(
+      log(
         `Updating maxGasDropoff on chain ${tbrDeployment.chainId} to ${desiredChainConfig.maxGasDropoff}`,
       );
       const ix = await tbr.updateMaxGasDropoff(
@@ -100,7 +100,7 @@ async function configureSolanaTbr(
       !currentChainConfig ||
       currentChainConfig.relayerFeeMicroUsd !== desiredChainConfig.relayFee
     ) {
-      await log(
+      log(
         `Updating relayerFee on chain ${tbrDeployment.chainId} to ${desiredChainConfig.relayFee}`,
       );
       const ix = await tbr.updateRelayerFee(
