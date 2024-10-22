@@ -22,7 +22,7 @@ async function configureSolanaTbr(
   if (solanaDependencies === undefined) {
     throw new Error(`No dependencies found for chain ${chain.chainId}`);
   }
-  const tbr = new SolanaTokenBridgeRelayer({ connection });
+  const tbr = await SolanaTokenBridgeRelayer.create({ connection });
 
   const config = await getChainConfig<SolanaTbrV3Config>('tbr-v3', chain.chainId);
 
@@ -49,8 +49,8 @@ async function configureSolanaTbr(
     log(`Updating EVM Transaction config.`);
     const ix = await tbr.updateEvmTransactionConfig(
       signerKey,
-      new BN(evmTxGas.toString()),
-      new BN(evmTxSize.toString()),
+      evmTxGas,
+      evmTxSize
     );
 
     await ledgerSignAndSend(connection, [ix], []);
