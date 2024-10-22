@@ -35,7 +35,7 @@ jobs:
             # we discard the first character which represents working tree summary diff
             echo "commit=${submodule_status:1:40}" >> $env:GITHUB_OUTPUT
       - name: Checkout relayer-infra-contracts
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: xlabs/relayer-infra-contracts
           path: lib/relayer-infra-contracts
