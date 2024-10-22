@@ -33,7 +33,7 @@ jobs:
         run: |
             submodule_status=$(git submodule status --cached | grep relayer-infra-contracts)
             # we discard the first character which represents working tree summary diff
-            "commit=${submodule_status:1:40}" >> $env:GITHUB_OUTPUT
+            echo "commit=${submodule_status:1:40}" >> $env:GITHUB_OUTPUT
       - name: Checkout relayer-infra-contracts
         uses: actions/checkout@v3
         with:
