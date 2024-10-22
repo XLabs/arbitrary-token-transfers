@@ -27,12 +27,20 @@ jobs:
           cache: "yarn"
           cache-dependency-path: |
             ./yarn.lock
+      - name: Read relayer-infra-contracts commit hash
+        id: relayer-infra-contracts-commit
+        shell: bash
+        run: |
+            submodule_status=$(git submodule status --cached | grep relayer-infra-contracts)
+            # we discard the first character which represents working tree summary diff
+            "commit=${submodule_status:1:40}" >> $env:GITHUB_OUTPUT
       - name: Checkout relayer-infra-contracts
         uses: actions/checkout@v3
         with:
           repository: xlabs/relayer-infra-contracts
           path: lib/relayer-infra-contracts
           ssh-key: '${{ secrets.RELAYER_INFRA_CONTRACTS }}'
+          ref: ${{ steps.relayer-infra-contracts-commit.outputs.commit }}
 
       # Taken from https://github.com/metaDAOproject/setup-anchor/blob/main/action.yml#L25-L40
       - name: Cache Solana CLI tools
