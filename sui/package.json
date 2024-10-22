@@ -1,0 +1,9 @@
+{
+  "name": "sui",
+  "version": "0.0.1",
+  "scripts": {
+    "build": "sui move build",
+    "clean": "rm -rf build",
+    "test": "sui move test"
+  }
+}

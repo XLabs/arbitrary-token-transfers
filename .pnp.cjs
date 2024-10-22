@@ -35,8 +35,16 @@ const RAW_RUNTIME_STATE =
       "reference": "workspace:sdk/solana"\
     },\
     {\
+      "name": "@xlabs-xyz/sui-arbitrary-token-transfers",\
+      "reference": "workspace:sdk/sui"\
+    },\
+    {\
       "name": "solana",\
       "reference": "workspace:solana"\
+    },\
+    {\
+      "name": "sui",\
+      "reference": "workspace:sui"\
     }\
   ],\
   "enableTopLevelFallback": true,\
@@ -44,10 +52,12 @@ const RAW_RUNTIME_STATE =
   "fallbackExclusionList": [\
     ["@xlabs-xyz/evm-arbitrary-token-transfers", ["workspace:sdk/evm"]],\
     ["@xlabs-xyz/solana-arbitrary-token-transfers", ["workspace:sdk/solana"]],\
+    ["@xlabs-xyz/sui-arbitrary-token-transfers", ["workspace:sdk/sui"]],\
     ["common-arbitrary-token-transfer", ["workspace:sdk/common"]],\
     ["deployment", ["workspace:deployment"]],\
     ["evm", ["workspace:evm"]],\
     ["solana", ["workspace:solana"]],\
+    ["sui", ["workspace:sui"]],\
     ["token-bridge-relayer-root", ["workspace:."]]\
   ],\
   "fallbackPool": [\
@@ -2304,6 +2314,19 @@ const RAW_RUNTIME_STATE =
           ["@wormhole-foundation/sdk-solana-tokenbridge", "npm:0.10.7"],\
           ["@xlabs/solana-price-oracle-sdk", "npm:0.0.4::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40xlabs%2Fsolana-price-oracle-sdk%2F0.0.4%2F43985689b6a3edb240963b2fbebfb7268d340542"],\
           ["borsh", "npm:2.0.0"],\
+          ["tsup", "virtual:056deaaa1268de825ebb7f2126e3a2787838e2876e69eb46bc3ce4857072f92cede74aabe3915aa2d505c2a087a7d59d9170f4e7cc6428f30bd09123b7267c8f#npm:8.2.4"],\
+          ["tsx", "npm:4.19.1"],\
+          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=8c6c40"]\
+        ],\
+        "linkType": "SOFT"\
+      }]\
+    ]],\
+    ["@xlabs-xyz/sui-arbitrary-token-transfers", [\
+      ["workspace:sdk/sui", {\
+        "packageLocation": "./sdk/sui/",\
+        "packageDependencies": [\
+          ["@xlabs-xyz/sui-arbitrary-token-transfers", "workspace:sdk/sui"],\
+          ["@types/node", "npm:20.16.5"],\
           ["tsup", "virtual:056deaaa1268de825ebb7f2126e3a2787838e2876e69eb46bc3ce4857072f92cede74aabe3915aa2d505c2a087a7d59d9170f4e7cc6428f30bd09123b7267c8f#npm:8.2.4"],\
           ["tsx", "npm:4.19.1"],\
           ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=8c6c40"]\
@@ -6074,6 +6097,15 @@ const RAW_RUNTIME_STATE =
           ["ts-interface-checker", "npm:0.1.13"]\
         ],\
         "linkType": "HARD"\
+      }]\
+    ]],\
+    ["sui", [\
+      ["workspace:sui", {\
+        "packageLocation": "./sui/",\
+        "packageDependencies": [\
+          ["sui", "workspace:sui"]\
+        ],\
+        "linkType": "SOFT"\
       }]\
     ]],\
     ["superstruct", [\

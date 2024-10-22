@@ -1785,6 +1785,17 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@xlabs-xyz/sui-arbitrary-token-transfers@workspace:sdk/sui":
+  version: 0.0.0-use.local
+  resolution: "@xlabs-xyz/sui-arbitrary-token-transfers@workspace:sdk/sui"
+  dependencies:
+    "@types/node": "npm:20.16.5"
+    tsup: "npm:^8.2.4"
+    tsx: "npm:4.19.1"
+    typescript: "npm:5.6.2"
+  languageName: unknown
+  linkType: soft
+
 "@xlabs/solana-price-oracle-sdk@npm:^0.0.4":
   version: 0.0.4
   resolution: "@xlabs/solana-price-oracle-sdk@npm:0.0.4::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40xlabs%2Fsolana-price-oracle-sdk%2F0.0.4%2F43985689b6a3edb240963b2fbebfb7268d340542"
@@ -5212,6 +5223,12 @@ __metadata:
   checksum: 10c0/ac85f3359d2c2ecbf5febca6a24ae9bf96c931f05fde533c22a94f59c6a74895e5d5f0e871878dfd59c2697a75ebb04e4b2224ef0bfc24ca1210735c2ec191ef
   languageName: node
   linkType: hard
+
+"sui@workspace:sui":
+  version: 0.0.0-use.local
+  resolution: "sui@workspace:sui"
+  languageName: unknown
+  linkType: soft
 
 "superstruct@npm:^0.15.4":
   version: 0.15.5
