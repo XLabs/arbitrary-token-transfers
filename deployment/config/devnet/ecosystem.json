@@ -1,0 +1,13 @@
+{
+  "operatingChains": [1],
+  "solana": {
+    "networks": [
+      {
+        "name": "Solana",
+        "network": "Testnet",
+        "chainId": 1,
+        "rpc": "https://api.devnet.solana.com"
+      }
+    ]
+  }
+}

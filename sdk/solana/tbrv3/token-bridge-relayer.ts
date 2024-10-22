@@ -1006,11 +1006,11 @@ async function networkFromConnection(connection: Connection): Promise<NetworkOrL
 function programIdFromNetwork(network: NetworkOrLocal) {
   switch (network) {
     case 'Mainnet':
-      return new PublicKey(networkConfig.mainnet);
+      return new PublicKey(networkConfig.mainnet.programId);
     case 'Devnet':
-      return new PublicKey(networkConfig.devnet);
+      return new PublicKey(networkConfig.devnet.programId);
     case 'Testnet':
-      return new PublicKey(networkConfig.testnet);
+      return new PublicKey(networkConfig.testnet.programId);
     case 'Localnet':
       return Keypair.fromSecretKey(Uint8Array.from(testProgramKeypair)).publicKey;
   }
