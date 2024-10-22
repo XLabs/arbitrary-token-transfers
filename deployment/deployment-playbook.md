@@ -1,7 +1,7 @@
 # Build Solana and EVM contracts
 
 1. Change directory to root of TBRv3 repository.
-2. Run `git checkout 97834ccdddd492bd250c1ff1d0b7eb215434794e`
+2. Run `git checkout 9276c17b87aff1497c1f718922b23e718281d55b`
 3. Run `yarn` to link dependencies
 4. Bring submodules with ```git submodule update --init --recursive```
 5. Clean with `yarn clean:all`
@@ -17,8 +17,6 @@
   - Build for testnet with `yarn build:verifiable:all-devnet`
 8. Run the following:
 ```
-rm ./sdk/solana/tbrv3/idl/token_bridge_relayer.json &&
-cp ./target/idl/token_bridge_relayer.json ./sdk/solana/tbrv3/idl/ &&
 git status -s
 ```
 The output of the git command should show a clean working directory. If not, deployment should be aborted and this should be remedied by the contract developers.
@@ -131,7 +129,7 @@ source ./config/testnet/key.env && yarn tsx ./evm/deploy.ts
    `WALLET_KEY` is required to be set in environment for non-Ledger deployments.  You can use your signer defined in your local keypath file with:
 
    ```shell
-   export WALLET_KEY=`cat $key_path.json`
+   export WALLET_KEY=`cat $att_key_path.json`
    ```
 
   ```shell

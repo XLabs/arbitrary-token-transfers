@@ -4,7 +4,7 @@
     "wormholeMintAuthority": "BCD75RNBHrJJpW4dXVagL5mPjzRLnVZq4YirJdjEYMV7"
   },
   "devnet": {
-    "programId": "ATT7enfWTMV4dDTe2NQ2yBaTByuXXwrYRznsioQEUW6r",
+    "programId": "AttmP2dVtvNgHhMjMqKquMSnrNJC9HxH9rXrFqZ9EDHA",
     "wormholeMintAuthority": "rRsXLHe7sBHdyKU3KY3wbcgWvoT1Ntqudf6e9PKusgb"
   },
   "testnet": {
