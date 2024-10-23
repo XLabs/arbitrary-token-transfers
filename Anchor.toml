@@ -18,13 +18,15 @@ upgradeable = true
 #address = "CefQJaxQTV28gCf4MMd1PgDHgCcRmuEHZgXZwjJReUY3"
 #program = "../relayer-infra-contracts/src/solana/target/sbf-solana-solana/release/solana_price_oracle.so"
 
-# [[test.genesis]]
-# address = "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth" # Mainnet in lib.rs
-# program = "solana/tests/bridge.so"                      # Wormhole Core program
-#
-# [[test.genesis]]
-# address = "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb" # Mainnet in lib.rs
-# program = "solana/tests/token_bridge.so"
+[[test.genesis]]
+name = "wormhole-core"
+address = "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5" # Testnet in lib.rs
+program = "solana/tests/bridge.so"                       # Wormhole Core program
+
+[[test.genesis]]
+name = "wormhole-bridge"
+address = "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe" # Testnet in lib.rs
+program = "solana/tests/token_bridge.so"
 
 [registry]
 url = "https://api.apr.dev"
@@ -35,4 +37,4 @@ wallet = "./target/deploy/token_bridge_relayer-keypair.json"
 
 [scripts]
 setup-test = "cargo build-sbf -- -p solana-price-oracle --target-dir target"
-test = "yarn ./solana build:ts && yarn run mocha -t 1000000 solana/ts-build/tests/*.js"
+test = "yarn run mocha -t 1000000 solana/tests/*.ts"

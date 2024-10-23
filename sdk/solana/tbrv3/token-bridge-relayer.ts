@@ -51,6 +51,7 @@ export interface TransferNativeParameters {
   mint: PublicKey;
   tokenAccount: PublicKey;
   transferredAmount: bigint;
+  /** The dropoff in µ-target-token. */
   gasDropoffAmount: number;
   maxFeeLamports: bigint;
   unwrapIntent: boolean;
@@ -61,6 +62,7 @@ export interface TransferWrappedParameters {
   token: WormholeAddress;
   userTokenAccount: PublicKey;
   transferredAmount: bigint;
+  /** The dropoff in µ-target-token. */
   gasDropoffAmount: number;
   maxFeeLamports: bigint;
   unwrapIntent: boolean;
@@ -72,7 +74,7 @@ export type PeerAccount = anchor.IdlAccounts<IdlType>['peerState'];
 export type SignerSequenceAccount = anchor.IdlAccounts<IdlType>['signerSequenceState'];
 export type AuthBadgeAccount = anchor.IdlAccounts<IdlType>['authBadgeState'];
 
-export type NetworkOrLocal = Network | 'Localnet';
+export type TbrNetwork = Exclude<Network, 'Devnet'> | 'Localnet';
 
 /**
  * Transforms a `UniversalAddress` into an array of numbers `number[]`.
@@ -91,11 +93,11 @@ export class SolanaTokenBridgeRelayer {
    */
   constructor(
     provider: anchor.Provider,
-    network: NetworkOrLocal,
+    network: TbrNetwork,
     programId: PublicKey,
     priceOracle: SolanaPriceOracle,
   ) {
-    const wormholeNetwork = network === 'Localnet' ? 'Mainnet' : network;
+    const wormholeNetwork = network === 'Localnet' ? 'Testnet' : network;
 
     this.program = new anchor.Program(patchAddress(IDL, programId), provider);
     this.priceOracleClient = priceOracle;
@@ -153,10 +155,15 @@ export class SolanaTokenBridgeRelayer {
         findPda(this.program.programId, [Buffer.from('tmp'), mint.toBuffer()]),
       vaa: (vaaHash: Uint8Array) =>
         findPda(this.wormholeProgramId, [Buffer.from('PostedVAA'), vaaHash]),
-      wormholeMessage: (payer: PublicKey, payerSequence: anchor.BN) => {
+      wormholeMessage: (payer: PublicKey, payerSequence: bigint) => {
         const buf = Buffer.alloc(8);
-        buf.writeBigInt64BE(BigInt(payerSequence.toString()), 0);
-        return findPda(this.program.programId, [Buffer.from('bridged'), payer.toBuffer(), buf]);
+        buf.writeBigInt64BE(payerSequence);
+        return {
+          ...findPda(this.program.programId, [Buffer.from('bridged'), payer.toBuffer(), buf]),
+          fetch: async () => {
+            return;
+          },
+        };
       },
     };
   }
@@ -260,12 +267,13 @@ export class SolanaTokenBridgeRelayer {
     };
   }
 
-  private async payerSequenceNumber(payer: PublicKey): Promise<anchor.BN> {
+  private async payerSequenceNumber(payer: PublicKey): Promise<bigint> {
     const impl = async (payer: PublicKey) => {
       try {
-        return (await this.account.signerSequence(payer).fetch()).value;
+        const account = await this.account.signerSequence(payer).fetch();
+        return bnToBigint(account.value);
       } catch {
-        return new anchor.BN(0);
+        return 0n;
       }
     };
 
@@ -572,7 +580,7 @@ export class SolanaTokenBridgeRelayer {
       wormholeProgram: this.wormholeProgramId,
     };
 
-    myDebug('transferNativeTokens:', params, accounts);
+    myDebug('transferNativeTokens:', objToString(params), objToString(accounts));
 
     return this.program.methods
       .transferTokens(
@@ -629,7 +637,7 @@ export class SolanaTokenBridgeRelayer {
       wormholeProgram: this.wormholeProgramId,
     };
 
-    myDebug('transferWrappedTokens:', params, accounts);
+    myDebug('transferWrappedTokens:', objToString(params), objToString(accounts));
 
     return this.program.methods
       .transferTokens(
@@ -980,21 +988,18 @@ function completeWrappedTokenBridgeAccounts(params: {
 /**
  * Detects the network from a Solana connection.
  */
-async function networkFromConnection(connection: Connection): Promise<NetworkOrLocal> {
+async function networkFromConnection(connection: Connection): Promise<TbrNetwork> {
   function genesisHash(cluster: Cluster) {
     return new Connection(clusterApiUrl(cluster), 'singleGossip').getGenesisHash();
   }
-  const [mainnet, devnet, testnet] = await Promise.all([
+  const [mainnet, testnet] = await Promise.all([
     genesisHash('mainnet-beta'),
-    genesisHash('devnet'),
-    genesisHash('testnet'),
+    genesisHash('devnet'), // Wormhole's testnet = Solana devnet
   ]);
 
   switch (await connection.getGenesisHash()) {
     case mainnet:
       return 'Mainnet';
-    case devnet:
-      return 'Devnet';
     case testnet:
       return 'Testnet';
     default:
@@ -1002,14 +1007,12 @@ async function networkFromConnection(connection: Connection): Promise<NetworkOrL
   }
 }
 
-function programIdFromNetwork(network: NetworkOrLocal) {
+function programIdFromNetwork(network: TbrNetwork) {
   switch (network) {
     case 'Mainnet':
-      return new PublicKey(networkConfig.mainnet);
-    case 'Devnet':
-      return new PublicKey(networkConfig.devnet);
+      return new PublicKey(networkConfig.mainnet.programId);
     case 'Testnet':
-      return new PublicKey(networkConfig.testnet);
+      return new PublicKey(networkConfig.testnet.programId);
     case 'Localnet':
       return Keypair.fromSecretKey(Uint8Array.from(testProgramKeypair)).publicKey;
   }
@@ -1017,6 +1020,18 @@ function programIdFromNetwork(network: NetworkOrLocal) {
 
 function myDebug(message?: any, ...optionalParams: any[]) {
   console.debug('[SolanaTokenBridgeRelayer]', message, ...optionalParams);
+}
+
+function objToString(input: any): any {
+  if (Array.isArray(input)) {
+    return input.map((v) => objToString(v));
+  } else if (input instanceof PublicKey || input instanceof UniversalAddress) {
+    return input.toString();
+  } else if (input && typeof input === 'object') {
+    return Object.fromEntries(Object.entries(input).map(([k, v]) => [k, objToString(v)]));
+  } else {
+    return input;
+  }
 }
 
 /**

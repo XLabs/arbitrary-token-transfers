@@ -21,14 +21,7 @@ idl-build = [
 ]
 # Networks:
 mainnet = ["solana-price-oracle/mainnet", "wormhole-anchor-sdk/mainnet"]
-solana-devnet = [
-    "solana-price-oracle/solana-devnet",
-    "wormhole-anchor-sdk/solana-devnet",
-]
-tilt-devnet = [
-    "solana-price-oracle/tilt-devnet",
-    "wormhole-anchor-sdk/tilt-devnet",
-]
+testnet = ["solana-price-oracle/testnet", "wormhole-anchor-sdk/solana-devnet"]
 
 [dependencies]
 cfg-if = "1"

@@ -1,9 +1,5 @@
 {
-    "owner": "11111111111111111111111111111111",
-    "feeRecipient": "11111111111111111111111111111111",
-    "admins": [
-        "11111111111111111111111111111111",
-        "11111111111111111111111111111111",
-        "11111111111111111111111111111111"
-    ]
+    "owner": "C4g4fRKT1xF6tFvo8QoPccVGsrzFgbHZnMRXfsSNQ8dm",
+    "feeRecipient": "hiUN9rS9VTPVGYc71Vf2d6iyFLvsQaSsqWhxydqdaZf",
+    "admins": []
 }

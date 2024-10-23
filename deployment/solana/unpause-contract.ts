@@ -19,7 +19,7 @@ async function unpauseContract(
   if (solanaDependencies === undefined) {
     throw new Error(`No dependencies found for chain ${chain.chainId}`);
   }
-  const tbr = new SolanaTokenBridgeRelayer({ connection });
+  const tbr = await SolanaTokenBridgeRelayer.create({ connection });
 
   const initializeIx = await tbr.setPauseForOutboundTransfers(signerKey, 'Sepolia', false);
 

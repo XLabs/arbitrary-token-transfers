@@ -2,19 +2,10 @@ use anyhow::{Context, Result};
 use serde::Deserialize;
 use std::fs;
 
-#[rustfmt::skip]
-#[cfg(any(
-    all(feature = "mainnet", any(feature = "solana-devnet", feature = "tilt-devnet")),
-    all(feature = "solana-devnet", any(feature = "mainnet", feature = "tilt-devnet")),
-    all(feature = "tilt-devnet", any(feature = "mainnet", feature = "solana-devnet")),
-))]
-compile_error!("Network features are mutually exclusive: 'mainnet', 'solana-devnet', 'tilt-devnet'.");
+#[cfg(all(feature = "mainnet", feature = "testnet"))]
+compile_error!("Network features are mutually exclusive: 'mainnet', 'testnet'.");
 
-#[cfg(not(any(
-    feature = "mainnet",
-    feature = "solana-devnet",
-    feature = "tilt-devnet"
-)))]
+#[cfg(not(any(feature = "mainnet", feature = "testnet")))]
 const TEST_KEYPAIR_PATH: &str = "test-program-keypair.json";
 
 // Example custom build script.
@@ -43,14 +34,9 @@ fn main() -> Result<()> {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Network {
-    #[cfg(any(
-        feature = "mainnet",
-        not(any(feature = "solana-devnet", feature = "tilt-devnet"))
-    ))]
+    #[cfg(any(feature = "mainnet", not(feature = "testnet")))]
     mainnet: NetworkAddresses,
-    #[cfg(feature = "solana-devnet")]
-    devnet: NetworkAddresses,
-    #[cfg(feature = "tilt-devnet")]
+    #[cfg(feature = "testnet")]
     testnet: NetworkAddresses,
 }
 
@@ -77,21 +63,12 @@ impl Network {
         Ok(self.mainnet.clone())
     }
 
-    #[cfg(feature = "solana-devnet")]
-    fn value(&self) -> Result<NetworkAddresses> {
-        Ok(self.devnet.clone())
-    }
-
-    #[cfg(feature = "tilt-devnet")]
+    #[cfg(feature = "testnet")]
     fn value(&self) -> Result<NetworkAddresses> {
         Ok(self.testnet.clone())
     }
 
-    #[cfg(not(any(
-        feature = "mainnet",
-        feature = "solana-devnet",
-        feature = "tilt-devnet"
-    )))]
+    #[cfg(not(any(feature = "mainnet", feature = "testnet",)))]
     fn value(&self) -> Result<NetworkAddresses> {
         let file = fs::read_to_string(TEST_KEYPAIR_PATH).context(format!(
             "Failed to read the file with the test program keypair: {TEST_KEYPAIR_PATH}"

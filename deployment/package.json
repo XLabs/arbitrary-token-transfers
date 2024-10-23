@@ -4,7 +4,7 @@
   "scripts": {
     "build:evm:typechain": "typechain --target=ethers-v6 --out-dir=./ethers-contracts ../evm/build-forge/*.sol/!(*.dbg).json --show-stack-traces",
     "build:evm": "forge build --root=../evm && yarn build:evm:typechain",
-    "clean": "rm -rf ./ethers-contracts ./ts-build",
+    "clean": "rm -rf ./ts-build && git clean --force -- ./ethers-contracts && git checkout -- ./ethers-contracts",
     "deploy:evm:localnet": "ENV=localnet tsx evm/deploy.ts",
     "deploy:evm:testnet": "ENV=testnet tsx evm/deploy.ts",
     "deploy:evm:mainnet": "ENV=mainnet tsx evm/deploy.ts",
