@@ -1369,6 +1369,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@solana/spl-token-group@npm:^0.0.7":
+  version: 0.0.7
+  resolution: "@solana/spl-token-group@npm:0.0.7"
+  dependencies:
+    "@solana/codecs": "npm:2.0.0-rc.1"
+  peerDependencies:
+    "@solana/web3.js": ^1.95.3
+  checksum: 10c0/e1ebeb30c4dd3c179ee9d4bf02635c0ca3daea18526a25c824eb4db8882db768563f20813ac600a41fe153892ce66c0c7538e2639f530945940477edddfa731f
+  languageName: node
+  linkType: hard
+
 "@solana/spl-token-metadata@npm:^0.1.3":
   version: 0.1.5
   resolution: "@solana/spl-token-metadata@npm:0.1.5"
@@ -1378,6 +1389,17 @@ __metadata:
   peerDependencies:
     "@solana/web3.js": ^1.95.3
   checksum: 10c0/8ddad2a3f0dc4a2834978d6b785a0e047398a2de771fa45e502b07023e6016faaa4e4a2a0217528f59ecc49a4315be1a08d3efd138d7aae244e7d1bc0ddc2ca7
+  languageName: node
+  linkType: hard
+
+"@solana/spl-token-metadata@npm:^0.1.6":
+  version: 0.1.6
+  resolution: "@solana/spl-token-metadata@npm:0.1.6"
+  dependencies:
+    "@solana/codecs": "npm:2.0.0-rc.1"
+  peerDependencies:
+    "@solana/web3.js": ^1.95.3
+  checksum: 10c0/a2ea535ac28cf9b8f499c2e2aced7ce9134b0728a0c1d4c8f2dfce8fe01ae66d94ccaca8f1f677c9613d3dbc913845c29df785efeafc25d9398e830fba4a626f
   languageName: node
   linkType: hard
 
@@ -1406,6 +1428,21 @@ __metadata:
   peerDependencies:
     "@solana/web3.js": ^1.94.0
   checksum: 10c0/6570a439d93544b9822fc67fd94b443a465ddd2be9683937fe67deea6a71b72c04b80da5a895abfbb2e276dac83ae0401c990e7a4fdf7cf01168288b7345da55
+  languageName: node
+  linkType: hard
+
+"@solana/spl-token@npm:^0.4.9":
+  version: 0.4.9
+  resolution: "@solana/spl-token@npm:0.4.9"
+  dependencies:
+    "@solana/buffer-layout": "npm:^4.0.0"
+    "@solana/buffer-layout-utils": "npm:^0.2.0"
+    "@solana/spl-token-group": "npm:^0.0.7"
+    "@solana/spl-token-metadata": "npm:^0.1.6"
+    buffer: "npm:^6.0.3"
+  peerDependencies:
+    "@solana/web3.js": ^1.95.3
+  checksum: 10c0/66f22a026fbc34a5e28391fc75c9a902e852fadf6538d18464b4f036d95d75ecccb2d96f07cbebdc6cb530558566c4296e613761969431fef549ec10e8d4024f
   languageName: node
   linkType: hard
 
@@ -4823,6 +4860,7 @@ __metadata:
   resolution: "solana@workspace:solana"
   dependencies:
     "@coral-xyz/anchor": "npm:^0.30.1"
+    "@solana/spl-token": "npm:^0.4.9"
     "@solana/web3.js": "npm:^1.95.3"
     "@types/chai": "npm:^5"
     "@types/mocha": "npm:10.*"
@@ -4833,6 +4871,7 @@ __metadata:
     "@xlabs-xyz/solana-arbitrary-token-transfers": "workspace:^"
     chai: "npm:^5.1.1"
     mocha: "npm:10.*"
+    toml: "npm:^3.0.0"
     ts-mocha: "npm:10.*"
     typescript: "npm:^5.6.3"
   languageName: unknown

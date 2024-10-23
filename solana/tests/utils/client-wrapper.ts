@@ -10,10 +10,9 @@ import {
   TransferWrappedParameters,
   VaaMessage,
 } from '@xlabs-xyz/solana-arbitrary-token-transfers';
-import { sendAndConfirmIxs, TestsHelper, wormholeContracts } from './helpers.js';
+import { sendAndConfirmIxs, TestsHelper, WormholeContracts } from './helpers.js';
 import { SolanaWormholeCore } from '@wormhole-foundation/sdk-solana-core';
 import { SolanaTokenBridge } from '@wormhole-foundation/sdk-solana-tokenbridge';
-//import evm from '@wormhole-foundation/sdk/platforms/evm';
 
 import testProgramKeypair from '../../programs/token-bridge-relayer/test-program-keypair.json' with { type: 'json' };
 
@@ -97,29 +96,32 @@ export class TbrWrapper {
   }
 
   async submitOwnerTransferRequest(newOwner: PublicKey): Promise<TransactionSignature> {
-    return sendAndConfirmIxs(this.provider, this.client.submitOwnerTransferRequest(newOwner));
+    return sendAndConfirmIxs(this.provider, await this.client.submitOwnerTransferRequest(newOwner));
   }
 
   async confirmOwnerTransferRequest(): Promise<TransactionSignature> {
-    return await sendAndConfirmIxs(this.provider, this.client.confirmOwnerTransferRequest());
+    return await sendAndConfirmIxs(this.provider, await this.client.confirmOwnerTransferRequest());
   }
 
   async cancelOwnerTransferRequest(): Promise<TransactionSignature> {
-    return sendAndConfirmIxs(this.provider, this.client.cancelOwnerTransferRequest());
+    return sendAndConfirmIxs(this.provider, await this.client.cancelOwnerTransferRequest());
   }
 
   async addAdmin(newAdmin: PublicKey): Promise<TransactionSignature> {
-    return sendAndConfirmIxs(this.provider, this.client.addAdmin(newAdmin));
+    return sendAndConfirmIxs(this.provider, await this.client.addAdmin(newAdmin));
   }
 
   async removeAdmin(adminToRemove: PublicKey): Promise<TransactionSignature> {
-    return sendAndConfirmIxs(this.provider, this.client.removeAdmin(this.publicKey, adminToRemove));
+    return sendAndConfirmIxs(
+      this.provider,
+      await this.client.removeAdmin(this.publicKey, adminToRemove),
+    );
   }
 
   async registerPeer(chain: Chain, peerAddress: UniversalAddress): Promise<TransactionSignature> {
     return sendAndConfirmIxs(
       this.provider,
-      this.client.registerPeer(this.publicKey, chain, peerAddress),
+      await this.client.registerPeer(this.publicKey, chain, peerAddress),
     );
   }
 
@@ -127,34 +129,37 @@ export class TbrWrapper {
     chain: Chain,
     peerAddress: UniversalAddress,
   ): Promise<TransactionSignature> {
-    return sendAndConfirmIxs(this.provider, this.client.updateCanonicalPeer(chain, peerAddress));
+    return sendAndConfirmIxs(
+      this.provider,
+      await this.client.updateCanonicalPeer(chain, peerAddress),
+    );
   }
 
   async setPauseForOutboundTransfers(chain: Chain, paused: boolean): Promise<TransactionSignature> {
     return sendAndConfirmIxs(
       this.provider,
-      this.client.setPauseForOutboundTransfers(this.publicKey, chain, paused),
+      await this.client.setPauseForOutboundTransfers(this.publicKey, chain, paused),
     );
   }
 
   async updateMaxGasDropoff(chain: Chain, maxGasDropoff: number): Promise<TransactionSignature> {
     return sendAndConfirmIxs(
       this.provider,
-      this.client.updateMaxGasDropoff(this.publicKey, chain, maxGasDropoff),
+      await this.client.updateMaxGasDropoff(this.publicKey, chain, maxGasDropoff),
     );
   }
 
   async updateRelayerFee(chain: Chain, relayerFee: number): Promise<TransactionSignature> {
     return sendAndConfirmIxs(
       this.provider,
-      this.client.updateRelayerFee(this.publicKey, chain, relayerFee),
+      await this.client.updateRelayerFee(this.publicKey, chain, relayerFee),
     );
   }
 
   async updateFeeRecipient(newFeeRecipient: PublicKey): Promise<TransactionSignature> {
     return sendAndConfirmIxs(
       this.provider,
-      this.client.updateFeeRecipient(this.publicKey, newFeeRecipient),
+      await this.client.updateFeeRecipient(this.publicKey, newFeeRecipient),
     );
   }
 
@@ -164,21 +169,29 @@ export class TbrWrapper {
   ): Promise<TransactionSignature> {
     return sendAndConfirmIxs(
       this.provider,
-      this.client.updateEvmTransactionConfig(this.publicKey, evmTransactionGas, evmTransactionSize),
+      await this.client.updateEvmTransactionConfig(
+        this.publicKey,
+        evmTransactionGas,
+        evmTransactionSize,
+      ),
     );
   }
 
-  async transferNativeTokens(params: TransferNativeParameters): Promise<TransactionSignature> {
+  async transferNativeTokens(
+    params: TransferNativeParameters,
+    signers?: Keypair[],
+  ): Promise<TransactionSignature> {
     return sendAndConfirmIxs(
       this.provider,
-      this.client.transferNativeTokens(this.publicKey, params),
+      await this.client.transferNativeTokens(this.publicKey, params),
+      signers,
     );
   }
 
   async transferWrappedTokens(params: TransferWrappedParameters): Promise<TransactionSignature> {
     return sendAndConfirmIxs(
       this.provider,
-      this.client.transferWrappedTokens(this.publicKey, params),
+      await this.client.transferWrappedTokens(this.publicKey, params),
     );
   }
 
@@ -188,7 +201,7 @@ export class TbrWrapper {
   ): Promise<TransactionSignature> {
     return sendAndConfirmIxs(
       this.provider,
-      this.client.completeNativeTransfer(this.publicKey, vaa, recipientTokenAccount),
+      await this.client.completeNativeTransfer(this.publicKey, vaa, recipientTokenAccount),
     );
   }
 
@@ -198,7 +211,7 @@ export class TbrWrapper {
   ): Promise<TransactionSignature> {
     return sendAndConfirmIxs(
       this.provider,
-      this.client.completeWrappedTransfer(this.publicKey, vaa, recipientTokenAccount),
+      await this.client.completeWrappedTransfer(this.publicKey, vaa, recipientTokenAccount),
     );
   }
 
@@ -209,15 +222,15 @@ export class TbrWrapper {
 
 export class WormholeCoreWrapper {
   public readonly provider: AnchorProvider;
-  public readonly client: SolanaWormholeCore<'Mainnet', 'Solana'>;
+  public readonly client: SolanaWormholeCore<typeof WormholeContracts.Network, 'Solana'>;
 
   constructor(provider: AnchorProvider) {
     this.provider = provider;
     this.client = new SolanaWormholeCore(
-      'Mainnet',
+      WormholeContracts.Network,
       'Solana',
       provider.connection,
-      wormholeContracts,
+      WormholeContracts.addresses,
     );
     (this.client.coreBridge.idl.instructions[0].accounts[1].isSigner as boolean) = true;
   }
@@ -225,16 +238,25 @@ export class WormholeCoreWrapper {
   async initialize() {
     const guardianSetExpirationTime = 1_000_000;
     const fee = new anchor.BN(1_000_000);
-    const initialGuardians = [];
+    const initialGuardians: number[][] = [];
 
     const guardianSet = await $.airdrop(Keypair.generate());
+    const bridge = PublicKey.findProgramAddressSync(
+      [Buffer.from('Bridge')],
+      WormholeContracts.coreBridge,
+    )[0];
+    const feeCollector = PublicKey.findProgramAddressSync(
+      [Buffer.from('fee_collector')],
+      WormholeContracts.coreBridge,
+    )[0];
+
     // https://github.com/wormhole-foundation/wormhole/blob/main/solana/bridge/program/src/api/initialize.rs
     const ix = await this.client.coreBridge.methods
       .initialize(guardianSetExpirationTime, fee, initialGuardians)
       .accounts({
-        bridge: new PublicKey('2yVjuQwpsvdsrywzsJJVs9Ueh4zayyo5DYJbBNc3DDpn'),
+        bridge,
         guardianSet: guardianSet.publicKey,
-        feeCollector: new PublicKey('9bFNrXNb2WTx8fMHXCheaZqkLZ3YCCaiqTftHxeintHy'),
+        feeCollector,
         payer: this.provider.publicKey,
       })
       .signers([guardianSet])
@@ -246,24 +268,29 @@ export class WormholeCoreWrapper {
 
 export class TokenBridgeWrapper {
   public readonly provider: AnchorProvider;
-  public readonly client: SolanaTokenBridge<'Mainnet', 'Solana'>;
+  public readonly client: SolanaTokenBridge<typeof WormholeContracts.Network, 'Solana'>;
 
   constructor(provider: AnchorProvider) {
     this.provider = provider;
     this.client = new SolanaTokenBridge(
-      'Mainnet',
+      WormholeContracts.Network,
       'Solana',
       provider.connection,
-      wormholeContracts,
+      WormholeContracts.addresses,
     );
   }
 
   async initialize() {
-    const ix = this.client.tokenBridge.methods
-      .initialize(new PublicKey(wormholeContracts.coreBridge))
+    const config = PublicKey.findProgramAddressSync(
+      [Buffer.from('config')],
+      WormholeContracts.tokenBridge,
+    )[0];
+
+    const ix = await this.client.tokenBridge.methods
+      .initialize(WormholeContracts.coreBridge)
       .accounts({
         payer: this.provider.publicKey,
-        config: new PublicKey('DapiQYH3BGonhN8cngWcXQ6SrqSm3cwysoznoHr6Sbsx'),
+        config,
       })
       .instruction();
 

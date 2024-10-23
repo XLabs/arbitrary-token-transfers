@@ -1,6 +1,7 @@
 import { chainToChainId } from '@wormhole-foundation/sdk-base';
 import { UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import { PublicKey, SendTransactionError, Transaction } from '@solana/web3.js';
+import { NATIVE_MINT } from '@solana/spl-token';
 import { assert, TestsHelper } from './utils/helpers.js';
 import { TbrWrapper, TokenBridgeWrapper, WormholeCoreWrapper } from './utils/client-wrapper.js';
 import { SolanaPriceOracle, uaToArray } from '@xlabs-xyz/solana-arbitrary-token-transfers';
@@ -54,14 +55,14 @@ describe('Token Bridge Relayer Program', () => {
   );
 
   before(async () => {
-    await Promise.all(clients.map((client) => $.airdrop(client.provider)));
-    await $.airdrop(wormholeCoreOwner);
-    await $.airdrop(tokenBridgeOwner);
+    await $.airdrop([
+      wormholeCoreOwner,
+      tokenBridgeOwner,
+      ...clients.map((client) => client.provider),
+    ]);
 
-    // Program Deployment
-    // ============
-
-    /*
+    // Programs Deployment
+    // ===================
     await Promise.all([
       // Token Bridge Relayer
       $.deploy({
@@ -80,7 +81,6 @@ describe('Token Bridge Relayer Program', () => {
 
     // Oracle Setup
     // ============
-
     const oracleAuthorityProvider = await $.provider.read(authorityKeypair);
     const oracleAuthorityClient = await SolanaPriceOracle.create(
       oracleAuthorityProvider.connection,
@@ -97,12 +97,10 @@ describe('Token Bridge Relayer Program', () => {
         await oracleAuthorityClient.updateSolPrice(oracleAuthorityProvider.publicKey, 113_000_000n), // SOL is at $113
       ),
     );
-    //*/
 
     // Wormhole Core Setup
     // ===================
-    await wormholeCoreClient.initialize();
-    await tokenBridgeClient.initialize();
+    await Promise.all([wormholeCoreClient.initialize(), tokenBridgeClient.initialize()]);
   });
 
   after(async () => {
@@ -110,7 +108,7 @@ describe('Token Bridge Relayer Program', () => {
     await Promise.all(clients.map((client) => client.close()));
   });
 
-  xit('Is initialized!', async () => {
+  it('Is initialized!', async () => {
     const upgradeAuthorityClient = await TbrWrapper.create(await $.provider.read(authorityKeypair));
 
     await upgradeAuthorityClient.initialize({
@@ -142,7 +140,7 @@ describe('Token Bridge Relayer Program', () => {
     await upgradeAuthorityClient.close();
   });
 
-  xdescribe('Roles', () => {
+  describe('Roles', () => {
     it('Submits an owner transfer request', async () => {
       await ownerClient.submitOwnerTransferRequest(newOwnerClient.publicKey);
     });
@@ -233,7 +231,7 @@ describe('Token Bridge Relayer Program', () => {
     });
   });
 
-  xdescribe('Peers', () => {
+  describe('Peers', () => {
     it('Registers peers', async () => {
       await newOwnerClient.registerPeer(ETHEREUM, ethereumPeer1);
       assert.chainConfig(await unauthorizedClient.account.chainConfig(ETHEREUM).fetch()).equal({
@@ -324,7 +322,7 @@ describe('Token Bridge Relayer Program', () => {
     });
   });
 
-  xdescribe('Chain Config', () => {
+  describe('Chain Config', () => {
     it('Values are updated', async () => {
       const maxGasDropoffMicroToken = 10_000_000; // ETH10 maximum
       const relayerFeeMicroUsd = 900_000; // $0.9
@@ -356,7 +354,7 @@ describe('Token Bridge Relayer Program', () => {
     });
   });
 
-  xdescribe('Main Config', () => {
+  describe('Main Config', () => {
     it('Values are updated', async () => {
       await Promise.all([
         adminClient1.updateFeeRecipient(feeRecipient),
@@ -380,13 +378,29 @@ describe('Token Bridge Relayer Program', () => {
     });
   });
 
-  xdescribe('Querying the quote', () => {
+  describe('Querying the quote', () => {
     it('Fetches the quote', async () => {
       const dropoff = 50000; // ETH0.05
 
       const result = await unauthorizedClient.relayingFee(ETHEREUM, dropoff);
 
       expect(result).closeTo(0.361824, 0.000001); // SOL0.36, which is roughly $40
+    });
+  });
+
+  describe('Running transfers', () => {
+    it('Transfers SOL to another chain', async () => {
+      const tokenAccount = await $.wrapSol(unauthorizedClient.provider, 1_000_000);
+
+      await unauthorizedClient.transferNativeTokens({
+        recipient: { address: ethereumPeer1, chain: ETHEREUM },
+        mint: NATIVE_MINT,
+        tokenAccount: tokenAccount.publicKey,
+        transferredAmount: 123789n,
+        gasDropoffAmount: 5,
+        maxFeeLamports: 100_000_000n, // 0.1SOL max
+        unwrapIntent: false, // Does not matter anyway
+      });
     });
   });
 });

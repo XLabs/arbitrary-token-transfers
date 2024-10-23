@@ -52,6 +52,7 @@ export interface TransferNativeParameters {
   mint: PublicKey;
   tokenAccount: PublicKey;
   transferredAmount: bigint;
+  /** The dropoff in µ-target-token. */
   gasDropoffAmount: number;
   maxFeeLamports: bigint;
   unwrapIntent: boolean;
@@ -62,6 +63,7 @@ export interface TransferWrappedParameters {
   token: WormholeAddress;
   userTokenAccount: PublicKey;
   transferredAmount: bigint;
+  /** The dropoff in µ-target-token. */
   gasDropoffAmount: number;
   maxFeeLamports: bigint;
   unwrapIntent: boolean;
@@ -96,7 +98,7 @@ export class SolanaTokenBridgeRelayer {
     programId: PublicKey,
     priceOracle: SolanaPriceOracle,
   ) {
-    const wormholeNetwork = network === 'Localnet' ? 'Mainnet' : network;
+    const wormholeNetwork = network === 'Localnet' ? 'Testnet' : network;
 
     this.program = new Program(patchAddress(IDL, programId), provider);
     this.priceOracleClient = priceOracle;
@@ -573,7 +575,7 @@ export class SolanaTokenBridgeRelayer {
       wormholeProgram: this.wormholeProgramId,
     };
 
-    myDebug('transferNativeTokens:', params, accounts);
+    myDebug('transferNativeTokens:', objToString(params), objToString(accounts));
 
     return this.program.methods
       .transferTokens(
@@ -630,7 +632,7 @@ export class SolanaTokenBridgeRelayer {
       wormholeProgram: this.wormholeProgramId,
     };
 
-    myDebug('transferWrappedTokens:', params, accounts);
+    myDebug('transferWrappedTokens:', objToString(params), objToString(accounts));
 
     return this.program.methods
       .transferTokens(
@@ -1018,6 +1020,18 @@ function programIdFromNetwork(network: NetworkOrLocal) {
 
 function myDebug(message?: any, ...optionalParams: any[]) {
   console.debug('[SolanaTokenBridgeRelayer]', message, ...optionalParams);
+}
+
+function objToString(input: any): any {
+  if (Array.isArray(input)) {
+    return input.map((v) => objToString(v));
+  } else if (input instanceof PublicKey || input instanceof UniversalAddress) {
+    return input.toString();
+  } else if (input && typeof input === 'object') {
+    return Object.fromEntries(Object.entries(input).map(([k, v]) => [k, objToString(v)]));
+  } else {
+    return input;
+  }
 }
 
 /**
