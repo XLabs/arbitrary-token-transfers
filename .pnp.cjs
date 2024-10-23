@@ -80,7 +80,7 @@ const RAW_RUNTIME_STATE =
           ["@types/bn.js", "npm:5.1.5"],\
           ["@types/chai", "npm:4.3.19"],\
           ["@types/mocha", "npm:10.0.7"],\
-          ["@types/node", "npm:20.16.10"],\
+          ["@types/node", "npm:20.16.11"],\
           ["@yarnpkg/types", "npm:4.0.0"],\
           ["bn.js", "npm:5.2.1"],\
           ["chai", "npm:5.1.1"],\
@@ -88,7 +88,7 @@ const RAW_RUNTIME_STATE =
           ["prettier", "npm:3.3.3"],\
           ["ts-mocha", "virtual:33d4007d0290747430617a5c0eb2da58d74cdff8bc8263fdea6457aebe82a895aa6f9c4f9f07fab8e85221c695fc8a7b8d17e2e26cee5cd3bfae6b8271723910#npm:10.0.0"],\
           ["tsx", "npm:4.19.1"],\
-          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -2003,10 +2003,10 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "HARD"\
       }],\
-      ["virtual:97362ecb14e50e20b7ada67ad3a152b436c697b1dcabeff3222cb21c9eb5f17ed8db342f5bd1d33187364c1da3f858a18efe787303ea575ea75b39a54056acb6#npm:0.3.9", {\
-        "packageLocation": "./.yarn/__virtual__/@solana-spl-token-virtual-51f927ed0b/0/cache/@solana-spl-token-npm-0.3.9-b2d855b518-30300dfc34.zip/node_modules/@solana/spl-token/",\
+      ["virtual:81dd45c6eb9239dd613da53aa886bd64df93b972507acd94a8a46dca4ff10a9d3912238c3cc0b7763cb5bf7b676a230550f2227fb3f9e569ec3670b383dca6f1#npm:0.3.9", {\
+        "packageLocation": "./.yarn/__virtual__/@solana-spl-token-virtual-0bd9fbb48d/0/cache/@solana-spl-token-npm-0.3.9-b2d855b518-30300dfc34.zip/node_modules/@solana/spl-token/",\
         "packageDependencies": [\
-          ["@solana/spl-token", "virtual:97362ecb14e50e20b7ada67ad3a152b436c697b1dcabeff3222cb21c9eb5f17ed8db342f5bd1d33187364c1da3f858a18efe787303ea575ea75b39a54056acb6#npm:0.3.9"],\
+          ["@solana/spl-token", "virtual:81dd45c6eb9239dd613da53aa886bd64df93b972507acd94a8a46dca4ff10a9d3912238c3cc0b7763cb5bf7b676a230550f2227fb3f9e569ec3670b383dca6f1#npm:0.3.9"],\
           ["@solana/buffer-layout", "npm:4.0.1"],\
           ["@solana/buffer-layout-utils", "npm:0.2.0"],\
           ["@solana/web3.js", "npm:1.95.3"],\
@@ -2127,11 +2127,11 @@ const RAW_RUNTIME_STATE =
           ["@types/ethers", null],\
           ["@types/typechain", null],\
           ["@types/typescript", null],\
-          ["ethers", "npm:6.13.3"],\
+          ["ethers", "npm:6.13.4"],\
           ["lodash", "npm:4.17.21"],\
           ["ts-essentials", "virtual:9d9d59e77a154ace80a497ad65534b0250a59b20d99ddfadb59d3a17148b62b6dde403d40350cd4b485786b726d24b1825a8256e1ccf2bf4789c79f483de843f#npm:7.0.3"],\
           ["typechain", "virtual:5449dbfbc8f715fdbd2c737c0a09a82e4cd2ffe644d99dd1bc0581b0889f04b69068ed991ce11b47be2adc46d31415f8c245c393d61c33529fcc22e453281945#npm:8.3.2"],\
-          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
         ],\
         "packagePeers": [\
           "@types/ethers",\
@@ -2184,6 +2184,13 @@ const RAW_RUNTIME_STATE =
           ["@types/chai", "npm:4.3.19"]\
         ],\
         "linkType": "HARD"\
+      }],\
+      ["npm:5.0.0", {\
+        "packageLocation": "./.yarn/cache/@types-chai-npm-5.0.0-0f4c896b79-fcce55f2bb.zip/node_modules/@types/chai/",\
+        "packageDependencies": [\
+          ["@types/chai", "npm:5.0.0"]\
+        ],\
+        "linkType": "HARD"\
       }]\
     ]],\
     ["@types/connect", [\
@@ -2222,10 +2229,10 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "HARD"\
       }],\
-      ["npm:8.2.3", {\
-        "packageLocation": "./.yarn/cache/@types-mocha-npm-8.2.3-7aff51fdb4-a0faabd124.zip/node_modules/@types/mocha/",\
+      ["npm:10.0.9", {\
+        "packageLocation": "./.yarn/cache/@types-mocha-npm-10.0.9-af56466fc7-76dd782ac7.zip/node_modules/@types/mocha/",\
         "packageDependencies": [\
-          ["@types/mocha", "npm:8.2.3"]\
+          ["@types/mocha", "npm:10.0.9"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -2253,10 +2260,10 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "HARD"\
       }],\
-      ["npm:20.16.10", {\
-        "packageLocation": "./.yarn/cache/@types-node-npm-20.16.10-b73a0ee6ad-c0c0c7ecb0.zip/node_modules/@types/node/",\
+      ["npm:20.16.11", {\
+        "packageLocation": "./.yarn/cache/@types-node-npm-20.16.11-05af3fb874-bba43f447c.zip/node_modules/@types/node/",\
         "packageDependencies": [\
-          ["@types/node", "npm:20.16.10"],\
+          ["@types/node", "npm:20.16.11"],\
           ["undici-types", "npm:6.19.8"]\
         ],\
         "linkType": "HARD"\
@@ -2265,6 +2272,14 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/@types-node-npm-22.5.4-50cd3ae186-b445daa7ee.zip/node_modules/@types/node/",\
         "packageDependencies": [\
           ["@types/node", "npm:22.5.4"],\
+          ["undici-types", "npm:6.19.8"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:22.7.5", {\
+        "packageLocation": "./.yarn/cache/@types-node-npm-22.7.5-0428b60a8c-cf11f74f1a.zip/node_modules/@types/node/",\
+        "packageDependencies": [\
+          ["@types/node", "npm:22.7.5"],\
           ["undici-types", "npm:6.19.8"]\
         ],\
         "linkType": "HARD"\
@@ -2315,108 +2330,157 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
-    ["@ungap/promise-all-settled", [\
-      ["npm:1.1.2", {\
-        "packageLocation": "./.yarn/cache/@ungap-promise-all-settled-npm-1.1.2-c0f42e147b-7f9862bae3.zip/node_modules/@ungap/promise-all-settled/",\
-        "packageDependencies": [\
-          ["@ungap/promise-all-settled", "npm:1.1.2"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
     ["@wormhole-foundation/sdk-base", [\
-      ["npm:0.10.5", {\
-        "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-base-npm-0.10.5-34b63ded35-621cd97edc.zip/node_modules/@wormhole-foundation/sdk-base/",\
+      ["npm:0.11.0", {\
+        "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-base-npm-0.11.0-4230e2e743-5ff3faf68d.zip/node_modules/@wormhole-foundation/sdk-base/",\
         "packageDependencies": [\
-          ["@wormhole-foundation/sdk-base", "npm:0.10.5"],\
+          ["@wormhole-foundation/sdk-base", "npm:0.11.0"],\
           ["@scure/base", "npm:1.1.8"]\
         ],\
         "linkType": "HARD"\
       }],\
-      ["npm:0.10.9", {\
-        "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-base-npm-0.10.9-1a809728e8-b385ba242c.zip/node_modules/@wormhole-foundation/sdk-base/",\
+      ["npm:0.12.0", {\
+        "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-base-npm-0.12.0-dab41329a8-5810b99924.zip/node_modules/@wormhole-foundation/sdk-base/",\
         "packageDependencies": [\
-          ["@wormhole-foundation/sdk-base", "npm:0.10.9"],\
+          ["@wormhole-foundation/sdk-base", "npm:0.12.0"],\
           ["@scure/base", "npm:1.1.8"]\
         ],\
         "linkType": "HARD"\
       }]\
     ]],\
     ["@wormhole-foundation/sdk-connect", [\
-      ["npm:0.10.9", {\
-        "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-connect-npm-0.10.9-fd57381048-f0e10f1db5.zip/node_modules/@wormhole-foundation/sdk-connect/",\
+      ["npm:0.11.0", {\
+        "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-connect-npm-0.11.0-0acb45268f-475bcc4f32.zip/node_modules/@wormhole-foundation/sdk-connect/",\
         "packageDependencies": [\
-          ["@wormhole-foundation/sdk-connect", "npm:0.10.9"],\
-          ["@wormhole-foundation/sdk-base", "npm:0.10.9"],\
-          ["@wormhole-foundation/sdk-definitions", "npm:0.10.9"],\
+          ["@wormhole-foundation/sdk-connect", "npm:0.11.0"],\
+          ["@wormhole-foundation/sdk-base", "npm:0.11.0"],\
+          ["@wormhole-foundation/sdk-definitions", "npm:0.11.0"],\
+          ["axios", "npm:1.7.7"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:0.12.0", {\
+        "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-connect-npm-0.12.0-56ae30281a-66b537f87b.zip/node_modules/@wormhole-foundation/sdk-connect/",\
+        "packageDependencies": [\
+          ["@wormhole-foundation/sdk-connect", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-base", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-definitions", "npm:0.12.0"],\
           ["axios", "npm:1.7.7"]\
         ],\
         "linkType": "HARD"\
       }]\
     ]],\
     ["@wormhole-foundation/sdk-definitions", [\
-      ["npm:0.10.9", {\
-        "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-definitions-npm-0.10.9-229a7881cb-5c10644160.zip/node_modules/@wormhole-foundation/sdk-definitions/",\
+      ["npm:0.11.0", {\
+        "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-definitions-npm-0.11.0-605dfa6baa-f6f4c84d48.zip/node_modules/@wormhole-foundation/sdk-definitions/",\
         "packageDependencies": [\
-          ["@wormhole-foundation/sdk-definitions", "npm:0.10.9"],\
+          ["@wormhole-foundation/sdk-definitions", "npm:0.11.0"],\
           ["@noble/curves", "npm:1.6.0"],\
           ["@noble/hashes", "npm:1.5.0"],\
-          ["@wormhole-foundation/sdk-base", "npm:0.10.9"]\
+          ["@wormhole-foundation/sdk-base", "npm:0.11.0"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:0.12.0", {\
+        "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-definitions-npm-0.12.0-8992151ab1-775728fd90.zip/node_modules/@wormhole-foundation/sdk-definitions/",\
+        "packageDependencies": [\
+          ["@wormhole-foundation/sdk-definitions", "npm:0.12.0"],\
+          ["@noble/curves", "npm:1.6.0"],\
+          ["@noble/hashes", "npm:1.5.0"],\
+          ["@wormhole-foundation/sdk-base", "npm:0.12.0"]\
         ],\
         "linkType": "HARD"\
       }]\
     ]],\
     ["@wormhole-foundation/sdk-evm", [\
-      ["npm:0.10.9", {\
-        "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-evm-npm-0.10.9-671d3acd40-6b4ec0c045.zip/node_modules/@wormhole-foundation/sdk-evm/",\
+      ["npm:0.12.0", {\
+        "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-evm-npm-0.12.0-8e4d3d5bf7-84796693d8.zip/node_modules/@wormhole-foundation/sdk-evm/",\
         "packageDependencies": [\
-          ["@wormhole-foundation/sdk-evm", "npm:0.10.9"],\
-          ["@wormhole-foundation/sdk-connect", "npm:0.10.9"],\
+          ["@wormhole-foundation/sdk-evm", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-connect", "npm:0.12.0"],\
+          ["ethers", "npm:6.13.2"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@wormhole-foundation/sdk-evm-core", [\
+      ["npm:0.12.0", {\
+        "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-evm-core-npm-0.12.0-4dec9a3fa7-9a2a056ee3.zip/node_modules/@wormhole-foundation/sdk-evm-core/",\
+        "packageDependencies": [\
+          ["@wormhole-foundation/sdk-evm-core", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-connect", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-evm", "npm:0.12.0"],\
+          ["ethers", "npm:6.13.2"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@wormhole-foundation/sdk-evm-tokenbridge", [\
+      ["npm:0.12.0", {\
+        "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-evm-tokenbridge-npm-0.12.0-f7defff5f6-6dd3473b46.zip/node_modules/@wormhole-foundation/sdk-evm-tokenbridge/",\
+        "packageDependencies": [\
+          ["@wormhole-foundation/sdk-evm-tokenbridge", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-connect", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-evm", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-evm-core", "npm:0.12.0"],\
           ["ethers", "npm:6.13.2"]\
         ],\
         "linkType": "HARD"\
       }]\
     ]],\
     ["@wormhole-foundation/sdk-solana", [\
-      ["npm:0.10.9", {\
-        "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-solana-npm-0.10.9-97362ecb14-b9b801e888.zip/node_modules/@wormhole-foundation/sdk-solana/",\
+      ["npm:0.11.0", {\
+        "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-solana-npm-0.11.0-bb8c4494ce-2134057b9e.zip/node_modules/@wormhole-foundation/sdk-solana/",\
         "packageDependencies": [\
-          ["@wormhole-foundation/sdk-solana", "npm:0.10.9"],\
+          ["@wormhole-foundation/sdk-solana", "npm:0.11.0"],\
           ["@coral-xyz/anchor", "npm:0.29.0"],\
           ["@coral-xyz/borsh", "virtual:852da326f150408584798524fe58e9855b987bcc4f041389e1ca13248c23c659c3ffb4a9aa4176cc7542f503f2e1e6422a1f18f69e5e623ca255691d222a55ca#npm:0.29.0"],\
-          ["@solana/spl-token", "virtual:97362ecb14e50e20b7ada67ad3a152b436c697b1dcabeff3222cb21c9eb5f17ed8db342f5bd1d33187364c1da3f858a18efe787303ea575ea75b39a54056acb6#npm:0.3.9"],\
+          ["@solana/spl-token", "virtual:81dd45c6eb9239dd613da53aa886bd64df93b972507acd94a8a46dca4ff10a9d3912238c3cc0b7763cb5bf7b676a230550f2227fb3f9e569ec3670b383dca6f1#npm:0.3.9"],\
           ["@solana/web3.js", "npm:1.95.3"],\
-          ["@wormhole-foundation/sdk-connect", "npm:0.10.9"],\
+          ["@wormhole-foundation/sdk-connect", "npm:0.11.0"],\
+          ["rpc-websockets", "npm:7.11.2"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:0.12.0", {\
+        "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-solana-npm-0.12.0-81dd45c6eb-a321d90545.zip/node_modules/@wormhole-foundation/sdk-solana/",\
+        "packageDependencies": [\
+          ["@wormhole-foundation/sdk-solana", "npm:0.12.0"],\
+          ["@coral-xyz/anchor", "npm:0.29.0"],\
+          ["@coral-xyz/borsh", "virtual:852da326f150408584798524fe58e9855b987bcc4f041389e1ca13248c23c659c3ffb4a9aa4176cc7542f503f2e1e6422a1f18f69e5e623ca255691d222a55ca#npm:0.29.0"],\
+          ["@solana/spl-token", "virtual:81dd45c6eb9239dd613da53aa886bd64df93b972507acd94a8a46dca4ff10a9d3912238c3cc0b7763cb5bf7b676a230550f2227fb3f9e569ec3670b383dca6f1#npm:0.3.9"],\
+          ["@solana/web3.js", "npm:1.95.3"],\
+          ["@wormhole-foundation/sdk-connect", "npm:0.12.0"],\
           ["rpc-websockets", "npm:7.11.2"]\
         ],\
         "linkType": "HARD"\
       }]\
     ]],\
     ["@wormhole-foundation/sdk-solana-core", [\
-      ["npm:0.10.9", {\
-        "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-solana-core-npm-0.10.9-7f5a2f653d-9615359173.zip/node_modules/@wormhole-foundation/sdk-solana-core/",\
+      ["npm:0.12.0", {\
+        "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-solana-core-npm-0.12.0-b3c7deaeb9-1a55ca04f2.zip/node_modules/@wormhole-foundation/sdk-solana-core/",\
         "packageDependencies": [\
-          ["@wormhole-foundation/sdk-solana-core", "npm:0.10.9"],\
+          ["@wormhole-foundation/sdk-solana-core", "npm:0.12.0"],\
           ["@coral-xyz/anchor", "npm:0.29.0"],\
           ["@coral-xyz/borsh", "virtual:852da326f150408584798524fe58e9855b987bcc4f041389e1ca13248c23c659c3ffb4a9aa4176cc7542f503f2e1e6422a1f18f69e5e623ca255691d222a55ca#npm:0.29.0"],\
           ["@solana/web3.js", "npm:1.95.3"],\
-          ["@wormhole-foundation/sdk-connect", "npm:0.10.9"],\
-          ["@wormhole-foundation/sdk-solana", "npm:0.10.9"]\
+          ["@wormhole-foundation/sdk-connect", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-solana", "npm:0.12.0"]\
         ],\
         "linkType": "HARD"\
       }]\
     ]],\
     ["@wormhole-foundation/sdk-solana-tokenbridge", [\
-      ["npm:0.10.9", {\
-        "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-solana-tokenbridge-npm-0.10.9-1df657cf0b-4c722bfc07.zip/node_modules/@wormhole-foundation/sdk-solana-tokenbridge/",\
+      ["npm:0.12.0", {\
+        "packageLocation": "./.yarn/cache/@wormhole-foundation-sdk-solana-tokenbridge-npm-0.12.0-3a9f489bf3-905789b65f.zip/node_modules/@wormhole-foundation/sdk-solana-tokenbridge/",\
         "packageDependencies": [\
-          ["@wormhole-foundation/sdk-solana-tokenbridge", "npm:0.10.9"],\
+          ["@wormhole-foundation/sdk-solana-tokenbridge", "npm:0.12.0"],\
           ["@coral-xyz/anchor", "npm:0.29.0"],\
-          ["@solana/spl-token", "virtual:97362ecb14e50e20b7ada67ad3a152b436c697b1dcabeff3222cb21c9eb5f17ed8db342f5bd1d33187364c1da3f858a18efe787303ea575ea75b39a54056acb6#npm:0.3.9"],\
+          ["@solana/spl-token", "virtual:81dd45c6eb9239dd613da53aa886bd64df93b972507acd94a8a46dca4ff10a9d3912238c3cc0b7763cb5bf7b676a230550f2227fb3f9e569ec3670b383dca6f1#npm:0.3.9"],\
           ["@solana/web3.js", "npm:1.95.3"],\
-          ["@wormhole-foundation/sdk-connect", "npm:0.10.9"],\
-          ["@wormhole-foundation/sdk-solana", "npm:0.10.9"],\
-          ["@wormhole-foundation/sdk-solana-core", "npm:0.10.9"]\
+          ["@wormhole-foundation/sdk-connect", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-solana", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-solana-core", "npm:0.12.0"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -2427,9 +2491,9 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@xlabs-xyz/arbitrary-token-transfer-evm-route", "workspace:connect/platforms/evm"],\
           ["@types/node", "npm:20.14.14"],\
-          ["@wormhole-foundation/sdk-base", "npm:0.10.9"],\
-          ["@wormhole-foundation/sdk-definitions", "npm:0.10.9"],\
-          ["@wormhole-foundation/sdk-evm", "npm:0.10.9"],\
+          ["@wormhole-foundation/sdk-base", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-definitions", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-evm", "npm:0.12.0"],\
           ["@xlabs-xyz/arbitrary-token-transfers-definitions", "workspace:connect/definitions"],\
           ["@xlabs-xyz/evm-arbitrary-token-transfers", "workspace:sdk/evm"],\
           ["ethers", "npm:6.13.3"],\
@@ -2447,10 +2511,10 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@xlabs-xyz/arbitrary-token-transfer-route", "workspace:connect/route"],\
           ["@types/node", "npm:20.14.14"],\
-          ["@wormhole-foundation/sdk-base", "npm:0.10.9"],\
-          ["@wormhole-foundation/sdk-connect", "npm:0.10.9"],\
-          ["@wormhole-foundation/sdk-definitions", "npm:0.10.9"],\
-          ["@wormhole-foundation/sdk-evm", "npm:0.10.9"],\
+          ["@wormhole-foundation/sdk-base", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-connect", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-definitions", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-evm", "npm:0.12.0"],\
           ["@xlabs-xyz/arbitrary-token-transfer-evm-route", "workspace:connect/platforms/evm"],\
           ["@xlabs-xyz/arbitrary-token-transfer-solana-route", "workspace:connect/platforms/solana"],\
           ["@xlabs-xyz/arbitrary-token-transfers-definitions", "workspace:connect/definitions"],\
@@ -2469,12 +2533,12 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@xlabs-xyz/arbitrary-token-transfer-solana-route", "workspace:connect/platforms/solana"],\
           ["@coral-xyz/anchor", "npm:0.30.1"],\
-          ["@solana/spl-token", "virtual:97362ecb14e50e20b7ada67ad3a152b436c697b1dcabeff3222cb21c9eb5f17ed8db342f5bd1d33187364c1da3f858a18efe787303ea575ea75b39a54056acb6#npm:0.3.9"],\
+          ["@solana/spl-token", "virtual:81dd45c6eb9239dd613da53aa886bd64df93b972507acd94a8a46dca4ff10a9d3912238c3cc0b7763cb5bf7b676a230550f2227fb3f9e569ec3670b383dca6f1#npm:0.3.9"],\
           ["@solana/web3.js", "npm:1.95.3"],\
           ["@types/node", "npm:20.14.14"],\
-          ["@wormhole-foundation/sdk-base", "npm:0.10.9"],\
-          ["@wormhole-foundation/sdk-definitions", "npm:0.10.9"],\
-          ["@wormhole-foundation/sdk-solana", "npm:0.10.9"],\
+          ["@wormhole-foundation/sdk-base", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-definitions", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-solana", "npm:0.12.0"],\
           ["@xlabs-xyz/arbitrary-token-transfers-definitions", "workspace:connect/definitions"],\
           ["@xlabs-xyz/solana-arbitrary-token-transfers", "workspace:sdk/solana"],\
           ["prettier", "npm:3.3.3"],\
@@ -2491,9 +2555,9 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@xlabs-xyz/arbitrary-token-transfers-definitions", "workspace:connect/definitions"],\
           ["@types/node", "npm:20.14.14"],\
-          ["@wormhole-foundation/sdk-base", "npm:0.10.9"],\
-          ["@wormhole-foundation/sdk-definitions", "npm:0.10.9"],\
-          ["@wormhole-foundation/sdk-evm", "npm:0.10.9"],\
+          ["@wormhole-foundation/sdk-base", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-definitions", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-evm", "npm:0.12.0"],\
           ["common-arbitrary-token-transfer", "workspace:sdk/common"],\
           ["ethers", "npm:6.13.3"],\
           ["prettier", "npm:3.3.3"],\
@@ -2511,16 +2575,16 @@ const RAW_RUNTIME_STATE =
           ["@xlabs-xyz/evm-arbitrary-token-transfers", "workspace:sdk/evm"],\
           ["@types/chai", "npm:4.3.19"],\
           ["@types/mocha", "npm:10.0.7"],\
-          ["@types/node", "npm:20.16.10"],\
-          ["@wormhole-foundation/sdk-base", "npm:0.10.9"],\
-          ["@wormhole-foundation/sdk-definitions", "npm:0.10.9"],\
-          ["@wormhole-foundation/sdk-evm", "npm:0.10.9"],\
+          ["@types/node", "npm:20.16.11"],\
+          ["@wormhole-foundation/sdk-base", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-definitions", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-evm", "npm:0.12.0"],\
           ["chai", "npm:5.1.1"],\
-          ["ethers", "npm:6.13.3"],\
+          ["ethers", "npm:6.13.4"],\
           ["mocha", "npm:10.7.3"],\
           ["tsup", "virtual:ffb6666390cfc7cef5fa37dad6352334ff068a3935fb97fd12b4ff87d9ba48db9aeaf39877732e193daf1b5615299aef8d67b482fed9868be0c31f2e9186427e#npm:8.3.0"],\
           ["tsx", "npm:4.19.1"],\
-          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -2570,28 +2634,30 @@ const RAW_RUNTIME_STATE =
           ["@xlabs-xyz/solana-arbitrary-token-transfers", "workspace:sdk/solana"],\
           ["@coral-xyz/anchor", "npm:0.30.1"],\
           ["@solana/web3.js", "npm:1.95.3"],\
-          ["@types/node", "npm:20.16.10"],\
-          ["@wormhole-foundation/sdk-base", "npm:0.10.9"],\
-          ["@wormhole-foundation/sdk-definitions", "npm:0.10.9"],\
-          ["@wormhole-foundation/sdk-solana", "npm:0.10.9"],\
-          ["@wormhole-foundation/sdk-solana-tokenbridge", "npm:0.10.9"],\
-          ["@xlabs/solana-price-oracle-sdk", "npm:0.0.7::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40xlabs%2Fsolana-price-oracle-sdk%2F0.0.7%2F50706fa313c5a6f20564c024a5d7aef22ce95fc3"],\
+          ["@types/node", "npm:20.16.11"],\
+          ["@wormhole-foundation/sdk-base", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-definitions", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-solana", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-solana-tokenbridge", "npm:0.12.0"],\
+          ["@xlabs/solana-price-oracle-sdk", "npm:0.0.12::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40xlabs%2Fsolana-price-oracle-sdk%2F0.0.12%2F56b8ef5110a6184b33ff60ccb4c9431074451e69"],\
           ["borsh", "npm:2.0.0"],\
           ["tsup", "virtual:ffb6666390cfc7cef5fa37dad6352334ff068a3935fb97fd12b4ff87d9ba48db9aeaf39877732e193daf1b5615299aef8d67b482fed9868be0c31f2e9186427e#npm:8.3.0"],\
           ["tsx", "npm:4.19.1"],\
-          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
         ],\
         "linkType": "SOFT"\
       }]\
     ]],\
     ["@xlabs/solana-price-oracle-sdk", [\
-      ["npm:0.0.7::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40xlabs%2Fsolana-price-oracle-sdk%2F0.0.7%2F50706fa313c5a6f20564c024a5d7aef22ce95fc3", {\
-        "packageLocation": "./.yarn/cache/@xlabs-solana-price-oracle-sdk-npm-0.0.7-74d09b9114-087932c718.zip/node_modules/@xlabs/solana-price-oracle-sdk/",\
+      ["npm:0.0.12::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40xlabs%2Fsolana-price-oracle-sdk%2F0.0.12%2F56b8ef5110a6184b33ff60ccb4c9431074451e69", {\
+        "packageLocation": "./.yarn/cache/@xlabs-solana-price-oracle-sdk-npm-0.0.12-743aa029ba-ec6718f461.zip/node_modules/@xlabs/solana-price-oracle-sdk/",\
         "packageDependencies": [\
-          ["@xlabs/solana-price-oracle-sdk", "npm:0.0.7::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40xlabs%2Fsolana-price-oracle-sdk%2F0.0.7%2F50706fa313c5a6f20564c024a5d7aef22ce95fc3"],\
+          ["@xlabs/solana-price-oracle-sdk", "npm:0.0.12::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40xlabs%2Fsolana-price-oracle-sdk%2F0.0.12%2F56b8ef5110a6184b33ff60ccb4c9431074451e69"],\
           ["@coral-xyz/anchor", "npm:0.30.1"],\
           ["@solana/web3.js", "npm:1.95.3"],\
-          ["@wormhole-foundation/sdk-base", "npm:0.10.5"]\
+          ["@wormhole-foundation/sdk-base", "npm:0.11.0"],\
+          ["@wormhole-foundation/sdk-definitions", "npm:0.11.0"],\
+          ["@wormhole-foundation/sdk-solana", "npm:0.11.0"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -2674,13 +2740,6 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["ansi-colors", [\
-      ["npm:4.1.1", {\
-        "packageLocation": "./.yarn/cache/ansi-colors-npm-4.1.1-97ad42f223-6086ade433.zip/node_modules/ansi-colors/",\
-        "packageDependencies": [\
-          ["ansi-colors", "npm:4.1.1"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
       ["npm:4.1.3", {\
         "packageLocation": "./.yarn/cache/ansi-colors-npm-4.1.3-8ffd0ae6c7-ec87a2f599.zip/node_modules/ansi-colors/",\
         "packageDependencies": [\
@@ -2690,13 +2749,6 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["ansi-regex", [\
-      ["npm:3.0.1", {\
-        "packageLocation": "./.yarn/cache/ansi-regex-npm-3.0.1-01f44078a3-d108a7498b.zip/node_modules/ansi-regex/",\
-        "packageDependencies": [\
-          ["ansi-regex", "npm:3.0.1"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
       ["npm:5.0.1", {\
         "packageLocation": "./.yarn/cache/ansi-regex-npm-5.0.1-c963a48615-9a64bb8627.zip/node_modules/ansi-regex/",\
         "packageDependencies": [\
@@ -3194,21 +3246,6 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["chokidar", [\
-      ["npm:3.5.1", {\
-        "packageLocation": "./.yarn/cache/chokidar-npm-3.5.1-205217279e-894d2fdeee.zip/node_modules/chokidar/",\
-        "packageDependencies": [\
-          ["chokidar", "npm:3.5.1"],\
-          ["anymatch", "npm:3.1.3"],\
-          ["braces", "npm:3.0.3"],\
-          ["fsevents", "patch:fsevents@npm%3A2.3.3#optional!builtin<compat/fsevents>::version=2.3.3&hash=df0bf1"],\
-          ["glob-parent", "npm:5.1.2"],\
-          ["is-binary-path", "npm:2.1.0"],\
-          ["is-glob", "npm:4.0.3"],\
-          ["normalize-path", "npm:3.0.0"],\
-          ["readdirp", "npm:3.5.0"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
       ["npm:3.6.0", {\
         "packageLocation": "./.yarn/cache/chokidar-npm-3.6.0-3c413a828f-8361dcd013.zip/node_modules/chokidar/",\
         "packageDependencies": [\
@@ -3372,13 +3409,13 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["common-arbitrary-token-transfer", "workspace:sdk/common"],\
           ["@types/bn.js", "npm:5.1.5"],\
-          ["@types/node", "npm:20.16.10"],\
-          ["@wormhole-foundation/sdk-base", "npm:0.10.9"],\
-          ["@wormhole-foundation/sdk-definitions", "npm:0.10.9"],\
+          ["@types/node", "npm:20.16.11"],\
+          ["@wormhole-foundation/sdk-base", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-definitions", "npm:0.12.0"],\
           ["bn.js", "npm:5.2.1"],\
           ["tsup", "virtual:ffb6666390cfc7cef5fa37dad6352334ff068a3935fb97fd12b4ff87d9ba48db9aeaf39877732e193daf1b5615299aef8d67b482fed9868be0c31f2e9186427e#npm:8.3.0"],\
           ["tsx", "npm:4.19.1"],\
-          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -3456,13 +3493,6 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["debug", [\
-      ["npm:4.3.1", {\
-        "packageLocation": "./.yarn/cache/debug-npm-4.3.1-22e08d605e-610bcc2eb0.zip/node_modules/debug/",\
-        "packageDependencies": [\
-          ["debug", "npm:4.3.1"]\
-        ],\
-        "linkType": "SOFT"\
-      }],\
       ["npm:4.3.7", {\
         "packageLocation": "./.yarn/cache/debug-npm-4.3.7-385645adf9-1471db19c3.zip/node_modules/debug/",\
         "packageDependencies": [\
@@ -3476,20 +3506,6 @@ const RAW_RUNTIME_STATE =
           ["debug", "virtual:245750f15c7a67617f34421f66e3ed44fd56cf1525bfb8ff08c5fe937c01fb60677e769626c4a3d77742f81c7255c3af4da81de7d2bb3d349242cd92efc96986#npm:4.3.7"],\
           ["@types/supports-color", null],\
           ["ms", "npm:2.1.3"],\
-          ["supports-color", "npm:8.1.1"]\
-        ],\
-        "packagePeers": [\
-          "@types/supports-color",\
-          "supports-color"\
-        ],\
-        "linkType": "HARD"\
-      }],\
-      ["virtual:a999d057914b8645484e091608e7ceefdc140d5fb449b2b2a5ee4fb968df2f1ad0a433979678bafd9da3a3306731c72f34361b5c300db2add6a0fd45e66d665f#npm:4.3.1", {\
-        "packageLocation": "./.yarn/__virtual__/debug-virtual-31d910f350/0/cache/debug-npm-4.3.1-22e08d605e-610bcc2eb0.zip/node_modules/debug/",\
-        "packageDependencies": [\
-          ["debug", "virtual:a999d057914b8645484e091608e7ceefdc140d5fb449b2b2a5ee4fb968df2f1ad0a433979678bafd9da3a3306731c72f34361b5c300db2add6a0fd45e66d665f#npm:4.3.1"],\
-          ["@types/supports-color", null],\
-          ["ms", "npm:2.1.2"],\
           ["supports-color", "npm:8.1.1"]\
         ],\
         "packagePeers": [\
@@ -3577,11 +3593,13 @@ const RAW_RUNTIME_STATE =
           ["@solana/spl-token", "virtual:5449dbfbc8f715fdbd2c737c0a09a82e4cd2ffe644d99dd1bc0581b0889f04b69068ed991ce11b47be2adc46d31415f8c245c393d61c33529fcc22e453281945#npm:0.4.8"],\
           ["@solana/web3.js", "npm:1.95.3"],\
           ["@typechain/ethers-v6", "virtual:5449dbfbc8f715fdbd2c737c0a09a82e4cd2ffe644d99dd1bc0581b0889f04b69068ed991ce11b47be2adc46d31415f8c245c393d61c33529fcc22e453281945#npm:0.5.1"],\
-          ["@types/node", "npm:20.16.10"],\
-          ["@wormhole-foundation/sdk-base", "npm:0.10.9"],\
-          ["@wormhole-foundation/sdk-definitions", "npm:0.10.9"],\
-          ["@wormhole-foundation/sdk-evm", "npm:0.10.9"],\
-          ["@wormhole-foundation/sdk-solana", "npm:0.10.9"],\
+          ["@types/node", "npm:20.16.11"],\
+          ["@wormhole-foundation/sdk-base", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-definitions", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-evm", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-evm-tokenbridge", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-solana", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-solana-tokenbridge", "npm:0.12.0"],\
           ["@xlabs-xyz/evm-arbitrary-token-transfers", "workspace:sdk/evm"],\
           ["@xlabs-xyz/ledger-signer", "npm:0.0.4"],\
           ["@xlabs-xyz/ledger-signer-ethers-v6", "npm:0.0.1"],\
@@ -3589,10 +3607,10 @@ const RAW_RUNTIME_STATE =
           ["@xlabs-xyz/solana-arbitrary-token-transfers", "workspace:sdk/solana"],\
           ["chalk", "npm:5.3.0"],\
           ["dotenv", "npm:16.4.5"],\
-          ["ethers", "npm:6.13.3"],\
+          ["ethers", "npm:6.13.4"],\
           ["tsx", "npm:4.19.1"],\
           ["typechain", "virtual:5449dbfbc8f715fdbd2c737c0a09a82e4cd2ffe644d99dd1bc0581b0889f04b69068ed991ce11b47be2adc46d31415f8c245c393d61c33529fcc22e453281945#npm:8.3.2"],\
-          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -3611,13 +3629,6 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/diff-npm-3.5.0-a321a0df19-fc62d5ba9f.zip/node_modules/diff/",\
         "packageDependencies": [\
           ["diff", "npm:3.5.0"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
-      ["npm:5.0.0", {\
-        "packageLocation": "./.yarn/cache/diff-npm-5.0.0-ad6900db18-08c5904779.zip/node_modules/diff/",\
-        "packageDependencies": [\
-          ["diff", "npm:5.0.0"]\
         ],\
         "linkType": "HARD"\
       }],\
@@ -3931,6 +3942,20 @@ const RAW_RUNTIME_STATE =
           ["@types/node", "npm:18.15.13"],\
           ["aes-js", "npm:4.0.0-beta.5"],\
           ["tslib", "npm:2.4.0"],\
+          ["ws", "virtual:177cd791bd2431e3cddcefeaded7e8db5bd0bc0c4aa20698f102af68adfe56c9b019f10c8ba10b4aa5d1e84b565abfc8ff8836043bb0e24f8d31d57bbcb40fad#npm:8.17.1"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:6.13.4", {\
+        "packageLocation": "./.yarn/cache/ethers-npm-6.13.4-62fa9271a7-efcf9f39f8.zip/node_modules/ethers/",\
+        "packageDependencies": [\
+          ["ethers", "npm:6.13.4"],\
+          ["@adraffy/ens-normalize", "npm:1.10.1"],\
+          ["@noble/curves", "npm:1.2.0"],\
+          ["@noble/hashes", "npm:1.3.2"],\
+          ["@types/node", "npm:22.7.5"],\
+          ["aes-js", "npm:4.0.0-beta.5"],\
+          ["tslib", "npm:2.7.0"],\
           ["ws", "virtual:177cd791bd2431e3cddcefeaded7e8db5bd0bc0c4aa20698f102af68adfe56c9b019f10c8ba10b4aa5d1e84b565abfc8ff8836043bb0e24f8d31d57bbcb40fad#npm:8.17.1"]\
         ],\
         "linkType": "HARD"\
@@ -4284,19 +4309,6 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "HARD"\
       }],\
-      ["npm:7.1.6", {\
-        "packageLocation": "./.yarn/cache/glob-npm-7.1.6-1ce3a5189a-2575cce930.zip/node_modules/glob/",\
-        "packageDependencies": [\
-          ["glob", "npm:7.1.6"],\
-          ["fs.realpath", "npm:1.0.0"],\
-          ["inflight", "npm:1.0.6"],\
-          ["inherits", "npm:2.0.4"],\
-          ["minimatch", "npm:3.1.2"],\
-          ["once", "npm:1.4.0"],\
-          ["path-is-absolute", "npm:1.0.1"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
       ["npm:7.1.7", {\
         "packageLocation": "./.yarn/cache/glob-npm-7.1.7-5698ad9c48-173245e6f9.zip/node_modules/glob/",\
         "packageDependencies": [\
@@ -4353,15 +4365,6 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/graceful-fs-npm-4.2.11-24bb648a68-386d011a55.zip/node_modules/graceful-fs/",\
         "packageDependencies": [\
           ["graceful-fs", "npm:4.2.11"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
-    ["growl", [\
-      ["npm:1.10.5", {\
-        "packageLocation": "./.yarn/cache/growl-npm-1.10.5-2d1da54198-a6a8f4df12.zip/node_modules/growl/",\
-        "packageDependencies": [\
-          ["growl", "npm:1.10.5"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -4592,13 +4595,6 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["is-fullwidth-code-point", [\
-      ["npm:2.0.0", {\
-        "packageLocation": "./.yarn/cache/is-fullwidth-code-point-npm-2.0.0-507f56ec71-e58f3e4a60.zip/node_modules/is-fullwidth-code-point/",\
-        "packageDependencies": [\
-          ["is-fullwidth-code-point", "npm:2.0.0"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
       ["npm:3.0.0", {\
         "packageLocation": "./.yarn/cache/is-fullwidth-code-point-npm-3.0.0-1ecf4ebee5-bb11d825e0.zip/node_modules/is-fullwidth-code-point/",\
         "packageDependencies": [\
@@ -4760,14 +4756,6 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["js-yaml", [\
-      ["npm:4.0.0", {\
-        "packageLocation": "./.yarn/cache/js-yaml-npm-4.0.0-3ac8e950bb-ef8489b87d.zip/node_modules/js-yaml/",\
-        "packageDependencies": [\
-          ["js-yaml", "npm:4.0.0"],\
-          ["argparse", "npm:2.0.1"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
       ["npm:4.1.0", {\
         "packageLocation": "./.yarn/cache/js-yaml-npm-4.1.0-3606f32312-184a24b4ea.zip/node_modules/js-yaml/",\
         "packageDependencies": [\
@@ -4902,14 +4890,6 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["log-symbols", [\
-      ["npm:4.0.0", {\
-        "packageLocation": "./.yarn/cache/log-symbols-npm-4.0.0-7291c4d053-d744042ccc.zip/node_modules/log-symbols/",\
-        "packageDependencies": [\
-          ["log-symbols", "npm:4.0.0"],\
-          ["chalk", "npm:4.1.2"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
       ["npm:4.1.0", {\
         "packageLocation": "./.yarn/cache/log-symbols-npm-4.1.0-0a13492d8b-67f445a9ff.zip/node_modules/log-symbols/",\
         "packageDependencies": [\
@@ -5086,14 +5066,6 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["minimatch", [\
-      ["npm:3.0.4", {\
-        "packageLocation": "./.yarn/cache/minimatch-npm-3.0.4-6e76f51c23-d0a2bcd93e.zip/node_modules/minimatch/",\
-        "packageDependencies": [\
-          ["minimatch", "npm:3.0.4"],\
-          ["brace-expansion", "npm:1.1.11"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
       ["npm:3.1.2", {\
         "packageLocation": "./.yarn/cache/minimatch-npm-3.1.2-9405269906-0262810a8f.zip/node_modules/minimatch/",\
         "packageDependencies": [\
@@ -5269,48 +5241,9 @@ const RAW_RUNTIME_STATE =
           ["yargs-unparser", "npm:2.0.0"]\
         ],\
         "linkType": "HARD"\
-      }],\
-      ["npm:8.4.0", {\
-        "packageLocation": "./.yarn/cache/mocha-npm-8.4.0-a999d05791-9b4d31e1f3.zip/node_modules/mocha/",\
-        "packageDependencies": [\
-          ["mocha", "npm:8.4.0"],\
-          ["@ungap/promise-all-settled", "npm:1.1.2"],\
-          ["ansi-colors", "npm:4.1.1"],\
-          ["browser-stdout", "npm:1.3.1"],\
-          ["chokidar", "npm:3.5.1"],\
-          ["debug", "virtual:a999d057914b8645484e091608e7ceefdc140d5fb449b2b2a5ee4fb968df2f1ad0a433979678bafd9da3a3306731c72f34361b5c300db2add6a0fd45e66d665f#npm:4.3.1"],\
-          ["diff", "npm:5.0.0"],\
-          ["escape-string-regexp", "npm:4.0.0"],\
-          ["find-up", "npm:5.0.0"],\
-          ["glob", "npm:7.1.6"],\
-          ["growl", "npm:1.10.5"],\
-          ["he", "npm:1.2.0"],\
-          ["js-yaml", "npm:4.0.0"],\
-          ["log-symbols", "npm:4.0.0"],\
-          ["minimatch", "npm:3.0.4"],\
-          ["ms", "npm:2.1.3"],\
-          ["nanoid", "npm:3.1.20"],\
-          ["serialize-javascript", "npm:5.0.1"],\
-          ["strip-json-comments", "npm:3.1.1"],\
-          ["supports-color", "npm:8.1.1"],\
-          ["which", "npm:2.0.2"],\
-          ["wide-align", "npm:1.1.3"],\
-          ["workerpool", "npm:6.1.0"],\
-          ["yargs", "npm:16.2.0"],\
-          ["yargs-parser", "npm:20.2.4"],\
-          ["yargs-unparser", "npm:2.0.0"]\
-        ],\
-        "linkType": "HARD"\
       }]\
     ]],\
     ["ms", [\
-      ["npm:2.1.2", {\
-        "packageLocation": "./.yarn/cache/ms-npm-2.1.2-ec0c1512ff-a437714e2f.zip/node_modules/ms/",\
-        "packageDependencies": [\
-          ["ms", "npm:2.1.2"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
       ["npm:2.1.3", {\
         "packageLocation": "./.yarn/cache/ms-npm-2.1.3-81ff3cfac1-d924b57e73.zip/node_modules/ms/",\
         "packageDependencies": [\
@@ -5327,15 +5260,6 @@ const RAW_RUNTIME_STATE =
           ["any-promise", "npm:1.3.0"],\
           ["object-assign", "npm:4.1.1"],\
           ["thenify-all", "npm:1.6.0"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
-    ["nanoid", [\
-      ["npm:3.1.20", {\
-        "packageLocation": "./.yarn/cache/nanoid-npm-3.1.20-3b284e9eb5-aac1e0b6bc.zip/node_modules/nanoid/",\
-        "packageDependencies": [\
-          ["nanoid", "npm:3.1.20"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -5876,14 +5800,6 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["readdirp", [\
-      ["npm:3.5.0", {\
-        "packageLocation": "./.yarn/cache/readdirp-npm-3.5.0-a1b1568d32-293de2ed98.zip/node_modules/readdirp/",\
-        "packageDependencies": [\
-          ["readdirp", "npm:3.5.0"],\
-          ["picomatch", "npm:2.3.1"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
       ["npm:3.6.0", {\
         "packageLocation": "./.yarn/cache/readdirp-npm-3.6.0-f950cc74ab-6fa848cf63.zip/node_modules/readdirp/",\
         "packageDependencies": [\
@@ -6091,14 +6007,6 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["serialize-javascript", [\
-      ["npm:5.0.1", {\
-        "packageLocation": "./.yarn/cache/serialize-javascript-npm-5.0.1-8ffc173f09-646bd92a82.zip/node_modules/serialize-javascript/",\
-        "packageDependencies": [\
-          ["serialize-javascript", "npm:5.0.1"],\
-          ["randombytes", "npm:2.1.0"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
       ["npm:6.0.2", {\
         "packageLocation": "./.yarn/cache/serialize-javascript-npm-6.0.2-cc09461d45-2dd09ef4b6.zip/node_modules/serialize-javascript/",\
         "packageDependencies": [\
@@ -6234,17 +6142,17 @@ const RAW_RUNTIME_STATE =
           ["solana", "workspace:solana"],\
           ["@coral-xyz/anchor", "npm:0.30.1"],\
           ["@solana/web3.js", "npm:1.95.3"],\
-          ["@types/chai", "npm:4.3.19"],\
-          ["@types/mocha", "npm:8.2.3"],\
-          ["@wormhole-foundation/sdk-base", "npm:0.10.9"],\
-          ["@wormhole-foundation/sdk-definitions", "npm:0.10.9"],\
-          ["@wormhole-foundation/sdk-solana-core", "npm:0.10.9"],\
-          ["@wormhole-foundation/sdk-solana-tokenbridge", "npm:0.10.9"],\
+          ["@types/chai", "npm:5.0.0"],\
+          ["@types/mocha", "npm:10.0.9"],\
+          ["@wormhole-foundation/sdk-base", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-definitions", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-solana-core", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-solana-tokenbridge", "npm:0.12.0"],\
           ["@xlabs-xyz/solana-arbitrary-token-transfers", "workspace:sdk/solana"],\
           ["chai", "npm:5.1.1"],\
-          ["mocha", "npm:8.4.0"],\
-          ["ts-mocha", "virtual:0d651797a2843a64f9d24ebdfb5ce5b0c9db186e0bfb087fd6b67500708c972daac5ffe588b86f37cbeeb4bf85347e25cd633d8c0eb04e887e07267bb68096fd#npm:8.0.0"],\
-          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=8c6c40"]\
+          ["mocha", "npm:10.7.3"],\
+          ["ts-mocha", "virtual:0d651797a2843a64f9d24ebdfb5ce5b0c9db186e0bfb087fd6b67500708c972daac5ffe588b86f37cbeeb4bf85347e25cd633d8c0eb04e887e07267bb68096fd#npm:10.0.0"],\
+          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -6306,15 +6214,6 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["string-width", [\
-      ["npm:2.1.1", {\
-        "packageLocation": "./.yarn/cache/string-width-npm-2.1.1-0c2c6ae53f-e5f2b169fc.zip/node_modules/string-width/",\
-        "packageDependencies": [\
-          ["string-width", "npm:2.1.1"],\
-          ["is-fullwidth-code-point", "npm:2.0.0"],\
-          ["strip-ansi", "npm:4.0.0"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
       ["npm:4.2.3", {\
         "packageLocation": "./.yarn/cache/string-width-npm-4.2.3-2c27177bae-1e525e92e5.zip/node_modules/string-width/",\
         "packageDependencies": [\
@@ -6347,14 +6246,6 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["strip-ansi", [\
-      ["npm:4.0.0", {\
-        "packageLocation": "./.yarn/cache/strip-ansi-npm-4.0.0-d4de985014-d75d9681e0.zip/node_modules/strip-ansi/",\
-        "packageDependencies": [\
-          ["strip-ansi", "npm:4.0.0"],\
-          ["ansi-regex", "npm:3.0.1"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
       ["npm:6.0.1", {\
         "packageLocation": "./.yarn/cache/strip-ansi-npm-6.0.1-caddc7cb40-1ae5f212a1.zip/node_modules/strip-ansi/",\
         "packageDependencies": [\
@@ -6586,7 +6477,7 @@ const RAW_RUNTIME_STATE =
           ["@types/bn.js", "npm:5.1.5"],\
           ["@types/chai", "npm:4.3.19"],\
           ["@types/mocha", "npm:10.0.7"],\
-          ["@types/node", "npm:20.16.10"],\
+          ["@types/node", "npm:20.16.11"],\
           ["@yarnpkg/types", "npm:4.0.0"],\
           ["bn.js", "npm:5.2.1"],\
           ["chai", "npm:5.1.1"],\
@@ -6594,7 +6485,7 @@ const RAW_RUNTIME_STATE =
           ["prettier", "npm:3.3.3"],\
           ["ts-mocha", "virtual:33d4007d0290747430617a5c0eb2da58d74cdff8bc8263fdea6457aebe82a895aa6f9c4f9f07fab8e85221c695fc8a7b8d17e2e26cee5cd3bfae6b8271723910#npm:10.0.0"],\
           ["tsx", "npm:4.19.1"],\
-          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -6673,7 +6564,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["ts-essentials", "virtual:9d9d59e77a154ace80a497ad65534b0250a59b20d99ddfadb59d3a17148b62b6dde403d40350cd4b485786b726d24b1825a8256e1ccf2bf4789c79f483de843f#npm:7.0.3"],\
           ["@types/typescript", null],\
-          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
         ],\
         "packagePeers": [\
           "@types/typescript",\
@@ -6699,19 +6590,12 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "SOFT"\
       }],\
-      ["npm:8.0.0", {\
-        "packageLocation": "./.yarn/cache/ts-mocha-npm-8.0.0-958ec73bec-7cf0a7073e.zip/node_modules/ts-mocha/",\
+      ["virtual:0d651797a2843a64f9d24ebdfb5ce5b0c9db186e0bfb087fd6b67500708c972daac5ffe588b86f37cbeeb4bf85347e25cd633d8c0eb04e887e07267bb68096fd#npm:10.0.0", {\
+        "packageLocation": "./.yarn/__virtual__/ts-mocha-virtual-18f51604a0/0/cache/ts-mocha-npm-10.0.0-1ee8693e11-d21ba7a379.zip/node_modules/ts-mocha/",\
         "packageDependencies": [\
-          ["ts-mocha", "npm:8.0.0"]\
-        ],\
-        "linkType": "SOFT"\
-      }],\
-      ["virtual:0d651797a2843a64f9d24ebdfb5ce5b0c9db186e0bfb087fd6b67500708c972daac5ffe588b86f37cbeeb4bf85347e25cd633d8c0eb04e887e07267bb68096fd#npm:8.0.0", {\
-        "packageLocation": "./.yarn/__virtual__/ts-mocha-virtual-0acce5b7f7/0/cache/ts-mocha-npm-8.0.0-958ec73bec-7cf0a7073e.zip/node_modules/ts-mocha/",\
-        "packageDependencies": [\
-          ["ts-mocha", "virtual:0d651797a2843a64f9d24ebdfb5ce5b0c9db186e0bfb087fd6b67500708c972daac5ffe588b86f37cbeeb4bf85347e25cd633d8c0eb04e887e07267bb68096fd#npm:8.0.0"],\
-          ["@types/mocha", "npm:8.2.3"],\
-          ["mocha", "npm:8.4.0"],\
+          ["ts-mocha", "virtual:0d651797a2843a64f9d24ebdfb5ce5b0c9db186e0bfb087fd6b67500708c972daac5ffe588b86f37cbeeb4bf85347e25cd633d8c0eb04e887e07267bb68096fd#npm:10.0.0"],\
+          ["@types/mocha", "npm:10.0.9"],\
+          ["mocha", "npm:10.7.3"],\
           ["ts-node", "npm:7.0.1"],\
           ["tsconfig-paths", "npm:3.15.0"]\
         ],\
@@ -6866,7 +6750,7 @@ const RAW_RUNTIME_STATE =
           ["sucrase", "npm:3.35.0"],\
           ["tinyglobby", "npm:0.2.9"],\
           ["tree-kill", "npm:1.2.2"],\
-          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
         ],\
         "packagePeers": [\
           "@microsoft/api-extractor",\
@@ -6936,7 +6820,7 @@ const RAW_RUNTIME_STATE =
           ["prettier", "npm:2.8.8"],\
           ["ts-command-line-args", "npm:2.5.1"],\
           ["ts-essentials", "virtual:9d9d59e77a154ace80a497ad65534b0250a59b20d99ddfadb59d3a17148b62b6dde403d40350cd4b485786b726d24b1825a8256e1ccf2bf4789c79f483de843f#npm:7.0.3"],\
-          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
         ],\
         "packagePeers": [\
           "@types/typescript",\
@@ -6976,10 +6860,10 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "HARD"\
       }],\
-      ["patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=8c6c40", {\
-        "packageLocation": "./.yarn/cache/typescript-patch-9bf73ea0aa-94eb47e130.zip/node_modules/typescript/",\
+      ["patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40", {\
+        "packageLocation": "./.yarn/cache/typescript-patch-8964a48ba3-7c9d2e07c8.zip/node_modules/typescript/",\
         "packageDependencies": [\
-          ["typescript", "patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -7151,16 +7035,6 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
-    ["wide-align", [\
-      ["npm:1.1.3", {\
-        "packageLocation": "./.yarn/cache/wide-align-npm-1.1.3-48c7d4953c-9bf69ad55f.zip/node_modules/wide-align/",\
-        "packageDependencies": [\
-          ["wide-align", "npm:1.1.3"],\
-          ["string-width", "npm:2.1.1"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
     ["wordwrapjs", [\
       ["npm:4.0.1", {\
         "packageLocation": "./.yarn/cache/wordwrapjs-npm-4.0.1-b6c3c84d76-4cc43eb0f6.zip/node_modules/wordwrapjs/",\
@@ -7173,13 +7047,6 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["workerpool", [\
-      ["npm:6.1.0", {\
-        "packageLocation": "./.yarn/cache/workerpool-npm-6.1.0-e1ce970c3c-b3bf34014f.zip/node_modules/workerpool/",\
-        "packageDependencies": [\
-          ["workerpool", "npm:6.1.0"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
       ["npm:6.5.1", {\
         "packageLocation": "./.yarn/cache/workerpool-npm-6.5.1-7e0dd85ca7-58e8e96978.zip/node_modules/workerpool/",\
         "packageDependencies": [\
@@ -7376,13 +7243,6 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["yargs-parser", [\
-      ["npm:20.2.4", {\
-        "packageLocation": "./.yarn/cache/yargs-parser-npm-20.2.4-1de20916a6-08dc341f0b.zip/node_modules/yargs-parser/",\
-        "packageDependencies": [\
-          ["yargs-parser", "npm:20.2.4"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
       ["npm:20.2.9", {\
         "packageLocation": "./.yarn/cache/yargs-parser-npm-20.2.9-a1d19e598d-0685a8e58b.zip/node_modules/yargs-parser/",\
         "packageDependencies": [\

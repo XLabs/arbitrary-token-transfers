@@ -39,7 +39,7 @@ import {
   TransferParams,
 } from '@xlabs-xyz/arbitrary-token-transfers-definitions';
 import {
-  SolanaPriceOracleClient,
+  SolanaPriceOracle,
   SolanaTokenBridgeRelayer,
 } from '@xlabs-xyz/solana-arbitrary-token-transfers';
 
@@ -52,9 +52,15 @@ const KLAM_PER_SOL = 1_000_000n;
 const MWEI_PER_MICRO_ETH = 1_000_000n;
 const MWEI_PER_ETH = 1_000_000_000_000n;
 
+const PRICE_ORACLE_ADDRESSES: Partial<Record<Network, PublicKey>> = {
+  Mainnet: new PublicKey('xPo6K395x992buiN3FiPjZhYwyXrnLy1qKGidKyL2x3'),
+  Testnet: new PublicKey('xPo6K395x992buiN3FiPjZhYwyXrnLy1qKGidKyL2x3'),
+}
+
 export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaChains>
   implements AutomaticTokenBridgeV3<N, C>
 {
+  private readonly oracleClient: SolanaPriceOracle;
   private readonly client: SolanaTokenBridgeRelayer;
   private readonly chain: SolanaChain<N>;
 
@@ -68,9 +74,19 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     if (!contracts.coreBridge) throw new Error('CoreBridge contract not defined');
 
     const address = tokenBridgeRelayerV3Contracts.get(network, chainName);
+    if (!address) throw new Error(`TokenBridge address not defined for ${network} ${chainName}`);
+
+    const priceOracleAddress = PRICE_ORACLE_ADDRESSES[network];
+    if (!priceOracleAddress) throw new Error(`Price oracle address not defined for ${network}`);
 
     this.chain = new SolanaChain(chainName, new SolanaPlatform(this.network));
-    this.client = new SolanaTokenBridgeRelayer({ connection }, { address, network });
+    this.oracleClient = new SolanaPriceOracle(connection, priceOracleAddress);
+    this.client = new SolanaTokenBridgeRelayer(
+      { connection },
+      network,
+      new PublicKey(address),
+      this.oracleClient,
+    );
   }
 
   static async fromRpc<N extends Network>(
@@ -116,7 +132,7 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
   }
 
   async isChainAvailable(chain: SupportedChains): Promise<boolean> {
-    const { pausedOutboundTransfers } = await this.client.read.chainConfig(chain);
+    const { pausedOutboundTransfers } = await this.client.account.chainConfig(chain).fetch();
     return pausedOutboundTransfers;
   }
 
@@ -235,11 +251,10 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
 
   async relayingFee(args: RelayingFeesParams): Promise<RelayingFee> {
     const config = await this.client.read.config();
-    const chainConfig = await this.client.read.chainConfig(args.targetChain);
+    const chainConfig = await this.client.account.chainConfig(args.targetChain).fetch();
 
-    const oracleClient = new SolanaPriceOracleClient(this.connection);
-    const oraclePrices = await oracleClient.read.evmPrices(args.targetChain);
-    const oracleConfig = await oracleClient.read.config();
+    const oraclePrices = await this.oracleClient.read.evmPrices(args.targetChain);
+    const oracleConfig = await this.oracleClient.read.config();
 
     // gasDropoff comes in base units
     const gasDropoffMicroEth = args.gasDropoff / 10n ** 12n;
@@ -265,7 +280,7 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
   }
 
   async baseRelayingParams(chain: SupportedChains): Promise<BaseRelayingParams> {
-    const config = await this.client.read.chainConfig(chain);
+    const config = await this.client.account.chainConfig(chain).fetch();
 
     return {
       maxGasDropoff: config.maxGasDropoffMicroToken,

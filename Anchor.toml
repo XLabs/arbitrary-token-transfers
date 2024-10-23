@@ -14,9 +14,9 @@ skip-lint = true
 [test]
 upgradeable = true
 
-[[test.genesis]]
-address = "ATqjh2vkjogyVUUNmXQssQZNSFGgSA7Tm6P1UzEUg85s"
-program = "target/sbf-solana-solana/release/solana_price_oracle.so"
+#[[test.genesis]]
+#address = "CefQJaxQTV28gCf4MMd1PgDHgCcRmuEHZgXZwjJReUY3"
+#program = "../relayer-infra-contracts/src/solana/target/sbf-solana-solana/release/solana_price_oracle.so"
 
 # [[test.genesis]]
 # address = "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth" # Mainnet in lib.rs

@@ -5,8 +5,7 @@
     "moduleResolution": "node",
     "outDir": "ts-build"
   },
-  "include": ["tests"],
-  "references": [
-    { "path": "../sdk/solana/tsconfig.json" }
-  ]
+  "include": ["tests", "programs/token-bridge-relayer/*.json"],
+  "files": ["tests/oracle-program-keypair.json"],
+  "references": [{ "path": "../sdk/solana/tsconfig.json" }]
 }

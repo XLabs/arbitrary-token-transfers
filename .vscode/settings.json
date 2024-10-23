@@ -5,5 +5,7 @@
   },
   "prettier.prettierPath": ".yarn/sdks/prettier/index.cjs",
   "typescript.tsdk": ".yarn/sdks/typescript/lib",
+  "rust-analyzer.cargo.features": ["idl-build"],
+  "rust-analyzer.check.features": ["idl-build"],
   "typescript.enablePromptUseWorkspaceTsdk": true
 }

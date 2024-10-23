@@ -15,16 +15,16 @@
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.1",
     "@solana/web3.js": "^1.95.3",
-    "@types/chai": "^4.3.19",
-    "@types/mocha": "8.*",
-    "@wormhole-foundation/sdk-base": "^0.10.9",
-    "@wormhole-foundation/sdk-definitions": "^0.10.9",
-    "@wormhole-foundation/sdk-solana-core": "^0.10.9",
-    "@wormhole-foundation/sdk-solana-tokenbridge": "^0.10.9",
+    "@types/chai": "^5",
+    "@types/mocha": "10.*",
+    "@wormhole-foundation/sdk-base": "^0.12.0",
+    "@wormhole-foundation/sdk-definitions": "^0.12.0",
+    "@wormhole-foundation/sdk-solana-core": "^0.12.0",
+    "@wormhole-foundation/sdk-solana-tokenbridge": "^0.12.0",
     "@xlabs-xyz/solana-arbitrary-token-transfers": "workspace:^",
     "chai": "^5.1.1",
-    "mocha": "8.*",
-    "ts-mocha": "8.*",
-    "typescript": "^5.6.2"
+    "mocha": "10.*",
+    "ts-mocha": "10.*",
+    "typescript": "^5.6.3"
   }
 }

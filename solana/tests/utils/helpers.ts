@@ -10,10 +10,16 @@ import {
   RpcResponseAndContext,
   SignatureResult,
 } from '@solana/web3.js';
-import { ChainConfigAccount } from '@xlabs-xyz/solana-arbitrary-token-transfers';
+import {
+  BpfLoaderUpgradeableProgram,
+  ChainConfigAccount,
+} from '@xlabs-xyz/solana-arbitrary-token-transfers';
 import { expect } from 'chai';
-import { execSync } from 'child_process';
 import fs from 'fs/promises';
+import { promisify } from 'util';
+import { exec } from 'child_process';
+
+const execAsync = promisify(exec);
 
 const LOCALHOST = 'http://localhost:8899';
 export const wormholeProgramId = new PublicKey('worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth');
@@ -129,6 +135,10 @@ export async function keypairFromFile(path: string) {
   );
 }
 
+export function keypairFromArray(keypair: number[]) {
+  return Keypair.fromSecretKey(Uint8Array.from(keypair));
+}
+
 /**
  *
  * @param programKeyPairPath The path to the JSON keypair.
@@ -140,26 +150,19 @@ export async function deployProgram(
   authorityKeyPairPath: string,
   artifactPath: string,
 ) {
-  // deploy
-  execSync(
-    `solana --url localhost -k ${authorityKeyPairPath} program deploy ${artifactPath} --program-id ${programKeyPairPath}`,
+  // Deploy:
+  await execAsync(
+    `solana --url ${LOCALHOST} -k ${authorityKeyPairPath} program deploy ${artifactPath} --program-id ${programKeyPairPath}`,
   );
 
   // Wait for deploy to be finalized. Don't remove.
-  const programPublicKey = await keypairFromFile(programKeyPairPath).then((kp) => kp.publicKey);
+  const programId = await keypairFromFile(programKeyPairPath).then((kp) => kp.publicKey);
   const connection = AnchorProvider.local().connection;
+  const bpfProgram = new BpfLoaderUpgradeableProgram(programId, connection);
+  const programDataAddress = bpfProgram.dataAddress;
   let programAccount = null;
   while (programAccount === null) {
-    programAccount = await connection.getAccountInfo(programPublicKey, 'finalized');
+    programAccount = await connection.getAccountInfo(programDataAddress, 'finalized');
   }
-}
-
-export async function putProgramKeyBackInIdl(programId: string) {
-  const idlPath = './target/idl/token_bridge_relayer.json';
-  const idlRaw = await fs.readFile(idlPath, 'utf-8');
-  const idl = JSON.parse(idlRaw);
-
-  idl.address = programId;
-
-  await fs.writeFile(idlPath, JSON.stringify(idl, null, 2));
+  //console.log('Found programAccount:', { programDataAddress, programId, programAccount });
 }

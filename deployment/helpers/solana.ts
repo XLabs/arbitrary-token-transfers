@@ -5,10 +5,9 @@ import {
   PublicKey,
   Connection,
   Commitment,
-  VersionedTransaction
 } from "@solana/web3.js";
 import { SolanaLedgerSigner } from "@xlabs-xyz/ledger-signer-solana";
-import { ecosystemChains, getEnv } from "./env.js";
+import { ecosystemChains, getEnv, resolveEnv } from "./env.js";
 import type { SolanaScriptCb, SolanaChainInfo } from "./interfaces.js";
 import { inspect } from "util";
 import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet.js";
@@ -71,7 +70,7 @@ export interface SolanaSigner {
 
 let signer: SolanaSigner | null;
 export async function getSigner(): Promise<SolanaSigner> {
-  const privateKey = getEnv("WALLET_KEY");
+  const privateKey = resolveEnv(["SOLANA_WALLET_KEY", "WALLET_KEY"]);
 
   if (privateKey !== "ledger") {
     if (!signer) {

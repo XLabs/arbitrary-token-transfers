@@ -1,4 +1,4 @@
-import { BN } from '@coral-xyz/anchor';
+import * as anchor from '@coral-xyz/anchor';
 import {
   Connection,
   PublicKey,
@@ -36,7 +36,7 @@ export class BpfLoaderUpgradeableProgram {
     const upgradeAuthority = data.upgradeAuthority.isSome ? data.upgradeAuthority.value : undefined;
 
     return {
-      slot: new BN(data.slot.toString()),
+      slot: new anchor.BN(data.slot.toString()),
       upgradeAuthority,
     };
   }

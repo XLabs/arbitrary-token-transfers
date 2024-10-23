@@ -20,6 +20,7 @@ evm.runOnEvms("register-peers", async (chain, signer, log) => {
     wrapEthersProvider(signer.provider!),
     chain.network,
     chainIdToChain(chain.chainId),
+    undefined,  // TODO: fix this passing correct gas token address.
     tbrv3ProxyAddress
   );
   const peers = loadTbrPeers(chain);
@@ -44,6 +45,6 @@ evm.runOnEvms("register-peers", async (chain, signer, log) => {
     log(`Will add peer: ${command.address} (${command.chain})`);
   }
   const partialTx = tbrv3.execTx(0n, [{ command: "ConfigCommands", commands}]);
-  const { txid } = await evm.sendTx(signer, { ...partialTx, data: encoding.hex.encode(partialTx.data) });
+  const { txid } = await evm.sendTx(signer, { ...partialTx, data: encoding.hex.encode(partialTx.data, true) });
   log(`Update tx successful in ${txid}`);
 });

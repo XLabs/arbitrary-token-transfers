@@ -9,7 +9,7 @@ use anchor_lang::{prelude::*, system_program};
 use anchor_spl::token::{spl_token::native_mint, Mint, Token, TokenAccount};
 use wormhole_anchor_sdk::{
     token_bridge::{self, program::TokenBridge},
-    wormhole::{self, program::Wormhole},
+    wormhole::program::Wormhole,
 };
 
 #[derive(Accounts)]
