@@ -1,3 +1,4 @@
 {
-  "$schema": "https://json.schemastore.org/mocharc.json"
+  "$schema": "https://json.schemastore.org/mocharc.json",
+  "require": "tsx/esm"
 }

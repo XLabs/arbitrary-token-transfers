@@ -14,7 +14,7 @@
   - Docker to generate Anchor verifiable build.
 7. Choose one:
   - Build for mainnet with `yarn build:verifiable:all-mainnet`
-  - Build for testnet with `yarn build:verifiable:all-devnet`
+  - Build for testnet with `yarn build:verifiable:all-testnet`
 8. Run the following:
 ```
 git status -s
@@ -72,13 +72,13 @@ source ./config/testnet/key.env && yarn tsx ./evm/deploy.ts
    Be careful to set environment:
 
    ```shell
-   export ENV=devnet | mainnet
+   export ENV=testnet | mainnet
    ```
 
 4. Replace program key (att prefixed) in `solana/programs/token-bridge-relayer/network.json` matching your deployment. You can do this with `jq` as follows:
 
    ```shell
-   jq --arg v "$att_program_address" '.devnet.programId = $v' solana/programs/token-bridge-relayer/network.json > temp.json && mv temp.json solana/programs/token-bridge-relayer/network.json
+   jq --arg v "$att_program_address" '.testnet.programId = $v' solana/programs/token-bridge-relayer/network.json > temp.json && mv temp.json solana/programs/token-bridge-relayer/network.json
    ```
 
    Replace the program address in contract.json as follows:

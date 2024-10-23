@@ -1,4 +1,4 @@
-import { AnchorProvider, BN, Wallet, Provider } from '@coral-xyz/anchor';
+import { AnchorProvider, BN, Provider, Wallet } from '@coral-xyz/anchor';
 import {
   PublicKey,
   Transaction,
@@ -7,23 +7,25 @@ import {
   Connection,
   LAMPORTS_PER_SOL,
   Keypair,
-  RpcResponseAndContext,
-  SignatureResult,
+  AccountInfo,
+  Signer,
+  SystemProgram,
 } from '@solana/web3.js';
-import {
-  BpfLoaderUpgradeableProgram,
-  ChainConfigAccount,
-} from '@xlabs-xyz/solana-arbitrary-token-transfers';
+import * as spl from '@solana/spl-token';
+import { Contracts } from '@wormhole-foundation/sdk-definitions';
+import { ChainConfigAccount } from '@xlabs-xyz/solana-arbitrary-token-transfers';
 import { expect } from 'chai';
+import * as toml from 'toml';
 import fs from 'fs/promises';
+import fsSync from 'fs';
 import { promisify } from 'util';
 import { exec } from 'child_process';
 
 const execAsync = promisify(exec);
 
 const LOCALHOST = 'http://localhost:8899';
-export const wormholeProgramId = new PublicKey('worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth');
-export const tokenBridgeProgramId = new PublicKey('wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb');
+
+type ProviderWallet = AnchorProvider['wallet'];
 
 export interface ErrorConstructor {
   new (...args: any[]): Error;
@@ -90,79 +92,207 @@ export const assert = {
 
 export async function sendAndConfirmIxs(
   provider: AnchorProvider,
-  ...ixs: Array<TransactionInstruction | Promise<TransactionInstruction>>
+  ixs: TransactionInstruction | Transaction | Array<TransactionInstruction>,
+  signatures?: Array<Signer | ProviderWallet>,
 ): Promise<TransactionSignature> {
-  const tx = new Transaction().add(...(await Promise.all(ixs)));
+  const tx = Array.isArray(ixs) ? new Transaction().add(...ixs) : new Transaction().add(ixs);
+  tx.recentBlockhash = await provider.connection.getLatestBlockhash().then((ans) => ans.blockhash);
 
-  return provider.sendAndConfirm(tx);
+  const isWallet = (s: Signer | ProviderWallet): s is ProviderWallet =>
+    s.hasOwnProperty('signTransaction');
+  const signers: Signer[] = [];
+  for (const signature of signatures ?? []) {
+    if (isWallet(signature)) {
+      await provider.wallet.signTransaction(tx);
+    } else {
+      signers.push(signature);
+    }
+  }
+
+  return provider.sendAndConfirm(tx, signatures ? signers : undefined);
 }
 
-export function newProvider(keypair?: Keypair): AnchorProvider {
-  const connection = new Connection(LOCALHOST, 'processed');
-  const wallet = new Wallet(keypair ?? new Keypair());
-
-  return new AnchorProvider(connection, wallet);
-}
-
-export async function requestAirdrop(provider: Provider) {
-  if (provider.publicKey === undefined) {
+type HasPublicKey = PublicKey | Keypair | Wallet | Provider;
+function extractPubkey(from: HasPublicKey): PublicKey {
+  if (from instanceof PublicKey) {
+    return from;
+  } else if (from instanceof Keypair) {
+    return from.publicKey;
+  } else if (from instanceof Wallet) {
+    return from.publicKey;
+  } else if (from.publicKey !== undefined) {
+    return from.publicKey;
+  } else {
     throw new Error('The provider must have a public key to request airdrop');
   }
-
-  //console.log('Airdropping to', provider.publicKey.toString());
-  await confirmTransaction(
-    provider,
-    await provider.connection.requestAirdrop(provider.publicKey, 20 * LAMPORTS_PER_SOL),
-  );
 }
 
-export async function confirmTransaction(
-  provider: Provider,
-  signature: TransactionSignature,
-): Promise<RpcResponseAndContext<SignatureResult>> {
-  const latestBlockHash = await provider.connection.getLatestBlockhash();
+export class TestsHelper {
+  static readonly LOCALHOST = 'http://localhost:8899';
+  readonly connection: Connection;
 
-  return provider.connection.confirmTransaction({
-    signature,
-    blockhash: latestBlockHash.blockhash,
-    lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
-  });
-}
+  private static readonly connections: Partial<
+    Record<'processed' | 'confirmed' | 'finalized', Connection>
+  > = {};
 
-export async function keypairFromFile(path: string) {
-  return Keypair.fromSecretKey(
-    Uint8Array.from(JSON.parse(await fs.readFile(path, { encoding: 'utf8' }))),
-  );
-}
-
-export function keypairFromArray(keypair: number[]) {
-  return Keypair.fromSecretKey(Uint8Array.from(keypair));
-}
-
-/**
- *
- * @param programKeyPairPath The path to the JSON keypair.
- * @param authorityKeyPairPath The path to the program authority.
- * @param artifactPath The .so file.
- */
-export async function deployProgram(
-  programKeyPairPath: string,
-  authorityKeyPairPath: string,
-  artifactPath: string,
-) {
-  // Deploy:
-  await execAsync(
-    `solana --url ${LOCALHOST} -k ${authorityKeyPairPath} program deploy ${artifactPath} --program-id ${programKeyPairPath}`,
-  );
-
-  // Wait for deploy to be finalized. Don't remove.
-  const programId = await keypairFromFile(programKeyPairPath).then((kp) => kp.publicKey);
-  const connection = AnchorProvider.local().connection;
-  const bpfProgram = new BpfLoaderUpgradeableProgram(programId, connection);
-  const programDataAddress = bpfProgram.dataAddress;
-  let programAccount = null;
-  while (programAccount === null) {
-    programAccount = await connection.getAccountInfo(programDataAddress, 'finalized');
+  constructor(commitment: 'processed' | 'confirmed' | 'finalized' = 'processed') {
+    if (TestsHelper.connections[commitment] === undefined) {
+      TestsHelper.connections[commitment] = new Connection(LOCALHOST, commitment);
+    }
+    this.connection = TestsHelper.connections[commitment];
   }
-  //console.log('Found programAccount:', { programDataAddress, programId, programAccount });
+
+  pubkey = {
+    read: async (path: string): Promise<PublicKey> =>
+      this.keypair.read(path).then((kp) => kp.publicKey),
+    from: (bytes: number[]): PublicKey => this.keypair.from(bytes).publicKey,
+  };
+
+  keypair = {
+    read: async (path: string): Promise<Keypair> =>
+      this.keypair.from(JSON.parse(await fs.readFile(path, { encoding: 'utf8' }))),
+    from: (bytes: number[]): Keypair => Keypair.fromSecretKey(Uint8Array.from(bytes)),
+    several: (amount: number): Keypair[] => Array.from({ length: amount }).map(Keypair.generate),
+  };
+
+  provider = {
+    gen: (): AnchorProvider => this.providerFromKeypair(Keypair.generate()),
+    read: async (path: string): Promise<AnchorProvider> =>
+      this.providerFromKeypair(await this.keypair.read(path)),
+    from: (bytesOrKeypair: number[] | Keypair): AnchorProvider =>
+      this.providerFromKeypair(
+        Array.isArray(bytesOrKeypair) ? this.keypair.from(bytesOrKeypair) : bytesOrKeypair,
+      ),
+    several: (amount: number): AnchorProvider[] =>
+      Array.from({ length: amount }).map(this.provider.gen),
+  };
+
+  /** Confirms a transaction. */
+  async confirm(signature: TransactionSignature) {
+    const latestBlockHash = await this.connection.getLatestBlockhash();
+
+    return this.connection.confirmTransaction({
+      signature,
+      blockhash: latestBlockHash.blockhash,
+      lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
+    });
+  }
+
+  /** Requests airdrop to an account or several ones. */
+  async airdrop<T extends HasPublicKey | HasPublicKey[]>(to: T): Promise<T> {
+    const request = async (account: PublicKey) =>
+      this.confirm(await this.connection.requestAirdrop(account, 50 * LAMPORTS_PER_SOL));
+
+    if (Array.isArray(to)) {
+      await Promise.all(to.map((account) => request(extractPubkey(account))));
+    } else {
+      await request(extractPubkey(to));
+    }
+
+    return to;
+  }
+
+  /** Creates a new account and transfers wrapped SOL to it. */
+  async wrapSol(from: AnchorProvider, amount: number): Promise<Keypair> {
+    const tokenAccount = Keypair.generate();
+
+    const tx = new Transaction().add(
+      // Allocate account:
+      SystemProgram.createAccount({
+        fromPubkey: from.publicKey,
+        newAccountPubkey: tokenAccount.publicKey,
+        space: spl.ACCOUNT_SIZE,
+        lamports: await spl.getMinimumBalanceForRentExemptAccount(this.connection),
+        programId: spl.TOKEN_PROGRAM_ID,
+      }),
+      // Initialize token account:
+      spl.createInitializeAccountInstruction(
+        tokenAccount.publicKey,
+        spl.NATIVE_MINT,
+        from.publicKey,
+      ),
+      // Transfer SOL:
+      SystemProgram.transfer({
+        fromPubkey: from.publicKey,
+        toPubkey: tokenAccount.publicKey,
+        lamports: amount,
+      }),
+      // Move the lamports as wSOL:
+      spl.createSyncNativeInstruction(tokenAccount.publicKey),
+    );
+
+    await sendAndConfirmIxs(from, tx, [tokenAccount]);
+
+    return tokenAccount;
+  }
+
+  /** Deploys a new program. */
+  async deploy(paths: { programKeypair: string; authorityKeypair: string; binary: string }) {
+    const { programKeypair, authorityKeypair, binary } = paths;
+    const BpfProgramId = new PublicKey('BPFLoaderUpgradeab1e11111111111111111111111');
+
+    // Deploy:
+    await execAsync(
+      `solana --url ${LOCALHOST} -k ${authorityKeypair} program deploy ${binary} --program-id ${programKeypair}`,
+    );
+
+    // Wait for deploy to be finalized. Don't remove.
+    const programId = await this.pubkey.read(programKeypair);
+    const programDataAddress = PublicKey.findProgramAddressSync(
+      [programId.toBuffer()],
+      BpfProgramId,
+    )[0];
+    let programAccount: AccountInfo<Buffer> | null = null;
+    while (programAccount === null) {
+      programAccount = await this.connection.getAccountInfo(programDataAddress, 'finalized');
+    }
+    //console.log('Found programAccount:', { programDataAddress, programId, programAccount });
+  }
+
+  // PRIVATE
+
+  private providerFromKeypair(keypair: Keypair) {
+    return new AnchorProvider(this.connection, new Wallet(keypair));
+  }
+}
+
+/** Helper allowing to abstract over the Wormhole configuration (network and addresses) */
+export class WormholeContracts {
+  static Network = 'Devnet' as const;
+
+  private static core: PublicKey = PublicKey.default;
+  private static token: PublicKey;
+
+  static get coreBridge(): PublicKey {
+    WormholeContracts.init();
+    return WormholeContracts.core;
+  }
+  static get tokenBridge(): PublicKey {
+    WormholeContracts.init();
+    return WormholeContracts.token;
+  }
+  static get addresses(): Contracts {
+    WormholeContracts.init();
+    return {
+      coreBridge: WormholeContracts.core.toString(),
+      tokenBridge: WormholeContracts.token.toString(),
+    };
+  }
+
+  private static init() {
+    if (WormholeContracts.core.equals(PublicKey.default)) {
+      const anchorCfg = toml.parse(fsSync.readFileSync('./Anchor.toml', 'utf-8'));
+
+      WormholeContracts.core = new PublicKey(
+        anchorCfg.test.genesis.find((cfg: any) => cfg.name == 'wormhole-core').address,
+      );
+      WormholeContracts.token = new PublicKey(
+        anchorCfg.test.genesis.find((cfg: any) => cfg.name == 'wormhole-bridge').address,
+      );
+      //console.log('Initialized WormholeContracts with:', {
+      //  core: WormholeContracts.core.toString(),
+      //  token: WormholeContracts.token.toString(),
+      //});
+    }
+  }
 }

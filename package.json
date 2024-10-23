@@ -6,8 +6,8 @@
   "scripts": {
     "build": "yarn ./deployment build:evm:typechain; tsc --build tsconfig.json && yarn workspaces foreach --all run build",
     "build:common": "yarn ./evm build:all && yarn sdk/common build && yarn sdk/solana build && yarn sdk/evm build && yarn ./deployment build:evm && yarn ./solana build:ts",
-    "build:all-devnet": "yarn ./solana build:contract:devnet && yarn build:common",
-    "build:verifiable:all-devnet": "yarn ./solana build:contract:verifiable:devnet && yarn build:common",
+    "build:all-testnet": "yarn ./solana build:contract:testnet && yarn build:common",
+    "build:verifiable:all-testnet": "yarn ./solana build:contract:verifiable:testnet && yarn build:common",
     "build:all-mainnet": "yarn ./solana build:contract:mainnet && yarn build:common",
     "build:verifiable:all-mainnet": "yarn ./solana build:contract:verifiable:mainnet && yarn build:common",
     "clean": "yarn workspaces foreach --all --exclude ./solana run clean && yarn ./solana run clean:ts",
