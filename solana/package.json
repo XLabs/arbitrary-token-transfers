@@ -3,8 +3,8 @@
   "scripts": {
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
-    "build:contract:devnet": "anchor build -- --features testnet",
-    "build:contract:verifiable:devnet": "anchor build --verifiable -- --features testnet",
+    "build:contract:testnet": "anchor build -- --features testnet",
+    "build:contract:verifiable:testnet": "anchor build --verifiable -- --features testnet",
     "build:ts": "yarn run tsc --project ./tsconfig.json",
     "build:contract:mainnet": "anchor build",
     "build:contract:verifiable:mainnet": "anchor build --verifiable",
