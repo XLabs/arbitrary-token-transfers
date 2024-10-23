@@ -401,6 +401,7 @@ describe('Token Bridge Relayer Program', () => {
         maxFeeLamports: 100_000_000n, // 0.1SOL max
         unwrapIntent: false, // Does not matter anyway
       });
+      //const message = await unauthorizedClient.account.wormholeMessage(unauthorizedClient.publicKey, 0).fetch();
     });
   });
 });

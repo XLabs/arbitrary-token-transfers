@@ -3,10 +3,6 @@
     "programId": "AtTrxsPbTfBhC9uwwJGJbkFMux78t5EWTAXAbwUW8yC7",
     "wormholeMintAuthority": "BCD75RNBHrJJpW4dXVagL5mPjzRLnVZq4YirJdjEYMV7"
   },
-  "devnet": {
-    "programId": "AttmP2dVtvNgHhMjMqKquMSnrNJC9HxH9rXrFqZ9EDHA",
-    "wormholeMintAuthority": "rRsXLHe7sBHdyKU3KY3wbcgWvoT1Ntqudf6e9PKusgb"
-  },
   "testnet": {
     "programId": "46kv4wCpfEtLsHPDh4zm7jJb2pVdvke8Pj2ABYYJotFD",
     "wormholeMintAuthority": "8P2wAnHr2t4pAVEyJftzz7k6wuCE7aP1VugNwehzCJJY"

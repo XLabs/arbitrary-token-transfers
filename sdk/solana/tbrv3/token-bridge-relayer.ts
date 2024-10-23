@@ -75,7 +75,7 @@ export type PeerAccount = anchor.IdlAccounts<IdlType>['peerState'];
 export type SignerSequenceAccount = anchor.IdlAccounts<IdlType>['signerSequenceState'];
 export type AuthBadgeAccount = anchor.IdlAccounts<IdlType>['authBadgeState'];
 
-export type NetworkOrLocal = Network | 'Localnet';
+export type TbrNetwork = Exclude<Network, 'Devnet'> | 'Localnet';
 
 /**
  * Transforms a `UniversalAddress` into an array of numbers `number[]`.
@@ -94,7 +94,7 @@ export class SolanaTokenBridgeRelayer {
    */
   constructor(
     provider: anchor.Provider,
-    network: NetworkOrLocal,
+    network: TbrNetwork,
     programId: PublicKey,
     priceOracle: SolanaPriceOracle,
   ) {
@@ -156,10 +156,15 @@ export class SolanaTokenBridgeRelayer {
         findPda(this.program.programId, [Buffer.from('tmp'), mint.toBuffer()]),
       vaa: (vaaHash: Uint8Array) =>
         findPda(this.wormholeProgramId, [Buffer.from('PostedVAA'), vaaHash]),
-      wormholeMessage: (payer: PublicKey, payerSequence: anchor.BN) => {
+      wormholeMessage: (payer: PublicKey, payerSequence: bigint) => {
         const buf = Buffer.alloc(8);
-        buf.writeBigInt64BE(BigInt(payerSequence.toString()), 0);
-        return findPda(this.program.programId, [Buffer.from('bridged'), payer.toBuffer(), buf]);
+        buf.writeBigInt64BE(payerSequence);
+        return {
+          ...findPda(this.program.programId, [Buffer.from('bridged'), payer.toBuffer(), buf]),
+          fetch: async () => {
+            return;
+          },
+        };
       },
     };
   }
@@ -263,12 +268,13 @@ export class SolanaTokenBridgeRelayer {
     };
   }
 
-  private async payerSequenceNumber(payer: PublicKey): Promise<anchor.BN> {
+  private async payerSequenceNumber(payer: PublicKey): Promise<bigint> {
     const impl = async (payer: PublicKey) => {
       try {
-        return (await this.account.signerSequence(payer).fetch()).value;
+        const account = await this.account.signerSequence(payer).fetch();
+        return bnToBigint(account.value);
       } catch {
-        return new anchor.BN(0);
+        return 0n;
       }
     };
 
@@ -983,21 +989,18 @@ function completeWrappedTokenBridgeAccounts(params: {
 /**
  * Detects the network from a Solana connection.
  */
-async function networkFromConnection(connection: Connection): Promise<NetworkOrLocal> {
+async function networkFromConnection(connection: Connection): Promise<TbrNetwork> {
   function genesisHash(cluster: Cluster) {
     return new Connection(clusterApiUrl(cluster), 'singleGossip').getGenesisHash();
   }
-  const [mainnet, devnet, testnet] = await Promise.all([
+  const [mainnet, testnet] = await Promise.all([
     genesisHash('mainnet-beta'),
-    genesisHash('devnet'),
-    genesisHash('testnet'),
+    genesisHash('devnet'), // Wormhole's testnet = Solana devnet
   ]);
 
   switch (await connection.getGenesisHash()) {
     case mainnet:
       return 'Mainnet';
-    case devnet:
-      return 'Devnet';
     case testnet:
       return 'Testnet';
     default:
@@ -1005,12 +1008,10 @@ async function networkFromConnection(connection: Connection): Promise<NetworkOrL
   }
 }
 
-function programIdFromNetwork(network: NetworkOrLocal) {
+function programIdFromNetwork(network: TbrNetwork) {
   switch (network) {
     case 'Mainnet':
       return new PublicKey(networkConfig.mainnet.programId);
-    case 'Devnet':
-      return new PublicKey(networkConfig.devnet.programId);
     case 'Testnet':
       return new PublicKey(networkConfig.testnet.programId);
     case 'Localnet':
