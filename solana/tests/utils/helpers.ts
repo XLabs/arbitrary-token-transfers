@@ -258,7 +258,7 @@ export class TestsHelper {
 
 /** Helper allowing to abstract over the Wormhole configuration (network and addresses) */
 export class WormholeContracts {
-  static Network: 'Devnet' = 'Devnet';
+  static Network = 'Devnet' as const;
 
   private static core: PublicKey = PublicKey.default;
   private static token: PublicKey;
