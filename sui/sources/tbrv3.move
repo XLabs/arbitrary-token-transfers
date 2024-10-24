@@ -1,13 +1,24 @@
 module 0x0::TBRv3 {
 	use sui::vec_map::{Self, VecMap};
-	use sui::vec_set::{Self, VecSet};
-	use sui::coin::Coin;
 
 	const VERSION: u64 = 1;
 
-	public struct ChainState has store {
+	public struct OwnerCap has key, store {
+		id: UID,
+	}
+
+	public struct AdminCap has key, store {
+		id: UID,
+	}
+
+	public struct PeerCap has key, store {
+		id: UID,
 		chain_id: u16,
-		canonical_peer_address: address,
+		peer_address: address, // Remote address on the given chain ID
+	}
+
+	public struct ChainState has store {
+		canonical_peer: address,
 		max_gas_dropoff_micro_token: u32,
 		relayer_fee_micro_usd: u32,
 		outbound_transfers_paused: bool,
@@ -17,14 +28,9 @@ module 0x0::TBRv3 {
 		id: UID,
 		version: u64,
 
-		owner: address,
-		pending_owner: Option<address>,
 		fee_recipient: address,
 
-		// TODO: Maybe Table instead? Or an AdminCap and OwnerCap?
-		admins: VecSet<address>,
-
-		// TODO: Maybe a Table instead? Or a vector?
+		// TODO: Maybe a Table instead?
 		chains: VecMap<u16, ChainState>,
 
 		evm_transaction_gas: u64,
@@ -32,26 +38,35 @@ module 0x0::TBRv3 {
 	}
 
 	public struct Initialize has drop {
-		deployer: address,
 		owner: address,
 		fee_recipient: address,
 		evm_transaction_gas: u64,
 		evm_transaction_size: u64,
 	}
 
+	// FIXME: Probably need to take in the owner cap from the common ownership module.
 	public fun new(
 		init: Initialize,
 		ctx: &mut TxContext,
 	): State {
+		// Create owner cap for the owner.
+		transfer::transfer(
+			OwnerCap { id: object::new(ctx) },
+			init.owner,
+		);
+
+		// Create admin cap for the owner.
+		transfer::transfer(
+			AdminCap { id: object::new(ctx) },
+			init.owner,
+		);
+
+		// Create the state.
 		State {
 			id: object::new(ctx),
 			version: VERSION,
 
-			owner: init.owner,
-			pending_owner: option::none(),
 			fee_recipient: init.fee_recipient,
-
-			admins: vec_set::empty(),
 
 			chains: vec_map::empty(),
 
@@ -60,74 +75,35 @@ module 0x0::TBRv3 {
 		}
 	}
 
-	/* Roles */
-
-	/// Checks if the caller is the owner.
-	fun check_owner(state: &State, ctx: &TxContext): bool {
-		state.owner == ctx.sender()
-	}
-
-	/// Checks if the caller is an admin.
-	fun check_admin(state: &State, ctx: &TxContext): bool {
-		state.admins.contains(&ctx.sender())
-	}
-
-	/// Checks if the caller is the owner or an admin.
-	fun check_owner_or_admin(state: &State, ctx: &TxContext): bool {
-		check_owner(state, ctx) || check_admin(state, ctx)
-	}
-
-	/*
-	// TODO: These three functions need to be implemented with some kind of higher level module.
-	// so they can correctly capture the upgrade semantics
-
-	/// Updates the owner account. This needs to be either cancelled or approved.
-	public fun submit_owner_transfer_request(
-		new_owner: address,
-	): bool {
-		// Check signer is the current owner.
-		false
-	}
-
-	/// Approves the owner role transfer.
-	public fun confirm_owner_transfer_request(): bool {
-		// Check signer is the new owner.
-		false
-	}
-
-	/// The owner role transfer is cancelled by the current one.
-	public fun cancel_owner_transfer_request(): bool {
-		// Check signer is the current owner.
-		false
-	}
-	*/
-
 	/// Adds a new admin account.
+	///
+	/// # Authorization
+	///
+	/// Owner.
 	public fun add_admin(
-		state: &mut State,
+		_owner: &OwnerCap,
 		new_admin: address,
-		ctx: &TxContext,
+		ctx: &mut TxContext,
 	): bool {
-		if (!check_owner(state, ctx)) {
-			return false
-		};
+		transfer::transfer(
+			AdminCap { id: object::new(ctx) },
+			new_admin,
+		);
 
-		// Insert the new admin.
-		state.admins.insert(new_admin);
 		true
 	}
 
 	/// Removes a previously added admin account.
+	///
+	/// # Authorization
+	///
+	/// Owner or Admin.
 	public fun remove_admin(
-		state: &mut State,
-		admin_to_be_removed: address,
-		ctx: &TxContext,
+		_current_admin: &AdminCap,
+		admin_to_be_removed: AdminCap,
 	): bool {
-		if (!check_owner_or_admin(state, ctx)) {
-			return false
-		};
-
-		state.admins.remove(&admin_to_be_removed);
+		let AdminCap { id } = admin_to_be_removed;
+		id.delete();
 		true
 	}
 
@@ -139,18 +115,17 @@ module 0x0::TBRv3 {
 	///
 	/// Owner or Admin.
 	public fun register_peer(
-		state: &mut State,
+		_admin: &AdminCap,
 		chain_id: u16,
-		peer_address: address,
-		ctx: &TxContext,
+		peer_address: address, // Remote address on the given chain ID
+		ctx: &mut TxContext,
 	): bool {
-		if (!check_owner_or_admin(state, ctx)) {
-			return false
-		};
+		transfer::transfer(
+			PeerCap { id: object::new(ctx), chain_id, peer_address },
+			peer_address,
+		);
 
-		// TODO: What does this do? It seems like there is no use for anything besides the canonical peer.
-
-		false
+		true
 	}
 
 	/// Set a different peer as canonical.
@@ -160,15 +135,10 @@ module 0x0::TBRv3 {
 	/// Owner.
 	public fun update_canonical_peer(
 		state: &mut State,
-		chain_id: u16,
-		peer_address: address,
-		ctx: &TxContext,
+		_owner: &OwnerCap,
+		peer: &PeerCap,
 	): bool {
-		if (!check_owner(state, ctx)) {
-			return false
-		};
-
-		state.chains.get_mut(&chain_id).canonical_peer_address = peer_address;
+		state.chains.get_mut(&peer.chain_id).canonical_peer = peer.peer_address;
 		true
 	}
 
@@ -181,14 +151,10 @@ module 0x0::TBRv3 {
 	/// Owner or Admin.
 	public fun set_pause_for_outbound_transfers(
 		state: &mut State,
+		_admin: &AdminCap,
 		chain_id: u16,
 		paused: bool,
-		ctx: &TxContext,
 	): bool {
-		if (!check_owner_or_admin(state, ctx)) {
-			return false
-		};
-
 		state.chains.get_mut(&chain_id).outbound_transfers_paused = paused;
 		true
 	}
@@ -200,14 +166,11 @@ module 0x0::TBRv3 {
 	/// Owner or Admin.
 	public fun update_max_gas_dropoff(
 		state: &mut State,
+		_admin: &AdminCap,
 		chain_id: u16,
 		max_gas_dropoff_micro_token: u32,
 		ctx: &TxContext,
 	): bool {
-		if (!check_owner_or_admin(state, ctx)) {
-			return false
-		};
-
 		state.chains.get_mut(&chain_id).max_gas_dropoff_micro_token = max_gas_dropoff_micro_token;
 		true
 	}
@@ -220,14 +183,11 @@ module 0x0::TBRv3 {
 	/// Owner or Admin.
 	public fun update_relayer_fee(
 		state: &mut State,
+		_admin: &AdminCap,
 		chain_id: u16,
 		relayer_fee: u32,
 		ctx: &TxContext,
 	): bool {
-		if (!check_owner_or_admin(state, ctx)) {
-			return false
-		};
-
 		state.chains.get_mut(&chain_id).relayer_fee_micro_usd = relayer_fee;
 		true
 	}
@@ -242,13 +202,10 @@ module 0x0::TBRv3 {
 	// RFI: Why is this not just the owner?
 	public fun update_fee_recipient(
 		state: &mut State,
+		_admin: &AdminCap,
 		new_fee_recipient: address,
 		ctx: &TxContext,
 	): bool {
-		if (!check_owner_or_admin(state, ctx)) {
-			return false
-		};
-
 		state.fee_recipient = new_fee_recipient;
 		true
 	}
@@ -261,14 +218,11 @@ module 0x0::TBRv3 {
 	// RFI: Why is this not just the owner?
 	public fun update_evm_transaction_config(
 		state: &mut State,
+		_admin: &AdminCap,
 		evm_transaction_gas: u64,
 		evm_transaction_size: u64,
 		ctx: &TxContext,
 	): bool {
-		if (!check_owner_or_admin(state, ctx)) {
-			return false
-		};
-
 		state.evm_transaction_gas = evm_transaction_gas;
 		state.evm_transaction_size = evm_transaction_size;
 		true
