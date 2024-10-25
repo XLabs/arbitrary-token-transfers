@@ -14,7 +14,7 @@ import { wrapEthersProvider } from "../helpers/evm.js";
  *  - Add all other Tbrv3 contracts as peers
  * If no peer is registered for a chain, it will be set as the canonical peer.
  */
-evm.runOnEvms("register-peers", async (chain, signer, log) => {
+evm.runOnEvms("set-canonical-peer", async (chain, signer, log) => {
   const tbrv3ProxyAddress = new EvmAddress(getContractAddress("TbrV3Proxies", chain.chainId));
   const tbrv3 = Tbrv3.connect(
     wrapEthersProvider(signer.provider!),
@@ -23,6 +23,9 @@ evm.runOnEvms("register-peers", async (chain, signer, log) => {
     undefined,
     tbrv3ProxyAddress
   );
+
+  // WARNING: We're going to assume we have only one peer per chain in this list
+  // FIXME: create a loadCanonicalTbrPeers function and call that instead
   const peers = loadTbrPeers(chain);
 
   const queries = [];
@@ -34,15 +37,15 @@ evm.runOnEvms("register-peers", async (chain, signer, log) => {
   const isPeerResults = await tbrv3.query([{query: "ConfigQueries", queries}]);
 
   const commands = isPeerResults.filter(({result}) => !result)
-    .map(({result, query, ...rest}) => ({command: "AddPeer", ...rest} as const satisfies ConfigCommand));
+    .map(({result, query, ...rest}) => ({command: "UpdateCanonicalPeer", ...rest} as const satisfies ConfigCommand));
 
   if (commands.length === 0) {
-    log("No new peers to add.");
+    log("All canonical peers are already correct.");
     return;
   }
 
   for (const command of commands) {
-    log(`Will add peer: ${command.address} (${command.chain}) on chain ${chain.name}`);
+    log(`Will update canonical peer: ${command.address} (${command.chain}) on chain ${chain.name}`);
   }
   const partialTx = tbrv3.execTx(0n, [{ command: "ConfigCommands", commands}]);
   const { txid } = await evm.sendTx(signer, { ...partialTx, data: encoding.hex.encode(partialTx.data, true) });
