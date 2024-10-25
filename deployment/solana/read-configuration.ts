@@ -27,7 +27,7 @@ const readChainConfig: SolanaScriptCb = async function (
 
   allChainConfigs.forEach(async (config) => {
       log(`config for ${config.chainId}`, inspect(config));
-      log(`peer for ${config.chainId} is `, Buffer.from(config.canonicalPeer.address).toString('hex'));
+      log(`peer for ${config.chainId} is `,config.canonicalPeer.toString());
   });
 };
 
