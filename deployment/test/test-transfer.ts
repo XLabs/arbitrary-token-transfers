@@ -169,6 +169,7 @@ async function sendEvmTestTransaction(
       wrapEthersProvider(provider!),
       chain.network,
       chainIdToChain(chain.chainId),
+      undefined,
       tbrv3ProxyAddress
     );
     const targetChains = availableChains.filter((c) => c.name === testTransfer.toChain);
@@ -215,7 +216,7 @@ async function sendEvmTestTransaction(
             const feeEstimation = feeEstimations[0];
             log(`Fee estimation ${chain.name}->${targetChain.name}: ${inspect(feeEstimation)}`);
 
-            allAllowances = {...allAllowances, allowances};
+            allAllowances = {...allAllowances, ...allowances};
             return {
               args: {
                 method: testTransfer.tokenAddress ? 'TransferTokenWithRelay' : 'TransferGasTokenWithRelay',
@@ -389,9 +390,6 @@ function getAta(signer: Buffer, mint: PublicKey) {
   return address;
 }
 
-
-run().then(() => console.log('Done!'));
-
 const uniqueTestTransfers: TestTransfer[] = [
   // EVM to Solana and viceversa
   {
@@ -403,7 +401,7 @@ const uniqueTestTransfers: TestTransfer[] = [
     tokenChain: "Sepolia",
     fromChain: "Sepolia",
     toChain: "Solana",
-    skip: false,
+    skip: true,
   },
   {
     // case A with gas dropoff
@@ -418,17 +416,17 @@ const uniqueTestTransfers: TestTransfer[] = [
   },
   {
     // case B gas token with no gas dropoff
-    transferredAmount: '1',
+    transferredAmount: '1000000000000', 
     gasDropoffAmount: '0',
     unwrapIntent: false,
-    tokenChain: "Celo",
-    fromChain: "Celo",
+    tokenChain: "Sepolia",
+    fromChain: "Sepolia",
     toChain: "Solana",
     skip: true,
   },
   {
     // case B gas token with gas dropoff
-    transferredAmount: '1',
+    transferredAmount: '1000000000000',
     gasDropoffAmount: '0.00001',
     unwrapIntent: false,
     tokenChain: "Celo",
@@ -444,8 +442,8 @@ const uniqueTestTransfers: TestTransfer[] = [
     tokenAddress: usdcAddresses.Solana,
     tokenChain: "Solana",
     fromChain: "Solana",
-    toChain: "OptimismSepolia",
-    skip: true,
+    toChain: "Sepolia",
+    skip: false,
   },
   {
     // case C (native sol token)
@@ -512,7 +510,7 @@ const uniqueTestTransfers: TestTransfer[] = [
     tokenChain: "Sepolia",
     fromChain: "Solana",
     toChain: "Sepolia",
-    skip: false,
+    skip: true,
   },
   {
     // case E native evm token (wrapped on solana)
@@ -593,3 +591,5 @@ const uniqueTestTransfers: TestTransfer[] = [
  },
 
 ];
+
+run().then(() => console.log('Done!'));
