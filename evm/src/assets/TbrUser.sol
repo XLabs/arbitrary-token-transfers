@@ -482,6 +482,9 @@ abstract contract TbrUser is TbrBase {
       token = fromUniversalAddress(tokenOriginAddress);
     }
 
+    uint8 decimals = IERC20Metadata(token).decimals();
+    tokenAmount = deNormalizeAmount(tokenAmount, decimals);
+
     // If an unwrap is desired, unwrap and call recipient with full amount
     uint totalGasTokenAmount = gasDropoff;
     if (address(gasToken) == token && unwrapIntent && gasErc20TokenizationIsExplicit) {
@@ -599,7 +602,9 @@ library TokenBridgeVAAParser {
     dataOffset += _VAA_TOKEN_AMOUNT_SKIP;
     //we don't check the payload id because the sizes will mismatch in the end if it's not a
     //  payload 3 transfer
-    
+
+    // Note that the token amount is expressed in at most 8 decimals so
+    // you need to denormalize this amount before calling transfer functions on the token.
     (tokenAmount, dataOffset) = data.asUint256CdUnchecked(dataOffset);
     (tokenOriginAddress, dataOffset) = data.asBytes32CdUnchecked(dataOffset);
     (tokenOriginChain, dataOffset) = data.asUint16CdUnchecked(dataOffset);
