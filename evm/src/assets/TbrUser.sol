@@ -456,7 +456,7 @@ abstract contract TbrUser is TbrBase {
       uint16 tokenOriginChain,
       bytes32 tokenOriginAddress,
       address recipient,
-      uint256 tokenAmount,
+      uint256 tbNormalizedTokenAmount,
       uint32 gasDropoff,
       bool unwrapIntent,
       uint retOffset
@@ -483,7 +483,7 @@ abstract contract TbrUser is TbrBase {
     }
 
     uint8 decimals = IERC20Metadata(token).decimals();
-    tokenAmount = deNormalizeAmount(tokenAmount, decimals);
+    uint256 tokenAmount = deNormalizeAmount(tbNormalizedTokenAmount, decimals);
 
     // If an unwrap is desired, unwrap and call recipient with full amount
     uint totalGasTokenAmount = gasDropoff;
@@ -584,7 +584,7 @@ library TokenBridgeVAAParser {
     uint16 tokenOriginChain,
     bytes32 tokenOriginAddress,
     address recipient,
-    uint256 tokenAmount,
+    uint256 tbNormalizedTokenAmount,
     uint32 gasDropoff,
     bool unwrapIntent,
     uint retOffset
@@ -605,7 +605,7 @@ library TokenBridgeVAAParser {
 
     // Note that the token amount is expressed in at most 8 decimals so
     // you need to denormalize this amount before calling transfer functions on the token.
-    (tokenAmount, dataOffset) = data.asUint256CdUnchecked(dataOffset);
+    (tbNormalizedTokenAmount, dataOffset) = data.asUint256CdUnchecked(dataOffset);
     (tokenOriginAddress, dataOffset) = data.asBytes32CdUnchecked(dataOffset);
     (tokenOriginChain, dataOffset) = data.asUint16CdUnchecked(dataOffset);
     dataOffset += _VAA_TOKEN_BRIDGE_RECIPIENT_SKIP;
