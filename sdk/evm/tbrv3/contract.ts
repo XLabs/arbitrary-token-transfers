@@ -34,6 +34,7 @@ import {
   baseRelayingConfigReturnLayout,
   allowanceTokenBridgeReturnLayout,
   execParamsLayout,
+  peerAddressItem,
 } from "./layouts.js";
 import {
   AccessControlQuery,
@@ -236,7 +237,9 @@ export class Tbrv3 {
             deserializeResult(configQuery, baseFeeItem);
           else if (configQuery.query === "MaxGasDropoff")
             deserializeResult(configQuery, gasDropoffItem);
-          else //must be either "CanonicalPeer" or "FeeRecipient"
+          else if (configQuery.query === "CanonicalPeer")
+            deserializeResult(configQuery, peerAddressItem)
+          else //must be "FeeRecipient"
             deserializeResult(configQuery, evmAddressItem);
       else if (query.query === "AllowanceTokenBridge")
         deserializeResult(query, allowanceTokenBridgeReturnLayout);
