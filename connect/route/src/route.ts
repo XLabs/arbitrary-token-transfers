@@ -33,7 +33,6 @@ import {
 } from '@xlabs-xyz/arbitrary-token-transfers-definitions';
 import '@xlabs-xyz/arbitrary-token-transfers-definitions';
 
-// TODO: implement acquireMode for permit
 interface TransferOptions {
   nativeGas: number; // this is a percentage
   unwrapIntent: boolean;

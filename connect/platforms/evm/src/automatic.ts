@@ -127,7 +127,7 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
           address: params.recipient.address.toUniversalAddress(),
           chain: recipientChain,
         },
-        unwrapIntent: true, // TODO: receive as option/param?
+        unwrapIntent: true, // TODO: receive as option/param? would require UI work
       },
       feeEstimation: {
         fee,
@@ -140,8 +140,7 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
       {
         data: encoding.hex.encode(transferParams.data, true),
         to: transferParams.to,
-        // TODO: is the buffer necessary?
-        value: transferParams.value + BigInt(Math.ceil(Number(transferParams.value) * 0.05)),
+        value: transferParams.value,
         chainId: this.networkId,
       },
       this.network,
