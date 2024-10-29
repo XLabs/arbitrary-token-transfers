@@ -11,10 +11,21 @@ import { ecosystemChains, getEnv, resolveEnv } from "./env.js";
 import type { SolanaScriptCb, SolanaChainInfo } from "./interfaces.js";
 import { inspect } from "util";
 import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet.js";
+import { UniversalAddress } from "@wormhole-foundation/sdk-definitions";
+
 
 // Ensure SolanaAddress is registered
 import "@wormhole-foundation/sdk-solana";
 
+
+
+export interface ChainConfigEntry {
+  chainId: number;
+  maxGasDropoffMicroToken: number;
+  relayerFeeMicroUsd: number;
+  pausedOutboundTransfers: boolean;
+  canonicalPeer: UniversalAddress;
+};
 
 export const connectionCommitmentLevel = (process.env.SOLANA_COMMITMENT || "confirmed") as Commitment;
 export const priorityMicrolamports = process.env.PRIORITY_MICROLAMPORTS !== "undefined" ? Number(process.env.PRIORITY_MICROLAMPORTS) : 1;
@@ -40,6 +51,11 @@ export function solanaOperatingChains() {
 
 export async function runOnSolana(scriptName: string, cb: SolanaScriptCb) {
   const chains = solanaOperatingChains() as SolanaChainInfo[];
+
+  if (chains.length === 0) {
+    console.log("No operating chains entries found");
+    return;
+  }
 
   console.log(`Running script on Solana:`, scriptName);
 

@@ -366,20 +366,16 @@ export class Tbrv3 {
 
     const queryResults = await this.query([...relayFeeQueries, ...allowanceQueries]);
 
-    const ret: { allowanceQueries: Record<string, bigint>, feeEstimations: RelayingFeeReturn[] }
-      = {allowanceQueries: {}, feeEstimations: []};
+    const ret: any = {allowances: {}, feeEstimations: []};
     for (const qRes of queryResults)
       if (qRes.query === "RelayFee") {
         const {result, ...args} = qRes;
         ret.feeEstimations.push({...result, ...args});
       }
       else
-        ret.allowanceQueries[qRes.inputToken.toString()] = qRes.result;
+        ret.allowances[qRes.inputToken.toString()] = qRes.result;
 
-    return {
-      feeEstimations: [ ...ret.feeEstimations ],
-      allowances: { ...ret.allowanceQueries }
-    };
+    return ret;
   }
 }
 
