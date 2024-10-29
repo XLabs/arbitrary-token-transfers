@@ -34,6 +34,7 @@ import {
   baseRelayingConfigReturnLayout,
   allowanceTokenBridgeReturnLayout,
   execParamsLayout,
+  peerAddressItem,
 } from "./layouts.js";
 import {
   AccessControlQuery,
@@ -77,9 +78,11 @@ export interface RelayingFeeInput {
 
 export type TokenBridgeAllowances = Readonly<Record<string, bigint>>;
 
+export type FeeEstimation = RootQuery & { query: "RelayFee" } & RelayingFeeReturn;
+
 export interface RelayingFeeResult {
   allowances: TokenBridgeAllowances;
-  feeEstimations: RoArray<RootQuery & { query: "RelayFee" } & RelayingFeeReturn>;
+  feeEstimations: RoArray<FeeEstimation>;
 }
 
 export type TransferTokenWithRelayInput =
@@ -236,7 +239,9 @@ export class Tbrv3 {
             deserializeResult(configQuery, baseFeeItem);
           else if (configQuery.query === "MaxGasDropoff")
             deserializeResult(configQuery, gasDropoffItem);
-          else //must be either "CanonicalPeer" or "FeeRecipient"
+          else if (configQuery.query === "CanonicalPeer")
+            deserializeResult(configQuery, peerAddressItem)
+          else //must be "FeeRecipient"
             deserializeResult(configQuery, evmAddressItem);
       else if (query.query === "AllowanceTokenBridge")
         deserializeResult(query, allowanceTokenBridgeReturnLayout);
@@ -366,7 +371,7 @@ export class Tbrv3 {
 
     const queryResults = await this.query([...relayFeeQueries, ...allowanceQueries]);
 
-    const ret: any = {allowances: {}, feeEstimations: []};
+    const ret = {allowances: {} as Record<string, bigint>, feeEstimations: [] as FeeEstimation[]} satisfies RelayingFeeResult;
     for (const qRes of queryResults)
       if (qRes.query === "RelayFee") {
         const {result, ...args} = qRes;

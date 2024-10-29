@@ -1290,6 +1290,7 @@ contract UserTest is TbrTestBase {
     );
 
     uint decimals = IERC20Metadata(address(gasToken)).decimals();
+    uint256 denormalizedAmount = deNormalizeAmount(amount, uint8(decimals));
     uint initialRecipienGasTokenBalance = recipient.balance;
     uint initialCallerBalance = address(this).balance;
 
@@ -1297,10 +1298,10 @@ contract UserTest is TbrTestBase {
     emit ITokenBridge.TransferRedeemed(peerChain, originTokenBridge, sequence);
 
     vm.expectEmit(address(gasToken));
-    emit IERC20.Transfer(address(tokenBridge), address(tbr), deNormalizeAmount(amount, uint8(decimals)));
+    emit IERC20.Transfer(address(tokenBridge), address(tbr), denormalizedAmount);
 
     vm.expectEmit(address(gasToken));
-    emit IWETH.Withdrawal(address(tbr), amount);
+    emit IWETH.Withdrawal(address(tbr), denormalizedAmount);
 
     invokeTbr(
       abi.encodePacked(
@@ -1313,7 +1314,7 @@ contract UserTest is TbrTestBase {
     );
 
     uint finalCallerBalance = address(this).balance;
-    assertEq(recipient.balance, initialRecipienGasTokenBalance + gasDropoff + amount);
+    assertEq(recipient.balance, initialRecipienGasTokenBalance + gasDropoff + denormalizedAmount);
     assertEq(finalCallerBalance, initialCallerBalance - gasDropoff);
   } 
 
@@ -1357,6 +1358,7 @@ contract UserTest is TbrTestBase {
 
     address tokenToTransfer = tokenBridge.wrappedAsset(tokenChain, tokenAddress);
     uint decimals = IERC20Metadata(tokenToTransfer).decimals();
+    uint256 denormalizedAmount = deNormalizeAmount(amount, uint8(decimals));
     uint initialRecipienGasTokenBalance = recipient.balance;
     uint initialRecipienTransferedTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
     uint initialCallerBalance = address(this).balance;
@@ -1365,10 +1367,10 @@ contract UserTest is TbrTestBase {
     emit ITokenBridge.TransferRedeemed(peerChain, originTokenBridge, sequence);
 
     vm.expectEmit(tokenToTransfer);
-    emit IERC20.Transfer(address(0), address(tbr), deNormalizeAmount(amount, uint8(decimals)));
+    emit IERC20.Transfer(address(0), address(tbr), denormalizedAmount);
     
     vm.expectEmit(tokenToTransfer);
-    emit IERC20.Transfer(address(tbr), recipient, amount);
+    emit IERC20.Transfer(address(tbr), recipient, denormalizedAmount);
 
     invokeTbr(
       abi.encodePacked(
@@ -1384,7 +1386,7 @@ contract UserTest is TbrTestBase {
     uint finalCallerBalance = address(this).balance;
 
     assertEq(recipient.balance, initialRecipienGasTokenBalance + gasDropoff);
-    assertEq(finalRecipienTransferedTokenBalance, initialRecipienTransferedTokenBalance + amount);
+    assertEq(finalRecipienTransferedTokenBalance, initialRecipienTransferedTokenBalance + denormalizedAmount);
     assertEq(finalCallerBalance, initialCallerBalance - gasDropoff);
   }
 
