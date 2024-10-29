@@ -1,6 +1,6 @@
 {
   "name": "@xlabs-xyz/arbitrary-token-transfer-route",
-  "version": "0.0.1-alpha1",
+  "version": "0.0.1-alpha3",
   "description": "",
   "type": "module",
   "module": "ts-build/src/index.js",
@@ -34,7 +34,6 @@
     "@wormhole-foundation/sdk-base": "^0.12.0",
     "@wormhole-foundation/sdk-connect": "^0.12.0",
     "@wormhole-foundation/sdk-definitions": "^0.12.0",
-    "@wormhole-foundation/sdk-evm": "^0.12.0",
     "@xlabs-xyz/arbitrary-token-transfer-evm-route": "workspace:*",
     "@xlabs-xyz/arbitrary-token-transfer-solana-route": "workspace:*",
     "@xlabs-xyz/arbitrary-token-transfers-definitions": "workspace:*",
@@ -56,7 +55,7 @@
     "sourcemap": true,
     "minify": false,
     "clean": true,
-    "outDir": "build/src",
+    "outDir": "ts-build/src",
     "format": [
       "esm",
       "cjs"

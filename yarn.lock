@@ -2014,7 +2014,6 @@ __metadata:
     "@wormhole-foundation/sdk-base": "npm:^0.12.0"
     "@wormhole-foundation/sdk-connect": "npm:^0.12.0"
     "@wormhole-foundation/sdk-definitions": "npm:^0.12.0"
-    "@wormhole-foundation/sdk-evm": "npm:^0.12.0"
     "@xlabs-xyz/arbitrary-token-transfer-evm-route": "workspace:*"
     "@xlabs-xyz/arbitrary-token-transfer-solana-route": "workspace:*"
     "@xlabs-xyz/arbitrary-token-transfers-definitions": "workspace:*"
@@ -2053,8 +2052,6 @@ __metadata:
     "@types/node": "npm:20.14.14"
     "@wormhole-foundation/sdk-base": "npm:^0.12.0"
     "@wormhole-foundation/sdk-definitions": "npm:^0.12.0"
-    "@wormhole-foundation/sdk-evm": "npm:^0.12.0"
-    common-arbitrary-token-transfer: "workspace:*"
     ethers: "npm:^6.13.3"
     prettier: "npm:^3.3.3"
     tsup: "npm:^8.2.4"
@@ -2801,7 +2798,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"common-arbitrary-token-transfer@workspace:*, common-arbitrary-token-transfer@workspace:sdk/common":
+"common-arbitrary-token-transfer@workspace:sdk/common":
   version: 0.0.0-use.local
   resolution: "common-arbitrary-token-transfer@workspace:sdk/common"
   dependencies:
