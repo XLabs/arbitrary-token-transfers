@@ -1,5 +1,5 @@
 module 0x0::TBRv3 {
-	use sui::vec_map::{Self, VecMap};
+	use sui::table::{Self, Table};
 
 	const VERSION: u64 = 1;
 
@@ -7,12 +7,7 @@ module 0x0::TBRv3 {
 		id: UID,
 	}
 
-	public struct AdminCap has key, store {
-		id: UID,
-	}
-
-	public struct PeerCap has key, store {
-		id: UID,
+	public struct PeerAddress has copy, drop, store {
 		chain_id: u16,
 		peer_address: address, // Remote address on the given chain ID
 	}
@@ -30,8 +25,11 @@ module 0x0::TBRv3 {
 
 		fee_recipient: address,
 
-		// TODO: Maybe a Table instead?
-		chains: VecMap<u16, ChainState>,
+		chains: Table<u16, ChainState>,
+
+		// NOTE: Both of these are logically sets, but VecSet is O(n) for lookups, so we use a table instead.
+		peers: Table<PeerAddress, bool>,
+		admins: Table<address, bool>,
 
 		evm_transaction_gas: u64,
 		evm_transaction_size: u64,
@@ -44,20 +42,19 @@ module 0x0::TBRv3 {
 		evm_transaction_size: u64,
 	}
 
+	fun is_admin(state: &State, account: address): bool {
+		state.admins.contains(account)
+	}
+
 	// FIXME: Probably need to take in the owner cap from the common ownership module.
 	public fun new(
 		init: Initialize,
 		ctx: &mut TxContext,
 	): State {
 		// Create owner cap for the owner.
+		// TODO: import this from the common ownership module.
 		transfer::transfer(
 			OwnerCap { id: object::new(ctx) },
-			init.owner,
-		);
-
-		// Create admin cap for the owner.
-		transfer::transfer(
-			AdminCap { id: object::new(ctx) },
 			init.owner,
 		);
 
@@ -68,7 +65,9 @@ module 0x0::TBRv3 {
 
 			fee_recipient: init.fee_recipient,
 
-			chains: vec_map::empty(),
+			chains: table::new(ctx),
+			peers: table::new(ctx),
+			admins: table::new(ctx),
 
 			evm_transaction_gas: init.evm_transaction_gas,
 			evm_transaction_size: init.evm_transaction_size,
@@ -81,15 +80,11 @@ module 0x0::TBRv3 {
 	///
 	/// Owner.
 	public fun add_admin(
+		state: &mut State,
 		_owner: &OwnerCap,
 		new_admin: address,
-		ctx: &mut TxContext,
 	): bool {
-		transfer::transfer(
-			AdminCap { id: object::new(ctx) },
-			new_admin,
-		);
-
+		state.admins.add(new_admin, true);
 		true
 	}
 
@@ -99,11 +94,16 @@ module 0x0::TBRv3 {
 	///
 	/// Owner or Admin.
 	public fun remove_admin(
-		_current_admin: &AdminCap,
-		admin_to_be_removed: AdminCap,
+		state: &mut State,
+		admin_to_be_removed: address,
+		ctx: &TxContext,
 	): bool {
-		let AdminCap { id } = admin_to_be_removed;
-		id.delete();
+		if (!is_admin(state, ctx.sender())) {
+			return false
+		};
+
+		state.admins.remove(admin_to_be_removed);
+		
 		true
 	}
 
@@ -115,15 +115,15 @@ module 0x0::TBRv3 {
 	///
 	/// Owner or Admin.
 	public fun register_peer(
-		_admin: &AdminCap,
-		chain_id: u16,
-		peer_address: address, // Remote address on the given chain ID
-		ctx: &mut TxContext,
+		state: &mut State,
+		peer: PeerAddress,
+		ctx: &TxContext,
 	): bool {
-		transfer::transfer(
-			PeerCap { id: object::new(ctx), chain_id, peer_address },
-			peer_address,
-		);
+		if (!is_admin(state, ctx.sender())) {
+			return false
+		};
+
+		state.peers.add(peer, true);
 
 		true
 	}
@@ -136,9 +136,9 @@ module 0x0::TBRv3 {
 	public fun update_canonical_peer(
 		state: &mut State,
 		_owner: &OwnerCap,
-		peer: &PeerCap,
+		peer: PeerAddress,
 	): bool {
-		state.chains.get_mut(&peer.chain_id).canonical_peer = peer.peer_address;
+		state.chains.borrow_mut(peer.chain_id).canonical_peer = peer.peer_address;
 		true
 	}
 
@@ -151,11 +151,16 @@ module 0x0::TBRv3 {
 	/// Owner or Admin.
 	public fun set_pause_for_outbound_transfers(
 		state: &mut State,
-		_admin: &AdminCap,
 		chain_id: u16,
 		paused: bool,
+		ctx: &TxContext,
 	): bool {
-		state.chains.get_mut(&chain_id).outbound_transfers_paused = paused;
+		if (!is_admin(state, ctx.sender())) {
+			return false
+		};
+		
+		state.chains.borrow_mut(chain_id).outbound_transfers_paused = paused;
+
 		true
 	}
 
@@ -166,12 +171,16 @@ module 0x0::TBRv3 {
 	/// Owner or Admin.
 	public fun update_max_gas_dropoff(
 		state: &mut State,
-		_admin: &AdminCap,
 		chain_id: u16,
 		max_gas_dropoff_micro_token: u32,
 		ctx: &TxContext,
 	): bool {
-		state.chains.get_mut(&chain_id).max_gas_dropoff_micro_token = max_gas_dropoff_micro_token;
+		if (!is_admin(state, ctx.sender())) {
+			return false
+		};
+
+		state.chains.borrow_mut(chain_id).max_gas_dropoff_micro_token = max_gas_dropoff_micro_token;
+
 		true
 	}
 
@@ -183,12 +192,16 @@ module 0x0::TBRv3 {
 	/// Owner or Admin.
 	public fun update_relayer_fee(
 		state: &mut State,
-		_admin: &AdminCap,
 		chain_id: u16,
 		relayer_fee: u32,
 		ctx: &TxContext,
 	): bool {
-		state.chains.get_mut(&chain_id).relayer_fee_micro_usd = relayer_fee;
+		if (!is_admin(state, ctx.sender())) {
+			return false
+		};
+
+		state.chains.borrow_mut(chain_id).relayer_fee_micro_usd = relayer_fee;
+		
 		true
 	}
 
@@ -202,10 +215,13 @@ module 0x0::TBRv3 {
 	// RFI: Why is this not just the owner?
 	public fun update_fee_recipient(
 		state: &mut State,
-		_admin: &AdminCap,
 		new_fee_recipient: address,
 		ctx: &TxContext,
 	): bool {
+		if (!is_admin(state, ctx.sender())) {
+			return false
+		};
+
 		state.fee_recipient = new_fee_recipient;
 		true
 	}
@@ -218,13 +234,17 @@ module 0x0::TBRv3 {
 	// RFI: Why is this not just the owner?
 	public fun update_evm_transaction_config(
 		state: &mut State,
-		_admin: &AdminCap,
 		evm_transaction_gas: u64,
 		evm_transaction_size: u64,
 		ctx: &TxContext,
 	): bool {
+		if (!is_admin(state, ctx.sender())) {
+			return false
+		};
+
 		state.evm_transaction_gas = evm_transaction_gas;
 		state.evm_transaction_size = evm_transaction_size;
+		
 		true
 	}
 
@@ -272,10 +292,6 @@ module 0x0::TBRv3 {
 		false
 	}
 
-	*/
-
-	/* Helpers */
-
 	public struct QuoteQuery has drop {
 		chain_id: u16,
 		dropoff_in_micro_usd: u32,
@@ -289,4 +305,6 @@ module 0x0::TBRv3 {
 	): u64 {
 		0
 	}
+
+	*/
 }
