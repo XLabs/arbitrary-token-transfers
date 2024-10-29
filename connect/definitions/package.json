@@ -1,6 +1,6 @@
 {
   "name": "@xlabs-xyz/arbitrary-token-transfers-definitions",
-  "version": "0.0.1-alpha1",
+  "version": "0.0.1-alpha2",
   "description": "",
   "type": "module",
   "module": "ts-build/src/index.js",
@@ -34,7 +34,6 @@
     "@wormhole-foundation/sdk-base": "^0.12.0",
     "@wormhole-foundation/sdk-definitions": "^0.12.0",
     "@wormhole-foundation/sdk-evm": "^0.12.0",
-    "common-arbitrary-token-transfer": "workspace:*",
     "ethers": "^6.13.3"
   },
   "devDependencies": {
@@ -67,6 +66,9 @@
       "@wormhole-foundation/sdk-base",
       "@wormhole-foundation/sdk-evm",
       "ethers"
+    ],
+    "noExternal": [
+      "common-arbitrary-token-transfer"
     ]
   }
 }

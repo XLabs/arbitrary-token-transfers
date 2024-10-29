@@ -7,7 +7,10 @@
     "moduleResolution": "NodeNext",
     "lib": ["ES2023"],
     "outDir": "ts-build",
-    "rootDir": "."
+    "rootDir": ".",
+    "paths": {
+      "common-arbitrary-token-transfer": ["../../sdk/common"]
+    }
   },
   "include": ["src"],
   "references": [{ "path": "../../sdk/common" }]
