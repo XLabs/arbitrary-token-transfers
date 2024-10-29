@@ -207,14 +207,6 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
     return warnings;
   }
 
-  // private async getTokenContractAddress(srcChain: ChainContext<N>, token: TokenId): Promise<UniversalAddress> {
-  //   const address = token.address;
-  //   if (isNative(address)) {
-  //     const srcWrapped = await srcChain.getNativeWrappedTokenId();
-  //   }
-  //   return new UniversalAddress(address.);
-  // }
-
   async quote(
     request: routes.RouteTransferRequest<N>,
     params: routes.ValidatedTransferParams<ValidatedTransferOptions>,

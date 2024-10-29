@@ -6,7 +6,7 @@
   "scripts": {
     "build": "yarn ./deployment build:evm:typechain; tsc --build tsconfig.json && yarn workspaces foreach --exclude ./solana --all run build && yarn ./solana build:ts",
     "build:common": "yarn ./evm build:all && yarn sdk/common build && yarn sdk/solana build && yarn sdk/evm build && yarn ./deployment build:evm && yarn ./solana build:ts",
-    "build:all-testnet": "yarn ./solana build:contract:testnet && yarn build:common",
+    "build:all-testnet": "yarn ./solana build:contract:testnet && yarn build:connect",
     "build:verifiable:all-testnet": "yarn ./solana build:contract:verifiable:testnet && yarn build:common",
     "build:connect": "yarn build:common && yarn ./connect/definitions build && yarn ./connect/platforms/evm build && yarn ./connect/platforms/solana build && yarn ./connect/route build",
     "build:all-mainnet": "yarn ./solana build:contract:mainnet && yarn build:common",

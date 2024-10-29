@@ -61,8 +61,7 @@
       "@wormhole-foundation/sdk-solana-tokenbridge"
     ],
     "noExternal": [
-      "common-arbitrary-token-transfer",
-      "@xlabs/solana-price-oracle-sdk"
+      "common-arbitrary-token-transfer"
     ]
   }
 }
