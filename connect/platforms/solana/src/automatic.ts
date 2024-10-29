@@ -72,6 +72,7 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
   ) {
     if (!contracts.tokenBridge) throw new Error('TokenBridge contract not defined');
     if (!contracts.coreBridge) throw new Error('CoreBridge contract not defined');
+    if (network === 'Devnet') throw new Error('Devnet is not supported');
 
     const address = tokenBridgeRelayerV3Contracts.get(network, chainName);
     if (!address) throw new Error(`TokenBridge address not defined for ${network} ${chainName}`);
@@ -268,9 +269,9 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
       (totalFeesMWei * BigInt(oraclePrices.gasTokenPrice.toString())) / MWEI_PER_ETH +
       BigInt(chainConfig.relayerFeeMicroUsd.toString());
 
-    const fee = (KLAM_PER_SOL * totalFeesMicroUsd) / BigInt(oracleConfig.solPrice.toString());
+    const fee = Number(KLAM_PER_SOL * totalFeesMicroUsd) / Number(oracleConfig.solPrice.toString());
 
-    const feeInBaseUnits = BigInt((Number(fee) * LAMPORTS_PER_SOL) / 1_000_000);
+    const feeInBaseUnits = BigInt(Math.ceil((fee * LAMPORTS_PER_SOL) / 1_000_000));
 
     return {
       allowances: {},

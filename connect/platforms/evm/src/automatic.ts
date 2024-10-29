@@ -64,6 +64,7 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
     const address = tokenBridgeRelayerV3Contracts.get(network, chain);
     if (!address) throw new Error(`TokenBridgeRelayerV3 contract not defined for chain ${chain}`);
 
+    // TODO: Celo doesn't have a "native" token, it uses an ERC20 instead
     const [resolvedGasToken, gasToken] = resolveWrappedToken(network, chain, 'native');
     if (!resolvedGasToken || isNative(gasToken.address))
       throw new Error(`Failed to resolve gas token for chain ${chain}`);
