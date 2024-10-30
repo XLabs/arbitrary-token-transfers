@@ -304,7 +304,7 @@ async function sendSolanaTestTransaction(
         throw new Error(`No dependencies found for chain ${chain.chainId}`);
       }
 
-      const tbr = new SolanaTokenBridgeRelayer({ connection });
+      const tbr = await SolanaTokenBridgeRelayer.create({ connection });
 
       const evmAddress = getEnv('RECIPIENT_EVM_ADDRESS');
       const maxFeeLamports = BigInt(getEnvOrDefault('MAX_FEE_KLAMPORTS', '5000000'));

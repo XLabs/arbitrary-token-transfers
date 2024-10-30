@@ -1,3 +1,4 @@
+import { BN } from '@coral-xyz/anchor';
 import { SolanaTokenBridgeRelayer } from '@xlabs-xyz/solana-arbitrary-token-transfers';
 import { runOnSolana, ledgerSignAndSend, getConnection, SolanaSigner } from '../helpers/solana.js';
 import { SolanaChainInfo, LoggerFn } from '../helpers/interfaces.js';
