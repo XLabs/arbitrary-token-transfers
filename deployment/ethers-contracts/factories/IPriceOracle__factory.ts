@@ -7,43 +7,43 @@ import type { IPriceOracle, IPriceOracleInterface } from "../IPriceOracle";
 
 const _abi = [
   {
-    type: "function",
-    name: "checkedUpgrade",
     inputs: [
       {
+        internalType: "bytes",
         name: "data",
         type: "bytes",
-        internalType: "bytes",
       },
     ],
+    name: "checkedUpgrade",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    type: "function",
-    name: "exec768",
     inputs: [],
+    name: "exec768",
     outputs: [
       {
+        internalType: "bytes",
         name: "",
         type: "bytes",
-        internalType: "bytes",
       },
     ],
     stateMutability: "payable",
+    type: "function",
   },
   {
-    type: "function",
-    name: "get1959",
     inputs: [],
+    name: "get1959",
     outputs: [
       {
+        internalType: "bytes",
         name: "",
         type: "bytes",
-        internalType: "bytes",
       },
     ],
     stateMutability: "view",
+    type: "function",
   },
 ] as const;
 

@@ -10,38 +10,38 @@ import type {
 
 const _abi = [
   {
-    type: "function",
-    name: "onERC721Received",
     inputs: [
       {
+        internalType: "address",
         name: "_operator",
         type: "address",
-        internalType: "address",
       },
       {
+        internalType: "address",
         name: "_from",
         type: "address",
-        internalType: "address",
       },
       {
+        internalType: "uint256",
         name: "_tokenId",
         type: "uint256",
-        internalType: "uint256",
       },
       {
+        internalType: "bytes",
         name: "_data",
         type: "bytes",
-        internalType: "bytes",
       },
     ],
+    name: "onERC721Received",
     outputs: [
       {
+        internalType: "bytes4",
         name: "",
         type: "bytes4",
-        internalType: "bytes4",
       },
     ],
     stateMutability: "nonpayable",
+    type: "function",
   },
 ] as const;
 

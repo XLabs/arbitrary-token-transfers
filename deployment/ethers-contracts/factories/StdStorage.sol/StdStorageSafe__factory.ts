@@ -16,59 +16,59 @@ import type {
 
 const _abi = [
   {
-    type: "event",
-    name: "SlotFound",
+    anonymous: false,
     inputs: [
       {
-        name: "who",
-        type: "address",
         indexed: false,
         internalType: "address",
+        name: "who",
+        type: "address",
       },
       {
-        name: "fsig",
-        type: "bytes4",
         indexed: false,
         internalType: "bytes4",
+        name: "fsig",
+        type: "bytes4",
       },
       {
-        name: "keysHash",
-        type: "bytes32",
         indexed: false,
         internalType: "bytes32",
+        name: "keysHash",
+        type: "bytes32",
       },
       {
-        name: "slot",
-        type: "uint256",
         indexed: false,
         internalType: "uint256",
+        name: "slot",
+        type: "uint256",
       },
     ],
-    anonymous: false,
+    name: "SlotFound",
+    type: "event",
   },
   {
-    type: "event",
-    name: "WARNING_UninitedSlot",
+    anonymous: false,
     inputs: [
       {
-        name: "who",
-        type: "address",
         indexed: false,
         internalType: "address",
+        name: "who",
+        type: "address",
       },
       {
-        name: "slot",
-        type: "uint256",
         indexed: false,
         internalType: "uint256",
+        name: "slot",
+        type: "uint256",
       },
     ],
-    anonymous: false,
+    name: "WARNING_UninitedSlot",
+    type: "event",
   },
 ] as const;
 
 const _bytecode =
-  "0x60808060405234601757603a9081601d823930815050f35b600080fdfe600080fdfea2646970667358221220c61a5ffb26a95ee153f77ce14e7636754b1b94c2ef9f0f36649b9ec916d53ce664736f6c63430008190033";
+  "0x60808060405234601757603a9081601d823930815050f35b600080fdfe600080fdfea2646970667358221220bcb212e529340c2306769cb3d228c3240436d5599b461890e4974511b775882164736f6c63430008190033";
 
 type StdStorageSafeConstructorParams =
   | [signer?: Signer]

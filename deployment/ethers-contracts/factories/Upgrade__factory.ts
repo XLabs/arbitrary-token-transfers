@@ -7,84 +7,84 @@ import type { Upgrade, UpgradeInterface } from "../Upgrade";
 
 const _abi = [
   {
-    type: "function",
-    name: "checkedUpgrade",
-    inputs: [
-      {
-        name: "data",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [],
-    stateMutability: "payable",
-  },
-  {
-    type: "function",
-    name: "upgrade",
-    inputs: [
-      {
-        name: "implementation",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "data",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "event",
-    name: "Upgraded",
-    inputs: [
-      {
-        name: "implementation",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "error",
+    inputs: [],
     name: "IdempotentUpgrade",
-    inputs: [],
+    type: "error",
   },
   {
-    type: "error",
+    inputs: [],
     name: "InvalidData",
-    inputs: [],
+    type: "error",
   },
   {
-    type: "error",
+    inputs: [],
     name: "InvalidMsgValue",
-    inputs: [],
+    type: "error",
   },
   {
-    type: "error",
+    inputs: [],
     name: "InvalidSender",
-    inputs: [],
+    type: "error",
   },
   {
-    type: "error",
+    inputs: [],
     name: "NotAuthorized",
-    inputs: [],
+    type: "error",
   },
   {
-    type: "error",
-    name: "UpgradeFailed",
     inputs: [
       {
+        internalType: "bytes",
         name: "revertData",
         type: "bytes",
-        internalType: "bytes",
       },
     ],
+    name: "UpgradeFailed",
+    type: "error",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "implementation",
+        type: "address",
+      },
+    ],
+    name: "Upgraded",
+    type: "event",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "data",
+        type: "bytes",
+      },
+    ],
+    name: "checkedUpgrade",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "implementation",
+        type: "address",
+      },
+      {
+        internalType: "bytes",
+        name: "data",
+        type: "bytes",
+      },
+    ],
+    name: "upgrade",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
 ] as const;
 

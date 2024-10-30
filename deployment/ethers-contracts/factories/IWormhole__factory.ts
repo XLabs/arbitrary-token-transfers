@@ -7,989 +7,989 @@ import type { IWormhole, IWormholeInterface } from "../IWormhole";
 
 const _abi = [
   {
-    type: "function",
-    name: "chainId",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "uint16",
-        internalType: "uint16",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "evmChainId",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getCurrentGuardianSetIndex",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "uint32",
-        internalType: "uint32",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getGuardianSet",
+    anonymous: false,
     inputs: [
       {
+        indexed: true,
+        internalType: "address",
+        name: "oldContract",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "newContract",
+        type: "address",
+      },
+    ],
+    name: "ContractUpgraded",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "uint32",
         name: "index",
         type: "uint32",
-        internalType: "uint32",
       },
     ],
-    outputs: [
-      {
-        name: "",
-        type: "tuple",
-        internalType: "struct IWormhole.GuardianSet",
-        components: [
-          {
-            name: "keys",
-            type: "address[]",
-            internalType: "address[]",
-          },
-          {
-            name: "expirationTime",
-            type: "uint32",
-            internalType: "uint32",
-          },
-        ],
-      },
-    ],
-    stateMutability: "view",
+    name: "GuardianSetAdded",
+    type: "event",
   },
   {
-    type: "function",
-    name: "getGuardianSetExpiry",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "uint32",
-        internalType: "uint32",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "governanceActionIsConsumed",
+    anonymous: false,
     inputs: [
       {
-        name: "hash",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "governanceChainId",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "uint16",
-        internalType: "uint16",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "governanceContract",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "initialize",
-    inputs: [],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "isFork",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "isInitialized",
-    inputs: [
-      {
-        name: "impl",
-        type: "address",
+        indexed: true,
         internalType: "address",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "messageFee",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "nextSequence",
-    inputs: [
-      {
-        name: "emitter",
+        name: "sender",
         type: "address",
-        internalType: "address",
       },
-    ],
-    outputs: [
       {
-        name: "",
-        type: "uint64",
+        indexed: false,
         internalType: "uint64",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "parseAndVerifyVM",
-    inputs: [
-      {
-        name: "encodedVM",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [
-      {
-        name: "vm",
-        type: "tuple",
-        internalType: "struct IWormhole.VM",
-        components: [
-          {
-            name: "version",
-            type: "uint8",
-            internalType: "uint8",
-          },
-          {
-            name: "timestamp",
-            type: "uint32",
-            internalType: "uint32",
-          },
-          {
-            name: "nonce",
-            type: "uint32",
-            internalType: "uint32",
-          },
-          {
-            name: "emitterChainId",
-            type: "uint16",
-            internalType: "uint16",
-          },
-          {
-            name: "emitterAddress",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-          {
-            name: "sequence",
-            type: "uint64",
-            internalType: "uint64",
-          },
-          {
-            name: "consistencyLevel",
-            type: "uint8",
-            internalType: "uint8",
-          },
-          {
-            name: "payload",
-            type: "bytes",
-            internalType: "bytes",
-          },
-          {
-            name: "guardianSetIndex",
-            type: "uint32",
-            internalType: "uint32",
-          },
-          {
-            name: "signatures",
-            type: "tuple[]",
-            internalType: "struct IWormhole.Signature[]",
-            components: [
-              {
-                name: "r",
-                type: "bytes32",
-                internalType: "bytes32",
-              },
-              {
-                name: "s",
-                type: "bytes32",
-                internalType: "bytes32",
-              },
-              {
-                name: "v",
-                type: "uint8",
-                internalType: "uint8",
-              },
-              {
-                name: "guardianIndex",
-                type: "uint8",
-                internalType: "uint8",
-              },
-            ],
-          },
-          {
-            name: "hash",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-        ],
-      },
-      {
-        name: "valid",
-        type: "bool",
-        internalType: "bool",
-      },
-      {
-        name: "reason",
-        type: "string",
-        internalType: "string",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "parseContractUpgrade",
-    inputs: [
-      {
-        name: "encodedUpgrade",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [
-      {
-        name: "cu",
-        type: "tuple",
-        internalType: "struct IWormhole.ContractUpgrade",
-        components: [
-          {
-            name: "module",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-          {
-            name: "action",
-            type: "uint8",
-            internalType: "uint8",
-          },
-          {
-            name: "chain",
-            type: "uint16",
-            internalType: "uint16",
-          },
-          {
-            name: "newContract",
-            type: "address",
-            internalType: "address",
-          },
-        ],
-      },
-    ],
-    stateMutability: "pure",
-  },
-  {
-    type: "function",
-    name: "parseGuardianSetUpgrade",
-    inputs: [
-      {
-        name: "encodedUpgrade",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [
-      {
-        name: "gsu",
-        type: "tuple",
-        internalType: "struct IWormhole.GuardianSetUpgrade",
-        components: [
-          {
-            name: "module",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-          {
-            name: "action",
-            type: "uint8",
-            internalType: "uint8",
-          },
-          {
-            name: "chain",
-            type: "uint16",
-            internalType: "uint16",
-          },
-          {
-            name: "newGuardianSet",
-            type: "tuple",
-            internalType: "struct IWormhole.GuardianSet",
-            components: [
-              {
-                name: "keys",
-                type: "address[]",
-                internalType: "address[]",
-              },
-              {
-                name: "expirationTime",
-                type: "uint32",
-                internalType: "uint32",
-              },
-            ],
-          },
-          {
-            name: "newGuardianSetIndex",
-            type: "uint32",
-            internalType: "uint32",
-          },
-        ],
-      },
-    ],
-    stateMutability: "pure",
-  },
-  {
-    type: "function",
-    name: "parseRecoverChainId",
-    inputs: [
-      {
-        name: "encodedRecoverChainId",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [
-      {
-        name: "rci",
-        type: "tuple",
-        internalType: "struct IWormhole.RecoverChainId",
-        components: [
-          {
-            name: "module",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-          {
-            name: "action",
-            type: "uint8",
-            internalType: "uint8",
-          },
-          {
-            name: "evmChainId",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "newChainId",
-            type: "uint16",
-            internalType: "uint16",
-          },
-        ],
-      },
-    ],
-    stateMutability: "pure",
-  },
-  {
-    type: "function",
-    name: "parseSetMessageFee",
-    inputs: [
-      {
-        name: "encodedSetMessageFee",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [
-      {
-        name: "smf",
-        type: "tuple",
-        internalType: "struct IWormhole.SetMessageFee",
-        components: [
-          {
-            name: "module",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-          {
-            name: "action",
-            type: "uint8",
-            internalType: "uint8",
-          },
-          {
-            name: "chain",
-            type: "uint16",
-            internalType: "uint16",
-          },
-          {
-            name: "messageFee",
-            type: "uint256",
-            internalType: "uint256",
-          },
-        ],
-      },
-    ],
-    stateMutability: "pure",
-  },
-  {
-    type: "function",
-    name: "parseTransferFees",
-    inputs: [
-      {
-        name: "encodedTransferFees",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [
-      {
-        name: "tf",
-        type: "tuple",
-        internalType: "struct IWormhole.TransferFees",
-        components: [
-          {
-            name: "module",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-          {
-            name: "action",
-            type: "uint8",
-            internalType: "uint8",
-          },
-          {
-            name: "chain",
-            type: "uint16",
-            internalType: "uint16",
-          },
-          {
-            name: "amount",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "recipient",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-        ],
-      },
-    ],
-    stateMutability: "pure",
-  },
-  {
-    type: "function",
-    name: "parseVM",
-    inputs: [
-      {
-        name: "encodedVM",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [
-      {
-        name: "vm",
-        type: "tuple",
-        internalType: "struct IWormhole.VM",
-        components: [
-          {
-            name: "version",
-            type: "uint8",
-            internalType: "uint8",
-          },
-          {
-            name: "timestamp",
-            type: "uint32",
-            internalType: "uint32",
-          },
-          {
-            name: "nonce",
-            type: "uint32",
-            internalType: "uint32",
-          },
-          {
-            name: "emitterChainId",
-            type: "uint16",
-            internalType: "uint16",
-          },
-          {
-            name: "emitterAddress",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-          {
-            name: "sequence",
-            type: "uint64",
-            internalType: "uint64",
-          },
-          {
-            name: "consistencyLevel",
-            type: "uint8",
-            internalType: "uint8",
-          },
-          {
-            name: "payload",
-            type: "bytes",
-            internalType: "bytes",
-          },
-          {
-            name: "guardianSetIndex",
-            type: "uint32",
-            internalType: "uint32",
-          },
-          {
-            name: "signatures",
-            type: "tuple[]",
-            internalType: "struct IWormhole.Signature[]",
-            components: [
-              {
-                name: "r",
-                type: "bytes32",
-                internalType: "bytes32",
-              },
-              {
-                name: "s",
-                type: "bytes32",
-                internalType: "bytes32",
-              },
-              {
-                name: "v",
-                type: "uint8",
-                internalType: "uint8",
-              },
-              {
-                name: "guardianIndex",
-                type: "uint8",
-                internalType: "uint8",
-              },
-            ],
-          },
-          {
-            name: "hash",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-        ],
-      },
-    ],
-    stateMutability: "pure",
-  },
-  {
-    type: "function",
-    name: "publishMessage",
-    inputs: [
-      {
-        name: "nonce",
-        type: "uint32",
-        internalType: "uint32",
-      },
-      {
-        name: "payload",
-        type: "bytes",
-        internalType: "bytes",
-      },
-      {
-        name: "consistencyLevel",
-        type: "uint8",
-        internalType: "uint8",
-      },
-    ],
-    outputs: [
-      {
         name: "sequence",
         type: "uint64",
+      },
+      {
+        indexed: false,
+        internalType: "uint32",
+        name: "nonce",
+        type: "uint32",
+      },
+      {
+        indexed: false,
+        internalType: "bytes",
+        name: "payload",
+        type: "bytes",
+      },
+      {
+        indexed: false,
+        internalType: "uint8",
+        name: "consistencyLevel",
+        type: "uint8",
+      },
+    ],
+    name: "LogMessagePublished",
+    type: "event",
+  },
+  {
+    inputs: [],
+    name: "chainId",
+    outputs: [
+      {
+        internalType: "uint16",
+        name: "",
+        type: "uint16",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "evmChainId",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getCurrentGuardianSetIndex",
+    outputs: [
+      {
+        internalType: "uint32",
+        name: "",
+        type: "uint32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint32",
+        name: "index",
+        type: "uint32",
+      },
+    ],
+    name: "getGuardianSet",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "address[]",
+            name: "keys",
+            type: "address[]",
+          },
+          {
+            internalType: "uint32",
+            name: "expirationTime",
+            type: "uint32",
+          },
+        ],
+        internalType: "struct IWormhole.GuardianSet",
+        name: "",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getGuardianSetExpiry",
+    outputs: [
+      {
+        internalType: "uint32",
+        name: "",
+        type: "uint32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "hash",
+        type: "bytes32",
+      },
+    ],
+    name: "governanceActionIsConsumed",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "governanceChainId",
+    outputs: [
+      {
+        internalType: "uint16",
+        name: "",
+        type: "uint16",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "governanceContract",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "initialize",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "isFork",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "impl",
+        type: "address",
+      },
+    ],
+    name: "isInitialized",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "messageFee",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "emitter",
+        type: "address",
+      },
+    ],
+    name: "nextSequence",
+    outputs: [
+      {
         internalType: "uint64",
+        name: "",
+        type: "uint64",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "encodedVM",
+        type: "bytes",
+      },
+    ],
+    name: "parseAndVerifyVM",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "uint8",
+            name: "version",
+            type: "uint8",
+          },
+          {
+            internalType: "uint32",
+            name: "timestamp",
+            type: "uint32",
+          },
+          {
+            internalType: "uint32",
+            name: "nonce",
+            type: "uint32",
+          },
+          {
+            internalType: "uint16",
+            name: "emitterChainId",
+            type: "uint16",
+          },
+          {
+            internalType: "bytes32",
+            name: "emitterAddress",
+            type: "bytes32",
+          },
+          {
+            internalType: "uint64",
+            name: "sequence",
+            type: "uint64",
+          },
+          {
+            internalType: "uint8",
+            name: "consistencyLevel",
+            type: "uint8",
+          },
+          {
+            internalType: "bytes",
+            name: "payload",
+            type: "bytes",
+          },
+          {
+            internalType: "uint32",
+            name: "guardianSetIndex",
+            type: "uint32",
+          },
+          {
+            components: [
+              {
+                internalType: "bytes32",
+                name: "r",
+                type: "bytes32",
+              },
+              {
+                internalType: "bytes32",
+                name: "s",
+                type: "bytes32",
+              },
+              {
+                internalType: "uint8",
+                name: "v",
+                type: "uint8",
+              },
+              {
+                internalType: "uint8",
+                name: "guardianIndex",
+                type: "uint8",
+              },
+            ],
+            internalType: "struct IWormhole.Signature[]",
+            name: "signatures",
+            type: "tuple[]",
+          },
+          {
+            internalType: "bytes32",
+            name: "hash",
+            type: "bytes32",
+          },
+        ],
+        internalType: "struct IWormhole.VM",
+        name: "vm",
+        type: "tuple",
+      },
+      {
+        internalType: "bool",
+        name: "valid",
+        type: "bool",
+      },
+      {
+        internalType: "string",
+        name: "reason",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "encodedUpgrade",
+        type: "bytes",
+      },
+    ],
+    name: "parseContractUpgrade",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "bytes32",
+            name: "module",
+            type: "bytes32",
+          },
+          {
+            internalType: "uint8",
+            name: "action",
+            type: "uint8",
+          },
+          {
+            internalType: "uint16",
+            name: "chain",
+            type: "uint16",
+          },
+          {
+            internalType: "address",
+            name: "newContract",
+            type: "address",
+          },
+        ],
+        internalType: "struct IWormhole.ContractUpgrade",
+        name: "cu",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "encodedUpgrade",
+        type: "bytes",
+      },
+    ],
+    name: "parseGuardianSetUpgrade",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "bytes32",
+            name: "module",
+            type: "bytes32",
+          },
+          {
+            internalType: "uint8",
+            name: "action",
+            type: "uint8",
+          },
+          {
+            internalType: "uint16",
+            name: "chain",
+            type: "uint16",
+          },
+          {
+            components: [
+              {
+                internalType: "address[]",
+                name: "keys",
+                type: "address[]",
+              },
+              {
+                internalType: "uint32",
+                name: "expirationTime",
+                type: "uint32",
+              },
+            ],
+            internalType: "struct IWormhole.GuardianSet",
+            name: "newGuardianSet",
+            type: "tuple",
+          },
+          {
+            internalType: "uint32",
+            name: "newGuardianSetIndex",
+            type: "uint32",
+          },
+        ],
+        internalType: "struct IWormhole.GuardianSetUpgrade",
+        name: "gsu",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "encodedRecoverChainId",
+        type: "bytes",
+      },
+    ],
+    name: "parseRecoverChainId",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "bytes32",
+            name: "module",
+            type: "bytes32",
+          },
+          {
+            internalType: "uint8",
+            name: "action",
+            type: "uint8",
+          },
+          {
+            internalType: "uint256",
+            name: "evmChainId",
+            type: "uint256",
+          },
+          {
+            internalType: "uint16",
+            name: "newChainId",
+            type: "uint16",
+          },
+        ],
+        internalType: "struct IWormhole.RecoverChainId",
+        name: "rci",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "encodedSetMessageFee",
+        type: "bytes",
+      },
+    ],
+    name: "parseSetMessageFee",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "bytes32",
+            name: "module",
+            type: "bytes32",
+          },
+          {
+            internalType: "uint8",
+            name: "action",
+            type: "uint8",
+          },
+          {
+            internalType: "uint16",
+            name: "chain",
+            type: "uint16",
+          },
+          {
+            internalType: "uint256",
+            name: "messageFee",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct IWormhole.SetMessageFee",
+        name: "smf",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "encodedTransferFees",
+        type: "bytes",
+      },
+    ],
+    name: "parseTransferFees",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "bytes32",
+            name: "module",
+            type: "bytes32",
+          },
+          {
+            internalType: "uint8",
+            name: "action",
+            type: "uint8",
+          },
+          {
+            internalType: "uint16",
+            name: "chain",
+            type: "uint16",
+          },
+          {
+            internalType: "uint256",
+            name: "amount",
+            type: "uint256",
+          },
+          {
+            internalType: "bytes32",
+            name: "recipient",
+            type: "bytes32",
+          },
+        ],
+        internalType: "struct IWormhole.TransferFees",
+        name: "tf",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "encodedVM",
+        type: "bytes",
+      },
+    ],
+    name: "parseVM",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "uint8",
+            name: "version",
+            type: "uint8",
+          },
+          {
+            internalType: "uint32",
+            name: "timestamp",
+            type: "uint32",
+          },
+          {
+            internalType: "uint32",
+            name: "nonce",
+            type: "uint32",
+          },
+          {
+            internalType: "uint16",
+            name: "emitterChainId",
+            type: "uint16",
+          },
+          {
+            internalType: "bytes32",
+            name: "emitterAddress",
+            type: "bytes32",
+          },
+          {
+            internalType: "uint64",
+            name: "sequence",
+            type: "uint64",
+          },
+          {
+            internalType: "uint8",
+            name: "consistencyLevel",
+            type: "uint8",
+          },
+          {
+            internalType: "bytes",
+            name: "payload",
+            type: "bytes",
+          },
+          {
+            internalType: "uint32",
+            name: "guardianSetIndex",
+            type: "uint32",
+          },
+          {
+            components: [
+              {
+                internalType: "bytes32",
+                name: "r",
+                type: "bytes32",
+              },
+              {
+                internalType: "bytes32",
+                name: "s",
+                type: "bytes32",
+              },
+              {
+                internalType: "uint8",
+                name: "v",
+                type: "uint8",
+              },
+              {
+                internalType: "uint8",
+                name: "guardianIndex",
+                type: "uint8",
+              },
+            ],
+            internalType: "struct IWormhole.Signature[]",
+            name: "signatures",
+            type: "tuple[]",
+          },
+          {
+            internalType: "bytes32",
+            name: "hash",
+            type: "bytes32",
+          },
+        ],
+        internalType: "struct IWormhole.VM",
+        name: "vm",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint32",
+        name: "nonce",
+        type: "uint32",
+      },
+      {
+        internalType: "bytes",
+        name: "payload",
+        type: "bytes",
+      },
+      {
+        internalType: "uint8",
+        name: "consistencyLevel",
+        type: "uint8",
+      },
+    ],
+    name: "publishMessage",
+    outputs: [
+      {
+        internalType: "uint64",
+        name: "sequence",
+        type: "uint64",
       },
     ],
     stateMutability: "payable",
+    type: "function",
   },
   {
-    type: "function",
-    name: "quorum",
     inputs: [
       {
+        internalType: "uint256",
         name: "numGuardians",
         type: "uint256",
-        internalType: "uint256",
       },
     ],
+    name: "quorum",
     outputs: [
       {
+        internalType: "uint256",
         name: "numSignaturesRequiredForQuorum",
         type: "uint256",
-        internalType: "uint256",
       },
     ],
     stateMutability: "pure",
+    type: "function",
   },
   {
-    type: "function",
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "_vm",
+        type: "bytes",
+      },
+    ],
     name: "submitContractUpgrade",
-    inputs: [
-      {
-        name: "_vm",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    type: "function",
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "_vm",
+        type: "bytes",
+      },
+    ],
     name: "submitNewGuardianSet",
-    inputs: [
-      {
-        name: "_vm",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    type: "function",
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "_vm",
+        type: "bytes",
+      },
+    ],
     name: "submitRecoverChainId",
-    inputs: [
-      {
-        name: "_vm",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    type: "function",
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "_vm",
+        type: "bytes",
+      },
+    ],
     name: "submitSetMessageFee",
-    inputs: [
-      {
-        name: "_vm",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    type: "function",
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "_vm",
+        type: "bytes",
+      },
+    ],
     name: "submitTransferFees",
-    inputs: [
-      {
-        name: "_vm",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    type: "function",
-    name: "verifySignatures",
     inputs: [
       {
+        internalType: "bytes32",
         name: "hash",
         type: "bytes32",
-        internalType: "bytes32",
       },
       {
-        name: "signatures",
-        type: "tuple[]",
-        internalType: "struct IWormhole.Signature[]",
         components: [
           {
+            internalType: "bytes32",
             name: "r",
             type: "bytes32",
-            internalType: "bytes32",
           },
           {
+            internalType: "bytes32",
             name: "s",
             type: "bytes32",
-            internalType: "bytes32",
           },
           {
+            internalType: "uint8",
             name: "v",
             type: "uint8",
-            internalType: "uint8",
           },
           {
+            internalType: "uint8",
             name: "guardianIndex",
             type: "uint8",
-            internalType: "uint8",
           },
         ],
+        internalType: "struct IWormhole.Signature[]",
+        name: "signatures",
+        type: "tuple[]",
       },
       {
-        name: "guardianSet",
-        type: "tuple",
-        internalType: "struct IWormhole.GuardianSet",
         components: [
           {
+            internalType: "address[]",
             name: "keys",
             type: "address[]",
-            internalType: "address[]",
           },
           {
+            internalType: "uint32",
             name: "expirationTime",
             type: "uint32",
-            internalType: "uint32",
           },
         ],
+        internalType: "struct IWormhole.GuardianSet",
+        name: "guardianSet",
+        type: "tuple",
       },
     ],
+    name: "verifySignatures",
     outputs: [
       {
+        internalType: "bool",
         name: "valid",
         type: "bool",
-        internalType: "bool",
       },
       {
+        internalType: "string",
         name: "reason",
         type: "string",
-        internalType: "string",
       },
     ],
     stateMutability: "pure",
+    type: "function",
   },
   {
-    type: "function",
-    name: "verifyVM",
     inputs: [
       {
-        name: "vm",
-        type: "tuple",
-        internalType: "struct IWormhole.VM",
         components: [
           {
+            internalType: "uint8",
             name: "version",
             type: "uint8",
-            internalType: "uint8",
           },
           {
+            internalType: "uint32",
             name: "timestamp",
             type: "uint32",
-            internalType: "uint32",
           },
           {
+            internalType: "uint32",
             name: "nonce",
             type: "uint32",
-            internalType: "uint32",
           },
           {
+            internalType: "uint16",
             name: "emitterChainId",
             type: "uint16",
-            internalType: "uint16",
           },
           {
+            internalType: "bytes32",
             name: "emitterAddress",
             type: "bytes32",
-            internalType: "bytes32",
           },
           {
+            internalType: "uint64",
             name: "sequence",
             type: "uint64",
-            internalType: "uint64",
           },
           {
+            internalType: "uint8",
             name: "consistencyLevel",
             type: "uint8",
-            internalType: "uint8",
           },
           {
+            internalType: "bytes",
             name: "payload",
             type: "bytes",
-            internalType: "bytes",
           },
           {
+            internalType: "uint32",
             name: "guardianSetIndex",
             type: "uint32",
-            internalType: "uint32",
           },
           {
-            name: "signatures",
-            type: "tuple[]",
-            internalType: "struct IWormhole.Signature[]",
             components: [
               {
+                internalType: "bytes32",
                 name: "r",
                 type: "bytes32",
-                internalType: "bytes32",
               },
               {
+                internalType: "bytes32",
                 name: "s",
                 type: "bytes32",
-                internalType: "bytes32",
               },
               {
+                internalType: "uint8",
                 name: "v",
                 type: "uint8",
-                internalType: "uint8",
               },
               {
+                internalType: "uint8",
                 name: "guardianIndex",
                 type: "uint8",
-                internalType: "uint8",
               },
             ],
+            internalType: "struct IWormhole.Signature[]",
+            name: "signatures",
+            type: "tuple[]",
           },
           {
+            internalType: "bytes32",
             name: "hash",
             type: "bytes32",
-            internalType: "bytes32",
           },
         ],
+        internalType: "struct IWormhole.VM",
+        name: "vm",
+        type: "tuple",
       },
     ],
+    name: "verifyVM",
     outputs: [
       {
+        internalType: "bool",
         name: "valid",
         type: "bool",
-        internalType: "bool",
       },
       {
+        internalType: "string",
         name: "reason",
         type: "string",
-        internalType: "string",
       },
     ],
     stateMutability: "view",
-  },
-  {
-    type: "event",
-    name: "ContractUpgraded",
-    inputs: [
-      {
-        name: "oldContract",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-      {
-        name: "newContract",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
-    name: "GuardianSetAdded",
-    inputs: [
-      {
-        name: "index",
-        type: "uint32",
-        indexed: true,
-        internalType: "uint32",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
-    name: "LogMessagePublished",
-    inputs: [
-      {
-        name: "sender",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-      {
-        name: "sequence",
-        type: "uint64",
-        indexed: false,
-        internalType: "uint64",
-      },
-      {
-        name: "nonce",
-        type: "uint32",
-        indexed: false,
-        internalType: "uint32",
-      },
-      {
-        name: "payload",
-        type: "bytes",
-        indexed: false,
-        internalType: "bytes",
-      },
-      {
-        name: "consistencyLevel",
-        type: "uint8",
-        indexed: false,
-        internalType: "uint8",
-      },
-    ],
-    anonymous: false,
+    type: "function",
   },
 ] as const;
 

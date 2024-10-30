@@ -7,1183 +7,1183 @@ import type { ITokenBridge, ITokenBridgeInterface } from "../ITokenBridge";
 
 const _abi = [
   {
-    type: "function",
-    name: "WETH",
-    inputs: [],
-    outputs: [
+    anonymous: false,
+    inputs: [
       {
-        name: "",
-        type: "address",
+        indexed: true,
         internalType: "address",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "_parseTransferCommon",
-    inputs: [
-      {
-        name: "encoded",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [
-      {
-        name: "transfer",
-        type: "tuple",
-        internalType: "struct ITokenBridge.Transfer",
-        components: [
-          {
-            name: "payloadID",
-            type: "uint8",
-            internalType: "uint8",
-          },
-          {
-            name: "amount",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "tokenAddress",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-          {
-            name: "tokenChain",
-            type: "uint16",
-            internalType: "uint16",
-          },
-          {
-            name: "to",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-          {
-            name: "toChain",
-            type: "uint16",
-            internalType: "uint16",
-          },
-          {
-            name: "fee",
-            type: "uint256",
-            internalType: "uint256",
-          },
-        ],
-      },
-    ],
-    stateMutability: "pure",
-  },
-  {
-    type: "function",
-    name: "attestToken",
-    inputs: [
-      {
-        name: "tokenAddress",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "nonce",
-        type: "uint32",
-        internalType: "uint32",
-      },
-    ],
-    outputs: [
-      {
-        name: "sequence",
-        type: "uint64",
-        internalType: "uint64",
-      },
-    ],
-    stateMutability: "payable",
-  },
-  {
-    type: "function",
-    name: "bridgeContracts",
-    inputs: [
-      {
-        name: "chainId_",
-        type: "uint16",
-        internalType: "uint16",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "chainId",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "uint16",
-        internalType: "uint16",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "completeTransfer",
-    inputs: [
-      {
-        name: "encodedVm",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "completeTransferAndUnwrapETH",
-    inputs: [
-      {
-        name: "encodedVm",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "completeTransferAndUnwrapETHWithPayload",
-    inputs: [
-      {
-        name: "encodedVm",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "completeTransferWithPayload",
-    inputs: [
-      {
-        name: "encodedVm",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "createWrapped",
-    inputs: [
-      {
-        name: "encodedVm",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [
-      {
-        name: "token",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "encodeAssetMeta",
-    inputs: [
-      {
-        name: "meta",
-        type: "tuple",
-        internalType: "struct ITokenBridge.AssetMeta",
-        components: [
-          {
-            name: "payloadID",
-            type: "uint8",
-            internalType: "uint8",
-          },
-          {
-            name: "tokenAddress",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-          {
-            name: "tokenChain",
-            type: "uint16",
-            internalType: "uint16",
-          },
-          {
-            name: "decimals",
-            type: "uint8",
-            internalType: "uint8",
-          },
-          {
-            name: "symbol",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-          {
-            name: "name",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-        ],
-      },
-    ],
-    outputs: [
-      {
-        name: "encoded",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    stateMutability: "pure",
-  },
-  {
-    type: "function",
-    name: "encodeTransfer",
-    inputs: [
-      {
-        name: "transfer",
-        type: "tuple",
-        internalType: "struct ITokenBridge.Transfer",
-        components: [
-          {
-            name: "payloadID",
-            type: "uint8",
-            internalType: "uint8",
-          },
-          {
-            name: "amount",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "tokenAddress",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-          {
-            name: "tokenChain",
-            type: "uint16",
-            internalType: "uint16",
-          },
-          {
-            name: "to",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-          {
-            name: "toChain",
-            type: "uint16",
-            internalType: "uint16",
-          },
-          {
-            name: "fee",
-            type: "uint256",
-            internalType: "uint256",
-          },
-        ],
-      },
-    ],
-    outputs: [
-      {
-        name: "encoded",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    stateMutability: "pure",
-  },
-  {
-    type: "function",
-    name: "encodeTransferWithPayload",
-    inputs: [
-      {
-        name: "transfer",
-        type: "tuple",
-        internalType: "struct ITokenBridge.TransferWithPayload",
-        components: [
-          {
-            name: "payloadID",
-            type: "uint8",
-            internalType: "uint8",
-          },
-          {
-            name: "amount",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "tokenAddress",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-          {
-            name: "tokenChain",
-            type: "uint16",
-            internalType: "uint16",
-          },
-          {
-            name: "to",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-          {
-            name: "toChain",
-            type: "uint16",
-            internalType: "uint16",
-          },
-          {
-            name: "fromAddress",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-          {
-            name: "payload",
-            type: "bytes",
-            internalType: "bytes",
-          },
-        ],
-      },
-    ],
-    outputs: [
-      {
-        name: "encoded",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    stateMutability: "pure",
-  },
-  {
-    type: "function",
-    name: "evmChainId",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "finality",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "uint8",
-        internalType: "uint8",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "governanceActionIsConsumed",
-    inputs: [
-      {
-        name: "hash",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "governanceChainId",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "uint16",
-        internalType: "uint16",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "governanceContract",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "implementation",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "initialize",
-    inputs: [],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "isFork",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "isInitialized",
-    inputs: [
-      {
-        name: "impl",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "isTransferCompleted",
-    inputs: [
-      {
-        name: "hash",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "isWrappedAsset",
-    inputs: [
-      {
-        name: "token",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "outstandingBridged",
-    inputs: [
-      {
-        name: "token",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "parseAssetMeta",
-    inputs: [
-      {
-        name: "encoded",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [
-      {
-        name: "meta",
-        type: "tuple",
-        internalType: "struct ITokenBridge.AssetMeta",
-        components: [
-          {
-            name: "payloadID",
-            type: "uint8",
-            internalType: "uint8",
-          },
-          {
-            name: "tokenAddress",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-          {
-            name: "tokenChain",
-            type: "uint16",
-            internalType: "uint16",
-          },
-          {
-            name: "decimals",
-            type: "uint8",
-            internalType: "uint8",
-          },
-          {
-            name: "symbol",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-          {
-            name: "name",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-        ],
-      },
-    ],
-    stateMutability: "pure",
-  },
-  {
-    type: "function",
-    name: "parsePayloadID",
-    inputs: [
-      {
-        name: "encoded",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [
-      {
-        name: "payloadID",
-        type: "uint8",
-        internalType: "uint8",
-      },
-    ],
-    stateMutability: "pure",
-  },
-  {
-    type: "function",
-    name: "parseRecoverChainId",
-    inputs: [
-      {
-        name: "encodedRecoverChainId",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [
-      {
-        name: "rci",
-        type: "tuple",
-        internalType: "struct ITokenBridge.RecoverChainId",
-        components: [
-          {
-            name: "module",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-          {
-            name: "action",
-            type: "uint8",
-            internalType: "uint8",
-          },
-          {
-            name: "evmChainId",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "newChainId",
-            type: "uint16",
-            internalType: "uint16",
-          },
-        ],
-      },
-    ],
-    stateMutability: "pure",
-  },
-  {
-    type: "function",
-    name: "parseRegisterChain",
-    inputs: [
-      {
-        name: "encoded",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [
-      {
-        name: "chain",
-        type: "tuple",
-        internalType: "struct ITokenBridge.RegisterChain",
-        components: [
-          {
-            name: "module",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-          {
-            name: "action",
-            type: "uint8",
-            internalType: "uint8",
-          },
-          {
-            name: "chainId",
-            type: "uint16",
-            internalType: "uint16",
-          },
-          {
-            name: "emitterChainID",
-            type: "uint16",
-            internalType: "uint16",
-          },
-          {
-            name: "emitterAddress",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-        ],
-      },
-    ],
-    stateMutability: "pure",
-  },
-  {
-    type: "function",
-    name: "parseTransfer",
-    inputs: [
-      {
-        name: "encoded",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [
-      {
-        name: "transfer",
-        type: "tuple",
-        internalType: "struct ITokenBridge.Transfer",
-        components: [
-          {
-            name: "payloadID",
-            type: "uint8",
-            internalType: "uint8",
-          },
-          {
-            name: "amount",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "tokenAddress",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-          {
-            name: "tokenChain",
-            type: "uint16",
-            internalType: "uint16",
-          },
-          {
-            name: "to",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-          {
-            name: "toChain",
-            type: "uint16",
-            internalType: "uint16",
-          },
-          {
-            name: "fee",
-            type: "uint256",
-            internalType: "uint256",
-          },
-        ],
-      },
-    ],
-    stateMutability: "pure",
-  },
-  {
-    type: "function",
-    name: "parseTransferWithPayload",
-    inputs: [
-      {
-        name: "encoded",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [
-      {
-        name: "transfer",
-        type: "tuple",
-        internalType: "struct ITokenBridge.TransferWithPayload",
-        components: [
-          {
-            name: "payloadID",
-            type: "uint8",
-            internalType: "uint8",
-          },
-          {
-            name: "amount",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "tokenAddress",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-          {
-            name: "tokenChain",
-            type: "uint16",
-            internalType: "uint16",
-          },
-          {
-            name: "to",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-          {
-            name: "toChain",
-            type: "uint16",
-            internalType: "uint16",
-          },
-          {
-            name: "fromAddress",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-          {
-            name: "payload",
-            type: "bytes",
-            internalType: "bytes",
-          },
-        ],
-      },
-    ],
-    stateMutability: "pure",
-  },
-  {
-    type: "function",
-    name: "parseUpgrade",
-    inputs: [
-      {
-        name: "encoded",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [
-      {
-        name: "chain",
-        type: "tuple",
-        internalType: "struct ITokenBridge.UpgradeContract",
-        components: [
-          {
-            name: "module",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-          {
-            name: "action",
-            type: "uint8",
-            internalType: "uint8",
-          },
-          {
-            name: "chainId",
-            type: "uint16",
-            internalType: "uint16",
-          },
-          {
-            name: "newContract",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-        ],
-      },
-    ],
-    stateMutability: "pure",
-  },
-  {
-    type: "function",
-    name: "registerChain",
-    inputs: [
-      {
-        name: "encodedVM",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "submitRecoverChainId",
-    inputs: [
-      {
-        name: "encodedVM",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "tokenImplementation",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "transferTokens",
-    inputs: [
-      {
-        name: "token",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "amount",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "recipientChain",
-        type: "uint16",
-        internalType: "uint16",
-      },
-      {
-        name: "recipient",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-      {
-        name: "arbiterFee",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "nonce",
-        type: "uint32",
-        internalType: "uint32",
-      },
-    ],
-    outputs: [
-      {
-        name: "sequence",
-        type: "uint64",
-        internalType: "uint64",
-      },
-    ],
-    stateMutability: "payable",
-  },
-  {
-    type: "function",
-    name: "transferTokensWithPayload",
-    inputs: [
-      {
-        name: "token",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "amount",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "recipientChain",
-        type: "uint16",
-        internalType: "uint16",
-      },
-      {
-        name: "recipient",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-      {
-        name: "nonce",
-        type: "uint32",
-        internalType: "uint32",
-      },
-      {
-        name: "payload",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [
-      {
-        name: "sequence",
-        type: "uint64",
-        internalType: "uint64",
-      },
-    ],
-    stateMutability: "payable",
-  },
-  {
-    type: "function",
-    name: "updateWrapped",
-    inputs: [
-      {
-        name: "encodedVm",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [
-      {
-        name: "token",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "upgrade",
-    inputs: [
-      {
-        name: "encodedVM",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "wormhole",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "address",
-        internalType: "contract IWormhole",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "wrapAndTransferETH",
-    inputs: [
-      {
-        name: "recipientChain",
-        type: "uint16",
-        internalType: "uint16",
-      },
-      {
-        name: "recipient",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-      {
-        name: "arbiterFee",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "nonce",
-        type: "uint32",
-        internalType: "uint32",
-      },
-    ],
-    outputs: [
-      {
-        name: "sequence",
-        type: "uint64",
-        internalType: "uint64",
-      },
-    ],
-    stateMutability: "payable",
-  },
-  {
-    type: "function",
-    name: "wrapAndTransferETHWithPayload",
-    inputs: [
-      {
-        name: "recipientChain",
-        type: "uint16",
-        internalType: "uint16",
-      },
-      {
-        name: "recipient",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-      {
-        name: "nonce",
-        type: "uint32",
-        internalType: "uint32",
-      },
-      {
-        name: "payload",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [
-      {
-        name: "sequence",
-        type: "uint64",
-        internalType: "uint64",
-      },
-    ],
-    stateMutability: "payable",
-  },
-  {
-    type: "function",
-    name: "wrappedAsset",
-    inputs: [
-      {
-        name: "tokenChainId",
-        type: "uint16",
-        internalType: "uint16",
-      },
-      {
-        name: "tokenAddress",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "event",
-    name: "ContractUpgraded",
-    inputs: [
-      {
         name: "oldContract",
         type: "address",
-        indexed: true,
-        internalType: "address",
       },
       {
+        indexed: true,
+        internalType: "address",
         name: "newContract",
         type: "address",
-        indexed: true,
-        internalType: "address",
       },
     ],
-    anonymous: false,
+    name: "ContractUpgraded",
+    type: "event",
   },
   {
-    type: "event",
-    name: "TransferRedeemed",
+    anonymous: false,
     inputs: [
       {
-        name: "emitterChainId",
-        type: "uint16",
         indexed: true,
         internalType: "uint16",
+        name: "emitterChainId",
+        type: "uint16",
       },
       {
-        name: "emitterAddress",
-        type: "bytes32",
         indexed: true,
         internalType: "bytes32",
+        name: "emitterAddress",
+        type: "bytes32",
       },
       {
-        name: "sequence",
-        type: "uint64",
         indexed: true,
         internalType: "uint64",
+        name: "sequence",
+        type: "uint64",
       },
     ],
-    anonymous: false,
+    name: "TransferRedeemed",
+    type: "event",
+  },
+  {
+    inputs: [],
+    name: "WETH",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "encoded",
+        type: "bytes",
+      },
+    ],
+    name: "_parseTransferCommon",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "uint8",
+            name: "payloadID",
+            type: "uint8",
+          },
+          {
+            internalType: "uint256",
+            name: "amount",
+            type: "uint256",
+          },
+          {
+            internalType: "bytes32",
+            name: "tokenAddress",
+            type: "bytes32",
+          },
+          {
+            internalType: "uint16",
+            name: "tokenChain",
+            type: "uint16",
+          },
+          {
+            internalType: "bytes32",
+            name: "to",
+            type: "bytes32",
+          },
+          {
+            internalType: "uint16",
+            name: "toChain",
+            type: "uint16",
+          },
+          {
+            internalType: "uint256",
+            name: "fee",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct ITokenBridge.Transfer",
+        name: "transfer",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "tokenAddress",
+        type: "address",
+      },
+      {
+        internalType: "uint32",
+        name: "nonce",
+        type: "uint32",
+      },
+    ],
+    name: "attestToken",
+    outputs: [
+      {
+        internalType: "uint64",
+        name: "sequence",
+        type: "uint64",
+      },
+    ],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint16",
+        name: "chainId_",
+        type: "uint16",
+      },
+    ],
+    name: "bridgeContracts",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "chainId",
+    outputs: [
+      {
+        internalType: "uint16",
+        name: "",
+        type: "uint16",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "encodedVm",
+        type: "bytes",
+      },
+    ],
+    name: "completeTransfer",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "encodedVm",
+        type: "bytes",
+      },
+    ],
+    name: "completeTransferAndUnwrapETH",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "encodedVm",
+        type: "bytes",
+      },
+    ],
+    name: "completeTransferAndUnwrapETHWithPayload",
+    outputs: [
+      {
+        internalType: "bytes",
+        name: "",
+        type: "bytes",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "encodedVm",
+        type: "bytes",
+      },
+    ],
+    name: "completeTransferWithPayload",
+    outputs: [
+      {
+        internalType: "bytes",
+        name: "",
+        type: "bytes",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "encodedVm",
+        type: "bytes",
+      },
+    ],
+    name: "createWrapped",
+    outputs: [
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            internalType: "uint8",
+            name: "payloadID",
+            type: "uint8",
+          },
+          {
+            internalType: "bytes32",
+            name: "tokenAddress",
+            type: "bytes32",
+          },
+          {
+            internalType: "uint16",
+            name: "tokenChain",
+            type: "uint16",
+          },
+          {
+            internalType: "uint8",
+            name: "decimals",
+            type: "uint8",
+          },
+          {
+            internalType: "bytes32",
+            name: "symbol",
+            type: "bytes32",
+          },
+          {
+            internalType: "bytes32",
+            name: "name",
+            type: "bytes32",
+          },
+        ],
+        internalType: "struct ITokenBridge.AssetMeta",
+        name: "meta",
+        type: "tuple",
+      },
+    ],
+    name: "encodeAssetMeta",
+    outputs: [
+      {
+        internalType: "bytes",
+        name: "encoded",
+        type: "bytes",
+      },
+    ],
+    stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            internalType: "uint8",
+            name: "payloadID",
+            type: "uint8",
+          },
+          {
+            internalType: "uint256",
+            name: "amount",
+            type: "uint256",
+          },
+          {
+            internalType: "bytes32",
+            name: "tokenAddress",
+            type: "bytes32",
+          },
+          {
+            internalType: "uint16",
+            name: "tokenChain",
+            type: "uint16",
+          },
+          {
+            internalType: "bytes32",
+            name: "to",
+            type: "bytes32",
+          },
+          {
+            internalType: "uint16",
+            name: "toChain",
+            type: "uint16",
+          },
+          {
+            internalType: "uint256",
+            name: "fee",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct ITokenBridge.Transfer",
+        name: "transfer",
+        type: "tuple",
+      },
+    ],
+    name: "encodeTransfer",
+    outputs: [
+      {
+        internalType: "bytes",
+        name: "encoded",
+        type: "bytes",
+      },
+    ],
+    stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            internalType: "uint8",
+            name: "payloadID",
+            type: "uint8",
+          },
+          {
+            internalType: "uint256",
+            name: "amount",
+            type: "uint256",
+          },
+          {
+            internalType: "bytes32",
+            name: "tokenAddress",
+            type: "bytes32",
+          },
+          {
+            internalType: "uint16",
+            name: "tokenChain",
+            type: "uint16",
+          },
+          {
+            internalType: "bytes32",
+            name: "to",
+            type: "bytes32",
+          },
+          {
+            internalType: "uint16",
+            name: "toChain",
+            type: "uint16",
+          },
+          {
+            internalType: "bytes32",
+            name: "fromAddress",
+            type: "bytes32",
+          },
+          {
+            internalType: "bytes",
+            name: "payload",
+            type: "bytes",
+          },
+        ],
+        internalType: "struct ITokenBridge.TransferWithPayload",
+        name: "transfer",
+        type: "tuple",
+      },
+    ],
+    name: "encodeTransferWithPayload",
+    outputs: [
+      {
+        internalType: "bytes",
+        name: "encoded",
+        type: "bytes",
+      },
+    ],
+    stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "evmChainId",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "finality",
+    outputs: [
+      {
+        internalType: "uint8",
+        name: "",
+        type: "uint8",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "hash",
+        type: "bytes32",
+      },
+    ],
+    name: "governanceActionIsConsumed",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "governanceChainId",
+    outputs: [
+      {
+        internalType: "uint16",
+        name: "",
+        type: "uint16",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "governanceContract",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "implementation",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "initialize",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "isFork",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "impl",
+        type: "address",
+      },
+    ],
+    name: "isInitialized",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "hash",
+        type: "bytes32",
+      },
+    ],
+    name: "isTransferCompleted",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+    ],
+    name: "isWrappedAsset",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+    ],
+    name: "outstandingBridged",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "encoded",
+        type: "bytes",
+      },
+    ],
+    name: "parseAssetMeta",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "uint8",
+            name: "payloadID",
+            type: "uint8",
+          },
+          {
+            internalType: "bytes32",
+            name: "tokenAddress",
+            type: "bytes32",
+          },
+          {
+            internalType: "uint16",
+            name: "tokenChain",
+            type: "uint16",
+          },
+          {
+            internalType: "uint8",
+            name: "decimals",
+            type: "uint8",
+          },
+          {
+            internalType: "bytes32",
+            name: "symbol",
+            type: "bytes32",
+          },
+          {
+            internalType: "bytes32",
+            name: "name",
+            type: "bytes32",
+          },
+        ],
+        internalType: "struct ITokenBridge.AssetMeta",
+        name: "meta",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "encoded",
+        type: "bytes",
+      },
+    ],
+    name: "parsePayloadID",
+    outputs: [
+      {
+        internalType: "uint8",
+        name: "payloadID",
+        type: "uint8",
+      },
+    ],
+    stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "encodedRecoverChainId",
+        type: "bytes",
+      },
+    ],
+    name: "parseRecoverChainId",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "bytes32",
+            name: "module",
+            type: "bytes32",
+          },
+          {
+            internalType: "uint8",
+            name: "action",
+            type: "uint8",
+          },
+          {
+            internalType: "uint256",
+            name: "evmChainId",
+            type: "uint256",
+          },
+          {
+            internalType: "uint16",
+            name: "newChainId",
+            type: "uint16",
+          },
+        ],
+        internalType: "struct ITokenBridge.RecoverChainId",
+        name: "rci",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "encoded",
+        type: "bytes",
+      },
+    ],
+    name: "parseRegisterChain",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "bytes32",
+            name: "module",
+            type: "bytes32",
+          },
+          {
+            internalType: "uint8",
+            name: "action",
+            type: "uint8",
+          },
+          {
+            internalType: "uint16",
+            name: "chainId",
+            type: "uint16",
+          },
+          {
+            internalType: "uint16",
+            name: "emitterChainID",
+            type: "uint16",
+          },
+          {
+            internalType: "bytes32",
+            name: "emitterAddress",
+            type: "bytes32",
+          },
+        ],
+        internalType: "struct ITokenBridge.RegisterChain",
+        name: "chain",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "encoded",
+        type: "bytes",
+      },
+    ],
+    name: "parseTransfer",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "uint8",
+            name: "payloadID",
+            type: "uint8",
+          },
+          {
+            internalType: "uint256",
+            name: "amount",
+            type: "uint256",
+          },
+          {
+            internalType: "bytes32",
+            name: "tokenAddress",
+            type: "bytes32",
+          },
+          {
+            internalType: "uint16",
+            name: "tokenChain",
+            type: "uint16",
+          },
+          {
+            internalType: "bytes32",
+            name: "to",
+            type: "bytes32",
+          },
+          {
+            internalType: "uint16",
+            name: "toChain",
+            type: "uint16",
+          },
+          {
+            internalType: "uint256",
+            name: "fee",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct ITokenBridge.Transfer",
+        name: "transfer",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "encoded",
+        type: "bytes",
+      },
+    ],
+    name: "parseTransferWithPayload",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "uint8",
+            name: "payloadID",
+            type: "uint8",
+          },
+          {
+            internalType: "uint256",
+            name: "amount",
+            type: "uint256",
+          },
+          {
+            internalType: "bytes32",
+            name: "tokenAddress",
+            type: "bytes32",
+          },
+          {
+            internalType: "uint16",
+            name: "tokenChain",
+            type: "uint16",
+          },
+          {
+            internalType: "bytes32",
+            name: "to",
+            type: "bytes32",
+          },
+          {
+            internalType: "uint16",
+            name: "toChain",
+            type: "uint16",
+          },
+          {
+            internalType: "bytes32",
+            name: "fromAddress",
+            type: "bytes32",
+          },
+          {
+            internalType: "bytes",
+            name: "payload",
+            type: "bytes",
+          },
+        ],
+        internalType: "struct ITokenBridge.TransferWithPayload",
+        name: "transfer",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "encoded",
+        type: "bytes",
+      },
+    ],
+    name: "parseUpgrade",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "bytes32",
+            name: "module",
+            type: "bytes32",
+          },
+          {
+            internalType: "uint8",
+            name: "action",
+            type: "uint8",
+          },
+          {
+            internalType: "uint16",
+            name: "chainId",
+            type: "uint16",
+          },
+          {
+            internalType: "bytes32",
+            name: "newContract",
+            type: "bytes32",
+          },
+        ],
+        internalType: "struct ITokenBridge.UpgradeContract",
+        name: "chain",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "encodedVM",
+        type: "bytes",
+      },
+    ],
+    name: "registerChain",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "encodedVM",
+        type: "bytes",
+      },
+    ],
+    name: "submitRecoverChainId",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "tokenImplementation",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+      {
+        internalType: "uint16",
+        name: "recipientChain",
+        type: "uint16",
+      },
+      {
+        internalType: "bytes32",
+        name: "recipient",
+        type: "bytes32",
+      },
+      {
+        internalType: "uint256",
+        name: "arbiterFee",
+        type: "uint256",
+      },
+      {
+        internalType: "uint32",
+        name: "nonce",
+        type: "uint32",
+      },
+    ],
+    name: "transferTokens",
+    outputs: [
+      {
+        internalType: "uint64",
+        name: "sequence",
+        type: "uint64",
+      },
+    ],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+      {
+        internalType: "uint16",
+        name: "recipientChain",
+        type: "uint16",
+      },
+      {
+        internalType: "bytes32",
+        name: "recipient",
+        type: "bytes32",
+      },
+      {
+        internalType: "uint32",
+        name: "nonce",
+        type: "uint32",
+      },
+      {
+        internalType: "bytes",
+        name: "payload",
+        type: "bytes",
+      },
+    ],
+    name: "transferTokensWithPayload",
+    outputs: [
+      {
+        internalType: "uint64",
+        name: "sequence",
+        type: "uint64",
+      },
+    ],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "encodedVm",
+        type: "bytes",
+      },
+    ],
+    name: "updateWrapped",
+    outputs: [
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "encodedVM",
+        type: "bytes",
+      },
+    ],
+    name: "upgrade",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "wormhole",
+    outputs: [
+      {
+        internalType: "contract IWormhole",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint16",
+        name: "recipientChain",
+        type: "uint16",
+      },
+      {
+        internalType: "bytes32",
+        name: "recipient",
+        type: "bytes32",
+      },
+      {
+        internalType: "uint256",
+        name: "arbiterFee",
+        type: "uint256",
+      },
+      {
+        internalType: "uint32",
+        name: "nonce",
+        type: "uint32",
+      },
+    ],
+    name: "wrapAndTransferETH",
+    outputs: [
+      {
+        internalType: "uint64",
+        name: "sequence",
+        type: "uint64",
+      },
+    ],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint16",
+        name: "recipientChain",
+        type: "uint16",
+      },
+      {
+        internalType: "bytes32",
+        name: "recipient",
+        type: "bytes32",
+      },
+      {
+        internalType: "uint32",
+        name: "nonce",
+        type: "uint32",
+      },
+      {
+        internalType: "bytes",
+        name: "payload",
+        type: "bytes",
+      },
+    ],
+    name: "wrapAndTransferETHWithPayload",
+    outputs: [
+      {
+        internalType: "uint64",
+        name: "sequence",
+        type: "uint64",
+      },
+    ],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint16",
+        name: "tokenChainId",
+        type: "uint16",
+      },
+      {
+        internalType: "bytes32",
+        name: "tokenAddress",
+        type: "bytes32",
+      },
+    ],
+    name: "wrappedAsset",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
   },
 ] as const;
 
