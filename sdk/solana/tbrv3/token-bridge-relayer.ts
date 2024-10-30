@@ -26,7 +26,7 @@ import {
   getCompleteTransferNativeWithPayloadCpiAccounts,
   getCompleteTransferWrappedWithPayloadCpiAccounts,
 } from '@wormhole-foundation/sdk-solana-tokenbridge';
-import { SolanaPriceOracle } from '@xlabs/solana-price-oracle-sdk';
+import { SolanaPriceOracle } from '@xlabs-xyz/solana-price-oracle-sdk';
 import { deserializeTbrV3Message, VaaMessage, throwError } from 'common-arbitrary-token-transfer';
 import { BpfLoaderUpgradeableProgram } from './bpf-loader-upgradeable.js';
 
@@ -38,7 +38,7 @@ import testProgramKeypair from '../../../solana/programs/token-bridge-relayer/te
 // Export IDL
 export * from './idl/token_bridge_relayer.js';
 export const idl = IDL;
-export { SolanaPriceOracle } from '@xlabs/solana-price-oracle-sdk';
+export { SolanaPriceOracle } from '@xlabs-xyz/solana-price-oracle-sdk';
 export type { VaaMessage } from 'common-arbitrary-token-transfer';
 
 export interface WormholeAddress {
