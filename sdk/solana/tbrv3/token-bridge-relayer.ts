@@ -26,7 +26,7 @@ import {
   getCompleteTransferNativeWithPayloadCpiAccounts,
   getCompleteTransferWrappedWithPayloadCpiAccounts,
 } from '@wormhole-foundation/sdk-solana-tokenbridge';
-import { SolanaPriceOracle } from '@xlabs-xyz/solana-price-oracle-sdk';
+import { SolanaPriceOracle, bigintToBn, bnToBigint } from '@xlabs-xyz/solana-price-oracle-sdk';
 import { deserializeTbrV3Message, VaaMessage, throwError } from 'common-arbitrary-token-transfer';
 import { BpfLoaderUpgradeableProgram } from './bpf-loader-upgradeable.js';
 
@@ -1043,12 +1043,4 @@ function patchAddress(idl: any, address?: PublicKey) {
   }
 
   return idl;
-}
-
-export function bnToBigint(n: anchor.BN): bigint {
-  return BigInt(`0x${n.toString('hex')}`);
-}
-
-export function bigintToBn(n: bigint): anchor.BN {
-  return new anchor.BN(`${n.toString(16)}`, 'hex');
 }
