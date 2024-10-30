@@ -33,13 +33,17 @@ evm.runOnEvms("set-canonical-peer", async (chain, signer, log) => {
     const otherTbrv3Chain = chainIdToChain(otherTbrv3.chainId) as SupportedChain;
     queries.push({query: "CanonicalPeer", chain: otherTbrv3Chain} as const satisfies ConfigQuery);
   }
-  const isCanonicalPeerResults = await tbrv3.query([{query: "ConfigQueries", queries}]);
-  peers.find(({chainId}) => chainId === chain.chainId)
+  const currentCanonicalPeers = await tbrv3.query([{query: "ConfigQueries", queries}]);
+  const getCanonicalPeerAddress = (chain: SupportedChain) => {
+    return peers.find(({chainId}) => chainIdToChain(chainId) === chain)!.address;
+  }
 
-  const commands = isCanonicalPeerResults.filter(({result}) => !result)
+  const commands = currentCanonicalPeers.filter(({result, chain}) =>
+      !result.equals(toUniversal(chain, getCanonicalPeerAddress(chain)))
+    )
     .map(({chain}) => ({
       command: "UpdateCanonicalPeer",
-      address: toUniversal(chain, peers.find(({chainId}) => chainIdToChain(chainId) === chain)!.address),
+      address: toUniversal(chain, getCanonicalPeerAddress(chain)),
       chain,
     } as const satisfies ConfigCommand));
 
