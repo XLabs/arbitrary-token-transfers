@@ -1,6 +1,6 @@
 {
   "name": "@xlabs-xyz/arbitrary-token-transfer-solana-route",
-  "version": "0.0.1-alpha3",
+  "version": "0.0.1-alpha4",
   "description": "",
   "type": "module",
   "module": "ts-build/src/index.js",

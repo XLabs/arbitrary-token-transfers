@@ -1,6 +1,6 @@
 {
   "name": "@xlabs-xyz/arbitrary-token-transfer-evm-route",
-  "version": "0.0.1-alpha3",
+  "version": "0.0.1-alpha5",
   "description": "",
   "type": "module",
   "module": "ts-build/src/index.js",

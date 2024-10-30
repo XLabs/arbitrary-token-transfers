@@ -17,6 +17,7 @@ import {
 import '@wormhole-foundation/sdk-evm';
 import {
   EvmAddress,
+  EvmChain,
   EvmChains,
   EvmPlatform,
   EvmPlatformType,
@@ -114,6 +115,13 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
     const gasDropoff =
       Number(params.gasDropOff?.amount || 0) / this.getChainWholeUnit(recipientChain);
 
+    const fromChain = new EvmChain(this.chain, new EvmPlatform(this.network));
+
+    const sourceToken = isNative(params.token.address)
+      ? await fromChain.getNativeWrappedTokenId()
+      : params.token;
+    const token = new EvmAddress(sourceToken.address);
+
     const transferParams = await this.tbr.transferWithRelay(params.allowances, {
       args: {
         method: isNative(params.token.address)
@@ -122,7 +130,7 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
         acquireMode: params.acquireMode,
         gasDropoff,
         inputAmountInAtomic: params.amount,
-        inputToken: new EvmAddress(params.token.address),
+        inputToken: token,
         recipient: {
           address: params.recipient.address.toUniversalAddress(),
           chain: recipientChain,
