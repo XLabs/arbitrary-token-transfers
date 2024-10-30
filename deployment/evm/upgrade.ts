@@ -3,6 +3,7 @@ import {
   EvmChainInfo,
   getChainConfig,
   getContractAddress,
+  getDependencyAddress,
   getDeploymentArgs,
   writeDeployedContract
 } from "../helpers";
@@ -76,11 +77,15 @@ async function upgradeProxyWithNewImplementation(
   const signer = await getSigner(chain);
   const { Tbrv3 } = await import("@xlabs-xyz/evm-arbitrary-token-transfers");
 
+  // HACK! resolveWrappedToken does not seem to work for CELO native currency.
+  const gasTokenAddress = chain.chainId === 14 ? new EvmAddress(getDependencyAddress("initGasToken", chain)) : undefined;
+
   const proxyAddress = new EvmAddress(getContractAddress("TbrV3Proxies", chain.chainId));
   const tbr = Tbrv3.connect(
     wrapEthersProvider(getProvider(chain)),
     chain.network,
     chainIdToChain(chain.chainId),
+    gasTokenAddress,
     proxyAddress,
   );
 

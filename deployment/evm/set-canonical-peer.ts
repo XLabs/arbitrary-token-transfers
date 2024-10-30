@@ -1,6 +1,7 @@
 import {
   evm,
   getContractAddress,
+  getDependencyAddress,
   loadTbrPeers,
 } from "../helpers/index.js";
 import { toUniversal } from "@wormhole-foundation/sdk-definitions";
@@ -15,12 +16,15 @@ import { wrapEthersProvider } from "../helpers/evm.js";
  * If no peer is registered for a chain, it will be set as the canonical peer.
  */
 evm.runOnEvms("set-canonical-peer", async (chain, signer, log) => {
+  // HACK! resolveWrappedToken does not seem to work for CELO native currency.
+  const gasTokenAddress = chain.chainId === 14 ? new EvmAddress(getDependencyAddress("initGasToken", chain)) : undefined;
+
   const tbrv3ProxyAddress = new EvmAddress(getContractAddress("TbrV3Proxies", chain.chainId));
   const tbrv3 = Tbrv3.connect(
     wrapEthersProvider(signer.provider!),
     chain.network,
     chainIdToChain(chain.chainId),
-    undefined,
+    gasTokenAddress,
     tbrv3ProxyAddress
   );
 
