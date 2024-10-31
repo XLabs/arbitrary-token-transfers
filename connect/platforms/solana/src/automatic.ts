@@ -223,14 +223,14 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     const ata = new SolanaAddress(vaa.payload.to.address);
     const accInfo = await this.connection.getAccountInfo(ata.unwrap());
     if (!accInfo) throw new Error('Token Account not found');
-    const { owner } = accInfo;
 
     const signer = payer.toNative('Solana').unwrap();
 
-    const ixs: TransactionInstruction[] = [];
+    const transaction = new Transaction();
+    transaction.feePayer = signer;
 
     if (vaa.payload.token.chain === 'Solana') {
-      ixs.push(
+      transaction.add(
         await this.client.completeNativeTransfer(
           signer,
           // @ts-ignore
@@ -239,7 +239,7 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
         ),
       );
     } else {
-      ixs.push(
+      transaction.add(
         await this.client.completeWrappedTransfer(
           signer,
           // @ts-ignore
@@ -248,6 +248,19 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
         ),
       );
     }
+
+    const { blockhash } = await this.connection.getLatestBlockhash('finalized');
+    transaction.recentBlockhash = blockhash;
+
+    // create a versioned transaction to avoid errors down the line due to
+    // different Transaction constructors from different @solana/web3.js package versions
+    yield new SolanaUnsignedTransaction(
+      { transaction: new VersionedTransaction(transaction.compileMessage()) },
+      this.network,
+      this.chainName,
+      'TokenBridgeRelayerV3.redeem',
+      false,
+    );
   }
 
   async relayingFee(args: RelayingFeesParams): Promise<RelayingFee> {
