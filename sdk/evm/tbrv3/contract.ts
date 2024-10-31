@@ -12,6 +12,7 @@ import {
   layoutItems,
   resolveWrappedToken,
   serialize,
+  UniversalAddress,
   VAA,
 } from "@wormhole-foundation/sdk-definitions";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
@@ -226,6 +227,7 @@ export class Tbrv3 {
         throw new Error("Query response too short");
     };
 
+    // If you're updating layouts here, you probably want to update the `QueryResult` type.
     for (const query of queries)
       if (query.query === "RelayFee")
         deserializeResult(query, relayingFeeReturnLayout);
@@ -432,7 +434,9 @@ type ConfigQueryToResult<Q extends ConfigQuery> =
   ? ArgsResult<Q, boolean>
   : Q extends { query: "BaseFee" | "MaxGasDropoff" }
   ? ArgsResult<Q, number>
-  : Q extends { query: "CanonicalPeer" | "FeeRecipient" }
+  : Q extends { query: "CanonicalPeer" }
+  ? ArgsResult<Q, UniversalAddress>
+  : Q extends { query: "FeeRecipient" }
   ? ArgsResult<Q, EvmAddress>
   : never;
 

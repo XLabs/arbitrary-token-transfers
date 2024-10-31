@@ -7,17 +7,17 @@ import type { IEIP712, IEIP712Interface } from "../IEIP712";
 
 const _abi = [
   {
-    type: "function",
-    name: "DOMAIN_SEPARATOR",
     inputs: [],
+    name: "DOMAIN_SEPARATOR",
     outputs: [
       {
+        internalType: "bytes32",
         name: "",
         type: "bytes32",
-        internalType: "bytes32",
       },
     ],
     stateMutability: "view",
+    type: "function",
   },
 ] as const;
 

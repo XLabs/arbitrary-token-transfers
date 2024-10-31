@@ -1,6 +1,7 @@
 import {
   evm,
   getContractAddress,
+  getDependencyAddress,
   loadTbrPeers,
 } from "../helpers/index.js";
 import { toUniversal } from "@wormhole-foundation/sdk-definitions";
@@ -15,12 +16,15 @@ import { wrapEthersProvider } from "../helpers/evm.js";
  * If no peer is registered for a chain, it will be set as the canonical peer.
  */
 evm.runOnEvms("set-canonical-peer", async (chain, signer, log) => {
+  // HACK! resolveWrappedToken does not seem to work for CELO native currency.
+  const gasTokenAddress = chain.chainId === 14 ? new EvmAddress(getDependencyAddress("initGasToken", chain)) : undefined;
+
   const tbrv3ProxyAddress = new EvmAddress(getContractAddress("TbrV3Proxies", chain.chainId));
   const tbrv3 = Tbrv3.connect(
     wrapEthersProvider(signer.provider!),
     chain.network,
     chainIdToChain(chain.chainId),
-    undefined,
+    gasTokenAddress,
     tbrv3ProxyAddress
   );
 
@@ -33,13 +37,17 @@ evm.runOnEvms("set-canonical-peer", async (chain, signer, log) => {
     const otherTbrv3Chain = chainIdToChain(otherTbrv3.chainId) as SupportedChain;
     queries.push({query: "CanonicalPeer", chain: otherTbrv3Chain} as const satisfies ConfigQuery);
   }
-  const isCanonicalPeerResults = await tbrv3.query([{query: "ConfigQueries", queries}]);
-  peers.find(({chainId}) => chainId === chain.chainId)
+  const currentCanonicalPeers = await tbrv3.query([{query: "ConfigQueries", queries}]);
+  const getCanonicalPeerAddress = (chain: SupportedChain) => {
+    return peers.find(({chainId}) => chainIdToChain(chainId) === chain)!.address;
+  }
 
-  const commands = isCanonicalPeerResults.filter(({result}) => !result)
+  const commands = currentCanonicalPeers.filter(({result, chain}) =>
+      !result.equals(toUniversal(chain, getCanonicalPeerAddress(chain)))
+    )
     .map(({chain}) => ({
       command: "UpdateCanonicalPeer",
-      address: toUniversal(chain, peers.find(({chainId}) => chainIdToChain(chainId) === chain)!.address),
+      address: toUniversal(chain, getCanonicalPeerAddress(chain)),
       chain,
     } as const satisfies ConfigCommand));
 

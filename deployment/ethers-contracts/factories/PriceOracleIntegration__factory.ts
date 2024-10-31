@@ -10,9 +10,9 @@ import type {
 
 const _abi = [
   {
-    type: "error",
-    name: "InvalidAddress",
     inputs: [],
+    name: "InvalidAddress",
+    type: "error",
   },
 ] as const;
 

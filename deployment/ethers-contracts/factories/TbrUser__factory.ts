@@ -7,23 +7,23 @@ import type { TbrUser, TbrUserInterface } from "../TbrUser";
 
 const _abi = [
   {
-    type: "receive",
-    stateMutability: "payable",
-  },
-  {
-    type: "error",
+    inputs: [],
     name: "GasTokenNotSupported",
-    inputs: [],
+    type: "error",
   },
   {
-    type: "error",
+    inputs: [],
     name: "GasTokenOnlyAcceptedViaWithdrawal",
-    inputs: [],
+    type: "error",
   },
   {
-    type: "error",
-    name: "InvalidAddress",
     inputs: [],
+    name: "InvalidAddress",
+    type: "error",
+  },
+  {
+    stateMutability: "payable",
+    type: "receive",
   },
 ] as const;
 

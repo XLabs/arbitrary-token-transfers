@@ -10,345 +10,345 @@ import type {
 
 const _abi = [
   {
-    type: "function",
-    name: "cancelOwnershipTransfer",
-    inputs: [],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "checkedUpgrade",
     inputs: [
       {
+        internalType: "uint16",
+        name: "chainId",
+        type: "uint16",
+      },
+      {
+        internalType: "uint8",
+        name: "command",
+        type: "uint8",
+      },
+    ],
+    name: "ChainNotSupportedByCommand",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "IdempotentUpgrade",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint8",
+        name: "command",
+        type: "uint8",
+      },
+    ],
+    name: "InvalidAccessControlCommand",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint8",
+        name: "query",
+        type: "uint8",
+      },
+    ],
+    name: "InvalidAccessControlQuery",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "InvalidChainId",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint8",
+        name: "command",
+        type: "uint8",
+      },
+    ],
+    name: "InvalidCommand",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "InvalidData",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "value",
+        type: "uint256",
+      },
+    ],
+    name: "InvalidEvmLayout",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "InvalidMsgValue",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint8",
+        name: "query",
+        type: "uint8",
+      },
+    ],
+    name: "InvalidPriceQuery",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint8",
+        name: "query",
+        type: "uint8",
+      },
+    ],
+    name: "InvalidQuery",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "InvalidSender",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "encodedLength",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "expectedLength",
+        type: "uint256",
+      },
+    ],
+    name: "LengthMismatch",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "NotAuthorized",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint8",
+        name: "version",
+        type: "uint8",
+      },
+    ],
+    name: "UnsupportedVersion",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "revertData",
+        type: "bytes",
+      },
+    ],
+    name: "UpgradeFailed",
+    type: "error",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "addr",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "bool",
+        name: "isAdmin",
+        type: "bool",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "timestamp",
+        type: "uint256",
+      },
+    ],
+    name: "AdminsUpdated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "oldAddress",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "newAddress",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "timestamp",
+        type: "uint256",
+      },
+    ],
+    name: "AssistantUpdated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "uint16",
+        name: "chainId",
+        type: "uint16",
+      },
+      {
+        indexed: false,
+        internalType: "bytes32",
+        name: "feeParams",
+        type: "bytes32",
+      },
+    ],
+    name: "FeeParamsUpdated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "oldAddress",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "newAddress",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "timestamp",
+        type: "uint256",
+      },
+    ],
+    name: "OwnerUpdated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "implementation",
+        type: "address",
+      },
+    ],
+    name: "Upgraded",
+    type: "event",
+  },
+  {
+    inputs: [],
+    name: "cancelOwnershipTransfer",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
         name: "data",
         type: "bytes",
-        internalType: "bytes",
       },
     ],
+    name: "checkedUpgrade",
     outputs: [],
     stateMutability: "payable",
+    type: "function",
   },
   {
-    type: "function",
-    name: "exec768",
     inputs: [],
+    name: "exec768",
     outputs: [
       {
+        internalType: "bytes",
         name: "",
         type: "bytes",
-        internalType: "bytes",
       },
     ],
     stateMutability: "payable",
+    type: "function",
   },
   {
-    type: "function",
-    name: "get1959",
     inputs: [],
+    name: "get1959",
     outputs: [
       {
+        internalType: "bytes",
         name: "",
         type: "bytes",
-        internalType: "bytes",
       },
     ],
     stateMutability: "view",
+    type: "function",
   },
   {
-    type: "function",
-    name: "receiveOwnership",
     inputs: [],
+    name: "receiveOwnership",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    type: "function",
-    name: "transferOwnership",
     inputs: [
       {
+        internalType: "address",
         name: "newOwner",
         type: "address",
-        internalType: "address",
       },
     ],
+    name: "transferOwnership",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    type: "function",
-    name: "upgrade",
     inputs: [
       {
+        internalType: "address",
         name: "implementation",
         type: "address",
-        internalType: "address",
       },
       {
+        internalType: "bytes",
         name: "data",
         type: "bytes",
-        internalType: "bytes",
       },
     ],
+    name: "upgrade",
     outputs: [],
     stateMutability: "nonpayable",
-  },
-  {
-    type: "event",
-    name: "AdminsUpdated",
-    inputs: [
-      {
-        name: "addr",
-        type: "address",
-        indexed: false,
-        internalType: "address",
-      },
-      {
-        name: "isAdmin",
-        type: "bool",
-        indexed: false,
-        internalType: "bool",
-      },
-      {
-        name: "timestamp",
-        type: "uint256",
-        indexed: false,
-        internalType: "uint256",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
-    name: "AssistantUpdated",
-    inputs: [
-      {
-        name: "oldAddress",
-        type: "address",
-        indexed: false,
-        internalType: "address",
-      },
-      {
-        name: "newAddress",
-        type: "address",
-        indexed: false,
-        internalType: "address",
-      },
-      {
-        name: "timestamp",
-        type: "uint256",
-        indexed: false,
-        internalType: "uint256",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
-    name: "FeeParamsUpdated",
-    inputs: [
-      {
-        name: "chainId",
-        type: "uint16",
-        indexed: true,
-        internalType: "uint16",
-      },
-      {
-        name: "feeParams",
-        type: "bytes32",
-        indexed: false,
-        internalType: "bytes32",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
-    name: "OwnerUpdated",
-    inputs: [
-      {
-        name: "oldAddress",
-        type: "address",
-        indexed: false,
-        internalType: "address",
-      },
-      {
-        name: "newAddress",
-        type: "address",
-        indexed: false,
-        internalType: "address",
-      },
-      {
-        name: "timestamp",
-        type: "uint256",
-        indexed: false,
-        internalType: "uint256",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
-    name: "Upgraded",
-    inputs: [
-      {
-        name: "implementation",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "error",
-    name: "ChainNotSupportedByCommand",
-    inputs: [
-      {
-        name: "chainId",
-        type: "uint16",
-        internalType: "uint16",
-      },
-      {
-        name: "command",
-        type: "uint8",
-        internalType: "uint8",
-      },
-    ],
-  },
-  {
-    type: "error",
-    name: "IdempotentUpgrade",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "InvalidAccessControlCommand",
-    inputs: [
-      {
-        name: "command",
-        type: "uint8",
-        internalType: "uint8",
-      },
-    ],
-  },
-  {
-    type: "error",
-    name: "InvalidAccessControlQuery",
-    inputs: [
-      {
-        name: "query",
-        type: "uint8",
-        internalType: "uint8",
-      },
-    ],
-  },
-  {
-    type: "error",
-    name: "InvalidChainId",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "InvalidCommand",
-    inputs: [
-      {
-        name: "command",
-        type: "uint8",
-        internalType: "uint8",
-      },
-    ],
-  },
-  {
-    type: "error",
-    name: "InvalidData",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "InvalidEvmLayout",
-    inputs: [
-      {
-        name: "value",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-  },
-  {
-    type: "error",
-    name: "InvalidMsgValue",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "InvalidPriceQuery",
-    inputs: [
-      {
-        name: "query",
-        type: "uint8",
-        internalType: "uint8",
-      },
-    ],
-  },
-  {
-    type: "error",
-    name: "InvalidQuery",
-    inputs: [
-      {
-        name: "query",
-        type: "uint8",
-        internalType: "uint8",
-      },
-    ],
-  },
-  {
-    type: "error",
-    name: "InvalidSender",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "LengthMismatch",
-    inputs: [
-      {
-        name: "encodedLength",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "expectedLength",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-  },
-  {
-    type: "error",
-    name: "NotAuthorized",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "UnsupportedVersion",
-    inputs: [
-      {
-        name: "version",
-        type: "uint8",
-        internalType: "uint8",
-      },
-    ],
-  },
-  {
-    type: "error",
-    name: "UpgradeFailed",
-    inputs: [
-      {
-        name: "revertData",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
+    type: "function",
   },
 ] as const;
 
