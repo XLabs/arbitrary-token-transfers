@@ -108,7 +108,7 @@ abstract contract TbrConfig is TbrBase, AccessControl {
     return offset;
   }
 
-  function _batchGovernanceQueries(
+  function _batchConfigQueries(
     bytes calldata queries,
     uint offset
   ) internal view returns (bytes memory, uint) {
