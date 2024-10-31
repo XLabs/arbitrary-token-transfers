@@ -17,7 +17,7 @@
     "build:ts": "tsc -p ./tsconfig.json && tsup",
     "lint:fix": "prettier \"src/**/*{.js,.ts}\" -w",
     "lint": "prettier \"src/**/*{.js,.ts}\" --check",
-    "clean": "rm -r ts-build build"
+    "clean": "rm -rf ts-build build"
   },
   "files": [
     "ts-build",
