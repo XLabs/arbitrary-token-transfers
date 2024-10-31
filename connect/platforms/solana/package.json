@@ -41,10 +41,10 @@
     "@xlabs-xyz/solana-arbitrary-token-transfers": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "20.14.14",
+    "@types/node": "20.17.5",
     "prettier": "^3.3.3",
-    "tsup": "^8.2.4",
-    "tsx": "4.16.5",
+    "tsup": "^8.3.5",
+    "tsx": "4.19.2",
     "typescript": "5.6.3"
   },
   "tsup": {
