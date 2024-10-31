@@ -27,7 +27,7 @@
       },
       {
         "name": "ArbitrumSepolia",
-        "evmNetworkId": 421614,
+        "externalId": 421614,
         "chainId": 10003,
         "network": "Testnet",
         "rpc": "https://sepolia-rollup.arbitrum.io/rpc",
