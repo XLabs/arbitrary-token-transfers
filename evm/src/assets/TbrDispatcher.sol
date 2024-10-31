@@ -98,7 +98,7 @@ abstract contract TbrDispatcher is RawDispatcher, TbrConfig, TbrUser, SweepToken
       else if (query == BASE_RELAYING_CONFIG_ID)
         (result, offset) = _baseRelayingConfig(data, offset, queryIndex);
       else if (query == CONFIG_QUERIES_ID)
-        (result, offset) = _batchGovernanceQueries(data, offset);
+        (result, offset) = _batchConfigQueries(data, offset);
       else if (query == ALLOWANCE_TOKEN_BRIDGE_ID)
         (result, offset) = _allowanceTokenBridge(data, offset);
       else {
