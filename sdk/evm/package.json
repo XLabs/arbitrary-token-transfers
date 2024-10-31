@@ -13,7 +13,7 @@
     }
   },
   "scripts": {
-    "build:ts": "tsc --noEmit -p ./tsconfig.json && tsup",
+    "build:ts": "rm -rf ./ts-build && tsc --noEmit -p ./tsconfig.json && tsup",
     "build": "yarn run build:ts",
     "clean": "rm -r ts-build",
     "prettier": "prettier --write .",

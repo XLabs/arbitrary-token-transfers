@@ -10,396 +10,396 @@ import type {
 
 const _abi = [
   {
-    type: "function",
-    name: "DOMAIN_SEPARATOR",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "invalidateUnorderedNonces",
     inputs: [
       {
-        name: "wordPos",
-        type: "uint256",
         internalType: "uint256",
-      },
-      {
-        name: "mask",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "nonceBitmap",
-    inputs: [
-      {
-        name: "",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "permitTransferFrom",
-    inputs: [
-      {
-        name: "permit",
-        type: "tuple",
-        internalType: "struct ISignatureTransfer.PermitTransferFrom",
-        components: [
-          {
-            name: "permitted",
-            type: "tuple",
-            internalType: "struct ISignatureTransfer.TokenPermissions",
-            components: [
-              {
-                name: "token",
-                type: "address",
-                internalType: "address",
-              },
-              {
-                name: "amount",
-                type: "uint256",
-                internalType: "uint256",
-              },
-            ],
-          },
-          {
-            name: "nonce",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "deadline",
-            type: "uint256",
-            internalType: "uint256",
-          },
-        ],
-      },
-      {
-        name: "transferDetails",
-        type: "tuple",
-        internalType: "struct ISignatureTransfer.SignatureTransferDetails",
-        components: [
-          {
-            name: "to",
-            type: "address",
-            internalType: "address",
-          },
-          {
-            name: "requestedAmount",
-            type: "uint256",
-            internalType: "uint256",
-          },
-        ],
-      },
-      {
-        name: "owner",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "signature",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "permitTransferFrom",
-    inputs: [
-      {
-        name: "permit",
-        type: "tuple",
-        internalType: "struct ISignatureTransfer.PermitBatchTransferFrom",
-        components: [
-          {
-            name: "permitted",
-            type: "tuple[]",
-            internalType: "struct ISignatureTransfer.TokenPermissions[]",
-            components: [
-              {
-                name: "token",
-                type: "address",
-                internalType: "address",
-              },
-              {
-                name: "amount",
-                type: "uint256",
-                internalType: "uint256",
-              },
-            ],
-          },
-          {
-            name: "nonce",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "deadline",
-            type: "uint256",
-            internalType: "uint256",
-          },
-        ],
-      },
-      {
-        name: "transferDetails",
-        type: "tuple[]",
-        internalType: "struct ISignatureTransfer.SignatureTransferDetails[]",
-        components: [
-          {
-            name: "to",
-            type: "address",
-            internalType: "address",
-          },
-          {
-            name: "requestedAmount",
-            type: "uint256",
-            internalType: "uint256",
-          },
-        ],
-      },
-      {
-        name: "owner",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "signature",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "permitWitnessTransferFrom",
-    inputs: [
-      {
-        name: "permit",
-        type: "tuple",
-        internalType: "struct ISignatureTransfer.PermitTransferFrom",
-        components: [
-          {
-            name: "permitted",
-            type: "tuple",
-            internalType: "struct ISignatureTransfer.TokenPermissions",
-            components: [
-              {
-                name: "token",
-                type: "address",
-                internalType: "address",
-              },
-              {
-                name: "amount",
-                type: "uint256",
-                internalType: "uint256",
-              },
-            ],
-          },
-          {
-            name: "nonce",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "deadline",
-            type: "uint256",
-            internalType: "uint256",
-          },
-        ],
-      },
-      {
-        name: "transferDetails",
-        type: "tuple",
-        internalType: "struct ISignatureTransfer.SignatureTransferDetails",
-        components: [
-          {
-            name: "to",
-            type: "address",
-            internalType: "address",
-          },
-          {
-            name: "requestedAmount",
-            type: "uint256",
-            internalType: "uint256",
-          },
-        ],
-      },
-      {
-        name: "owner",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "witness",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-      {
-        name: "witnessTypeString",
-        type: "string",
-        internalType: "string",
-      },
-      {
-        name: "signature",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "permitWitnessTransferFrom",
-    inputs: [
-      {
-        name: "permit",
-        type: "tuple",
-        internalType: "struct ISignatureTransfer.PermitBatchTransferFrom",
-        components: [
-          {
-            name: "permitted",
-            type: "tuple[]",
-            internalType: "struct ISignatureTransfer.TokenPermissions[]",
-            components: [
-              {
-                name: "token",
-                type: "address",
-                internalType: "address",
-              },
-              {
-                name: "amount",
-                type: "uint256",
-                internalType: "uint256",
-              },
-            ],
-          },
-          {
-            name: "nonce",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "deadline",
-            type: "uint256",
-            internalType: "uint256",
-          },
-        ],
-      },
-      {
-        name: "transferDetails",
-        type: "tuple[]",
-        internalType: "struct ISignatureTransfer.SignatureTransferDetails[]",
-        components: [
-          {
-            name: "to",
-            type: "address",
-            internalType: "address",
-          },
-          {
-            name: "requestedAmount",
-            type: "uint256",
-            internalType: "uint256",
-          },
-        ],
-      },
-      {
-        name: "owner",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "witness",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-      {
-        name: "witnessTypeString",
-        type: "string",
-        internalType: "string",
-      },
-      {
-        name: "signature",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "event",
-    name: "UnorderedNonceInvalidation",
-    inputs: [
-      {
-        name: "owner",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-      {
-        name: "word",
-        type: "uint256",
-        indexed: false,
-        internalType: "uint256",
-      },
-      {
-        name: "mask",
-        type: "uint256",
-        indexed: false,
-        internalType: "uint256",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "error",
-    name: "InvalidAmount",
-    inputs: [
-      {
         name: "maxAmount",
         type: "uint256",
-        internalType: "uint256",
       },
     ],
+    name: "InvalidAmount",
+    type: "error",
   },
   {
-    type: "error",
-    name: "LengthMismatch",
     inputs: [],
+    name: "LengthMismatch",
+    type: "error",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "word",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "mask",
+        type: "uint256",
+      },
+    ],
+    name: "UnorderedNonceInvalidation",
+    type: "event",
+  },
+  {
+    inputs: [],
+    name: "DOMAIN_SEPARATOR",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "wordPos",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "mask",
+        type: "uint256",
+      },
+    ],
+    name: "invalidateUnorderedNonces",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    name: "nonceBitmap",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "token",
+                type: "address",
+              },
+              {
+                internalType: "uint256",
+                name: "amount",
+                type: "uint256",
+              },
+            ],
+            internalType: "struct ISignatureTransfer.TokenPermissions",
+            name: "permitted",
+            type: "tuple",
+          },
+          {
+            internalType: "uint256",
+            name: "nonce",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "deadline",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct ISignatureTransfer.PermitTransferFrom",
+        name: "permit",
+        type: "tuple",
+      },
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "to",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "requestedAmount",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct ISignatureTransfer.SignatureTransferDetails",
+        name: "transferDetails",
+        type: "tuple",
+      },
+      {
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+      {
+        internalType: "bytes",
+        name: "signature",
+        type: "bytes",
+      },
+    ],
+    name: "permitTransferFrom",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "token",
+                type: "address",
+              },
+              {
+                internalType: "uint256",
+                name: "amount",
+                type: "uint256",
+              },
+            ],
+            internalType: "struct ISignatureTransfer.TokenPermissions[]",
+            name: "permitted",
+            type: "tuple[]",
+          },
+          {
+            internalType: "uint256",
+            name: "nonce",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "deadline",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct ISignatureTransfer.PermitBatchTransferFrom",
+        name: "permit",
+        type: "tuple",
+      },
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "to",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "requestedAmount",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct ISignatureTransfer.SignatureTransferDetails[]",
+        name: "transferDetails",
+        type: "tuple[]",
+      },
+      {
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+      {
+        internalType: "bytes",
+        name: "signature",
+        type: "bytes",
+      },
+    ],
+    name: "permitTransferFrom",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "token",
+                type: "address",
+              },
+              {
+                internalType: "uint256",
+                name: "amount",
+                type: "uint256",
+              },
+            ],
+            internalType: "struct ISignatureTransfer.TokenPermissions",
+            name: "permitted",
+            type: "tuple",
+          },
+          {
+            internalType: "uint256",
+            name: "nonce",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "deadline",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct ISignatureTransfer.PermitTransferFrom",
+        name: "permit",
+        type: "tuple",
+      },
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "to",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "requestedAmount",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct ISignatureTransfer.SignatureTransferDetails",
+        name: "transferDetails",
+        type: "tuple",
+      },
+      {
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+      {
+        internalType: "bytes32",
+        name: "witness",
+        type: "bytes32",
+      },
+      {
+        internalType: "string",
+        name: "witnessTypeString",
+        type: "string",
+      },
+      {
+        internalType: "bytes",
+        name: "signature",
+        type: "bytes",
+      },
+    ],
+    name: "permitWitnessTransferFrom",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "token",
+                type: "address",
+              },
+              {
+                internalType: "uint256",
+                name: "amount",
+                type: "uint256",
+              },
+            ],
+            internalType: "struct ISignatureTransfer.TokenPermissions[]",
+            name: "permitted",
+            type: "tuple[]",
+          },
+          {
+            internalType: "uint256",
+            name: "nonce",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "deadline",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct ISignatureTransfer.PermitBatchTransferFrom",
+        name: "permit",
+        type: "tuple",
+      },
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "to",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "requestedAmount",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct ISignatureTransfer.SignatureTransferDetails[]",
+        name: "transferDetails",
+        type: "tuple[]",
+      },
+      {
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+      {
+        internalType: "bytes32",
+        name: "witness",
+        type: "bytes32",
+      },
+      {
+        internalType: "string",
+        name: "witnessTypeString",
+        type: "string",
+      },
+      {
+        internalType: "bytes",
+        name: "signature",
+        type: "bytes",
+      },
+    ],
+    name: "permitWitnessTransferFrom",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
 ] as const;
 

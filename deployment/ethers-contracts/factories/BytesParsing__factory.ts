@@ -13,52 +13,52 @@ import type { BytesParsing, BytesParsingInterface } from "../BytesParsing";
 
 const _abi = [
   {
-    type: "error",
-    name: "InvalidBoolVal",
     inputs: [
       {
+        internalType: "uint8",
         name: "val",
         type: "uint8",
-        internalType: "uint8",
       },
     ],
+    name: "InvalidBoolVal",
+    type: "error",
   },
   {
-    type: "error",
-    name: "LengthMismatch",
     inputs: [
       {
+        internalType: "uint256",
         name: "encodedLength",
         type: "uint256",
-        internalType: "uint256",
       },
       {
+        internalType: "uint256",
         name: "expectedLength",
         type: "uint256",
-        internalType: "uint256",
       },
     ],
+    name: "LengthMismatch",
+    type: "error",
   },
   {
-    type: "error",
-    name: "OutOfBounds",
     inputs: [
       {
+        internalType: "uint256",
         name: "offset",
         type: "uint256",
-        internalType: "uint256",
       },
       {
+        internalType: "uint256",
         name: "length",
         type: "uint256",
-        internalType: "uint256",
       },
     ],
+    name: "OutOfBounds",
+    type: "error",
   },
 ] as const;
 
 const _bytecode =
-  "0x60808060405234601757603a9081601d823930815050f35b600080fdfe600080fdfea2646970667358221220301c2e8ff873d120309e52118bbdfc3a9c88c09dea16113fdc90e1ac17e1d9f164736f6c63430008190033";
+  "0x60808060405234601757603a9081601d823930815050f35b600080fdfe600080fdfea26469706673582212208523c4c4ece89d0e21e546bab9d9bf64f25009e4186259467e6e92a969c3cf2564736f6c63430008190033";
 
 type BytesParsingConstructorParams =
   | [signer?: Signer]

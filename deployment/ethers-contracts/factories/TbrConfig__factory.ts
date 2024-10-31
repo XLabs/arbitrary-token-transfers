@@ -7,66 +7,66 @@ import type { TbrConfig, TbrConfigInterface } from "../TbrConfig";
 
 const _abi = [
   {
-    type: "function",
-    name: "cancelOwnershipTransfer",
     inputs: [],
-    outputs: [],
-    stateMutability: "nonpayable",
+    name: "InvalidAddress",
+    type: "error",
   },
   {
-    type: "function",
-    name: "receiveOwnership",
     inputs: [],
-    outputs: [],
-    stateMutability: "nonpayable",
+    name: "NotAuthorized",
+    type: "error",
   },
   {
-    type: "function",
-    name: "transferOwnership",
+    anonymous: false,
     inputs: [
       {
-        name: "newOwner",
-        type: "address",
+        indexed: false,
         internalType: "address",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "event",
-    name: "OwnerUpdated",
-    inputs: [
-      {
         name: "oldAddress",
         type: "address",
-        indexed: false,
-        internalType: "address",
       },
       {
+        indexed: false,
+        internalType: "address",
         name: "newAddress",
         type: "address",
-        indexed: false,
-        internalType: "address",
       },
       {
-        name: "timestamp",
-        type: "uint256",
         indexed: false,
         internalType: "uint256",
+        name: "timestamp",
+        type: "uint256",
       },
     ],
-    anonymous: false,
+    name: "OwnerUpdated",
+    type: "event",
   },
   {
-    type: "error",
-    name: "InvalidAddress",
     inputs: [],
+    name: "cancelOwnershipTransfer",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    type: "error",
-    name: "NotAuthorized",
     inputs: [],
+    name: "receiveOwnership",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "newOwner",
+        type: "address",
+      },
+    ],
+    name: "transferOwnership",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
 ] as const;
 

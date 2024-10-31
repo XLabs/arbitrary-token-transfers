@@ -7,32 +7,32 @@ import type { ProxyBase, ProxyBaseInterface } from "../ProxyBase";
 
 const _abi = [
   {
-    type: "function",
-    name: "checkedUpgrade",
+    inputs: [],
+    name: "InvalidData",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "InvalidMsgValue",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "InvalidSender",
+    type: "error",
+  },
+  {
     inputs: [
       {
+        internalType: "bytes",
         name: "data",
         type: "bytes",
-        internalType: "bytes",
       },
     ],
+    name: "checkedUpgrade",
     outputs: [],
     stateMutability: "payable",
-  },
-  {
-    type: "error",
-    name: "InvalidData",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "InvalidMsgValue",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "InvalidSender",
-    inputs: [],
+    type: "function",
   },
 ] as const;
 
