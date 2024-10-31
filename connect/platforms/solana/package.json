@@ -7,9 +7,9 @@
   "types": "ts-build/src/index.d.ts",
   "exports": {
     ".": {
+      "types": "./ts-build/src/index.d.ts",
       "require": "./ts-build/src/index.cjs",
-      "import": "./ts-build/src/index.js",
-      "types": "./ts-build/src/index.d.ts"
+      "import": "./ts-build/src/index.js"
     }
   },
   "scripts": {
