@@ -22,12 +22,11 @@
     "inlineSources": true
   },
   "references": [
-    { "path": "./sdk/common/tsconfig.json" },
-    { "path": "./sdk/evm/tsconfig.json" },
-    { "path": "./sdk/solana/tsconfig.json" },
+    { "path": "./sdk/common" },
+    { "path": "./sdk/evm" },
+    { "path": "./sdk/solana" },
     { "path": "./deployment" },
-    { "path": "./solana/tsconfig.json" },
-    { "path": "./evm/tsconfig.json" },
+    { "path": "./solana" },
     { "path": "./connect/definitions" },
     { "path": "./connect/platforms/evm" },
     { "path": "./connect/platforms/solana" },

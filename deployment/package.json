@@ -9,7 +9,7 @@
     "deploy:evm:testnet": "ENV=testnet tsx evm/deploy.ts",
     "deploy:evm:mainnet": "ENV=mainnet tsx evm/deploy.ts",
     "parse:evm": "tsx evm/parse.ts",
-    "test:build": "tsc --project ./tsconfig.json",
+    "test:build": "tsc --noEmit --project ./tsconfig.json",
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check"
   },
