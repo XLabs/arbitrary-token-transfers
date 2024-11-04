@@ -38,7 +38,7 @@ import testProgramKeypair from '../../../solana/programs/token-bridge-relayer/te
 // Export IDL
 export * from './idl/token_bridge_relayer.js';
 export const idl = IDL;
-export { SolanaPriceOracle } from '@xlabs-xyz/solana-price-oracle-sdk';
+export { SolanaPriceOracle, oraclePidByNetwork } from '@xlabs-xyz/solana-price-oracle-sdk';
 export type { VaaMessage } from 'common-arbitrary-token-transfer';
 
 export interface WormholeAddress {

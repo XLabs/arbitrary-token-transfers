@@ -39,6 +39,7 @@ import {
   TransferParams,
 } from '@xlabs-xyz/arbitrary-token-transfers-definitions';
 import {
+  oraclePidByNetwork,
   SolanaPriceOracle,
   SolanaTokenBridgeRelayer,
 } from '@xlabs-xyz/solana-arbitrary-token-transfers';
@@ -51,11 +52,6 @@ const NATIVE_MINT_UNIVERSAL = new SolanaAddress(
 const KLAM_PER_SOL = 1_000_000n;
 const MWEI_PER_MICRO_ETH = 1_000_000n;
 const MWEI_PER_ETH = 1_000_000_000_000n;
-
-const PRICE_ORACLE_ADDRESSES: Partial<Record<Network, PublicKey>> = {
-  Mainnet: new PublicKey('xPo6K395x992buiN3FiPjZhYwyXrnLy1qKGidKyL2x3'),
-  Testnet: new PublicKey('xPo6K395x992buiN3FiPjZhYwyXrnLy1qKGidKyL2x3'),
-}
 
 export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaChains>
   implements AutomaticTokenBridgeV3<N, C>
@@ -77,11 +73,13 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     const address = tokenBridgeRelayerV3Contracts.get(network, chainName);
     if (!address) throw new Error(`TokenBridge address not defined for ${network} ${chainName}`);
 
-    const priceOracleAddress = PRICE_ORACLE_ADDRESSES[network];
+    // We shouldn't need this cast but it looks like the typescript compiler doesn't infer the type correctly otherwise.
+    // Note that we're already throwing above in case we receive "Devnet".
+    const priceOracleAddress = oraclePidByNetwork[network as Exclude<N, "Devnet">];
     if (!priceOracleAddress) throw new Error(`Price oracle address not defined for ${network}`);
 
     this.chain = new SolanaChain(chainName, new SolanaPlatform(this.network));
-    this.oracleClient = new SolanaPriceOracle(connection, priceOracleAddress);
+    this.oracleClient = new SolanaPriceOracle(connection, new PublicKey(priceOracleAddress));
     this.client = new SolanaTokenBridgeRelayer(
       { connection },
       network,
