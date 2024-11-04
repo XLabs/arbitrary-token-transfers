@@ -86,7 +86,7 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
     config: ChainsConfig<N, EvmPlatformType>,
   ): Promise<AutomaticTokenBridgeV3EVM<N, EvmChains>> {
     // TODO: different ethers version on the sdk evm package
-    // @ts-ignore
+    // @ts-expect-error
     const [network, chain] = await EvmPlatform.chainFromRpc(provider);
 
     const conf = config[chain]!;
@@ -122,7 +122,7 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
       : params.token;
     const token = new EvmAddress(sourceToken.address);
 
-    const transferParams = await this.tbr.transferWithRelay(params.allowances, {
+    const transferParams = this.tbr.transferWithRelay(params.allowances, {
       args: {
         method: isNative(params.token.address)
           ? 'TransferGasTokenWithRelay'
@@ -170,7 +170,7 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
       case 'Preapproved':
         const token = EvmPlatform.getTokenImplementation(
           // TODO: different ethers version on the sdk evm package
-          // @ts-ignore
+          // @ts-expect-error
           this.provider,
           tokenAddress.toNative(this.chain).toString(),
         );
@@ -202,7 +202,7 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
   async *redeem(
     vaa: VAA<'AutomaticTokenBridgeV3:TransferWithRelay'>,
   ): AsyncGenerator<EvmUnsignedTransaction<N, C>> {
-    const { data, to, value } = await this.tbr.completeTransfer(vaa as any);
+    const { data, to, value } = this.tbr.completeTransfer([vaa as any]);
 
     yield new EvmUnsignedTransaction(
       {
@@ -233,7 +233,7 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
 
   private getChainWholeUnit(chain: SupportedChains): number {
     const destinationDecimals = decimals.nativeDecimals.get(chainToPlatform(chain));
-    if (!destinationDecimals) throw new Error(`Decimals not defined for chain ${chain}`);
+    if (!destinationDecimals) throw new Error(`Gas token decimals not defined for chain ${chain}`);
     return 10 ** destinationDecimals;
   }
 
