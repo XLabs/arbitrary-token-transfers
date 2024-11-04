@@ -43,6 +43,7 @@ import {
   adminsQueryReturnLayout,
 } from "./solidity-sdk/access-control.js";
 import { evmAddressItem } from "./solidity-sdk/common.js";
+import { getCanonicalToken } from "@wormhole-foundation/sdk-base/tokens";
 
 const WHOLE_EVM_GAS_TOKEN_UNITS = 10 ** 18;
 
@@ -157,6 +158,10 @@ export class Tbrv3 {
     } catch {}
 
     if (gasToken === undefined) {
+      if (chain === "Celo") {
+        defaultGasToken = getCanonicalToken(network, chain, "CELO")?.address;
+      }
+
       if (defaultGasToken === undefined) {
         throw new Error(`Gas token address needs to be provided for network ${network} and chain ${chain}`);
       }
