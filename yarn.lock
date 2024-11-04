@@ -2785,7 +2785,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"common-arbitrary-token-transfer@workspace:sdk/common":
+"common-arbitrary-token-transfer@workspace:^, common-arbitrary-token-transfer@workspace:sdk/common":
   version: 0.0.0-use.local
   resolution: "common-arbitrary-token-transfer@workspace:sdk/common"
   dependencies:
@@ -5162,11 +5162,14 @@ __metadata:
     "@types/chai": "npm:^5"
     "@types/mocha": "npm:10.*"
     "@wormhole-foundation/sdk-base": "npm:^0.12.0"
+    "@wormhole-foundation/sdk-connect": "npm:^0.12.0"
     "@wormhole-foundation/sdk-definitions": "npm:^0.12.0"
+    "@wormhole-foundation/sdk-solana": "npm:^0.12.0"
     "@wormhole-foundation/sdk-solana-core": "npm:^0.12.0"
     "@wormhole-foundation/sdk-solana-tokenbridge": "npm:^0.12.0"
     "@xlabs-xyz/solana-arbitrary-token-transfers": "workspace:^"
     chai: "npm:^5.1.1"
+    common-arbitrary-token-transfer: "workspace:^"
     mocha: "npm:10.*"
     toml: "npm:^3.0.0"
     ts-mocha: "npm:10.*"

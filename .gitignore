@@ -49,3 +49,5 @@ verification-api-keys.json
 
 # env files
 .env.evm-test
+
+.vscode/launch.json

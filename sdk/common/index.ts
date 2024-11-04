@@ -14,8 +14,13 @@ export function throwError(message: string): never {
   throw new Error(message);
 }
 
-export function deserializeTbrV3Message(vaa: VaaMessage): TbrV3Payload {
-  return layout.deserializeLayout(TBRv3MessageLayout, vaa.payload.payload);
+/** Deserialize the inner payload: `vaa.payload.payload`. */
+export function deserializeTbrV3Message(payload: Uint8Array): TbrV3Payload {
+  return layout.deserializeLayout(TBRv3MessageLayout, payload);
+}
+
+export function serializeTbrV3Message(message: TbrV3Payload): Uint8Array {
+  return layout.serializeLayout(TBRv3MessageLayout, message);
 }
 
 const decimalDownShift = (downShift: number) =>

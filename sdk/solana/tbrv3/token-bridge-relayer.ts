@@ -199,6 +199,10 @@ export class SolanaTokenBridgeRelayer {
           ...rest,
         }));
       },
+      canonicalPeer: async (chain: Chain) => {
+        const { canonicalPeer } = await this.account.chainConfig(chain).fetch();
+        return new UniversalAddress(Uint8Array.from(canonicalPeer));
+      },
       allPeers: async (chain?: Chain) => {
         let filter: Buffer | undefined = undefined;
         if (chain !== undefined) {
@@ -668,7 +672,7 @@ export class SolanaTokenBridgeRelayer {
       wormholeProgramId: this.wormholeProgramId,
       vaa,
     });
-    const { recipient } = deserializeTbrV3Message(vaa);
+    const { recipient } = deserializeTbrV3Message(vaa.payload.payload);
     const accounts = {
       payer: signer,
       tbrConfig: this.account.config().address,
@@ -704,7 +708,7 @@ export class SolanaTokenBridgeRelayer {
       wormholeProgramId: this.wormholeProgramId,
       vaa,
     });
-    const { recipient } = deserializeTbrV3Message(vaa);
+    const { recipient } = deserializeTbrV3Message(vaa.payload.payload);
     const accounts = {
       payer: signer,
       tbrConfig: this.account.config().address,

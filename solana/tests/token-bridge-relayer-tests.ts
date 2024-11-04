@@ -1,8 +1,8 @@
 import { chainToChainId } from '@wormhole-foundation/sdk-base';
 import { UniversalAddress } from '@wormhole-foundation/sdk-definitions';
-import { PublicKey, SendTransactionError, Transaction } from '@solana/web3.js';
+import { Keypair, PublicKey, SendTransactionError, Transaction } from '@solana/web3.js';
 import { NATIVE_MINT } from '@solana/spl-token';
-import { assert, TestsHelper } from './utils/helpers.js';
+import { assert, TestMint, TestsHelper, tokenBridgeEmitter } from './utils/helpers.js';
 import { TbrWrapper, TokenBridgeWrapper, WormholeCoreWrapper } from './utils/client-wrapper.js';
 import { SolanaPriceOracle, uaToArray } from '@xlabs-xyz/solana-arbitrary-token-transfers';
 import { expect } from 'chai';
@@ -391,17 +391,93 @@ describe('Token Bridge Relayer Program', () => {
   describe('Running transfers', () => {
     it('Transfers SOL to another chain', async () => {
       const tokenAccount = await $.wrapSol(unauthorizedClient.provider, 1_000_000);
+      const gasDropoffAmount = 5;
+      const unwrapIntent = false; // Does not matter anyway
+      const transferredAmount = 123789n;
+
+      const foreignAddress = new UniversalAddress(Keypair.generate().publicKey.toBuffer());
+      const canonicalEthereum = await unauthorizedClient.read.canonicalPeer(ETHEREUM);
 
       await unauthorizedClient.transferNativeTokens({
-        recipient: { address: ethereumPeer1, chain: ETHEREUM },
+        recipient: { address: foreignAddress, chain: ETHEREUM },
         mint: NATIVE_MINT,
         tokenAccount: tokenAccount.publicKey,
-        transferredAmount: 123789n,
-        gasDropoffAmount: 5,
+        transferredAmount,
+        gasDropoffAmount,
         maxFeeLamports: 100_000_000n, // 0.1SOL max
-        unwrapIntent: false, // Does not matter anyway
+        unwrapIntent,
       });
-      //const message = await unauthorizedClient.account.wormholeMessage(unauthorizedClient.publicKey, 0).fetch();
+      //TODO Verify that the dust has not been transferred
+
+      const sequence = 0n;
+      const vaa = await wormholeCoreClient.parseVaa(
+        unauthorizedClient.account.wormholeMessage(unauthorizedClient.publicKey, sequence).address,
+      );
+      expect(vaa.sequence).equal(sequence);
+      expect(vaa.emitterChain).equal('Solana');
+      assert.key(new PublicKey(vaa.emitterAddress.address)).equal(tokenBridgeEmitter());
+
+      expect(vaa.payload.to).deep.equal({ address: canonicalEthereum, chain: ETHEREUM });
+      //expect(vaa.payload.token.amount).equal(transferredAmount); // 12378
+
+      expect(vaa.payload.payload.recipient).deep.equal(foreignAddress);
+      // We need to divide by 1 million because it's deserialize as the token, not µToken:
+      expect(vaa.payload.payload.gasDropoff).equal(gasDropoffAmount / 1_000_000);
+      expect(vaa.payload.payload.unwrapIntent).equal(unwrapIntent);
+
+      console.log({
+        guardianSet: vaa.guardianSet,
+        signatures: vaa.signatures,
+        sequence: vaa.sequence,
+      });
+    });
+
+    it('Transfers a token to another chain', async () => {
+      const gasDropoffAmount = 0;
+      const unwrapIntent = false; // Does not matter anyway
+      const transferredAmount = 321654n;
+
+      const mint = await TestMint.create(ownerClient.provider, 9);
+      const tokenAccount = await mint.mint(1_000_000_000n, unauthorizedClient.provider);
+
+      const foreignAddress = new UniversalAddress(Keypair.generate().publicKey.toBuffer());
+      const canonicalEthereum = await unauthorizedClient.read.canonicalPeer(ETHEREUM);
+
+      await unauthorizedClient.transferNativeTokens({
+        recipient: { address: foreignAddress, chain: ETHEREUM },
+        mint: mint.address,
+        tokenAccount: tokenAccount.publicKey,
+        transferredAmount,
+        gasDropoffAmount,
+        maxFeeLamports: 100_000_000n, // 0.1SOL max
+        unwrapIntent,
+      });
+
+      const sequence = 0n;
+      const vaa = await wormholeCoreClient.parseVaa(
+        unauthorizedClient.account.wormholeMessage(unauthorizedClient.publicKey, sequence).address,
+      );
+      expect(vaa.sequence).equal(sequence);
+      expect(vaa.emitterChain).equal('Solana');
+      assert.key(new PublicKey(vaa.emitterAddress.address)).equal(tokenBridgeEmitter());
+
+      expect(vaa.payload.to).deep.equal({ address: canonicalEthereum, chain: ETHEREUM });
+      //expect(vaa.payload.token.amount).equal(transferredAmount); // 12378
+
+      expect(vaa.payload.payload.recipient).deep.equal(foreignAddress);
+      // We need to divide by 1 million because it's deserialize as the token, not µToken:
+      expect(vaa.payload.payload.gasDropoff).equal(gasDropoffAmount / 1_000_000);
+      expect(vaa.payload.payload.unwrapIntent).equal(unwrapIntent);
+
+      console.log({
+        guardianSet: vaa.guardianSet,
+        signatures: vaa.signatures,
+        sequence: vaa.sequence,
+      });
+    });
+
+    it('Gets wrapped SOL back from another chain', async () => {
+      //TODO
     });
   });
 });
