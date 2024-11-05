@@ -231,7 +231,7 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
       transaction.add(
         await this.client.completeNativeTransfer(
           signer,
-          // @ts-ignore
+          // @ts-expect-error
           vaa, // TODO: fix at solana sdk
           ata,
         ),
@@ -240,7 +240,7 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
       transaction.add(
         await this.client.completeWrappedTransfer(
           signer,
-          // @ts-ignore
+          // @ts-expect-error
           vaa, // TODO: fix at solana sdk
           ata,
         ),
