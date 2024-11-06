@@ -8,14 +8,14 @@ import {
 import { layoutItems, UniversalAddress, VAA } from '@wormhole-foundation/sdk-definitions';
 
 export type VaaMessage = VAA<'TokenBridge:TransferWithPayload'>;
-export type TbrV3Payload = LayoutToType<typeof TBRv3Message>;
+export type TbrV3Payload = LayoutToType<typeof TBRv3MessageLayout>;
 
 export function throwError(message: string): never {
   throw new Error(message);
 }
 
 export function deserializeTbrV3Message(vaa: VaaMessage): TbrV3Payload {
-  return layout.deserializeLayout(TBRv3Message, vaa.payload.payload);
+  return layout.deserializeLayout(TBRv3MessageLayout, vaa.payload.payload);
 }
 
 const decimalDownShift = (downShift: number) =>
@@ -38,7 +38,7 @@ const gasDropoffItem = {
   custom: decimalDownShift(6),
 } as const satisfies LayoutItem;
 
-const TBRv3Message = [
+export const TBRv3MessageLayout = [
   //we can turn this into a switch layout if we ever get a version 1
   { name: 'version', binary: 'uint', size: 1, custom: 0, omit: true },
   { name: 'recipient', ...layoutItems.universalAddressItem },

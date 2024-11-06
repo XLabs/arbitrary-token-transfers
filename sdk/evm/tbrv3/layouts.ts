@@ -29,10 +29,10 @@ const peerChainAndAddressItem = {
 } as const;
 
 //TODO eliminate copy paste from oracle sdk and unify in some shared repo
-const decimalDownShift = (downShift: number) => ({
+const decimalDownShift = (downShift: number, roundingFunction: (x: number) => number) => ({
   to: (val: number): number => val / 10 ** downShift,
   from: (price: number): number => {
-    const encoded = Math.round(price * 10 ** downShift);
+    const encoded = roundingFunction(price * 10 ** downShift);
     if (encoded === 0 && price !== 0)
       throw new Error(`losing all precision when storing ${price} with shift ${downShift}`);
 
@@ -47,7 +47,7 @@ const decimalDownShift = (downShift: number) => ({
 export const gasDropoffItem = {
   binary: "uint",
   size: 4,
-  custom: decimalDownShift(6),
+  custom: decimalDownShift(6, Math.floor),
 } as const satisfies LayoutItem;
 
 /**
@@ -71,7 +71,7 @@ const feeItem = {
   custom: bigintDownshift(12),
 } as const satisfies LayoutItem;
 
-const acquireModeItem = {
+export const acquireModeItem = {
   name: "acquireMode",
   binary: "switch",
   idSize: 1,

@@ -15,13 +15,14 @@
   "scripts": {
     "build:ts": "rm -rf ./ts-build && tsc --noEmit -p ./tsconfig.json && tsup",
     "build": "yarn run build:ts",
-    "clean": "rm -rf ./ts-build ./build-test",
+    "clean": "rm -rf ts-build",
     "prettier": "prettier --write .",
     "test:integration": "tsc -p ./test/tsconfig.json && mocha build-test/test/integration.tbrv3.test.js",
     "test:deploy:integration": "yarn workspace deployment run deploy:evm:localnet && yarn test:integration"
   },
   "files": [
-    "ts-build"
+    "ts-build",
+    "!**/*.tsbuildinfo"
   ],
   "repository": {
     "type": "git",
@@ -39,11 +40,11 @@
   "devDependencies": {
     "@types/chai": "^4.3.19",
     "@types/mocha": "^10",
-    "@types/node": "20.16.11",
+    "@types/node": "20.17.5",
     "chai": "^5.1.1",
     "mocha": "^10.7.3",
-    "tsup": "^8.3.0",
-    "tsx": "4.19.1",
+    "tsup": "^8.3.5",
+    "tsx": "4.19.2",
     "typescript": "5.6.3"
   },
   "tsup": {

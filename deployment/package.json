@@ -9,13 +9,13 @@
     "deploy:evm:testnet": "ENV=testnet tsx evm/deploy.ts",
     "deploy:evm:mainnet": "ENV=mainnet tsx evm/deploy.ts",
     "parse:evm": "tsx evm/parse.ts",
-    "test:build": "tsc --project ./tsconfig.json",
+    "test:build": "tsc --noEmit --project ./tsconfig.json",
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check"
   },
   "devDependencies": {
-    "@types/node": "20.16.11",
-    "tsx": "^4.19.1",
+    "@types/node": "20.17.5",
+    "tsx": "^4.19.2",
     "typescript": "^5.6.3"
   },
   "dependencies": {

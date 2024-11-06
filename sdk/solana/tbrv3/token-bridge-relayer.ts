@@ -1,5 +1,4 @@
 import * as anchor from '@coral-xyz/anchor';
-import { Program } from '@coral-xyz/anchor';
 import {
   PublicKey,
   Connection,
@@ -27,7 +26,7 @@ import {
   getCompleteTransferNativeWithPayloadCpiAccounts,
   getCompleteTransferWrappedWithPayloadCpiAccounts,
 } from '@wormhole-foundation/sdk-solana-tokenbridge';
-import { SolanaPriceOracle, bigintToBn, bnToBigint } from '@xlabs/solana-price-oracle-sdk';
+import { SolanaPriceOracle, bigintToBn, bnToBigint } from '@xlabs-xyz/solana-price-oracle-sdk';
 import { deserializeTbrV3Message, VaaMessage, throwError } from 'common-arbitrary-token-transfer';
 import { BpfLoaderUpgradeableProgram } from './bpf-loader-upgradeable.js';
 
@@ -39,7 +38,7 @@ import testProgramKeypair from '../../../solana/programs/token-bridge-relayer/te
 // Export IDL
 export * from './idl/token_bridge_relayer.js';
 export const idl = IDL;
-export { SolanaPriceOracle } from '@xlabs/solana-price-oracle-sdk';
+export { SolanaPriceOracle, oraclePidByNetwork } from '@xlabs-xyz/solana-price-oracle-sdk';
 export type { VaaMessage } from 'common-arbitrary-token-transfer';
 
 export interface WormholeAddress {
@@ -100,7 +99,7 @@ export class SolanaTokenBridgeRelayer {
   ) {
     const wormholeNetwork = network === 'Localnet' ? 'Testnet' : network;
 
-    this.program = new Program(patchAddress(IDL, programId), provider);
+    this.program = new anchor.Program(patchAddress(IDL, programId), provider);
     this.priceOracleClient = priceOracle;
     this.wormholeProgramId = new PublicKey(contracts.coreBridge(wormholeNetwork, 'Solana'));
     this.tokenBridgeProgramId = new PublicKey(contracts.tokenBridge(wormholeNetwork, 'Solana'));
