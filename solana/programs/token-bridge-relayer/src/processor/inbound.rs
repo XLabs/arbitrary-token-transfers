@@ -35,8 +35,8 @@ pub struct CompleteTransfer<'info> {
     /// of the bridged tokens. Mutable.
     #[account(
         mut,
-        associated_token::mint = mint,
-        associated_token::authority = recipient
+        token::mint = mint,
+        token::authority = recipient
     )]
     pub recipient_token_account: Box<Account<'info, TokenAccount>>,
 

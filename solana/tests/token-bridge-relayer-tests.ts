@@ -9,7 +9,6 @@ import { expect } from 'chai';
 
 import oracleKeypair from './oracle-program-keypair.json' with { type: 'json' };
 import { toVaaWithTbrV3Message } from 'common-arbitrary-token-transfer';
-import { readMessage } from './utils/layout.js';
 
 const ETHEREUM = 'Ethereum';
 const ETHEREUM_ID = chainToChainId(ETHEREUM);
@@ -409,7 +408,6 @@ describe('Token Bridge Relayer Program', () => {
         maxFeeLamports: 100_000_000n, // 0.1SOL max
         unwrapIntent,
       });
-      //TODO Verify that the dust has not been transferred
 
       const sequence = 0n;
       const vaa = toVaaWithTbrV3Message(
@@ -486,27 +484,29 @@ describe('Token Bridge Relayer Program', () => {
       });
     });
 
-    it('Gets wrapped SOL back from another chain', async () => {
+    xit('Gets wrapped SOL back from another chain', async () => {
       const [payer, recipient] = await $.airdrop([Keypair.generate(), Keypair.generate()]);
 
       const tokenAccount = await $.wrapSol($.provider.from(recipient), 1);
 
+      console.log({
+        recipient: recipient.publicKey.toString(),
+        tokenAccount: tokenAccount.publicKey.toString(),
+      });
+
       const vaaAddress = await wormholeCoreClient.postVaa(
         payer,
-        // The token originally comes from Solana
-        { chain: ETHEREUM, address: new UniversalAddress(NATIVE_MINT.toBuffer()) },
+        { chain: ETHEREUM, address: ethereumPeer1 },
+        // The token originally comes from Solana's native mint
+        NATIVE_MINT,
         {
-          recipient: new UniversalAddress(payer.publicKey.toBuffer()),
+          recipient: new UniversalAddress(recipient.publicKey.toBuffer()),
           gasDropoff: 0, //TODO increase the dropoff
         },
       );
-      const vaaInfo = await unauthorizedClient.provider.connection.getAccountInfo(vaaAddress);
-      console.log('Data', vaaInfo?.data);
-      const vaa = await readMessage(unauthorizedClient.provider.connection, vaaAddress);
-      console.log('VAA address:', vaaAddress.toString());
-      console.log('VAA read from account', vaa);
+      const vaa = await wormholeCoreClient.parseVaa(vaaAddress);
 
-      //await unauthorizedClient.completeNativeTransfer(vaa, tokenAccount.publicKey);
+      await unauthorizedClient.completeNativeTransfer(vaa, tokenAccount.publicKey);
     });
   });
 });

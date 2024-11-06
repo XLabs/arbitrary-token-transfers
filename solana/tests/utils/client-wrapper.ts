@@ -1,12 +1,13 @@
 import { AnchorProvider } from '@coral-xyz/anchor';
 import anchor from '@coral-xyz/anchor';
 import { Keypair, PublicKey, TransactionSignature } from '@solana/web3.js';
-import { Chain, encoding } from '@wormhole-foundation/sdk-base';
+import { Chain, encoding, layout } from '@wormhole-foundation/sdk-base';
 import {
   serializePayload,
   serialize as serializeVaa,
   deserialize as deserializeVaa,
   UniversalAddress,
+  createVAA,
 } from '@wormhole-foundation/sdk-definitions';
 import {
   SolanaPriceOracle,
@@ -30,6 +31,7 @@ import { signAndSendWait } from '@wormhole-foundation/sdk-connect';
 
 import testProgramKeypair from '../../programs/token-bridge-relayer/test-program-keypair.json' with { type: 'json' };
 import { serializeTbrV3Message } from 'common-arbitrary-token-transfer';
+import { accountDataLayout } from './layout.js';
 
 const $ = new TestsHelper();
 
@@ -298,12 +300,36 @@ export class WormholeCoreWrapper {
     return await sendAndConfirmIxs(this.provider, ix);
   }
 
-  //TODO delete and replace with
+  /** Parse an outbound message */
   async parseMessage(key: PublicKey): Promise<VaaMessage> {
     const vaa = await this.client.parsePostMessageAccount(key);
     const serialized = serializeVaa(vaa);
 
     return deserializeVaa('TokenBridge:TransferWithPayload', serialized);
+  }
+
+  /** Parse a VAA generated from the postVaa method */
+  async parseVaa(key: PublicKey): Promise<VaaMessage> {
+    const info = await this.provider.connection.getAccountInfo(key);
+    if (info === null) {
+      throw new Error(`No message account exists at that address: ${key.toString()}`);
+    }
+
+    const message = layout.deserializeLayout(accountDataLayout, info.data);
+
+    const vaa = createVAA('Uint8Array', {
+      guardianSet: 0,
+      timestamp: message.timestamp,
+      nonce: message.nonce,
+      emitterChain: message.emitterChain as any,
+      emitterAddress: message.emitterAddress,
+      sequence: message.sequence,
+      consistencyLevel: message.consistencyLevel,
+      signatures: [],
+      payload: message.payload,
+    });
+
+    return deserializeVaa('TokenBridge:TransferWithPayload', serializeVaa(vaa));
   }
 
   /**
@@ -312,6 +338,7 @@ export class WormholeCoreWrapper {
   async postVaa(
     payer: Keypair,
     source: { chain: Chain; address: UniversalAddress },
+    mint: PublicKey,
     message_: { recipient: UniversalAddress; gasDropoff: number; unwrapIntent?: boolean },
   ): Promise<PublicKey> {
     const message = { unwrapIntent: false, ...message_ };
@@ -321,7 +348,7 @@ export class WormholeCoreWrapper {
     const emittingPeer = new mocks.MockEmitter(source.address, source.chain, seq);
 
     const payload = serializePayload('TokenBridge:TransferWithPayload', {
-      token: { amount: 123n, address: source.address, chain: 'Solana' },
+      token: { amount: 123n, address: new UniversalAddress(mint.toBuffer()), chain: 'Solana' },
       to: { address: this.redeemer, chain: 'Solana' },
       from: source.address,
       payload: serializeTbrV3Message(message),
@@ -334,7 +361,6 @@ export class WormholeCoreWrapper {
       timestamp,
     );
     const vaa = this.guardians.addSignatures(published, [0]);
-    console.log('Vaa from post', vaa); //There is a timestamp here
 
     const txs = this.client.postVaa(payer.publicKey, vaa); //FIXME find why the timestamp isn't posted
     const signer = new SolanaSendSigner(this.client.connection, 'Solana', payer, false, {});

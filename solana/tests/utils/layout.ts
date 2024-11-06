@@ -1,12 +1,4 @@
-import { Connection, PublicKey } from '@solana/web3.js';
-import {
-  chainToChainId,
-  enumItem,
-  layout,
-  Layout,
-  layoutItems,
-  LayoutToType,
-} from '@wormhole-foundation/sdk-connect';
+import { chainToChainId, enumItem, Layout, layoutItems } from '@wormhole-foundation/sdk-connect';
 
 const versionItem = { name: 'version', binary: 'uint', size: 1, custom: 1, omit: true } as const;
 
@@ -69,7 +61,7 @@ const postedVaaV1Layout = [
   ...emitterAddressAndPayloadLayout,
 ] as const satisfies Layout;
 
-const accountDataLayout = {
+export const accountDataLayout = {
   binary: 'switch',
   idSize: 3,
   idTag: 'discriminator',
@@ -80,15 +72,3 @@ const accountDataLayout = {
     [[0x766161, 'vaa'], postedVaaV1Layout],
   ],
 } as const satisfies Layout;
-
-export async function readMessage(
-  connection: Connection,
-  pubkey: PublicKey,
-): Promise<LayoutToType<typeof accountDataLayout>> {
-  const info = await connection.getAccountInfo(pubkey);
-  if (info === null) {
-    throw new Error(`No message account exists at that address: ${pubkey.toString()}`);
-  }
-
-  return layout.deserializeLayout(accountDataLayout, info.data);
-}
