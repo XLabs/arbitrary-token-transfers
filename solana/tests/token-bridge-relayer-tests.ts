@@ -8,6 +8,8 @@ import { SolanaPriceOracle, uaToArray } from '@xlabs-xyz/solana-arbitrary-token-
 import { expect } from 'chai';
 
 import oracleKeypair from './oracle-program-keypair.json' with { type: 'json' };
+import { toVaaWithTbrV3Message } from 'common-arbitrary-token-transfer';
+import { readMessage } from './utils/layout.js';
 
 const ETHEREUM = 'Ethereum';
 const ETHEREUM_ID = chainToChainId(ETHEREUM);
@@ -410,15 +412,19 @@ describe('Token Bridge Relayer Program', () => {
       //TODO Verify that the dust has not been transferred
 
       const sequence = 0n;
-      const vaa = await wormholeCoreClient.parseVaa(
-        unauthorizedClient.account.wormholeMessage(unauthorizedClient.publicKey, sequence).address,
+      const vaa = toVaaWithTbrV3Message(
+        await wormholeCoreClient.parseMessage(
+          unauthorizedClient.account.wormholeMessage(unauthorizedClient.publicKey, sequence)
+            .address,
+        ),
       );
       expect(vaa.sequence).equal(sequence);
       expect(vaa.emitterChain).equal('Solana');
       assert.key(new PublicKey(vaa.emitterAddress.address)).equal(tokenBridgeEmitter());
 
       expect(vaa.payload.to).deep.equal({ address: canonicalEthereum, chain: ETHEREUM });
-      //expect(vaa.payload.token.amount).equal(transferredAmount); // 12378
+      // Since the native mint has 9 decimals, the last digit is removed by the token bridge:
+      expect(vaa.payload.token.amount).equal(transferredAmount / 10n);
 
       expect(vaa.payload.payload.recipient).deep.equal(foreignAddress);
       // We need to divide by 1 million because it's deserialize as the token, not µToken:
@@ -437,7 +443,7 @@ describe('Token Bridge Relayer Program', () => {
       const unwrapIntent = false; // Does not matter anyway
       const transferredAmount = 321654n;
 
-      const mint = await TestMint.create(ownerClient.provider, 9);
+      const mint = await TestMint.create(ownerClient.provider, 10);
       const tokenAccount = await mint.mint(1_000_000_000n, unauthorizedClient.provider);
 
       const foreignAddress = new UniversalAddress(Keypair.generate().publicKey.toBuffer());
@@ -453,16 +459,20 @@ describe('Token Bridge Relayer Program', () => {
         unwrapIntent,
       });
 
-      const sequence = 0n;
-      const vaa = await wormholeCoreClient.parseVaa(
-        unauthorizedClient.account.wormholeMessage(unauthorizedClient.publicKey, sequence).address,
+      const sequence = 1n;
+      const vaa = toVaaWithTbrV3Message(
+        await wormholeCoreClient.parseMessage(
+          unauthorizedClient.account.wormholeMessage(unauthorizedClient.publicKey, sequence)
+            .address,
+        ),
       );
       expect(vaa.sequence).equal(sequence);
       expect(vaa.emitterChain).equal('Solana');
       assert.key(new PublicKey(vaa.emitterAddress.address)).equal(tokenBridgeEmitter());
 
       expect(vaa.payload.to).deep.equal({ address: canonicalEthereum, chain: ETHEREUM });
-      //expect(vaa.payload.token.amount).equal(transferredAmount); // 12378
+      // Since the mint has 10 decimals, the last digit is removed by the token bridge:
+      expect(vaa.payload.token.amount).equal(transferredAmount / 100n);
 
       expect(vaa.payload.payload.recipient).deep.equal(foreignAddress);
       // We need to divide by 1 million because it's deserialize as the token, not µToken:
@@ -477,7 +487,26 @@ describe('Token Bridge Relayer Program', () => {
     });
 
     it('Gets wrapped SOL back from another chain', async () => {
-      //TODO
+      const [payer, recipient] = await $.airdrop([Keypair.generate(), Keypair.generate()]);
+
+      const tokenAccount = await $.wrapSol($.provider.from(recipient), 1);
+
+      const vaaAddress = await wormholeCoreClient.postVaa(
+        payer,
+        // The token originally comes from Solana
+        { chain: ETHEREUM, address: new UniversalAddress(NATIVE_MINT.toBuffer()) },
+        {
+          recipient: new UniversalAddress(payer.publicKey.toBuffer()),
+          gasDropoff: 0, //TODO increase the dropoff
+        },
+      );
+      const vaaInfo = await unauthorizedClient.provider.connection.getAccountInfo(vaaAddress);
+      console.log('Data', vaaInfo?.data);
+      const vaa = await readMessage(unauthorizedClient.provider.connection, vaaAddress);
+      console.log('VAA address:', vaaAddress.toString());
+      console.log('VAA read from account', vaa);
+
+      //await unauthorizedClient.completeNativeTransfer(vaa, tokenAccount.publicKey);
     });
   });
 });

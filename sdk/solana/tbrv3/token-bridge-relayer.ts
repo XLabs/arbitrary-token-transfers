@@ -153,8 +153,10 @@ export class SolanaTokenBridgeRelayer {
 
       temporary: (mint: PublicKey) =>
         findPda(this.program.programId, [Buffer.from('tmp'), mint.toBuffer()]),
+      //TODO read the VAA with `fetch`
       vaa: (vaaHash: Uint8Array) =>
         findPda(this.wormholeProgramId, [Buffer.from('PostedVAA'), vaaHash]),
+      redeemer: () => findPda(this.program.programId, [Buffer.from('redeemer')]),
       wormholeMessage: (payer: PublicKey, payerSequence: bigint) => {
         const buf = Buffer.alloc(8);
         buf.writeBigInt64BE(payerSequence);

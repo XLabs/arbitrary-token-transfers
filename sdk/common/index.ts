@@ -7,20 +7,43 @@ import {
 } from '@wormhole-foundation/sdk-base';
 import { layoutItems, UniversalAddress, VAA } from '@wormhole-foundation/sdk-definitions';
 
+type NestedOmit<Schema, Path extends string> = Path extends `${infer Head}.${infer Tail}`
+  ? Head extends keyof Schema
+    ? {
+        [K in keyof Schema]: K extends Head ? NestedOmit<Schema[K], Tail> : Schema[K];
+      }
+    : Schema
+  : Omit<Schema, Path>;
+
 export type VaaMessage = VAA<'TokenBridge:TransferWithPayload'>;
 export type TbrV3Payload = LayoutToType<typeof TBRv3MessageLayout>;
+export type VaaMessageWithTbrV3Payload = NestedOmit<VaaMessage, 'payload.payload'> & {
+  payload: { payload: TbrV3Payload };
+};
 
 export function throwError(message: string): never {
   throw new Error(message);
 }
 
-/** Deserialize the inner payload: `vaa.payload.payload`. */
+/** Deserialize the inner payload aka the message: `vaa.payload.payload`. */
 export function deserializeTbrV3Message(payload: Uint8Array): TbrV3Payload {
   return layout.deserializeLayout(TBRv3MessageLayout, payload);
 }
 
 export function serializeTbrV3Message(message: TbrV3Payload): Uint8Array {
   return layout.serializeLayout(TBRv3MessageLayout, message);
+}
+
+export function toVaaWithTbrV3Message(vaa: VaaMessage): VaaMessageWithTbrV3Payload {
+  const payload = deserializeTbrV3Message(vaa.payload.payload);
+
+  return { ...vaa, payload: { ...vaa.payload, payload } };
+}
+
+export function toVaaRaw(vaa: VaaMessageWithTbrV3Payload): VaaMessage {
+  const payload = serializeTbrV3Message(vaa.payload.payload);
+
+  return { ...vaa, payload: { ...vaa.payload, payload } };
 }
 
 const decimalDownShift = (downShift: number) =>

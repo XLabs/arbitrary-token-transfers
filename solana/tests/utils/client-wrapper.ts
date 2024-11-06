@@ -2,7 +2,12 @@ import { AnchorProvider } from '@coral-xyz/anchor';
 import anchor from '@coral-xyz/anchor';
 import { Keypair, PublicKey, TransactionSignature } from '@solana/web3.js';
 import { Chain, encoding } from '@wormhole-foundation/sdk-base';
-import { deserializePayload, UniversalAddress } from '@wormhole-foundation/sdk-definitions';
+import {
+  serializePayload,
+  serialize as serializeVaa,
+  deserialize as deserializeVaa,
+  UniversalAddress,
+} from '@wormhole-foundation/sdk-definitions';
 import {
   SolanaPriceOracle,
   SolanaTokenBridgeRelayer,
@@ -24,7 +29,7 @@ import { SolanaSendSigner } from '@wormhole-foundation/sdk-solana';
 import { signAndSendWait } from '@wormhole-foundation/sdk-connect';
 
 import testProgramKeypair from '../../programs/token-bridge-relayer/test-program-keypair.json' with { type: 'json' };
-import { deserializeTbrV3Message, serializeTbrV3Message } from 'common-arbitrary-token-transfer';
+import { serializeTbrV3Message } from 'common-arbitrary-token-transfer';
 
 const $ = new TestsHelper();
 
@@ -233,6 +238,7 @@ export class TbrWrapper {
 export class WormholeCoreWrapper {
   public readonly provider: AnchorProvider;
   public readonly client: SolanaWormholeCore<typeof WormholeContracts.Network, 'Solana'>;
+  private redeemer: UniversalAddress;
   private sequence = 0n;
   public readonly guardians: mocks.MockGuardians;
 
@@ -245,7 +251,13 @@ export class WormholeCoreWrapper {
       provider.connection,
       WormholeContracts.addresses,
     );
-    (this.client.coreBridge.idl.instructions[0].accounts[1].isSigner as boolean) = true;
+
+    this.redeemer = new UniversalAddress(
+      PublicKey.findProgramAddressSync(
+        [Buffer.from('redeemer')],
+        $.pubkey.from(testProgramKeypair),
+      )[0].toBuffer(),
+    );
 
     const guardianKey = 'cfb12303a19cde580bb4dd771639b0d26bc68353645571a8cff516ab2ee113a0';
     this.guardians = new mocks.MockGuardians(0, [guardianKey]);
@@ -258,7 +270,11 @@ export class WormholeCoreWrapper {
       Array.from(encoding.hex.decode('beFA429d57cD18b7F8A4d91A2da9AB4AF05d0FBe')), //address associated with the private key
     ];
 
-    const guardianSet = await $.airdrop(Keypair.generate());
+    //const guardianSet = await $.airdrop(Keypair.generate());
+    const guardianSet = PublicKey.findProgramAddressSync(
+      [Buffer.from('GuardianSet'), Buffer.from([0, 0, 0, 0])],
+      WormholeContracts.coreBridge,
+    )[0];
     const bridge = PublicKey.findProgramAddressSync(
       [Buffer.from('Bridge')],
       WormholeContracts.coreBridge,
@@ -273,46 +289,54 @@ export class WormholeCoreWrapper {
       .initialize(guardianSetExpirationTime, fee, initialGuardians)
       .accounts({
         bridge,
-        guardianSet: guardianSet.publicKey,
+        guardianSet,
         feeCollector,
         payer: this.provider.publicKey,
       })
-      .signers([guardianSet])
       .instruction();
 
-    return await sendAndConfirmIxs(this.provider, ix, { signers: [guardianSet] });
+    return await sendAndConfirmIxs(this.provider, ix);
   }
 
-  async parseVaa(key: PublicKey) {
+  //TODO delete and replace with
+  async parseMessage(key: PublicKey): Promise<VaaMessage> {
     const vaa = await this.client.parsePostMessageAccount(key);
-    const payload = deserializePayload('TokenBridge:TransferWithPayload', vaa.payload);
-    const innerPayload = deserializeTbrV3Message(payload.payload);
+    const serialized = serializeVaa(vaa);
 
-    return { ...vaa, payload: { ...payload, payload: innerPayload } };
+    return deserializeVaa('TokenBridge:TransferWithPayload', serialized);
   }
 
+  /**
+   * `source`: the origin of the token (chain and mint)
+   */
   async postVaa(
     payer: Keypair,
-    guardians: mocks.MockGuardians,
-    sourceChain: Chain,
-    sourceAddress: UniversalAddress,
+    source: { chain: Chain; address: UniversalAddress },
     message_: { recipient: UniversalAddress; gasDropoff: number; unwrapIntent?: boolean },
   ): Promise<PublicKey> {
-    const message = { unwrapIntent: message_.unwrapIntent ?? false, ...message_ };
+    const message = { unwrapIntent: false, ...message_ };
     const seq = this.sequence++;
     const timestamp = await getBlockTime(this.client.connection);
 
-    const emittingPeer = new mocks.MockEmitter(sourceAddress, sourceChain, seq);
+    const emittingPeer = new mocks.MockEmitter(source.address, source.chain, seq);
+
+    const payload = serializePayload('TokenBridge:TransferWithPayload', {
+      token: { amount: 123n, address: source.address, chain: 'Solana' },
+      to: { address: this.redeemer, chain: 'Solana' },
+      from: source.address,
+      payload: serializeTbrV3Message(message),
+    });
 
     const published = emittingPeer.publishMessage(
       0, // nonce,
-      serializeTbrV3Message(message),
+      payload,
       0, // consistencyLevel
       timestamp,
     );
-    const vaa = guardians.addSignatures(published, [0]);
+    const vaa = this.guardians.addSignatures(published, [0]);
+    console.log('Vaa from post', vaa); //There is a timestamp here
 
-    const txs = this.client.postVaa(payer.publicKey, vaa);
+    const txs = this.client.postVaa(payer.publicKey, vaa); //FIXME find why the timestamp isn't posted
     const signer = new SolanaSendSigner(this.client.connection, 'Solana', payer, false, {});
     await signAndSendWait(txs, signer);
 
@@ -349,5 +373,10 @@ export class TokenBridgeWrapper {
       .instruction();
 
     return await sendAndConfirmIxs(this.provider, ix);
+  }
+
+  async registerPeer(chain: Chain, address: UniversalAddress) {
+    //TODO governance VAA
+    this.client.tokenBridge.methods.registerChain;
   }
 }
