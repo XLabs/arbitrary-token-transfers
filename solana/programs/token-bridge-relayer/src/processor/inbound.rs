@@ -35,8 +35,8 @@ pub struct CompleteTransfer<'info> {
     /// of the bridged tokens. Mutable.
     #[account(
         mut,
-        token::mint = mint,
-        token::authority = recipient
+        associated_token::mint = mint,
+        associated_token::authority = recipient
     )]
     pub recipient_token_account: Box<Account<'info, TokenAccount>>,
 
@@ -63,7 +63,7 @@ pub struct CompleteTransfer<'info> {
         ],
         bump,
         token::mint = mint,
-        token::authority = tbr_config
+        token::authority = wormhole_redeemer
     )]
     pub temporary_account: Account<'info, TokenAccount>,
 
@@ -150,10 +150,6 @@ pub fn complete_transfer(mut ctx: Context<CompleteTransfer>) -> Result<()> {
     } = *ctx.accounts.vaa.message().data();
     let gas_dropoff_amount = denormalize_dropoff_to_lamports(gas_dropoff_amount);
 
-    let tbr_config_seeds = &[
-        TbrConfigState::SEED_PREFIX.as_ref(),
-        &[ctx.accounts.tbr_config.bump],
-    ];
     let redeemer_seeds = &[
         token_bridge::SEED_PREFIX_REDEEMER.as_ref(),
         &[ctx.accounts.tbr_config.redeemer_bump],
@@ -175,7 +171,7 @@ pub fn complete_transfer(mut ctx: Context<CompleteTransfer>) -> Result<()> {
     }
 
     redeem_gas(&ctx, gas_dropoff_amount)?;
-    redeem_token(&mut ctx, unwrap_intent, tbr_config_seeds)?;
+    redeem_token(&mut ctx, unwrap_intent, redeemer_seeds)?;
 
     Ok(())
 }
@@ -296,7 +292,7 @@ fn redeem_gas(ctx: &Context<CompleteTransfer>, gas_dropoff_amount: u64) -> Resul
 fn redeem_token(
     ctx: &mut Context<CompleteTransfer>,
     unwrap_intent: bool,
-    tbr_config_seeds: &[&[u8]],
+    redeemer_seeds: &[&[u8]],
 ) -> Result<()> {
     let unwrap_spl_sol_as_sol = unwrap_intent && ctx.accounts.mint.key() == native_mint::ID;
     let token_amount = {
@@ -312,9 +308,9 @@ fn redeem_token(
             anchor_spl::token::CloseAccount {
                 account: ctx.accounts.temporary_account.to_account_info(),
                 destination: ctx.accounts.payer.to_account_info(),
-                authority: ctx.accounts.tbr_config.to_account_info(),
+                authority: ctx.accounts.wormhole_redeemer.to_account_info(),
             },
-            &[tbr_config_seeds],
+            &[redeemer_seeds],
         ))?;
 
         // If the payer is not the recipient, the tokens must be transferred to the recipient:
@@ -339,9 +335,9 @@ fn redeem_token(
                 anchor_spl::token::Transfer {
                     from: ctx.accounts.temporary_account.to_account_info(),
                     to: ctx.accounts.recipient_token_account.to_account_info(),
-                    authority: ctx.accounts.tbr_config.to_account_info(),
+                    authority: ctx.accounts.wormhole_redeemer.to_account_info(),
                 },
-                &[tbr_config_seeds],
+                &[redeemer_seeds],
             ),
             token_amount,
         )?;
@@ -353,9 +349,9 @@ fn redeem_token(
             anchor_spl::token::CloseAccount {
                 account: ctx.accounts.temporary_account.to_account_info(),
                 destination: ctx.accounts.payer.to_account_info(),
-                authority: ctx.accounts.tbr_config.to_account_info(),
+                authority: ctx.accounts.wormhole_redeemer.to_account_info(),
             },
-            &[tbr_config_seeds],
+            &[redeemer_seeds],
         ))?;
     }
 

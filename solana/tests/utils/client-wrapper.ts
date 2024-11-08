@@ -1,7 +1,13 @@
 import { AnchorProvider } from '@coral-xyz/anchor';
 import anchor from '@coral-xyz/anchor';
-import { Keypair, PublicKey, TransactionSignature } from '@solana/web3.js';
-import { Chain, encoding, layout } from '@wormhole-foundation/sdk-base';
+import {
+  Keypair,
+  PublicKey,
+  SystemProgram,
+  SYSVAR_RENT_PUBKEY,
+  TransactionSignature,
+} from '@solana/web3.js';
+import { Chain, chainToChainId, encoding, layout } from '@wormhole-foundation/sdk-base';
 import {
   serializePayload,
   serialize as serializeVaa,
@@ -56,6 +62,7 @@ export class TbrWrapper {
     provider: TestProvider,
     accountType: 'owner' | 'admin' | 'regular',
     oracleClient: SolanaPriceOracle,
+    debug: boolean,
   ) {
     const clientProvider =
       accountType === 'regular' ? provider : { connection: provider.connection };
@@ -65,13 +72,17 @@ export class TbrWrapper {
       'Localnet',
       $.pubkey.from(testProgramKeypair),
       oracleClient,
+      debug,
     );
 
     return new TbrWrapper(provider, client);
   }
 
-  static async create(provider: TestProvider) {
-    const client = await SolanaTokenBridgeRelayer.create({ connection: provider.connection });
+  static async create(provider: TestProvider, debug: boolean) {
+    const client = await SolanaTokenBridgeRelayer.create(
+      { connection: provider.connection },
+      debug,
+    );
 
     return new TbrWrapper(provider, client);
   }
@@ -237,12 +248,13 @@ export class TbrWrapper {
   }
 }
 
+const guardianKey = 'cfb12303a19cde580bb4dd771639b0d26bc68353645571a8cff516ab2ee113a0';
+const guardians = new mocks.MockGuardians(0, [guardianKey]);
+
 export class WormholeCoreWrapper {
   public readonly provider: AnchorProvider;
   public readonly client: SolanaWormholeCore<typeof WormholeContracts.Network, 'Solana'>;
-  private redeemer: UniversalAddress;
   private sequence = 0n;
-  public readonly guardians: mocks.MockGuardians;
 
   constructor(provider: AnchorProvider) {
     this.provider = provider;
@@ -253,16 +265,6 @@ export class WormholeCoreWrapper {
       provider.connection,
       WormholeContracts.addresses,
     );
-
-    this.redeemer = new UniversalAddress(
-      PublicKey.findProgramAddressSync(
-        [Buffer.from('redeemer')],
-        $.pubkey.from(testProgramKeypair),
-      )[0].toBuffer(),
-    );
-
-    const guardianKey = 'cfb12303a19cde580bb4dd771639b0d26bc68353645571a8cff516ab2ee113a0';
-    this.guardians = new mocks.MockGuardians(0, [guardianKey]);
   }
 
   async initialize() {
@@ -300,15 +302,9 @@ export class WormholeCoreWrapper {
     return await sendAndConfirmIxs(this.provider, ix);
   }
 
-  /** Parse an outbound message */
-  async parseMessage(key: PublicKey): Promise<VaaMessage> {
-    const vaa = await this.client.parsePostMessageAccount(key);
-    const serialized = serializeVaa(vaa);
-
-    return deserializeVaa('TokenBridge:TransferWithPayload', serialized);
-  }
-
-  /** Parse a VAA generated from the postVaa method */
+  /** Parse a VAA generated from the postVaa method, or from the Token Bridge during
+   * and outbound transfer
+   */
   async parseVaa(key: PublicKey): Promise<VaaMessage> {
     const info = await this.provider.connection.getAccountInfo(key);
     if (info === null) {
@@ -321,7 +317,7 @@ export class WormholeCoreWrapper {
       guardianSet: 0,
       timestamp: message.timestamp,
       nonce: message.nonce,
-      emitterChain: message.emitterChain as any,
+      emitterChain: message.emitterChain,
       emitterAddress: message.emitterAddress,
       sequence: message.sequence,
       consistencyLevel: message.consistencyLevel,
@@ -349,7 +345,10 @@ export class WormholeCoreWrapper {
 
     const payload = serializePayload('TokenBridge:TransferWithPayload', {
       token: { amount: 123n, address: new UniversalAddress(mint.toBuffer()), chain: 'Solana' },
-      to: { address: this.redeemer, chain: 'Solana' },
+      to: {
+        address: new UniversalAddress($.pubkey.from(testProgramKeypair).toBuffer()),
+        chain: 'Solana',
+      },
       from: source.address,
       payload: serializeTbrV3Message(message),
     });
@@ -357,12 +356,12 @@ export class WormholeCoreWrapper {
     const published = emittingPeer.publishMessage(
       0, // nonce,
       payload,
-      0, // consistencyLevel
+      1, // consistencyLevel
       timestamp,
     );
-    const vaa = this.guardians.addSignatures(published, [0]);
+    const vaa = guardians.addSignatures(published, [0]);
 
-    const txs = this.client.postVaa(payer.publicKey, vaa); //FIXME find why the timestamp isn't posted
+    const txs = this.client.postVaa(payer.publicKey, vaa);
     const signer = new SolanaSendSigner(this.client.connection, 'Solana', payer, false, {});
     await signAndSendWait(txs, signer);
 
@@ -371,10 +370,11 @@ export class WormholeCoreWrapper {
 }
 
 export class TokenBridgeWrapper {
-  public readonly provider: AnchorProvider;
+  static sequence = 100n;
+  public readonly provider: TestProvider;
   public readonly client: SolanaTokenBridge<typeof WormholeContracts.Network, 'Solana'>;
 
-  constructor(provider: AnchorProvider) {
+  constructor(provider: TestProvider) {
     this.provider = provider;
     this.client = new SolanaTokenBridge(
       WormholeContracts.Network,
@@ -402,7 +402,66 @@ export class TokenBridgeWrapper {
   }
 
   async registerPeer(chain: Chain, address: UniversalAddress) {
-    //TODO governance VAA
-    this.client.tokenBridge.methods.registerChain;
+    const sequence = TokenBridgeWrapper.sequence++;
+    const timestamp = await getBlockTime(this.client.connection);
+    const emitterAddress = new UniversalAddress('00'.repeat(31) + '04');
+    const rawVaa = createVAA('TokenBridge:RegisterChain', {
+      guardianSet: 0,
+      timestamp,
+      nonce: 0,
+      emitterChain: 'Solana',
+      emitterAddress,
+      sequence,
+      consistencyLevel: 1,
+      signatures: [],
+      payload: { chain: 'Solana', actionArgs: { foreignChain: chain, foreignAddress: address } },
+    });
+    const vaa = guardians.addSignatures(rawVaa, [0]);
+    const txs = this.client.coreBridge.postVaa(this.provider.publicKey, vaa);
+    const signer = new SolanaSendSigner(
+      this.client.connection,
+      'Solana',
+      this.provider.keypair,
+      false,
+      {},
+    );
+    await signAndSendWait(txs, signer);
+
+    const vaaAddress = coreUtils.derivePostedVaaKey(
+      WormholeContracts.coreBridge,
+      Buffer.from(vaa.hash),
+    );
+
+    const chainBytes = Buffer.alloc(2);
+    chainBytes.writeUInt16BE(chainToChainId(chain));
+    const sequenceBytes = Buffer.alloc(8);
+    sequenceBytes.writeBigUInt64BE(sequence);
+    const endpoint = PublicKey.findProgramAddressSync(
+      [chainBytes, address.toUint8Array()],
+      WormholeContracts.tokenBridge,
+    )[0];
+    const config = PublicKey.findProgramAddressSync(
+      [Buffer.from('config')],
+      WormholeContracts.tokenBridge,
+    )[0];
+    const claim = PublicKey.findProgramAddressSync(
+      [emitterAddress.toUint8Array(), Buffer.from([0, 1]), sequenceBytes],
+      WormholeContracts.tokenBridge,
+    )[0];
+
+    const ix = await this.client.tokenBridge.methods
+      .registerChain()
+      .accounts({
+        payer: this.provider.publicKey,
+        vaa: vaaAddress,
+        endpoint,
+        config,
+        claim,
+        wormholeProgram: WormholeContracts.coreBridge,
+        rent: SYSVAR_RENT_PUBKEY,
+        systemProgram: SystemProgram.programId,
+      })
+      .instruction();
+    await sendAndConfirmIxs(this.provider, ix);
   }
 }

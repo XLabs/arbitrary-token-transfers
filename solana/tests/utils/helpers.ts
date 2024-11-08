@@ -150,7 +150,7 @@ export class TestsHelper {
   };
 
   provider = {
-    gen: (): TestProvider => new TestProvider(this.connection, Keypair.generate()),
+    generate: (): TestProvider => new TestProvider(this.connection, Keypair.generate()),
     read: async (path: string): Promise<TestProvider> =>
       new TestProvider(this.connection, await this.keypair.read(path)),
     from: (bytesOrKeypair: number[] | Keypair): TestProvider =>
@@ -159,7 +159,7 @@ export class TestsHelper {
         Array.isArray(bytesOrKeypair) ? this.keypair.from(bytesOrKeypair) : bytesOrKeypair,
       ),
     several: (amount: number): TestProvider[] =>
-      Array.from({ length: amount }).map(this.provider.gen),
+      Array.from({ length: amount }).map(this.provider.generate),
   };
 
   /** Confirms a transaction. */
@@ -185,6 +185,15 @@ export class TestsHelper {
     }
 
     return to;
+  }
+
+  async createAssociatedTokenAccount(authority: TestProvider, mint: PublicKey) {
+    return await spl.createAssociatedTokenAccount(
+      authority.connection,
+      authority.signer,
+      mint,
+      authority.publicKey,
+    );
   }
 
   /** Creates a new account and transfers wrapped SOL to it. */
@@ -340,16 +349,16 @@ export class WormholeContracts {
       WormholeContracts.token = new PublicKey(
         anchorCfg.test.genesis.find((cfg: any) => cfg.name == 'wormhole-bridge').address,
       );
-      //console.log('Initialized WormholeContracts with:', {
-      //  core: WormholeContracts.core.toString(),
-      //  token: WormholeContracts.token.toString(),
-      //});
     }
   }
 }
 
 export class TestProvider extends AnchorProvider {
   readonly signer: Signer;
+
+  get keypair() {
+    return Keypair.fromSecretKey(this.signer.secretKey);
+  }
 
   constructor(connection: Connection, keypair: Keypair) {
     super(connection, new Wallet(keypair));

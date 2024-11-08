@@ -1,6 +1,7 @@
 import { chainToChainId, enumItem, Layout, layoutItems } from '@wormhole-foundation/sdk-connect';
 
-const versionItem = { name: 'version', binary: 'uint', size: 1, custom: 1, omit: true } as const;
+const versionItem = <const N extends number>(custom: N) =>
+  ({ name: 'version', binary: 'uint', size: 1, custom, omit: true }) as const;
 
 const consistencyLevelItem = { name: 'consistencyLevel', binary: 'uint', size: 1 } as const;
 
@@ -30,7 +31,7 @@ const messageStatusItem = {
 // reuses unused fields (that were only used for VAAs) from here: https://github.com/wormhole-foundation/wormhole/blob/7247a0fc0c96ab9493b8d0b886a7a54ee2a8fcce/solana/bridge/program/src/accounts/posted_message.rs#L46-L76
 // hence these fields will only have sensible values when parsing posted messages by the solana core bridge rewrite
 const postedMessageV1Layout = [
-  versionItem,
+  versionItem(0),
   consistencyLevelItem,
   { name: 'emitterAuthority', ...layoutItems.universalAddressItem },
   messageStatusItem,
@@ -42,7 +43,7 @@ const postedMessageV1Layout = [
     binary: 'uint',
     size: 2,
     endianness: 'little',
-    custom: chainToChainId('Solana'),
+    custom: { from: chainToChainId('Solana'), to: 'Solana' },
   },
   ...emitterAddressAndPayloadLayout,
 ] as const satisfies Layout;
@@ -51,7 +52,7 @@ const postedMessageV1Layout = [
 //reuses unused fields (that were only used for posted messages) from here: https://github.com/wormhole-foundation/wormhole/blob/7247a0fc0c96ab9493b8d0b886a7a54ee2a8fcce/solana/bridge/program/src/accounts/posted_message.rs#L46-L76
 //hence these fields will only have sensible values when parsing posted messages by the solana core bridge rewrite
 const postedVaaV1Layout = [
-  versionItem,
+  versionItem(1),
   consistencyLevelItem,
   timestampItem,
   { name: 'signatureSet', ...layoutItems.universalAddressItem },

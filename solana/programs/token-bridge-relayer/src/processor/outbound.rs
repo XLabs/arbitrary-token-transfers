@@ -49,8 +49,8 @@ pub struct OutboundTransfer<'info> {
     /// Payer's token account. It holds the SPL token that will be transferred.
     #[account(
         mut,
-        constraint = user_token_account.mint == mint.key(),
-        constraint = user_token_account.owner == payer.key(),
+        token::mint = mint,
+        token::authority = payer,
     )]
     pub user_token_account: Box<Account<'info, TokenAccount>>,
 

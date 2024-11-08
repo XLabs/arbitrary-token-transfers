@@ -1,4 +1,4 @@
-import { chainToChainId } from '@wormhole-foundation/sdk-base';
+import { chainToChainId, encoding } from '@wormhole-foundation/sdk-base';
 import { UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import { Keypair, PublicKey, SendTransactionError, Transaction } from '@solana/web3.js';
 import { NATIVE_MINT } from '@solana/spl-token';
@@ -9,6 +9,8 @@ import { expect } from 'chai';
 
 import oracleKeypair from './oracle-program-keypair.json' with { type: 'json' };
 import { toVaaWithTbrV3Message } from 'common-arbitrary-token-transfer';
+
+const DEBUG = false;
 
 const ETHEREUM = 'Ethereum';
 const ETHEREUM_ID = chainToChainId(ETHEREUM);
@@ -24,7 +26,7 @@ const $ = new TestsHelper();
 describe('Token Bridge Relayer Program', () => {
   const oracleClient = new SolanaPriceOracle($.connection, $.pubkey.from(oracleKeypair));
   const clients = (['owner', 'owner', 'admin', 'admin', 'admin', 'regular'] as const).map(
-    (typeAccount) => TbrWrapper.from($.provider.gen(), typeAccount, oracleClient),
+    (typeAccount) => TbrWrapper.from($.provider.generate(), typeAccount, oracleClient, DEBUG),
   );
   const [
     ownerClient,
@@ -35,10 +37,10 @@ describe('Token Bridge Relayer Program', () => {
     unauthorizedClient,
   ] = clients;
 
-  const wormholeCoreOwner = $.provider.gen();
+  const wormholeCoreOwner = $.provider.generate();
   const wormholeCoreClient = new WormholeCoreWrapper(wormholeCoreOwner);
 
-  const tokenBridgeOwner = $.provider.gen();
+  const tokenBridgeOwner = $.provider.generate();
   const tokenBridgeClient = new TokenBridgeWrapper(tokenBridgeOwner);
 
   const feeRecipient = PublicKey.unique();
@@ -102,6 +104,11 @@ describe('Token Bridge Relayer Program', () => {
     // Wormhole Core Setup
     // ===================
     await Promise.all([wormholeCoreClient.initialize(), tokenBridgeClient.initialize()]);
+    await Promise.all([
+      tokenBridgeClient.registerPeer(ETHEREUM, ethereumPeer1),
+      tokenBridgeClient.registerPeer(ETHEREUM, ethereumPeer2),
+      tokenBridgeClient.registerPeer(OASIS, oasisPeer),
+    ]);
   });
 
   after(async () => {
@@ -110,7 +117,10 @@ describe('Token Bridge Relayer Program', () => {
   });
 
   it('Is initialized!', async () => {
-    const upgradeAuthorityClient = await TbrWrapper.create(await $.provider.read(authorityKeypair));
+    const upgradeAuthorityClient = await TbrWrapper.create(
+      await $.provider.read(authorityKeypair),
+      DEBUG,
+    );
 
     await upgradeAuthorityClient.initialize({
       feeRecipient,
@@ -411,11 +421,12 @@ describe('Token Bridge Relayer Program', () => {
 
       const sequence = 0n;
       const vaa = toVaaWithTbrV3Message(
-        await wormholeCoreClient.parseMessage(
+        await wormholeCoreClient.parseVaa(
           unauthorizedClient.account.wormholeMessage(unauthorizedClient.publicKey, sequence)
             .address,
         ),
       );
+
       expect(vaa.sequence).equal(sequence);
       expect(vaa.emitterChain).equal('Solana');
       assert.key(new PublicKey(vaa.emitterAddress.address)).equal(tokenBridgeEmitter());
@@ -428,12 +439,6 @@ describe('Token Bridge Relayer Program', () => {
       // We need to divide by 1 million because it's deserialize as the token, not µToken:
       expect(vaa.payload.payload.gasDropoff).equal(gasDropoffAmount / 1_000_000);
       expect(vaa.payload.payload.unwrapIntent).equal(unwrapIntent);
-
-      console.log({
-        guardianSet: vaa.guardianSet,
-        signatures: vaa.signatures,
-        sequence: vaa.sequence,
-      });
     });
 
     it('Transfers a token to another chain', async () => {
@@ -459,7 +464,7 @@ describe('Token Bridge Relayer Program', () => {
 
       const sequence = 1n;
       const vaa = toVaaWithTbrV3Message(
-        await wormholeCoreClient.parseMessage(
+        await wormholeCoreClient.parseVaa(
           unauthorizedClient.account.wormholeMessage(unauthorizedClient.publicKey, sequence)
             .address,
         ),
@@ -476,23 +481,11 @@ describe('Token Bridge Relayer Program', () => {
       // We need to divide by 1 million because it's deserialize as the token, not µToken:
       expect(vaa.payload.payload.gasDropoff).equal(gasDropoffAmount / 1_000_000);
       expect(vaa.payload.payload.unwrapIntent).equal(unwrapIntent);
-
-      console.log({
-        guardianSet: vaa.guardianSet,
-        signatures: vaa.signatures,
-        sequence: vaa.sequence,
-      });
     });
 
-    xit('Gets wrapped SOL back from another chain', async () => {
-      const [payer, recipient] = await $.airdrop([Keypair.generate(), Keypair.generate()]);
-
-      const tokenAccount = await $.wrapSol($.provider.from(recipient), 1);
-
-      console.log({
-        recipient: recipient.publicKey.toString(),
-        tokenAccount: tokenAccount.publicKey.toString(),
-      });
+    it('Gets wrapped SOL back from another chain', async () => {
+      const [payer, recipient] = await $.airdrop([Keypair.generate(), $.provider.generate()]);
+      const associatedTokenAccount = await $.createAssociatedTokenAccount(recipient, NATIVE_MINT);
 
       const vaaAddress = await wormholeCoreClient.postVaa(
         payer,
@@ -506,7 +499,7 @@ describe('Token Bridge Relayer Program', () => {
       );
       const vaa = await wormholeCoreClient.parseVaa(vaaAddress);
 
-      await unauthorizedClient.completeNativeTransfer(vaa, tokenAccount.publicKey);
+      await unauthorizedClient.completeNativeTransfer(vaa, associatedTokenAccount);
     });
   });
 });

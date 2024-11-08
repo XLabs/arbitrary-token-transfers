@@ -87,6 +87,8 @@ export class SolanaTokenBridgeRelayer {
   private readonly wormholeProgramId: PublicKey;
   private readonly tokenBridgeProgramId: PublicKey;
 
+  public debug: boolean;
+
   /**
    * Creates a SolanaTokenBridgeRelayer instance. To let the arguments be found automatically,
    * use `SolanaTokenBridgeRelayer.create`.
@@ -96,6 +98,7 @@ export class SolanaTokenBridgeRelayer {
     network: TbrNetwork,
     programId: PublicKey,
     priceOracle: SolanaPriceOracle,
+    debug: boolean = false,
   ) {
     const wormholeNetwork = network === 'Localnet' ? 'Testnet' : network;
 
@@ -103,22 +106,27 @@ export class SolanaTokenBridgeRelayer {
     this.priceOracleClient = priceOracle;
     this.wormholeProgramId = new PublicKey(contracts.coreBridge(wormholeNetwork, 'Solana'));
     this.tokenBridgeProgramId = new PublicKey(contracts.tokenBridge(wormholeNetwork, 'Solana'));
+
+    this.debug = debug;
   }
 
   /**
    * Creates a new instance by using the values in `network.json` in the program directory.
    */
-  static async create(provider: anchor.Provider): Promise<SolanaTokenBridgeRelayer> {
+  static async create(
+    provider: anchor.Provider,
+    debug: boolean = false,
+  ): Promise<SolanaTokenBridgeRelayer> {
     const network = await networkFromConnection(provider.connection);
     const programId = programIdFromNetwork(network);
     const priceOracle = await SolanaPriceOracle.create(provider.connection);
-    myDebug('Detected environment', {
+    conditionalDebug(debug, 'Detected environment', {
       network,
       relayerProgramId: programId.toString(),
       oracleProgramId: priceOracle.program.programId.toString(),
     });
 
-    return new SolanaTokenBridgeRelayer(provider, network, programId, priceOracle);
+    return new SolanaTokenBridgeRelayer(provider, network, programId, priceOracle, debug);
   }
 
   get connection(): Connection {
@@ -284,7 +292,7 @@ export class SolanaTokenBridgeRelayer {
     };
 
     const sequenceNumber = await impl(payer);
-    console.debug({ payerSequenceNumber: sequenceNumber.toString() });
+    this.logDebug({ payerSequenceNumber: sequenceNumber.toString() });
     return sequenceNumber;
   }
 
@@ -586,7 +594,7 @@ export class SolanaTokenBridgeRelayer {
       wormholeProgram: this.wormholeProgramId,
     };
 
-    myDebug('transferNativeTokens:', objToString(params), objToString(accounts));
+    this.logDebug('transferNativeTokens:', objToString(params), objToString(accounts));
 
     return this.program.methods
       .transferTokens(
@@ -643,7 +651,7 @@ export class SolanaTokenBridgeRelayer {
       wormholeProgram: this.wormholeProgramId,
     };
 
-    myDebug('transferWrappedTokens:', objToString(params), objToString(accounts));
+    this.logDebug('transferWrappedTokens:', objToString(params), objToString(accounts));
 
     return this.program.methods
       .transferTokens(
@@ -688,7 +696,7 @@ export class SolanaTokenBridgeRelayer {
       peer: this.account.peer(vaa.emitterChain, vaa.payload.from).address,
     };
 
-    myDebug('completeNativeTransfer:', accounts);
+    this.logDebug('completeNativeTransfer:', accounts);
 
     return this.program.methods.completeTransfer().accountsPartial(accounts).instruction();
   }
@@ -724,7 +732,7 @@ export class SolanaTokenBridgeRelayer {
       peer: this.account.peer(vaa.emitterChain, vaa.payload.from).address,
     };
 
-    myDebug('completeWrappedTransfer:', accounts);
+    this.logDebug('completeWrappedTransfer:', accounts);
 
     return this.program.methods.completeTransfer().accountsPartial(accounts).instruction();
   }
@@ -768,6 +776,17 @@ export class SolanaTokenBridgeRelayer {
       seed,
       fetch: () => account.fetch(address),
     };
+  }
+
+  /* HELPERS */
+  logDebug(message?: any, ...optionalParams: any[]) {
+    conditionalDebug(this.debug, message, ...optionalParams);
+  }
+}
+
+function conditionalDebug(debug: boolean, message?: any, ...optionalParams: any[]) {
+  if (debug) {
+    console.debug('[SolanaTokenBridgeRelayer]', message, ...optionalParams);
   }
 }
 
@@ -1022,10 +1041,6 @@ function programIdFromNetwork(network: TbrNetwork) {
     case 'Localnet':
       return Keypair.fromSecretKey(Uint8Array.from(testProgramKeypair)).publicKey;
   }
-}
-
-function myDebug(message?: any, ...optionalParams: any[]) {
-  console.debug('[SolanaTokenBridgeRelayer]', message, ...optionalParams);
 }
 
 function objToString(input: any): any {
