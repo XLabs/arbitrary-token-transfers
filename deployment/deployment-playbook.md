@@ -1,7 +1,7 @@
 # Build Solana and EVM contracts
 
 1. Change directory to root of TBRv3 repository.
-2. Run `git checkout 9276c17b87aff1497c1f718922b23e718281d55b`
+2. Run `git checkout 574f53b88950adbb9cdcb21ac4774b627f74ad34`
 3. Run `yarn` to link dependencies
 4. Bring submodules with ```git submodule update --init --recursive```
 5. Clean with `yarn clean:all`
