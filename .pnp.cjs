@@ -5991,11 +5991,14 @@ const RAW_RUNTIME_STATE =
           ["@types/chai", "npm:5.0.0"],\
           ["@types/mocha", "npm:10.0.9"],\
           ["@wormhole-foundation/sdk-base", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-connect", "npm:0.12.0"],\
           ["@wormhole-foundation/sdk-definitions", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-solana", "npm:0.12.0"],\
           ["@wormhole-foundation/sdk-solana-core", "npm:0.12.0"],\
           ["@wormhole-foundation/sdk-solana-tokenbridge", "npm:0.12.0"],\
           ["@xlabs-xyz/solana-arbitrary-token-transfers", "workspace:sdk/solana"],\
           ["chai", "npm:5.1.1"],\
+          ["common-arbitrary-token-transfer", "workspace:sdk/common"],\
           ["mocha", "npm:10.7.3"],\
           ["toml", "npm:3.0.0"],\
           ["ts-mocha", "virtual:0d651797a2843a64f9d24ebdfb5ce5b0c9db186e0bfb087fd6b67500708c972daac5ffe588b86f37cbeeb4bf85347e25cd633d8c0eb04e887e07267bb68096fd#npm:10.0.0"],\

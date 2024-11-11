@@ -14,6 +14,9 @@ skip-lint = true
 [test]
 upgradeable = true
 
+[test.validator]
+deactivate_feature = ["EenyoWx9UMXYKpR8mW5Jmfmy2fRjzUtM7NduYMY8bx33"]
+
 #[[test.genesis]]
 #address = "CefQJaxQTV28gCf4MMd1PgDHgCcRmuEHZgXZwjJReUY3"
 #program = "../relayer-infra-contracts/src/solana/target/sbf-solana-solana/release/solana_price_oracle.so"
@@ -37,4 +40,4 @@ wallet = "./target/deploy/token_bridge_relayer-keypair.json"
 
 [scripts]
 setup-test = "cargo build-sbf -- -p solana-price-oracle --target-dir target"
-test = "yarn run mocha -t 1000000 solana/tests/*.ts"
+test = "yarn run mocha -t 1000000 solana/tests/token-bridge-relayer-tests.ts"

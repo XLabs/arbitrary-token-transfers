@@ -3,7 +3,7 @@ use crate::{
     error::{TokenBridgeRelayerError, TokenBridgeRelayerResult},
     message::RelayerMessage,
     state::{ChainConfigState, SignerSequenceState, TbrConfigState},
-    utils::{calculate_total_fee, create_native_check},
+    utils::{calculate_total_fee, create_native_check, normalize_token_amount},
 };
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
@@ -49,8 +49,8 @@ pub struct OutboundTransfer<'info> {
     /// Payer's token account. It holds the SPL token that will be transferred.
     #[account(
         mut,
-        constraint = user_token_account.mint == mint.key(),
-        constraint = user_token_account.owner == payer.key(),
+        token::mint = mint,
+        token::authority = payer,
     )]
     pub user_token_account: Box<Account<'info, TokenAccount>>,
 
@@ -197,6 +197,7 @@ pub fn transfer_tokens(
         &[ctx.accounts.tbr_config.sender_bump],
     ];
 
+    let transferred_amount = normalize_token_amount(transferred_amount, &ctx.accounts.mint);
     let total_fees_lamports = calculate_total_fee(
         &ctx.accounts.tbr_config,
         &ctx.accounts.chain_config,

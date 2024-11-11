@@ -21,14 +21,20 @@
     "@types/chai": "^5",
     "@types/mocha": "10.*",
     "@wormhole-foundation/sdk-base": "^0.12.0",
+    "@wormhole-foundation/sdk-connect": "^0.12.0",
     "@wormhole-foundation/sdk-definitions": "^0.12.0",
+    "@wormhole-foundation/sdk-solana": "^0.12.0",
     "@wormhole-foundation/sdk-solana-core": "^0.12.0",
     "@wormhole-foundation/sdk-solana-tokenbridge": "^0.12.0",
     "@xlabs-xyz/solana-arbitrary-token-transfers": "workspace:^",
     "chai": "^5.1.1",
+    "common-arbitrary-token-transfer": "workspace:^",
     "mocha": "10.*",
     "toml": "^3.0.0",
     "ts-mocha": "10.*",
     "typescript": "^5.6.3"
-  }
+  },
+  "noExternal": [
+    "common-arbitrary-token-transfer"
+  ]
 }

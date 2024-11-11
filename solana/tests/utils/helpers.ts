@@ -93,23 +93,17 @@ export const assert = {
 export async function sendAndConfirmIxs(
   provider: AnchorProvider,
   ixs: TransactionInstruction | Transaction | Array<TransactionInstruction>,
-  signatures?: Array<Signer | ProviderWallet>,
+  signatures: { signers?: Signer[]; wallets?: ProviderWallet[] } = {},
 ): Promise<TransactionSignature> {
   const tx = Array.isArray(ixs) ? new Transaction().add(...ixs) : new Transaction().add(ixs);
   tx.recentBlockhash = await provider.connection.getLatestBlockhash().then((ans) => ans.blockhash);
+  tx.feePayer = provider.publicKey;
 
-  const isWallet = (s: Signer | ProviderWallet): s is ProviderWallet =>
-    s.hasOwnProperty('signTransaction');
-  const signers: Signer[] = [];
-  for (const signature of signatures ?? []) {
-    if (isWallet(signature)) {
-      await provider.wallet.signTransaction(tx);
-    } else {
-      signers.push(signature);
-    }
+  for (const wallet of signatures.wallets ?? []) {
+    await wallet.signTransaction(tx);
   }
 
-  return provider.sendAndConfirm(tx, signatures ? signers : undefined);
+  return provider.sendAndConfirm(tx, signatures.signers);
 }
 
 type HasPublicKey = PublicKey | Keypair | Wallet | Provider;
@@ -156,15 +150,16 @@ export class TestsHelper {
   };
 
   provider = {
-    gen: (): AnchorProvider => this.providerFromKeypair(Keypair.generate()),
-    read: async (path: string): Promise<AnchorProvider> =>
-      this.providerFromKeypair(await this.keypair.read(path)),
-    from: (bytesOrKeypair: number[] | Keypair): AnchorProvider =>
-      this.providerFromKeypair(
+    generate: (): TestProvider => new TestProvider(this.connection, Keypair.generate()),
+    read: async (path: string): Promise<TestProvider> =>
+      new TestProvider(this.connection, await this.keypair.read(path)),
+    from: (bytesOrKeypair: number[] | Keypair): TestProvider =>
+      new TestProvider(
+        this.connection,
         Array.isArray(bytesOrKeypair) ? this.keypair.from(bytesOrKeypair) : bytesOrKeypair,
       ),
-    several: (amount: number): AnchorProvider[] =>
-      Array.from({ length: amount }).map(this.provider.gen),
+    several: (amount: number): TestProvider[] =>
+      Array.from({ length: amount }).map(this.provider.generate),
   };
 
   /** Confirms a transaction. */
@@ -190,6 +185,15 @@ export class TestsHelper {
     }
 
     return to;
+  }
+
+  async createAssociatedTokenAccount(authority: TestProvider, mint: PublicKey) {
+    return await spl.createAssociatedTokenAccount(
+      authority.connection,
+      authority.signer,
+      mint,
+      authority.publicKey,
+    );
   }
 
   /** Creates a new account and transfers wrapped SOL to it. */
@@ -221,7 +225,7 @@ export class TestsHelper {
       spl.createSyncNativeInstruction(tokenAccount.publicKey),
     );
 
-    await sendAndConfirmIxs(from, tx, [tokenAccount]);
+    await sendAndConfirmIxs(from, tx, { signers: [tokenAccount] });
 
     return tokenAccount;
   }
@@ -248,11 +252,67 @@ export class TestsHelper {
     }
     //console.log('Found programAccount:', { programDataAddress, programId, programAccount });
   }
+}
 
-  // PRIVATE
+export class TestMint {
+  private authority: TestProvider;
+  readonly address: PublicKey;
+  readonly decimals: number;
 
-  private providerFromKeypair(keypair: Keypair) {
-    return new AnchorProvider(this.connection, new Wallet(keypair));
+  private constructor(authority: TestProvider, address: PublicKey, decimals: number) {
+    this.authority = authority;
+    this.address = address;
+    this.decimals = decimals;
+  }
+
+  static async create(authority: TestProvider, decimals: number): Promise<TestMint> {
+    return new TestMint(
+      authority,
+      await spl.createMint(
+        authority.connection,
+        authority.signer,
+        authority.publicKey,
+        authority.publicKey,
+        decimals,
+      ),
+      decimals,
+    );
+  }
+
+  async mint(amount: number | bigint, accountAuthority: AnchorProvider) {
+    const tokenAccount = Keypair.generate();
+
+    const tx = new Transaction().add(
+      // Allocate account:
+      SystemProgram.createAccount({
+        fromPubkey: accountAuthority.publicKey,
+        newAccountPubkey: tokenAccount.publicKey,
+        space: spl.ACCOUNT_SIZE,
+        lamports: await spl.getMinimumBalanceForRentExemptAccount(this.authority.connection),
+        programId: spl.TOKEN_PROGRAM_ID,
+      }),
+      // Initialize token account:
+      spl.createInitializeAccountInstruction(
+        tokenAccount.publicKey,
+        this.address,
+        accountAuthority.publicKey,
+      ),
+      // Mint the tokens to the newly created account:
+      spl.createMintToCheckedInstruction(
+        this.address,
+        tokenAccount.publicKey,
+        this.authority.publicKey,
+        amount,
+        this.decimals,
+      ),
+    );
+
+    await sendAndConfirmIxs(accountAuthority, tx, {
+      wallets: [this.authority.wallet],
+      signers: [tokenAccount],
+    });
+
+    return tokenAccount;
   }
 }
 
@@ -289,10 +349,34 @@ export class WormholeContracts {
       WormholeContracts.token = new PublicKey(
         anchorCfg.test.genesis.find((cfg: any) => cfg.name == 'wormhole-bridge').address,
       );
-      //console.log('Initialized WormholeContracts with:', {
-      //  core: WormholeContracts.core.toString(),
-      //  token: WormholeContracts.token.toString(),
-      //});
     }
   }
+}
+
+export class TestProvider extends AnchorProvider {
+  readonly signer: Signer;
+
+  get keypair() {
+    return Keypair.fromSecretKey(this.signer.secretKey);
+  }
+
+  constructor(connection: Connection, keypair: Keypair) {
+    super(connection, new Wallet(keypair));
+    this.signer = keypair;
+  }
+}
+
+export function tokenBridgeEmitter(): PublicKey {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from('emitter')],
+    WormholeContracts.tokenBridge,
+  )[0];
+}
+
+export async function getBlockTime(connection: Connection): Promise<number> {
+  // This should never fail.
+  return connection
+    .getSlot()
+    .then(async (slot) => connection.getBlockTime(slot))
+    .then((value) => value!);
 }

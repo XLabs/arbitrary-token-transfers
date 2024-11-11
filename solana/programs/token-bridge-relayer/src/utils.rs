@@ -6,6 +6,7 @@ use anchor_lang::{
     prelude::*,
     solana_program::{native_token::LAMPORTS_PER_SOL, program_option::COption},
 };
+use anchor_spl::token::Mint;
 use solana_price_oracle::state::{EvmPricesState, PriceOracleConfigState};
 
 const MWEI_PER_MICRO_ETH: u64 = 1_000_000;
@@ -104,4 +105,35 @@ pub fn create_native_check(
             .then_some(expected_native)
             .ok_or(TokenBridgeRelayerError::WrongMintAuthority)
     };
+}
+
+/// The Token Bridge uses 8 decimals. If we want to transfer a token whose mint has more decimals,
+/// we need to set the decimals past 8 to zero.
+pub fn normalize_token_amount(transferred_amount: u64, mint: &Mint) -> u64 {
+    if mint.decimals > 8 {
+        //WARNING: Do not compute the values. It is heavy and make the call exceed the CU limit.
+        let factor = match mint.decimals - 8 {
+            1 => 10,
+            2 => 100,
+            3 => 1000,
+            4 => 10_000,
+            5 => 100_000,
+            6 => 1000_000,
+            7 => 10_000_000,
+            8 => 100_000_000,
+            9 => 1000_000_000,
+            10 => 10_000_000_000,
+            11 => 100_000_000_000,
+            12 => 1000_000_000_000,
+            13 => 10_000_000_000_000,
+            14 => 100_000_000_000_000,
+            15 => 1000_000_000_000_000,
+            16 => 10_000_000_000_000_000,
+            _ => panic!("Too many decimals in the mint"),
+        };
+
+        transferred_amount / factor * factor
+    } else {
+        transferred_amount
+    }
 }
