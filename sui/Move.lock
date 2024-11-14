@@ -2,11 +2,13 @@
 
 [move]
 version = 3
-manifest_digest = "B6272B14D8E6E748291636F5245B1595B0EC29692D943A77511F62C35B43238F"
-deps_digest = "3C4103934B1E040BB6B23F1D610B4EF9F2F1166A50A104EADCF77467C004C600"
+manifest_digest = "A7C615737B8C4D68EB7F1C7106333BBBD6B99D27719583932CD649C0C44A6465"
+deps_digest = "F9B494B64F0615AED0E98FC12A85B85ECD2BC5185C22D30E7F67786BB52E507C"
 dependencies = [
   { id = "Sui", name = "Sui" },
+  { id = "TokenBridge", name = "TokenBridge" },
   { id = "Wormhole", name = "Wormhole" },
+  { id = "tbrv3_quoting_oracle", name = "tbrv3_quoting_oracle" },
 ]
 
 [[move.package]]
@@ -22,8 +24,28 @@ dependencies = [
 ]
 
 [[move.package]]
+id = "TokenBridge"
+source = { local = "..\\lib\\wormhole\\sui\\token_bridge" }
+
+dependencies = [
+  { id = "Sui", name = "Sui" },
+]
+
+dev-dependencies = [
+  { id = "Wormhole", name = "Wormhole" },
+]
+
+[[move.package]]
 id = "Wormhole"
-source = { git = "https://github.com/XLabs/wormhole.git", rev = "fork_main", subdir = "sui/wormhole" }
+source = { local = "..\\lib\\wormhole\\sui\\wormhole" }
+
+dependencies = [
+  { id = "Sui", name = "Sui" },
+]
+
+[[move.package]]
+id = "tbrv3_quoting_oracle"
+source = { local = "..\\lib\\relayer-infra-contracts\\src\\sui\\contracts" }
 
 dependencies = [
   { id = "Sui", name = "Sui" },

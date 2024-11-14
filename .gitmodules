@@ -16,3 +16,6 @@
 [submodule "wormhole-foundation-solidity-sdk"]
 	path = evm/lib/wormhole-solidity-sdk
 	url = https://github.com/wormhole-foundation/wormhole-solidity-sdk.git
+[submodule "lib/wormhole"]
+	path = lib/wormhole
+	url = https://github.com/XLabs/wormhole.git
