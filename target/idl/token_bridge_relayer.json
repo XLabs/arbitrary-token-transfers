@@ -1991,6 +1991,14 @@
             "type": "u64"
           },
           {
+            "name": "mint_authority",
+            "docs": [
+              "The mint authority used by the Token Bridge. Used to check whether a transfer is native",
+              "or wrapped."
+            ],
+            "type": "pubkey"
+          },
+          {
             "name": "sender_bump",
             "type": "u8"
           },

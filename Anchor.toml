@@ -31,6 +31,11 @@ name = "wormhole-bridge"
 address = "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe" # Testnet in lib.rs
 program = "solana/tests/token_bridge.so"
 
+[[test.genesis]]
+name = "mpl-token-metadata"
+address = "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
+program = "solana/tests/token_metadata.so"
+
 [registry]
 url = "https://api.apr.dev"
 

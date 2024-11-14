@@ -3,7 +3,6 @@ use crate::{
     error::{TokenBridgeRelayerError, TokenBridgeRelayerResult},
     message::{PostedRelayerMessage, RelayerMessage},
     state::{PeerState, TbrConfigState},
-    utils::create_native_check,
 };
 use anchor_lang::{prelude::*, system_program};
 use anchor_spl::token::{spl_token::native_mint, Mint, Token, TokenAccount};
@@ -177,7 +176,10 @@ pub fn complete_transfer(mut ctx: Context<CompleteTransfer>) -> Result<()> {
 }
 
 fn is_native(ctx: &Context<CompleteTransfer>) -> TokenBridgeRelayerResult<bool> {
-    let check_native = create_native_check(ctx.accounts.mint.mint_authority);
+    let check_native = ctx
+        .accounts
+        .tbr_config
+        .create_native_check(ctx.accounts.mint.mint_authority);
 
     match (
         &ctx.accounts.token_bridge_mint_authority,

@@ -1997,6 +1997,14 @@ export type TokenBridgeRelayer = {
             "type": "u64"
           },
           {
+            "name": "mintAuthority",
+            "docs": [
+              "The mint authority used by the Token Bridge. Used to check whether a transfer is native",
+              "or wrapped."
+            ],
+            "type": "pubkey"
+          },
+          {
             "name": "senderBump",
             "type": "u8"
           },

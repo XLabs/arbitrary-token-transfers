@@ -322,6 +322,7 @@ export class WormholeContracts {
 
   private static core: PublicKey = PublicKey.default;
   private static token: PublicKey;
+  private static mplTokenMetadata: PublicKey;
 
   static get coreBridge(): PublicKey {
     WormholeContracts.init();
@@ -331,6 +332,11 @@ export class WormholeContracts {
     WormholeContracts.init();
     return WormholeContracts.token;
   }
+  static get splMetadata(): PublicKey {
+    WormholeContracts.init();
+    return WormholeContracts.mplTokenMetadata;
+  }
+
   static get addresses(): Contracts {
     WormholeContracts.init();
     return {
@@ -348,6 +354,9 @@ export class WormholeContracts {
       );
       WormholeContracts.token = new PublicKey(
         anchorCfg.test.genesis.find((cfg: any) => cfg.name == 'wormhole-bridge').address,
+      );
+      WormholeContracts.mplTokenMetadata = new PublicKey(
+        anchorCfg.test.genesis.find((cfg: any) => cfg.name == 'mpl-token-metadata').address,
       );
     }
   }

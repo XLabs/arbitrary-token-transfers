@@ -16,15 +16,11 @@ fn main() -> Result<()> {
 
     // Generate the id.rs file:
     let network = Network::deserialize("network.json")?;
-    let addresses = network.value()?;
+    let program_id = network.value()?;
 
     fs::write(
         "src/id.rs",
-        format!(
-            "anchor_lang::prelude::declare_id!({:?});\n\
-            pub const WORMHOLE_MINT_AUTHORITY: anchor_lang::prelude::Pubkey =\n    anchor_lang::pubkey!({:?});\n",
-            addresses.program_id, addresses.wormhole_mint_authority,
-        ),
+        format!("anchor_lang::prelude::declare_id!({:?});\n", program_id),
     )
     .context("could not write the file: id.rs")?;
 
@@ -34,17 +30,10 @@ fn main() -> Result<()> {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Network {
-    #[cfg(any(feature = "mainnet", not(feature = "testnet")))]
-    mainnet: NetworkAddresses,
+    #[cfg(feature = "mainnet")]
+    mainnet: String,
     #[cfg(feature = "testnet")]
     testnet: NetworkAddresses,
-}
-
-#[derive(Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
-struct NetworkAddresses {
-    program_id: String,
-    wormhole_mint_authority: String,
 }
 
 impl Network {
@@ -69,7 +58,7 @@ impl Network {
     }
 
     #[cfg(not(any(feature = "mainnet", feature = "testnet",)))]
-    fn value(&self) -> Result<NetworkAddresses> {
+    fn value(&self) -> Result<String> {
         let file = fs::read_to_string(TEST_KEYPAIR_PATH).context(format!(
             "Failed to read the file with the test program keypair: {TEST_KEYPAIR_PATH}"
         ))?;
@@ -80,9 +69,6 @@ impl Network {
         let keypair = ed25519_dalek::Keypair::from_bytes(&content)
             .context(format!("Invalid keypair in the file: {TEST_KEYPAIR_PATH}"))?;
 
-        Ok(NetworkAddresses {
-            program_id: bs58::encode(keypair.public.as_bytes()).into_string(),
-            ..self.mainnet.clone()
-        })
+        Ok(bs58::encode(keypair.public.as_bytes()).into_string())
     }
 }

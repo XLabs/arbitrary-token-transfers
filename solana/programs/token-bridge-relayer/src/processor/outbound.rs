@@ -3,7 +3,7 @@ use crate::{
     error::{TokenBridgeRelayerError, TokenBridgeRelayerResult},
     message::RelayerMessage,
     state::{ChainConfigState, SignerSequenceState, TbrConfigState},
-    utils::{calculate_total_fee, create_native_check, normalize_token_amount},
+    utils::{calculate_total_fee, normalize_token_amount},
 };
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
@@ -286,7 +286,10 @@ pub fn transfer_tokens(
 }
 
 fn is_native(ctx: &Context<OutboundTransfer>) -> TokenBridgeRelayerResult<bool> {
-    let check_native = create_native_check(ctx.accounts.mint.mint_authority);
+    let check_native = ctx
+        .accounts
+        .tbr_config
+        .create_native_check(ctx.accounts.mint.mint_authority);
 
     match (
         &ctx.accounts.token_bridge_wrapped_meta,
