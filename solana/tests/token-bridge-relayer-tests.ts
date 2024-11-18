@@ -1,14 +1,23 @@
 import { chainToChainId } from '@wormhole-foundation/sdk-base';
-import { UniversalAddress } from '@wormhole-foundation/sdk-definitions';
+import { toNative, UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import { Keypair, PublicKey, SendTransactionError, Transaction } from '@solana/web3.js';
 import { NATIVE_MINT } from '@solana/spl-token';
-import { assert, TestMint, TestsHelper, tokenBridgeEmitter } from './utils/helpers.js';
-import { TbrWrapper, TokenBridgeWrapper, WormholeCoreWrapper } from './utils/client-wrapper.js';
+import {
+  assert,
+  TestMint,
+  TestsHelper,
+  tokenBridgeEmitter,
+  WormholeContracts,
+} from './utils/helpers.js';
+import { TbrWrapper } from './utils/tbr-wrapper.js';
 import { SolanaPriceOracle, uaToArray } from '@xlabs-xyz/solana-arbitrary-token-transfers';
 import { expect } from 'chai';
 
+import testProgramKeypair from '../programs/token-bridge-relayer/test-program-keypair.json' with { type: 'json' };
 import oracleKeypair from './oracle-program-keypair.json' with { type: 'json' };
 import { toVaaWithTbrV3Message } from 'common-arbitrary-token-transfer';
+import { WormholeCoreWrapper } from './utils/wormhole-core-wrapper.js';
+import { TokenBridgeWrapper } from './utils/token-bridge-wrapper.js';
 
 const DEBUG = false;
 
@@ -20,6 +29,8 @@ const OASIS_ID = chainToChainId(OASIS);
 const authorityKeypair = './target/deploy/token_bridge_relayer-keypair.json';
 
 const $ = new TestsHelper();
+
+const uaToPubkey = (address: UniversalAddress) => toNative('Solana', address).unwrap();
 
 describe('Token Bridge Relayer Program', () => {
   const oracleClient = new SolanaPriceOracle($.connection, $.pubkey.from(oracleKeypair));
@@ -36,10 +47,20 @@ describe('Token Bridge Relayer Program', () => {
   ] = clients;
 
   const wormholeCoreOwner = $.provider.generate();
-  const wormholeCoreClient = new WormholeCoreWrapper(wormholeCoreOwner);
+  const wormholeCoreClient = new WormholeCoreWrapper(
+    wormholeCoreOwner,
+    WormholeContracts.Network,
+    $.pubkey.from(testProgramKeypair),
+    WormholeContracts.addresses,
+  );
 
   const tokenBridgeOwner = $.provider.generate();
-  const tokenBridgeClient = new TokenBridgeWrapper(tokenBridgeOwner);
+  const tokenBridgeClient = new TokenBridgeWrapper(
+    tokenBridgeOwner,
+    WormholeContracts.Network,
+    wormholeCoreClient.guardians,
+    WormholeContracts.addresses,
+  );
 
   const feeRecipient = PublicKey.unique();
   const evmTransactionGas = 321_000n;
@@ -445,7 +466,7 @@ describe('Token Bridge Relayer Program', () => {
 
       expect(vaa.sequence).equal(sequence);
       expect(vaa.emitterChain).equal('Solana');
-      assert.key(new PublicKey(vaa.emitterAddress.address)).equal(tokenBridgeEmitter());
+      assert.key(uaToPubkey(vaa.emitterAddress)).equal(tokenBridgeEmitter());
 
       expect(vaa.payload.to).deep.equal({ address: canonicalEthereum, chain: ETHEREUM });
       // Since the native mint has 9 decimals, the last digit is removed by the token bridge:
@@ -486,7 +507,7 @@ describe('Token Bridge Relayer Program', () => {
       );
       expect(vaa.sequence).equal(sequence);
       expect(vaa.emitterChain).equal('Solana');
-      assert.key(new PublicKey(vaa.emitterAddress.address)).equal(tokenBridgeEmitter());
+      assert.key(uaToPubkey(vaa.emitterAddress)).equal(tokenBridgeEmitter());
 
       expect(vaa.payload.to).deep.equal({ address: canonicalEthereum, chain: ETHEREUM });
       // Since the mint has 10 decimals, the last digit is removed by the token bridge:
@@ -592,7 +613,6 @@ describe('Token Bridge Relayer Program', () => {
 
       expect(vaa.payload.to).deep.equal({ address: canonicalEthereum, chain: ETHEREUM });
 
-      console.log('vaa amount:', vaa.payload.token.amount);
       expect(vaa.payload.token).deep.equal({
         // It is a wrapped token, so it has the expected number of decimals. No shenanigans, then:
         amount: transferredAmount,

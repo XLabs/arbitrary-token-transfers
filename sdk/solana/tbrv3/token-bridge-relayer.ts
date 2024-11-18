@@ -21,7 +21,7 @@ import {
   chainIdToChain,
   layout,
 } from '@wormhole-foundation/sdk-base';
-import { layoutItems, UniversalAddress } from '@wormhole-foundation/sdk-definitions';
+import { layoutItems, toNative, UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import { SolanaPriceOracle, bigintToBn, bnToBigint } from '@xlabs-xyz/solana-price-oracle-sdk';
 import { deserializeTbrV3Message, VaaMessage, throwError } from 'common-arbitrary-token-transfer';
 import { BpfLoaderUpgradeableProgram } from './bpf-loader-upgradeable.js';
@@ -73,6 +73,7 @@ export type TbrNetwork = Exclude<Network, 'Devnet'> | 'Localnet';
  * Transforms a `UniversalAddress` into an array of numbers `number[]`.
  */
 export const uaToArray = (ua: UniversalAddress): number[] => Array.from(ua.toUint8Array());
+const uaToPubkey = (address: UniversalAddress) => toNative('Solana', address).unwrap();
 
 export class SolanaTokenBridgeRelayer {
   public readonly program: anchor.Program<IdlType>;
@@ -135,42 +136,52 @@ export class SolanaTokenBridgeRelayer {
   /** Raw Solana accounts. */
   get account() {
     return {
-      config: () => this.accountInfo(this.program.account.tbrConfigState, [Buffer.from('config')]),
+      config: () => this.accountInfo(this.program.account.tbrConfigState, ['config']),
       chainConfig: (chain: Chain) =>
-        this.accountInfo(this.program.account.chainConfigState, [
-          Buffer.from('chainconfig'),
-          chainSeed(chain),
-        ]),
+        this.accountInfo(this.program.account.chainConfigState, ['chainconfig', chainSeed(chain)]),
       peer: (chain: Chain, peerAddress: UniversalAddress) =>
         this.accountInfo(this.program.account.peerState, [
-          Buffer.from('peer'),
+          'peer',
           chainSeed(chain),
           peerAddress.toUint8Array(),
         ]),
       signerSequence: (signer: PublicKey) =>
-        this.accountInfo(this.program.account.signerSequenceState, [
-          Buffer.from('seq'),
-          signer.toBuffer(),
-        ]),
+        this.accountInfo(this.program.account.signerSequenceState, ['seq', signer.toBuffer()]),
       authBadge: (account: PublicKey) =>
-        this.accountInfo(this.program.account.authBadgeState, [
-          Buffer.from('authbadge'),
-          account.toBuffer(),
-        ]),
+        this.accountInfo(this.program.account.authBadgeState, ['authbadge', account.toBuffer()]),
 
-      temporary: (mint: PublicKey) =>
-        findPda(this.program.programId, [Buffer.from('tmp'), mint.toBuffer()]),
+      temporary: (mint: PublicKey) => this.pda('tmp', mint.toBuffer()),
       //TODO read the VAA with `fetch`
-      vaa: (vaaHash: Uint8Array) =>
-        findPda(this.wormholeProgramId, [Buffer.from('PostedVAA'), vaaHash]),
-      redeemer: () => findPda(this.program.programId, [Buffer.from('redeemer')]),
-      wormholeMessage: (payer: PublicKey, payerSequence: bigint) => {
-        const buf = Buffer.alloc(8);
-        buf.writeBigInt64BE(payerSequence);
+      /** VAA address used to complete a transfer (inbound transfer). */
+      vaa: (vaaHash: Uint8Array) => {
+        const { address, bump } = findPda(this.wormholeProgramId, ['PostedVAA', vaaHash]);
         return {
-          ...findPda(this.program.programId, [Buffer.from('bridged'), payer.toBuffer(), buf]),
-          fetch: async () => {
-            return;
+          address,
+          bump,
+          fetch: async (): Promise<Uint8Array> => {
+            const { data } =
+              (await this.connection.getAccountInfo(address)) ??
+              throwError('No VAA with this hash');
+            return data;
+          },
+        };
+      },
+      redeemer: () => this.pda('redeemer'),
+      /** Message emitted during an outbound transfer. */
+      wormholeMessage: (payer: PublicKey, payerSequence: bigint) => {
+        const { address, bump } = this.pda(
+          'bridged',
+          payer.toBuffer(),
+          layout.serializeLayout({ binary: 'uint', size: 8, endianness: 'big' }, payerSequence),
+        );
+        return {
+          address,
+          bump,
+          fetch: async (): Promise<Uint8Array> => {
+            const { data } =
+              (await this.connection.getAccountInfo(address)) ??
+              throwError('No message found at this address');
+            return data;
           },
         };
       },
@@ -188,6 +199,17 @@ export class SolanaTokenBridgeRelayer {
             evmTransactionSize: bnToBigint(evmTransactionSize),
             ...rest,
           })),
+      /** Returns all Wormhole messages emitted by a user */
+      allWormholeMessages: async (payer: PublicKey) => {
+        const maxSequence = await this.payerSequenceNumber(payer);
+
+        return Promise.all(
+          range(0n, maxSequence).map((seq) => {
+            const vaa = this.account.wormholeMessage(payer, seq).fetch();
+            return vaa;
+          }),
+        );
+      },
       allAdminAccounts: async () => {
         const [accounts, owner] = await Promise.all([
           this.program.account.authBadgeState.all().then((state) => state.map((pa) => pa.account)),
@@ -213,11 +235,12 @@ export class SolanaTokenBridgeRelayer {
         return new UniversalAddress(Uint8Array.from(canonicalPeer));
       },
       allPeers: async (chain?: Chain) => {
-        let filter: Buffer | undefined = undefined;
-        if (chain !== undefined) {
-          filter = Buffer.alloc(2);
-          filter.writeUInt16LE(chainToChainId(chain));
-        }
+        const filter =
+          chain === undefined
+            ? undefined
+            : Buffer.from(
+                layout.serializeLayout({ ...layoutItems.chainItem(), endianness: 'big' }, chain),
+              );
         const states = await this.program.account.peerState
           .all(filter)
           .then((state) => state.map((pa) => pa.account));
@@ -280,28 +303,26 @@ export class SolanaTokenBridgeRelayer {
     };
   }
 
+  /** Returns a PDA belonging to this program. */
+  pda(...seeds: Array<string | Uint8Array>) {
+    return findPda(this.program.programId, seeds);
+  }
+
   /** Returns the end user's wallet and associated token account */
   getRecipientAccountsFromVaa(vaa: VaaMessage): {
     wallet: PublicKey;
     associatedTokenAccount: PublicKey;
   } {
-    const native = vaa.payload.token.chain === 'Solana';
-    let mint;
+    const mint =
+      vaa.payload.token.chain === 'Solana'
+        ? uaToPubkey(vaa.payload.token.address)
+        : findPda(this.tokenBridgeProgramId, [
+            'wrapped',
+            chainSeed(vaa.payload.token.chain),
+            vaa.payload.token.address.toUint8Array(),
+          ]).address;
 
-    if (native) {
-      mint = new PublicKey(vaa.payload.token.address.toUint8Array());
-    } else {
-      [mint] = PublicKey.findProgramAddressSync(
-        [
-          Buffer.from('wrapped'),
-          chainSeed(vaa.payload.token.chain),
-          vaa.payload.token.address.toUint8Array(),
-        ],
-        this.tokenBridgeProgramId,
-      );
-    }
-
-    const wallet = new PublicKey(deserializeTbrV3Message(vaa.payload.payload).recipient.address);
+    const wallet = uaToPubkey(deserializeTbrV3Message(vaa.payload.payload).recipient);
     const associatedTokenAccount = getAssociatedTokenAccount(wallet, mint);
 
     return { wallet, associatedTokenAccount };
@@ -703,14 +724,17 @@ export class SolanaTokenBridgeRelayer {
 
   /* HELPERS */
 
+  /** Generates an object with a PDA address, bump and fetching function
+   * from an Anchor's `AccountClient`.
+   */
   private accountInfo<A extends keyof anchor.IdlAccounts<IdlType>>(
     account: anchor.AccountClient<IdlType, A>,
-    seeds: Array<Buffer | Uint8Array>,
+    seeds: Array<string | Uint8Array>,
   ) {
-    const { address, seed } = findPda(this.program.programId, seeds);
+    const { address, bump } = this.pda(...seeds);
     return {
       address,
-      seed,
+      bump,
       fetch: () => account.fetch(address),
     };
   }
@@ -732,10 +756,7 @@ export class SolanaTokenBridgeRelayer {
 
   /** Get the info about the foreign address from a Wormhole mint */
   private async getWormholeAddressFromWrappedMint(mint: PublicKey): Promise<WormholeAddress> {
-    const [metaAddress] = PublicKey.findProgramAddressSync(
-      [Buffer.from('meta'), mint.toBuffer()],
-      this.tokenBridgeProgramId,
-    );
+    const metaAddress = findPda(this.tokenBridgeProgramId, ['meta', mint.toBuffer()]).address;
     const { data } =
       (await this.connection.getAccountInfo(metaAddress)) ??
       throwError(
@@ -755,7 +776,7 @@ export class SolanaTokenBridgeRelayer {
   }
 
   private get tokenBridgeMintAuthority(): PublicKey {
-    return findPda(this.tokenBridgeProgramId, [Buffer.from('mint_signer')]).address;
+    return findPda(this.tokenBridgeProgramId, ['mint_signer']).address;
   }
 
   private logDebug(message?: any, ...optionalParams: any[]) {
@@ -771,11 +792,20 @@ function conditionalDebug(debug: boolean, message?: any, ...optionalParams: any[
 
 const chainSeed = (chain: Chain) => encoding.bignum.toBytes(chainToChainId(chain), 2);
 
-function findPda(programId: PublicKey, seeds: Array<Buffer | Uint8Array>) {
-  const [address, seed] = PublicKey.findProgramAddressSync(seeds, programId);
+function findPda(programId: PublicKey, seeds: Array<string | Uint8Array>) {
+  const [address, bump] = PublicKey.findProgramAddressSync(
+    seeds.map((seed) => {
+      if (typeof seed === 'string') {
+        return Buffer.from(seed);
+      } else {
+        return seed;
+      }
+    }),
+    programId,
+  );
   return {
     address,
-    seed,
+    bump,
   };
 }
 
@@ -883,4 +913,13 @@ function patchAddress(idl: any, address?: PublicKey) {
   }
 
   return idl;
+}
+
+function range(from: bigint, to: bigint): bigint[] {
+  function* generator(from: bigint, to: bigint) {
+    for (let i = from; from < to; i++) {
+      yield i;
+    }
+  }
+  return Array.from(generator(from, to));
 }
