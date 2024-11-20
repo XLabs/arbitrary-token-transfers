@@ -2691,7 +2691,6 @@ const RAW_RUNTIME_STATE =
           ["@wormhole-foundation/sdk-solana", "npm:0.12.0"],\
           ["@wormhole-foundation/sdk-solana-tokenbridge", "npm:0.12.0"],\
           ["@xlabs-xyz/solana-price-oracle-sdk", "npm:0.0.16"],\
-          ["borsh", "npm:2.0.0"],\
           ["tsup", "virtual:9bef669af1c3b4b384f01597b4618f767933970b69e6fd62d81f9bbc7b8c4900225bffb44e48b8c05eea593d7778ed11aa109309394c7caa9adf8cbab67e8377#npm:8.3.5"],\
           ["tsx", "npm:4.19.2"],\
           ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
@@ -3045,13 +3044,6 @@ const RAW_RUNTIME_STATE =
           ["bn.js", "npm:5.2.1"],\
           ["bs58", "npm:4.0.1"],\
           ["text-encoding-utf-8", "npm:1.0.2"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
-      ["npm:2.0.0", {\
-        "packageLocation": "./.yarn/cache/borsh-npm-2.0.0-69f1235e8b-59a96dd9c7.zip/node_modules/borsh/",\
-        "packageDependencies": [\
-          ["borsh", "npm:2.0.0"]\
         ],\
         "linkType": "HARD"\
       }]\

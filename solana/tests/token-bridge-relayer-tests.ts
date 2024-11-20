@@ -1,7 +1,7 @@
 import { chainToChainId } from '@wormhole-foundation/sdk-base';
 import { toNative, UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import { Keypair, PublicKey, SendTransactionError, Transaction } from '@solana/web3.js';
-import { NATIVE_MINT } from '@solana/spl-token';
+import * as spl from '@solana/spl-token';
 import {
   assert,
   TestMint,
@@ -16,8 +16,8 @@ import { expect } from 'chai';
 import testProgramKeypair from '../programs/token-bridge-relayer/test-program-keypair.json' with { type: 'json' };
 import oracleKeypair from './oracle-program-keypair.json' with { type: 'json' };
 import { toVaaWithTbrV3Message } from 'common-arbitrary-token-transfer';
-import { WormholeCoreWrapper } from './utils/wormhole-core-wrapper.js';
-import { TokenBridgeWrapper } from './utils/token-bridge-wrapper.js';
+import { TestingWormholeCore } from './utils/testing-wormhole-core.js';
+import { TestingTokenBridge } from './utils/testing-token-bridge.js';
 
 const DEBUG = false;
 
@@ -34,8 +34,8 @@ const uaToPubkey = (address: UniversalAddress) => toNative('Solana', address).un
 
 describe('Token Bridge Relayer Program', () => {
   const oracleClient = new SolanaPriceOracle($.connection, $.pubkey.from(oracleKeypair));
-  const clients = (['owner', 'owner', 'admin', 'admin', 'admin', 'regular'] as const).map(
-    (typeAccount) => TbrWrapper.from($.provider.generate(), typeAccount, oracleClient, DEBUG),
+  const clients = Array.from({ length: 6 }).map(() =>
+    TbrWrapper.from($.keypair.generate(), oracleClient, DEBUG),
   );
   const [
     ownerClient,
@@ -46,17 +46,19 @@ describe('Token Bridge Relayer Program', () => {
     unauthorizedClient,
   ] = clients;
 
-  const wormholeCoreOwner = $.provider.generate();
-  const wormholeCoreClient = new WormholeCoreWrapper(
+  const wormholeCoreOwner = $.keypair.generate();
+  const wormholeCoreClient = new TestingWormholeCore(
     wormholeCoreOwner,
+    $.connection,
     WormholeContracts.Network,
     $.pubkey.from(testProgramKeypair),
     WormholeContracts.addresses,
   );
 
-  const tokenBridgeOwner = $.provider.generate();
-  const tokenBridgeClient = new TokenBridgeWrapper(
+  const tokenBridgeOwner = $.keypair.generate();
+  const tokenBridgeClient = new TestingTokenBridge(
     tokenBridgeOwner,
+    $.connection,
     WormholeContracts.Network,
     wormholeCoreClient.guardians,
     WormholeContracts.addresses,
@@ -66,22 +68,18 @@ describe('Token Bridge Relayer Program', () => {
   const evmTransactionGas = 321_000n;
   const evmTransactionSize = 654_000n;
 
-  const ethereumTokenBridge = new UniversalAddress(
-    Buffer.from('e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1', 'hex'),
-  );
-  const oasisTokenBridge = new UniversalAddress(
-    Buffer.from('0A51533333333333333333333333333333333333333333333333333333333333', 'hex'),
-  );
+  const ethereumTokenBridge = $.universalAddress.generate();
+  const oasisTokenBridge = $.universalAddress.generate();
 
-  const ethereumTbrPeer1 = new UniversalAddress('0x' + '00'.repeat(12) + 'ab'.repeat(20));
-  const ethereumTbrPeer2 = new UniversalAddress('0x' + '00'.repeat(12) + 'ca'.repeat(20));
-  const oasisTbrPeer = new UniversalAddress('0x' + '00'.repeat(12) + '05'.repeat(20));
+  const ethereumTbrPeer1 = $.universalAddress.generate('ethereum');
+  const ethereumTbrPeer2 = $.universalAddress.generate('ethereum');
+  const oasisTbrPeer = $.universalAddress.generate('ethereum');
 
   before(async () => {
     await $.airdrop([
       wormholeCoreOwner,
       tokenBridgeOwner,
-      ...clients.map((client) => client.provider),
+      ...clients.map((client) => client.signer),
     ]);
 
     // Programs Deployment
@@ -104,11 +102,9 @@ describe('Token Bridge Relayer Program', () => {
 
     // Oracle Setup
     // ============
-    const oracleAuthorityProvider = await $.provider.read(authorityKeypair);
-    const oracleAuthorityClient = await SolanaPriceOracle.create(
-      oracleAuthorityProvider.connection,
-    );
-    await oracleAuthorityProvider.sendAndConfirm(
+    const oracleAuthorityProvider = await $.keypair.read(authorityKeypair);
+    const oracleAuthorityClient = await SolanaPriceOracle.create($.connection);
+    await $.sendAndConfirm(
       new Transaction().add(
         await oracleAuthorityClient.initialize(oracleAuthorityProvider.publicKey, [], []),
         await oracleAuthorityClient.registerEvmPrices(oracleAuthorityProvider.publicKey, {
@@ -119,6 +115,7 @@ describe('Token Bridge Relayer Program', () => {
         }),
         await oracleAuthorityClient.updateSolPrice(oracleAuthorityProvider.publicKey, 113_000_000n), // SOL is at $113
       ),
+      oracleAuthorityProvider,
     );
 
     // Wormhole Core Setup
@@ -137,7 +134,8 @@ describe('Token Bridge Relayer Program', () => {
 
   it('Is initialized!', async () => {
     const upgradeAuthorityClient = await TbrWrapper.create(
-      await $.provider.read(authorityKeypair),
+      await $.keypair.read(authorityKeypair),
+      $.connection,
       DEBUG,
     );
 
@@ -148,7 +146,7 @@ describe('Token Bridge Relayer Program', () => {
     });
 
     const config = await unauthorizedClient.read.config();
-    assert.key(config.owner).equal(ownerClient.publicKey);
+    expect(config.owner).deep.equal(ownerClient.publicKey);
 
     // The owner has an auth badge:
     expect(await unauthorizedClient.account.authBadge(ownerClient.publicKey).fetch()).deep.equal({
@@ -341,12 +339,7 @@ describe('Token Bridge Relayer Program', () => {
     it('Does not let unauthorized signers register or update a peer', async () => {
       // Unauthorized cannot register a peer:
       await assert
-        .promise(
-          unauthorizedClient.registerPeer(
-            ETHEREUM,
-            new UniversalAddress(PublicKey.unique().toBuffer()),
-          ),
-        )
+        .promise(unauthorizedClient.registerPeer(ETHEREUM, $.universalAddress.generate()))
         .failsWith('AnchorError caused by account: auth_badge. Error Code: AccountNotInitialized.');
 
       // Admin cannot make another peer canonical:
@@ -397,7 +390,7 @@ describe('Token Bridge Relayer Program', () => {
 
       const config = await unauthorizedClient.read.config();
 
-      assert.key(config.feeRecipient).equal(feeRecipient);
+      expect(config.feeRecipient).deep.equal(feeRecipient);
       expect(config.evmTransactionGas).equal(evmTransactionGas);
       expect(config.evmTransactionSize).equal(evmTransactionSize);
     });
@@ -412,25 +405,28 @@ describe('Token Bridge Relayer Program', () => {
     });
   });
 
-  describe('Querying the quote', () => {
-    it('Fetches the quote', async () => {
+  describe('Querying the relaying fee', () => {
+    it('No discrepancy between SDK and program calculation', async () => {
       const dropoff = 50000; // ETH0.05
 
-      const result = await unauthorizedClient.relayingFee(ETHEREUM, dropoff);
+      const simulatedResult = await unauthorizedClient.relayingFeeSimulated(ETHEREUM, dropoff);
+      const offChainResult = await unauthorizedClient.relayingFee(ETHEREUM, dropoff);
 
-      expect(result).closeTo(0.361824, 0.000001); // SOL0.36, which is roughly $40
+      expect(simulatedResult).closeTo(offChainResult, 0.000001);
+      // SOL.36, which is roughly $40:
+      expect(simulatedResult).closeTo(0.361824, 0.000001);
     });
   });
 
   describe('Running transfers', () => {
-    const ethereumTokenAddressFoo = new UniversalAddress('0x' + '00'.repeat(12) + '11'.repeat(20));
-    const recipientForeignToken = $.provider.generate();
+    const ethereumTokenAddressFoo = $.universalAddress.generate('ethereum');
+    const recipientForeignToken = $.keypair.generate();
     let recipientTokenAccountForeignToken = PublicKey.default; // Will be initialized down the line
     let clientForeignToken: TbrWrapper = null as any;
 
     before(async () => {
       [clientForeignToken] = await Promise.all([
-        TbrWrapper.create(recipientForeignToken, DEBUG),
+        TbrWrapper.create(recipientForeignToken, $.connection, DEBUG),
         tokenBridgeClient.attestToken(ethereumTokenBridge, ETHEREUM, ethereumTokenAddressFoo, {
           decimals: 12,
         }),
@@ -439,12 +435,12 @@ describe('Token Bridge Relayer Program', () => {
     });
 
     it('Transfers SOL to another chain', async () => {
-      const tokenAccount = await $.wrapSol(unauthorizedClient.provider, 1_000_000);
+      const tokenAccount = await $.wrapSol(unauthorizedClient.signer, 1_000_000);
       const gasDropoffAmount = 5;
       const unwrapIntent = false; // Does not matter anyway
       const transferredAmount = 123789n;
 
-      const foreignAddress = new UniversalAddress(Keypair.generate().publicKey.toBuffer());
+      const foreignAddress = $.universalAddress.generate();
       const canonicalEthereum = await unauthorizedClient.read.canonicalPeer(ETHEREUM);
 
       await unauthorizedClient.transferTokens({
@@ -466,7 +462,7 @@ describe('Token Bridge Relayer Program', () => {
 
       expect(vaa.sequence).equal(sequence);
       expect(vaa.emitterChain).equal('Solana');
-      assert.key(uaToPubkey(vaa.emitterAddress)).equal(tokenBridgeEmitter());
+      expect(uaToPubkey(vaa.emitterAddress)).deep.equal(tokenBridgeEmitter());
 
       expect(vaa.payload.to).deep.equal({ address: canonicalEthereum, chain: ETHEREUM });
       // Since the native mint has 9 decimals, the last digit is removed by the token bridge:
@@ -483,10 +479,10 @@ describe('Token Bridge Relayer Program', () => {
       const unwrapIntent = false; // Does not matter anyway
       const transferredAmount = 321654n;
 
-      const mint = await TestMint.create(ownerClient.provider, 10);
-      const tokenAccount = await mint.mint(1_000_000_000n, unauthorizedClient.provider);
+      const mint = await TestMint.create($.connection, ownerClient.signer, 10);
+      const tokenAccount = await mint.mint(1_000_000_000n, unauthorizedClient.signer); //
 
-      const foreignAddress = new UniversalAddress(Keypair.generate().publicKey.toBuffer());
+      const foreignAddress = $.universalAddress.generate();
       const canonicalEthereum = await unauthorizedClient.read.canonicalPeer(ETHEREUM);
 
       await unauthorizedClient.transferTokens({
@@ -507,7 +503,7 @@ describe('Token Bridge Relayer Program', () => {
       );
       expect(vaa.sequence).equal(sequence);
       expect(vaa.emitterChain).equal('Solana');
-      assert.key(uaToPubkey(vaa.emitterAddress)).equal(tokenBridgeEmitter());
+      expect(uaToPubkey(vaa.emitterAddress)).deep.equal(tokenBridgeEmitter());
 
       expect(vaa.payload.to).deep.equal({ address: canonicalEthereum, chain: ETHEREUM });
       // Since the mint has 10 decimals, the last digit is removed by the token bridge:
@@ -520,15 +516,20 @@ describe('Token Bridge Relayer Program', () => {
     });
 
     it('Gets wrapped SOL back from another chain', async () => {
-      const [payer, recipient] = await $.airdrop([Keypair.generate(), $.provider.generate()]);
+      const [payer, recipient] = await $.airdrop([Keypair.generate(), $.keypair.generate()]);
       // Associated token account already existing (to test if it breaks the transfer completion):
-      const recipientTokenAccount = await $.createAssociatedTokenAccount(recipient, NATIVE_MINT);
+      const recipientTokenAccount = await spl.createAssociatedTokenAccount(
+        $.connection,
+        recipient,
+        spl.NATIVE_MINT,
+        recipient.publicKey,
+      );
       const amount = 123n;
 
       const vaaAddress = await wormholeCoreClient.postVaa(
         payer,
         // The token originally comes from Solana's native mint
-        { amount, chain: 'Solana', address: new UniversalAddress(NATIVE_MINT.toBuffer()) },
+        { amount, chain: 'Solana', address: new UniversalAddress(spl.NATIVE_MINT.toBuffer()) },
         { chain: ETHEREUM, tokenBridge: ethereumTokenBridge, tbrPeer: ethereumTbrPeer1 },
         {
           recipient: new UniversalAddress(recipient.publicKey.toBuffer()),
@@ -540,8 +541,7 @@ describe('Token Bridge Relayer Program', () => {
 
       await unauthorizedClient.completeTransfer(vaa);
 
-      const balance =
-        await unauthorizedClient.provider.connection.getTokenAccountBalance(recipientTokenAccount);
+      const balance = await $.connection.getTokenAccountBalance(recipientTokenAccount);
       // The wrapped token has 8 decimals, but the native one has 9. We must multiply the amount by 10:
       expect(balance.value.amount).equal((amount * 10n).toString());
     });
@@ -577,8 +577,7 @@ describe('Token Bridge Relayer Program', () => {
 
       await unauthorizedClient.completeTransfer(vaa);
 
-      const balance =
-        await unauthorizedClient.provider.connection.getTokenAccountBalance(associatedTokenAccount);
+      const balance = await $.connection.getTokenAccountBalance(associatedTokenAccount);
       expect(balance.value.amount).equal(amount.toString());
     });
 
@@ -587,7 +586,7 @@ describe('Token Bridge Relayer Program', () => {
       const unwrapIntent = false; // Does not matter anyway
       const transferredAmount = 301_000_000n;
 
-      const foreignAddress = new UniversalAddress(Keypair.generate().publicKey.toBuffer());
+      const foreignAddress = $.universalAddress.generate();
       const canonicalEthereum = await unauthorizedClient.read.canonicalPeer(ETHEREUM);
 
       await clientForeignToken.transferTokens({

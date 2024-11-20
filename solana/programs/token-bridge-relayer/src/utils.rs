@@ -85,7 +85,7 @@ fn check_prices_are_set(evm_prices: &EvmPricesState) -> Result<()> {
         TokenBridgeRelayerError::EvmChainPriceNotSet
     );
 
-    // We don't need to check the SOL price, because it will generate a division by 0
+    // We don't need to check the SOL price, because it will cause a division by 0
 
     Ok(())
 }

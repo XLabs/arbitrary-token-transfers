@@ -1,5 +1,5 @@
 import anchor from '@coral-xyz/anchor';
-import { Keypair, PublicKey } from '@solana/web3.js';
+import { Connection, Keypair, PublicKey, Signer } from '@solana/web3.js';
 import {
   Chain,
   encoding,
@@ -20,7 +20,7 @@ import {
 import { mocks } from '@wormhole-foundation/sdk-definitions/testing';
 import { VaaMessage } from '@xlabs-xyz/solana-arbitrary-token-transfers';
 
-import { getBlockTime, sendAndConfirmIxs, TestProvider } from './helpers.js';
+import { getBlockTime, sendAndConfirm } from './helpers.js';
 import { accountDataLayout } from './layout.js';
 import { serializeTbrV3Message } from 'common-arbitrary-token-transfer';
 
@@ -28,8 +28,9 @@ const guardianKey = 'cfb12303a19cde580bb4dd771639b0d26bc68353645571a8cff516ab2ee
 const guardianAddress = 'beFA429d57cD18b7F8A4d91A2da9AB4AF05d0FBe';
 const guardians = new mocks.MockGuardians(0, [guardianKey]);
 
-export class WormholeCoreWrapper<N extends Network> {
-  public readonly provider: TestProvider;
+/** A Wormhole Core wrapper allowing to write tests using this program in a local environment. */
+export class TestingWormholeCore<N extends Network> {
+  public readonly signer: Signer;
   public readonly client: SolanaWormholeCore<N, 'Solana'>;
   private sequence = 0n;
   private readonly toProgram: PublicKey;
@@ -39,10 +40,16 @@ export class WormholeCoreWrapper<N extends Network> {
    * @param solanaProgram The Solana Program used as a destination for the VAAs, _i.e._ the program being tested.
    * @param contracts At least the core program address `coreBridge` must be provided.
    */
-  constructor(provider: TestProvider, network: N, testedProgram: PublicKey, contracts: Contracts) {
-    this.provider = provider;
+  constructor(
+    signer: Signer,
+    connection: Connection,
+    network: N,
+    testedProgram: PublicKey,
+    contracts: Contracts,
+  ) {
+    this.signer = signer;
     this.toProgram = testedProgram;
-    this.client = new SolanaWormholeCore(network, 'Solana', provider.connection, contracts);
+    this.client = new SolanaWormholeCore(network, 'Solana', connection, contracts);
   }
 
   get guardians(): mocks.MockGuardians {
@@ -70,18 +77,18 @@ export class WormholeCoreWrapper<N extends Network> {
         bridge: this.pda.bridge(),
         guardianSet: this.pda.guardianSet(),
         feeCollector: this.pda.feeCollector(),
-        payer: this.provider.publicKey,
+        payer: this.signer.publicKey,
       })
       .instruction();
 
-    return await sendAndConfirmIxs(this.provider, ix);
+    return await sendAndConfirm(this.client.connection, ix, this.signer);
   }
 
   /** Parse a VAA generated from the postVaa method, or from the Token Bridge during
    * and outbound transfer
    */
   async parseVaa(key: PublicKey): Promise<VaaMessage> {
-    const info = await this.provider.connection.getAccountInfo(key);
+    const info = await this.client.connection.getAccountInfo(key);
     if (info === null) {
       throw new Error(`No message account exists at that address: ${key.toString()}`);
     }

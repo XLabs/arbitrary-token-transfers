@@ -1,5 +1,5 @@
 import anchor from '@coral-xyz/anchor';
-import { Keypair, PublicKey, TransactionSignature } from '@solana/web3.js';
+import { Connection, PublicKey, Signer, TransactionSignature } from '@solana/web3.js';
 import { Chain } from '@wormhole-foundation/sdk-base';
 import { UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import {
@@ -8,7 +8,7 @@ import {
   TransferParameters,
   VaaMessage,
 } from '@xlabs-xyz/solana-arbitrary-token-transfers';
-import { sendAndConfirmIxs, TestProvider, TestsHelper } from './helpers.js';
+import { TestsHelper } from './helpers.js';
 
 import testProgramKeypair from '../../programs/token-bridge-relayer/test-program-keypair.json' with { type: 'json' };
 
@@ -16,52 +16,41 @@ const $ = new TestsHelper();
 
 export class TbrWrapper {
   readonly client: SolanaTokenBridgeRelayer;
-  readonly provider: TestProvider;
+  readonly signer: Signer;
   readonly logs: { [key: string]: string[] };
   readonly logsSubscriptionId: number;
 
-  constructor(provider: TestProvider, tbrClient: SolanaTokenBridgeRelayer) {
-    this.provider = provider;
+  constructor(signer: Signer, tbrClient: SolanaTokenBridgeRelayer) {
     this.client = tbrClient;
+    this.signer = signer;
     this.logs = {};
 
-    this.logsSubscriptionId = provider.connection.onLogs(
+    this.logsSubscriptionId = this.client.connection.onLogs(
       'all',
       (l) => (this.logs[l.signature] = l.logs),
     );
   }
 
-  static from(
-    provider: TestProvider,
-    accountType: 'owner' | 'admin' | 'regular',
-    oracleClient: SolanaPriceOracle,
-    debug: boolean,
-  ) {
-    const clientProvider =
-      accountType === 'regular' ? provider : { connection: provider.connection };
-
+  static from(signer: Signer, oracleClient: SolanaPriceOracle, debug: boolean) {
     const client = new SolanaTokenBridgeRelayer(
-      clientProvider,
+      oracleClient.connection,
       'Localnet',
       $.pubkey.from(testProgramKeypair),
       oracleClient,
       debug,
     );
 
-    return new TbrWrapper(provider, client);
+    return new TbrWrapper(signer, client);
   }
 
-  static async create(provider: TestProvider, debug: boolean) {
-    const client = await SolanaTokenBridgeRelayer.create(
-      { connection: provider.connection },
-      debug,
-    );
+  static async create(signer: Signer, connection: Connection, debug: boolean) {
+    const client = await SolanaTokenBridgeRelayer.create(connection, debug);
 
-    return new TbrWrapper(provider, client);
+    return new TbrWrapper(signer, client);
   }
 
   get publicKey(): PublicKey {
-    return this.provider.publicKey;
+    return this.signer.publicKey;
   }
 
   get account() {
@@ -74,7 +63,7 @@ export class TbrWrapper {
 
   /** Unregister the logs event so that the test does not hang. */
   async close() {
-    await this.provider.connection.removeOnLogsListener(this.logsSubscriptionId);
+    await this.client.connection.removeOnLogsListener(this.logsSubscriptionId);
   }
 
   displayLogs(signature: string) {
@@ -93,36 +82,36 @@ export class TbrWrapper {
     feeRecipient: PublicKey;
     admins: PublicKey[];
   }): Promise<TransactionSignature> {
-    return sendAndConfirmIxs(this.provider, await this.client.initialize(args));
+    return $.sendAndConfirm(await this.client.initialize(args), this.signer);
   }
 
   async submitOwnerTransferRequest(newOwner: PublicKey): Promise<TransactionSignature> {
-    return sendAndConfirmIxs(this.provider, await this.client.submitOwnerTransferRequest(newOwner));
+    return $.sendAndConfirm(await this.client.submitOwnerTransferRequest(newOwner), this.signer);
   }
 
   async confirmOwnerTransferRequest(): Promise<TransactionSignature> {
-    return await sendAndConfirmIxs(this.provider, await this.client.confirmOwnerTransferRequest());
+    return await $.sendAndConfirm(await this.client.confirmOwnerTransferRequest(), this.signer);
   }
 
   async cancelOwnerTransferRequest(): Promise<TransactionSignature> {
-    return sendAndConfirmIxs(this.provider, await this.client.cancelOwnerTransferRequest());
+    return $.sendAndConfirm(await this.client.cancelOwnerTransferRequest(), this.signer);
   }
 
   async addAdmin(newAdmin: PublicKey): Promise<TransactionSignature> {
-    return sendAndConfirmIxs(this.provider, await this.client.addAdmin(newAdmin));
+    return $.sendAndConfirm(await this.client.addAdmin(newAdmin), this.signer);
   }
 
   async removeAdmin(adminToRemove: PublicKey): Promise<TransactionSignature> {
-    return sendAndConfirmIxs(
-      this.provider,
+    return $.sendAndConfirm(
       await this.client.removeAdmin(this.publicKey, adminToRemove),
+      this.signer,
     );
   }
 
   async registerPeer(chain: Chain, peerAddress: UniversalAddress): Promise<TransactionSignature> {
-    return sendAndConfirmIxs(
-      this.provider,
+    return $.sendAndConfirm(
       await this.client.registerPeer(this.publicKey, chain, peerAddress),
+      this.signer,
     );
   }
 
@@ -130,37 +119,34 @@ export class TbrWrapper {
     chain: Chain,
     peerAddress: UniversalAddress,
   ): Promise<TransactionSignature> {
-    return sendAndConfirmIxs(
-      this.provider,
-      await this.client.updateCanonicalPeer(chain, peerAddress),
-    );
+    return $.sendAndConfirm(await this.client.updateCanonicalPeer(chain, peerAddress), this.signer);
   }
 
   async setPauseForOutboundTransfers(chain: Chain, paused: boolean): Promise<TransactionSignature> {
-    return sendAndConfirmIxs(
-      this.provider,
+    return $.sendAndConfirm(
       await this.client.setPauseForOutboundTransfers(this.publicKey, chain, paused),
+      this.signer,
     );
   }
 
   async updateMaxGasDropoff(chain: Chain, maxGasDropoff: number): Promise<TransactionSignature> {
-    return sendAndConfirmIxs(
-      this.provider,
+    return $.sendAndConfirm(
       await this.client.updateMaxGasDropoff(this.publicKey, chain, maxGasDropoff),
+      this.signer,
     );
   }
 
   async updateRelayerFee(chain: Chain, relayerFee: number): Promise<TransactionSignature> {
-    return sendAndConfirmIxs(
-      this.provider,
+    return $.sendAndConfirm(
       await this.client.updateRelayerFee(this.publicKey, chain, relayerFee),
+      this.signer,
     );
   }
 
   async updateFeeRecipient(newFeeRecipient: PublicKey): Promise<TransactionSignature> {
-    return sendAndConfirmIxs(
-      this.provider,
+    return $.sendAndConfirm(
       await this.client.updateFeeRecipient(this.publicKey, newFeeRecipient),
+      this.signer,
     );
   }
 
@@ -168,32 +154,30 @@ export class TbrWrapper {
     evmTransactionGas: bigint,
     evmTransactionSize: bigint,
   ): Promise<TransactionSignature> {
-    return sendAndConfirmIxs(
-      this.provider,
+    return $.sendAndConfirm(
       await this.client.updateEvmTransactionConfig(
         this.publicKey,
         evmTransactionGas,
         evmTransactionSize,
       ),
+      this.signer,
     );
   }
 
-  async transferTokens(
-    params: TransferParameters,
-    signers?: Keypair[],
-  ): Promise<TransactionSignature> {
-    return sendAndConfirmIxs(
-      this.provider,
+  /** Only the token owner can call this method. */
+  async transferTokens(params: TransferParameters): Promise<TransactionSignature> {
+    return $.sendAndConfirm(
       await this.client.transferTokens(this.publicKey, params),
-      { signers },
+      this.signer, //...signers
     );
   }
 
   async completeTransfer(vaa: VaaMessage): Promise<TransactionSignature> {
-    return sendAndConfirmIxs(
-      this.provider,
-      await this.client.completeTransfer(this.publicKey, vaa),
-    );
+    return $.sendAndConfirm(await this.client.completeTransfer(this.publicKey, vaa), this.signer);
+  }
+
+  async relayingFeeSimulated(chain: Chain, dropoffAmount: number): Promise<number> {
+    return this.client.relayingFeeSimulated(this.signer.publicKey, chain, dropoffAmount);
   }
 
   async relayingFee(chain: Chain, dropoffAmount: number): Promise<number> {

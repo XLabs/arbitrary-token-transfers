@@ -2112,7 +2112,6 @@ __metadata:
     "@wormhole-foundation/sdk-solana": "npm:^0.12.0"
     "@wormhole-foundation/sdk-solana-tokenbridge": "npm:^0.12.0"
     "@xlabs-xyz/solana-price-oracle-sdk": "npm:0.0.16"
-    borsh: "npm:^2.0.0"
     tsup: "npm:^8.3.5"
     tsx: "npm:4.19.2"
     typescript: "npm:5.6.3"
@@ -2421,13 +2420,6 @@ __metadata:
     bs58: "npm:^4.0.0"
     text-encoding-utf-8: "npm:^1.0.2"
   checksum: 10c0/513b3e51823d2bf5be77cec27742419d2b0427504825dd7ceb00dedb820f246a4762f04b83d5e3aa39c8e075b3cbaeb7ca3c90bd1cbeecccb4a510575be8c581
-  languageName: node
-  linkType: hard
-
-"borsh@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "borsh@npm:2.0.0"
-  checksum: 10c0/59a96dd9c707450862198510fc518dff92ac7f0ed0d228c9b38affd968bb4debec805c6e2afed8ec13efd9fad63fd47f8e6ed420253542a8d10fb59f28fc7d01
   languageName: node
   linkType: hard
 

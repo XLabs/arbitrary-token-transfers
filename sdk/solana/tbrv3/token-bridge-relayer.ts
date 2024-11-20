@@ -9,9 +9,12 @@ import {
   Cluster,
   LAMPORTS_PER_SOL,
   Keypair,
+  TransactionMessage,
+  VersionedTransaction,
+  SimulatedTransactionResponse,
+  TransactionResponse,
 } from '@solana/web3.js';
 import * as spl from '@solana/spl-token';
-import * as borsh from 'borsh';
 import {
   Chain,
   chainToChainId,
@@ -19,7 +22,10 @@ import {
   contracts,
   Network,
   chainIdToChain,
-  layout,
+  deserializeLayout,
+  serializeLayout,
+  Layout,
+  LayoutToType,
 } from '@wormhole-foundation/sdk-base';
 import { layoutItems, toNative, UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import { SolanaPriceOracle, bigintToBn, bnToBigint } from '@xlabs-xyz/solana-price-oracle-sdk';
@@ -30,7 +36,6 @@ import { TokenBridgeRelayer as IdlType } from './idl/token_bridge_relayer.js';
 import IDL from '../../../target/idl/token_bridge_relayer.json' with { type: 'json' };
 import networkConfig from '../../../solana/programs/token-bridge-relayer/network.json' with { type: 'json' };
 import testProgramKeypair from '../../../solana/programs/token-bridge-relayer/test-program-keypair.json' with { type: 'json' };
-import { TOKEN_PROGRAM_ID } from '@coral-xyz/anchor/dist/cjs/utils/token.js';
 import { TokenBridgeCpiAccountsBuilder } from './token-bridge-cpi-accounts-builder.js';
 
 // Export IDL
@@ -89,7 +94,7 @@ export class SolanaTokenBridgeRelayer {
    * use `SolanaTokenBridgeRelayer.create`.
    */
   constructor(
-    provider: anchor.Provider,
+    connection: Connection,
     network: TbrNetwork,
     programId: PublicKey,
     priceOracle: SolanaPriceOracle,
@@ -97,7 +102,7 @@ export class SolanaTokenBridgeRelayer {
   ) {
     const wormholeNetwork = network === 'Localnet' ? 'Testnet' : network;
 
-    this.program = new anchor.Program(patchAddress(IDL, programId), provider);
+    this.program = new anchor.Program(patchAddress(IDL, programId), { connection });
     this.priceOracleClient = priceOracle;
     this.tokenBridgeProgramId = new PublicKey(contracts.tokenBridge(wormholeNetwork, 'Solana'));
     this.wormholeProgramId = new PublicKey(contracts.coreBridge(wormholeNetwork, 'Solana'));
@@ -114,23 +119,27 @@ export class SolanaTokenBridgeRelayer {
    * Creates a new instance by using the values in `network.json` in the program directory.
    */
   static async create(
-    provider: anchor.Provider,
+    connection: Connection,
     debug: boolean = false,
   ): Promise<SolanaTokenBridgeRelayer> {
-    const network = await networkFromConnection(provider.connection);
+    const network = await networkFromConnection(connection);
     const programId = programIdFromNetwork(network);
-    const priceOracle = await SolanaPriceOracle.create(provider.connection);
+    const priceOracle = await SolanaPriceOracle.create(connection);
     conditionalDebug(debug, 'Detected environment', {
       network,
       relayerProgramId: programId.toString(),
       oracleProgramId: priceOracle.program.programId.toString(),
     });
 
-    return new SolanaTokenBridgeRelayer(provider, network, programId, priceOracle, debug);
+    return new SolanaTokenBridgeRelayer(connection, network, programId, priceOracle, debug);
   }
 
   get connection(): Connection {
     return this.program.provider.connection;
+  }
+
+  get programId(): PublicKey {
+    return this.program.programId;
   }
 
   /** Raw Solana accounts. */
@@ -151,7 +160,6 @@ export class SolanaTokenBridgeRelayer {
         this.accountInfo(this.program.account.authBadgeState, ['authbadge', account.toBuffer()]),
 
       temporary: (mint: PublicKey) => this.pda('tmp', mint.toBuffer()),
-      //TODO read the VAA with `fetch`
       /** VAA address used to complete a transfer (inbound transfer). */
       vaa: (vaaHash: Uint8Array) => {
         const { address, bump } = findPda(this.wormholeProgramId, ['PostedVAA', vaaHash]);
@@ -172,7 +180,7 @@ export class SolanaTokenBridgeRelayer {
         const { address, bump } = this.pda(
           'bridged',
           payer.toBuffer(),
-          layout.serializeLayout({ binary: 'uint', size: 8, endianness: 'big' }, payerSequence),
+          serializeLayout({ binary: 'uint', size: 8, endianness: 'big' }, payerSequence),
         );
         return {
           address,
@@ -239,7 +247,7 @@ export class SolanaTokenBridgeRelayer {
           chain === undefined
             ? undefined
             : Buffer.from(
-                layout.serializeLayout({ ...layoutItems.chainItem(), endianness: 'big' }, chain),
+                serializeLayout({ ...layoutItems.chainItem(), endianness: 'big' }, chain),
               );
         const states = await this.program.account.peerState
           .all(filter)
@@ -305,7 +313,7 @@ export class SolanaTokenBridgeRelayer {
 
   /** Returns a PDA belonging to this program. */
   pda(...seeds: Array<string | Uint8Array>) {
-    return findPda(this.program.programId, seeds);
+    return findPda(this.programId, seeds);
   }
 
   /** Returns the end user's wallet and associated token account */
@@ -348,7 +356,7 @@ export class SolanaTokenBridgeRelayer {
       isWritable: true,
     }));
 
-    const program = new BpfLoaderUpgradeableProgram(this.program.programId, this.connection);
+    const program = new BpfLoaderUpgradeableProgram(this.programId, this.connection);
     const deployer =
       (await program.getdata()).upgradeAuthority ?? throwError('The program must be upgradeable');
 
@@ -696,15 +704,46 @@ export class SolanaTokenBridgeRelayer {
   /* Queries */
 
   /**
-   *
    * @param chain The target chain where the token will be sent to.
-   * @param dropoffAmount The amount to send to the target chain.
+   * @param dropoffAmount The amount to send to the target chain, in µUSD.
    * @returns The fee to pay for the transfer in SOL.
    */
   async relayingFee(chain: Chain, dropoffAmount: number): Promise<number> {
-    providerAssert(this.program.provider);
+    const [tbrConfig, chainConfig, evmPrices, oracleConfig] = await Promise.all([
+      this.read.config(),
+      this.account.chainConfig(chain).fetch(),
+      this.priceOracleClient.read.evmPrices(chain),
+      this.priceOracleClient.read.config(),
+    ]);
 
-    const tx = await this.program.methods
+    const MWEI_PER_MICRO_ETH = 1_000_000n;
+    const MWEI_PER_ETH = 1_000_000_000_000n;
+
+    const totalFeesMwei =
+      tbrConfig.evmTransactionGas * BigInt(evmPrices.gasPrice) +
+      tbrConfig.evmTransactionSize * BigInt(evmPrices.pricePerByte) +
+      BigInt(dropoffAmount) * MWEI_PER_MICRO_ETH;
+    const totalFeesMicroUsd =
+      (totalFeesMwei * evmPrices.gasTokenPrice) / MWEI_PER_ETH +
+      BigInt(chainConfig.relayerFeeMicroUsd);
+
+    return Number(totalFeesMicroUsd) / Number(oracleConfig.solPrice);
+  }
+
+  /**
+   * This function simulates a program call to get the exact relaying fee.
+   *
+   * @param payer Any account with gas. No signature is required, no fee is taken.
+   * @param chain The target chain where the token will be sent to.
+   * @param dropoffAmount The amount to send to the target chain, in µUSD.
+   * @returns The fee to pay for the transfer in SOL.
+   */
+  async relayingFeeSimulated(
+    payer: PublicKey,
+    chain: Chain,
+    dropoffAmount: number,
+  ): Promise<number> {
+    const ix = await this.program.methods
       .relayingFee(dropoffAmount)
       .accountsStrict({
         tbrConfig: this.account.config().address,
@@ -712,12 +751,13 @@ export class SolanaTokenBridgeRelayer {
         oracleConfig: this.priceOracleClient.account.config().address,
         oracleEvmPrices: this.priceOracleClient.account.evmPrices(chain).address,
       })
-      .rpc({ commitment: 'confirmed' });
-    const txResponse = await this.connection.getTransaction(tx, {
-      commitment: 'confirmed',
-      maxSupportedTransactionVersion: undefined,
-    });
-    const result = returnedDataFromTransaction<bigint>('u64', txResponse);
+      .instruction();
+    const txResponse = await simulateTransaction(this.connection, payer, [ix]);
+
+    const result = returnedDataFromTransaction(
+      { binary: 'uint', size: 8, endianness: 'little' },
+      txResponse,
+    );
 
     return Number(result) / LAMPORTS_PER_SOL;
   }
@@ -763,7 +803,7 @@ export class SolanaTokenBridgeRelayer {
         'Cannot find the meta info\nThe mint authority indicates that the token is a Wormhole one, but no meta information is associated with it.',
       );
 
-    const { chain, address } = layout.deserializeLayout(
+    const { chain, address } = deserializeLayout(
       [
         { name: 'chain', ...layoutItems.chainItem(), endianness: 'little' },
         { name: 'address', ...layoutItems.universalAddressItem },
@@ -811,7 +851,7 @@ function findPda(programId: PublicKey, seeds: Array<string | Uint8Array>) {
 
 function getAssociatedTokenAccount(wallet: PublicKey, mint: PublicKey): PublicKey {
   return PublicKey.findProgramAddressSync(
-    [wallet.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mint.toBuffer()],
+    [wallet.toBuffer(), spl.TOKEN_PROGRAM_ID.toBuffer(), mint.toBuffer()],
     spl.ASSOCIATED_TOKEN_PROGRAM_ID,
   )[0];
 }
@@ -838,25 +878,29 @@ async function createAssociatedTokenAccountIdempotent({
   return createAtaIdempotentIx;
 }
 
-function providerAssert(provider: anchor.Provider) {
-  if (provider.sendAndConfirm === undefined) {
-    throw new Error('The client must be created with a full provider to use this method');
-  }
-}
-
-export function returnedDataFromTransaction<T>(
-  schema: borsh.Schema,
-  confirmedTransaction: VersionedTransactionResponse | null,
-) {
+export function returnedDataFromTransaction<L extends Layout>(
+  typeLayout: L,
+  confirmedTransaction:
+    | VersionedTransactionResponse
+    | TransactionResponse
+    | SimulatedTransactionResponse,
+): LayoutToType<L> {
   const prefix = 'Program return: ';
-  const log = confirmedTransaction?.meta?.logMessages?.find((log) => log.startsWith(prefix));
-  if (log === undefined) {
-    throw new Error('Internal error: The transaction did not return any value');
+  const logs =
+    'meta' in confirmedTransaction
+      ? confirmedTransaction.meta?.logMessages
+      : confirmedTransaction.logs;
+  if (logs == null) {
+    throw new Error('Internal error: No logs in this transaction');
   }
+  const log =
+    logs.find((log) => log.startsWith(prefix)) ??
+    throwError('No returned value specified in these logs');
+
   // The line looks like 'Program return: <Public Key> <base64 encoded value>':
   const [, data] = log.slice(prefix.length).split(' ', 2);
 
-  return borsh.deserialize(schema, Buffer.from(data, 'base64')) as T;
+  return deserializeLayout<L>(typeLayout, Buffer.from(data, 'base64'), { consumeAll: true });
 }
 
 /**
@@ -922,4 +966,32 @@ function range(from: bigint, to: bigint): bigint[] {
     }
   }
   return Array.from(generator(from, to));
+}
+
+async function simulateTransaction(
+  connection: Connection,
+  payer: PublicKey,
+  instructions: TransactionInstruction[],
+): Promise<SimulatedTransactionResponse> {
+  const {
+    value: { blockhash },
+  } = await connection.getLatestBlockhashAndContext();
+  const txMessage = new TransactionMessage({
+    payerKey: payer,
+    recentBlockhash: blockhash,
+    instructions,
+  }).compileToV0Message();
+
+  const { value: response } = await connection.simulateTransaction(
+    new VersionedTransaction(txMessage),
+    {
+      sigVerify: false,
+    },
+  );
+
+  if (response.err !== null) {
+    throw new Error('Transaction simulation failed', { cause: response.err });
+  }
+
+  return response;
 }

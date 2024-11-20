@@ -1,18 +1,26 @@
 import { SolanaTokenBridge } from '@wormhole-foundation/sdk-solana-tokenbridge';
-import { PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY } from '@solana/web3.js';
+import {
+  Connection,
+  Keypair,
+  PublicKey,
+  Signer,
+  SystemProgram,
+  SYSVAR_RENT_PUBKEY,
+} from '@solana/web3.js';
 import { Chain, layout, Network } from '@wormhole-foundation/sdk-base';
 import { Contracts, UniversalAddress, createVAA } from '@wormhole-foundation/sdk-definitions';
 import { mocks } from '@wormhole-foundation/sdk-definitions/testing';
 import { utils as coreUtils } from '@wormhole-foundation/sdk-solana-core';
 
-import { getBlockTime, sendAndConfirmIxs, TestProvider } from './helpers.js';
+import { getBlockTime, sendAndConfirm } from './helpers.js';
 import { SolanaSendSigner } from '@wormhole-foundation/sdk-solana';
 import { signAndSendWait } from '@wormhole-foundation/sdk-connect';
 import { layoutItems } from '@wormhole-foundation/sdk-definitions';
 
-export class TokenBridgeWrapper<N extends Network> {
+/** A Token Bridge wrapper allowing to write tests using this program in a local environment. */
+export class TestingTokenBridge<N extends Network> {
   static sequence = 100n;
-  public readonly provider: TestProvider;
+  public readonly signer: Signer;
   public readonly client: SolanaTokenBridge<N, 'Solana'>;
   public readonly guardians: mocks.MockGuardians;
 
@@ -22,18 +30,23 @@ export class TokenBridgeWrapper<N extends Network> {
    * @param contracts At least the addresses `coreBridge` and `tokenBridge` must be provided.
    */
   constructor(
-    provider: TestProvider,
+    signer: Signer,
+    connection: Connection,
     network: N,
     guardians: mocks.MockGuardians,
     contracts: Contracts,
   ) {
-    this.provider = provider;
+    this.signer = signer;
     this.guardians = guardians;
-    this.client = new SolanaTokenBridge(network, 'Solana', provider.connection, contracts);
+    this.client = new SolanaTokenBridge(network, 'Solana', connection, contracts);
   }
 
   get coreBridgeId() {
     return this.client.coreBridge.coreBridge.programId;
+  }
+
+  get keypair() {
+    return Keypair.fromSecretKey(this.signer.secretKey);
   }
 
   get pda() {
@@ -60,16 +73,16 @@ export class TokenBridgeWrapper<N extends Network> {
     const ix = await this.client.tokenBridge.methods
       .initialize(this.coreBridgeId)
       .accounts({
-        payer: this.provider.publicKey,
+        payer: this.signer.publicKey,
         config: this.pda.config(),
       })
       .instruction();
 
-    return await sendAndConfirmIxs(this.provider, ix);
+    return await sendAndConfirm(this.client.connection, ix, this.signer);
   }
 
   async registerPeer(chain: Chain, address: UniversalAddress) {
-    const sequence = TokenBridgeWrapper.sequence++;
+    const sequence = TestingTokenBridge.sequence++;
     const timestamp = await getBlockTime(this.client.connection);
     const emitterAddress = new UniversalAddress('00'.repeat(31) + '04');
     const rawVaa = createVAA('TokenBridge:RegisterChain', {
@@ -84,14 +97,8 @@ export class TokenBridgeWrapper<N extends Network> {
       payload: { chain: 'Solana', actionArgs: { foreignChain: chain, foreignAddress: address } },
     });
     const vaa = this.guardians.addSignatures(rawVaa, [0]);
-    const txs = this.client.coreBridge.postVaa(this.provider.publicKey, vaa);
-    const signer = new SolanaSendSigner(
-      this.client.connection,
-      'Solana',
-      this.provider.keypair,
-      false,
-      {},
-    );
+    const txs = this.client.coreBridge.postVaa(this.signer.publicKey, vaa);
+    const signer = new SolanaSendSigner(this.client.connection, 'Solana', this.keypair, false, {});
     await signAndSendWait(txs, signer);
 
     const vaaAddress = coreUtils.derivePostedVaaKey(this.coreBridgeId, Buffer.from(vaa.hash));
@@ -99,7 +106,7 @@ export class TokenBridgeWrapper<N extends Network> {
     const ix = await this.client.tokenBridge.methods
       .registerChain()
       .accounts({
-        payer: this.provider.publicKey,
+        payer: this.signer.publicKey,
         vaa: vaaAddress,
         endpoint: this.pda.endpoint(chain, address),
         config: this.pda.config(),
@@ -109,7 +116,7 @@ export class TokenBridgeWrapper<N extends Network> {
         systemProgram: SystemProgram.programId,
       })
       .instruction();
-    await sendAndConfirmIxs(this.provider, ix);
+    await sendAndConfirm(this.client.connection, ix, this.signer);
   }
 
   async attestToken(
@@ -118,15 +125,9 @@ export class TokenBridgeWrapper<N extends Network> {
     mint: UniversalAddress,
     info: { decimals: number },
   ) {
-    const signer = new SolanaSendSigner(
-      this.client.connection,
-      'Solana',
-      this.provider.keypair,
-      false,
-      {},
-    );
+    const signer = new SolanaSendSigner(this.client.connection, 'Solana', this.keypair, false, {});
 
-    const sequence = TokenBridgeWrapper.sequence++;
+    const sequence = TestingTokenBridge.sequence++;
     const timestamp = await getBlockTime(this.client.connection);
     const rawVaa = createVAA('TokenBridge:AttestMeta', {
       guardianSet: 0,
@@ -145,10 +146,10 @@ export class TokenBridgeWrapper<N extends Network> {
       },
     });
     const vaa = this.guardians.addSignatures(rawVaa, [0]);
-    const txsPostVaa = this.client.coreBridge.postVaa(this.provider.publicKey, vaa);
+    const txsPostVaa = this.client.coreBridge.postVaa(this.signer.publicKey, vaa);
     await signAndSendWait(txsPostVaa, signer);
 
-    const txsAttest = this.client.submitAttestation(rawVaa, this.provider.publicKey);
+    const txsAttest = this.client.submitAttestation(rawVaa, this.signer.publicKey);
     await signAndSendWait(txsAttest, signer);
   }
 
