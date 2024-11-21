@@ -2,7 +2,7 @@
   { "chainId": 6, 
     "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
     "oracle": "0xF8A6F089a3eaFC4592F8EaDDCD90B82A926f72B1",
-    "initGasToken": "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7"
+    "initGasToken": "0xd00ae08403B9bbb9124bB305C09058E32C39A48c"
   },
   {
     "chainId": 14,
