@@ -16,3 +16,4 @@ token_bridge = "0xc57508ee0d4595e5a8728974a4a93a787d38f339757230d441e895422c07ab
 [dev-addresses]
 wormhole = "0x100"
 token_bridge = "0x200"
+tbrv3_quoting_oracle = "0x300"

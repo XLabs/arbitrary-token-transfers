@@ -2,7 +2,7 @@
 
 module 0x0::TBRv3 {
 	use sui::bcs::Self;
-	use sui::coin::Coin;
+	use sui::coin::{Coin, zero};
 	use sui::sui::SUI;
 	use sui::table::{Self, Table};
 	
@@ -47,8 +47,9 @@ module 0x0::TBRv3 {
 		evm_transaction_gas: u64,
 		evm_transaction_size: u64,
 
-		emitter_cap: EmitterCap, // TODO: Can we combine this with token_bridge_nonce?
-		token_bridge_nonce: u32,
+		emitter_cap: EmitterCap,
+
+		gas_coin: Coin<SUI>,
 	}
 
 	public struct Initialize has drop {
@@ -90,7 +91,8 @@ module 0x0::TBRv3 {
 			evm_transaction_size: init.evm_transaction_size,
 
 			emitter_cap,
-			token_bridge_nonce: 0,
+
+			gas_coin: zero<SUI>(ctx),
 		}
 	}
 
@@ -232,6 +234,8 @@ module 0x0::TBRv3 {
 		state.evm_transaction_size = evm_transaction_size;
 	}
 
+	// TODO: A way to add to the gas coin
+
 	/* Transfers */
 
 	public struct TransferTokensRequest has drop {
@@ -246,6 +250,7 @@ module 0x0::TBRv3 {
 		max_fee_mist: u64, // Maximum fee in mist(nano-sui)
 	}
 
+	// TODO: We need to make sure this is byte-by-byte encoded the same as the other chains I think
 	public struct RelayerMessage has drop {
 		version: u64,
 		recipient_address: address,
@@ -303,11 +308,8 @@ module 0x0::TBRv3 {
 			req.recipient_chain,
 			canonical_peer_address.to_bytes(),
 			bcs::to_bytes(&payload),
-			state.token_bridge_nonce,
+			state.emitter_cap.sequence() as u32,
 		);
-
-		// Increment the nonce
-		state.token_bridge_nonce = state.token_bridge_nonce + 1;
 
 		// Return dust to sender
 		coin_utils::return_nonzero(dust, ctx);
@@ -320,9 +322,8 @@ module 0x0::TBRv3 {
 	public fun complete_transfer<C>(
 		state: &mut State,
 		receipt: RedeemerReceipt<C>,
-		mut gas_coin: Coin<SUI>, // RFI: Should this be in the state?
 		ctx: &mut TxContext,
-	): Coin<SUI> {
+	) {
 		// Complete transfer
 		let (bridged, transfer, source_chain) = redeem_coin(&state.emitter_cap, receipt);
 
@@ -344,25 +345,8 @@ module 0x0::TBRv3 {
 		// Redeem gas
 		if (relayer_message.dropoff_amount_micro > 0) {
 			let dropoff_amount = (relayer_message.dropoff_amount_micro as u64) * 1000;
-			let gas = gas_coin.split(dropoff_amount, ctx);
+			let gas = state.gas_coin.split(dropoff_amount, ctx);
 			transfer::public_transfer(gas, relayer_message.recipient_address);
 		};
-
-		// Return the gas coin
-		gas_coin
-	}
-
-	public struct QuoteQuery has drop {
-		chain_id: u16,
-		dropoff_in_micro_usd: u32,
-	}
-
-	// Returns a quote for a transfer, in µUSD.
-	public fun relaying_fee(
-		req: QuoteQuery,
-		chain_id: u16,
-		dropoff_amount_micro: u32,
-	): u64 {
-		0
 	}
 }
