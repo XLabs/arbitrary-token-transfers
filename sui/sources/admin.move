@@ -1,7 +1,7 @@
 module tbrv3::admin {
 	// ----- Imports -----
 
-	use tbrv3::owner::OwnerCap;
+	use tbrv3::owner::OwnerPermission;
 
 	// ----- Structs -----
 
@@ -16,7 +16,7 @@ module tbrv3::admin {
 
 	// Create a new admin cap from the owner cap.
 	public fun new(
-		_owner: &OwnerCap,
+		_perm: &OwnerPermission,
 		admin: address,
 		ctx: &mut TxContext,
 	) {
@@ -39,7 +39,7 @@ module tbrv3::admin {
 		AdminPermission {}
 	}
 
-	// Revokes the admin cap using another admin cap as the authorization.
+	// Revokes the admin cap using another admin's permission.
 	public fun revoke(
 		self: &mut AdminCap,
 		_perm: &AdminPermission,

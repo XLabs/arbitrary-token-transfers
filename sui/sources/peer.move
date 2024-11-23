@@ -3,12 +3,14 @@ module tbrv3::peer {
 
 	use tbrv3::admin::AdminPermission;
 
+	use wormhole::external_address::ExternalAddress;
+
 	// ----- Structs -----
 
 	public struct PeerCap has key, store {
 		id: UID,
 		chain: u16,
-		chain_address: vector<u8>,
+		chain_address: ExternalAddress,
 	}
 
 	// ----- Constructors -----
@@ -18,7 +20,7 @@ module tbrv3::peer {
 	public fun new_peer(
 		_perm: &AdminPermission,
 		chain: u16,
-		chain_address: vector<u8>,
+		chain_address: ExternalAddress,
 		ctx: &mut TxContext,
 	) {
 		transfer::share_object(
@@ -40,7 +42,7 @@ module tbrv3::peer {
 
 	public fun chain_address(
 		self: &PeerCap,
-	): vector<u8> {
+	): ExternalAddress {
 		self.chain_address
 	}
 }

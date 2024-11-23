@@ -4,15 +4,21 @@ module tbrv3::state {
 	use tbrv3::admin::AdminPermission;
 
 	use sui::balance::{Balance, zero};
+	use sui::coin::Coin;
 	use sui::sui::SUI;
 	
 	use wormhole::emitter::EmitterCap;
 	use wormhole::state::State as WormholeState;
 
+	// ----- Constants -----
+
+	const VERSION: u64 = 1;
+
 	// ----- Structs -----
 	
 	public struct State has key {
 		id: UID,
+		version: u64,
 
 		fee_recipient: address,
 
@@ -21,7 +27,7 @@ module tbrv3::state {
 
 		emitter_cap: EmitterCap,
 
-		gas_token_supply: Balance<SUI>,
+		gas_supply: Balance<SUI>,
 	}
 
 	// ----- Constructors -----
@@ -36,6 +42,7 @@ module tbrv3::state {
 		transfer::share_object(
 			State {
 				id: object::new(ctx),
+				version: VERSION,
 
 				fee_recipient,
 
@@ -44,9 +51,31 @@ module tbrv3::state {
 
 				emitter_cap: wormhole::emitter::new(wormhole, ctx),
 
-				gas_token_supply: zero(),
+				gas_supply: zero(),
 			}
 		);
+	}
+
+	// ----- Getters -----
+
+	public fun fee_recipient(state: &State): address {
+		state.fee_recipient
+	}
+
+	public fun evm_transaction_gas(state: &State): u64 {
+		state.evm_transaction_gas
+	}
+
+	public fun evm_transaction_size(state: &State): u64 {
+		state.evm_transaction_size
+	}
+
+	public(package) fun gas_supply_mut(state: &mut State): &mut Balance<SUI> {
+		&mut state.gas_supply
+	}
+
+	public(package) fun emitter_cap(state: &State): &EmitterCap {
+		&state.emitter_cap
 	}
 
 	// ----- Setters -----
@@ -58,6 +87,9 @@ module tbrv3::state {
 		_perm: &AdminPermission,
 		new_fee_recipient: address,
 	) {
+		// Verify the state version
+		state.is_current_version();
+
 		// Update the fee recipient
 		state.fee_recipient = new_fee_recipient;
 	}
@@ -70,17 +102,29 @@ module tbrv3::state {
 		evm_transaction_gas: u64,
 		evm_transaction_size: u64,
 	) {
+		// Verify the state version
+		state.is_current_version();
+
+		// Update the evm transaction config
 		state.evm_transaction_gas = evm_transaction_gas;
 		state.evm_transaction_size = evm_transaction_size;
 	}
 
 	// ----- Methods -----
 
+	public fun is_current_version(state: &State) {
+		assert!(state.version == VERSION);
+	}
+
 	public fun add_gas_token_supply(
 		state: &mut State,
 		_perm: &AdminPermission,
-		amount: Balance<SUI>,
+		amount: Coin<SUI>,
 	) {
-		state.gas_token_supply.join(amount);
+		// Verify the state version
+		state.is_current_version();
+
+		// Add balance to the gas token supply
+		state.gas_supply.join(amount.into_balance());
 	}
 }
