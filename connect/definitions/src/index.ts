@@ -25,3 +25,5 @@ declare module '@wormhole-foundation/sdk-definitions' {
 export * from './automatic.js';
 export * from './consts.js';
 export * from './types.js';
+
+export { testnetTokensByChain} from "./tokens.js";
