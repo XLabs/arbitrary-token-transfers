@@ -1,29 +1,31 @@
 module tbrv3::admin {
 	// ----- Imports -----
 
-	use tbrv3::owner::OwnerPermission;
+	use tbrv3::tbrv3::TBRV3;
+
+	use xlabs::owner::OwnerCap;
 
 	// ----- Structs -----
 
 	public struct AdminCap has key, store {
 		id: UID,
-		admin: Option<address>,
+		admin: address,
 	}
 
-	public struct AdminPermission {}
+	public struct AdminPermission has drop {}
 
 	// ----- Constructors -----
 
 	// Create a new admin cap from the owner cap.
 	public fun new(
-		_perm: &OwnerPermission,
+		_perm: &OwnerCap<TBRV3>,
 		admin: address,
 		ctx: &mut TxContext,
 	) {
 		transfer::share_object(
 			AdminCap {
 				id: object::new(ctx),
-				admin: option::some(admin),
+				admin,
 			},
 		);
 	}
@@ -35,15 +37,16 @@ module tbrv3::admin {
 		self: &AdminCap,
 		ctx: &TxContext,
 	): AdminPermission {
-		assert!(self.admin.borrow() == ctx.sender());
+		assert!(self.admin == ctx.sender());
 		AdminPermission {}
 	}
 
 	// Revokes the admin cap using another admin's permission.
 	public fun revoke(
-		self: &mut AdminCap,
+		self: AdminCap,
 		_perm: &AdminPermission,
 	) {
-		self.admin = option::none();
+		let AdminCap { id, .. } = self;
+		id.delete();
 	}
 }

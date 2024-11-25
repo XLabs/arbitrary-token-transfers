@@ -2,8 +2,10 @@ module tbrv3::chain_state {
 	// ----- Imports -----
 
 	use tbrv3::admin::AdminPermission;
-	use tbrv3::owner::OwnerPermission;
 	use tbrv3::peer::PeerCap;
+	use tbrv3::tbrv3::TBRV3;
+
+	use xlabs::owner::OwnerCap;
 
 	// ----- Structs -----
 
@@ -94,7 +96,7 @@ module tbrv3::chain_state {
 
 	public fun set_canonical_peer_id(
 		chain_state: &mut ChainState,
-		_perm: &OwnerPermission,
+		_perm: &OwnerCap<TBRV3>,
 		canonical_peer_id: ID,
 	) {
 		chain_state.canonical_peer_id = canonical_peer_id;
