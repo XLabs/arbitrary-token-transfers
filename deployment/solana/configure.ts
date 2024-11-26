@@ -1,28 +1,23 @@
-import { BN } from '@coral-xyz/anchor';
 import { SolanaTokenBridgeRelayer } from '@xlabs-xyz/solana-arbitrary-token-transfers';
-import { runOnSolana, ledgerSignAndSend, getConnection, SolanaSigner } from '../helpers/solana.js';
-import { SolanaChainInfo, LoggerFn } from '../helpers/interfaces.js';
+import { runOnSolana, ledgerSignAndSend, getConnection } from '../helpers/solana.js';
+import { SolanaScriptCb } from '../helpers/interfaces.js';
 import { dependencies } from '../helpers/env.js';
 import { PublicKey } from '@solana/web3.js';
-import { getChainConfig, getChainInfo } from '../helpers/env';
+import { getChainConfig } from '../helpers/env';
 import { SolanaTbrV3Config } from '../config/config.types.js';
 
-runOnSolana('configure-tbr', configureSolanaTbr).catch((error) => {
-  console.error('Error executing script: ', error);
-});
-
-async function configureSolanaTbr(
-  chain: SolanaChainInfo,
-  signer: SolanaSigner,
-  log: LoggerFn,
-): Promise<void> {
+const configureSolanaTbr: SolanaScriptCb = async function (
+  chain,
+  signer,
+  log,
+) {
   const signerKey = new PublicKey(await signer.getAddress());
   const connection = getConnection(chain);
   const solanaDependencies = dependencies.find((d) => d.chainId === chain.chainId);
   if (solanaDependencies === undefined) {
     throw new Error(`No dependencies found for chain ${chain.chainId}`);
   }
-  const tbr = await SolanaTokenBridgeRelayer.create({ connection });
+  const tbr = await SolanaTokenBridgeRelayer.create(connection);
 
   const config = await getChainConfig<SolanaTbrV3Config>('tbr-v3', chain.chainId);
 
@@ -56,3 +51,7 @@ async function configureSolanaTbr(
     await ledgerSignAndSend(connection, [ix], []);
   }
 }
+
+runOnSolana('configure-tbr', configureSolanaTbr).catch((error) => {
+  console.error('Error executing script: ', error);
+});
