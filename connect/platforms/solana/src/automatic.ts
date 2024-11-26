@@ -8,7 +8,6 @@ import {
   PublicKey,
   SystemProgram,
   Transaction,
-  TransactionInstruction,
   VersionedTransaction,
 } from '@solana/web3.js';
 import { Chain, Network, amount as sdkAmount } from '@wormhole-foundation/sdk-base';
@@ -81,7 +80,7 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     this.chain = new SolanaChain(chainName, new SolanaPlatform(this.network));
     this.oracleClient = new SolanaPriceOracle(connection, new PublicKey(priceOracleAddress));
     this.client = new SolanaTokenBridgeRelayer(
-      { connection },
+      connection,
       network,
       new PublicKey(address),
       this.oracleClient,
@@ -168,37 +167,19 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     const senderPk = new PublicKey(params.sender.toNative('Solana').toString());
     const gasDropoffAmount = Number(sdkAmount.display(params.gasDropOff));
 
-    if (token.chain === 'Solana') {
-      transaction.add(
-        await this.client.transferNativeTokens(senderPk, {
-          recipient: {
-            chain: params.recipient.chain,
-            address: params.recipient.address.toUniversalAddress(),
-          },
-          transferredAmount: BigInt(params.amount.toString()),
-          maxFeeLamports: BigInt(params.fee.toString() || 0),
-          gasDropoffAmount,
-          tokenAccount: ata,
-          mint,
-          unwrapIntent: params.unwrapIntent,
-        }),
-      );
-    } else {
-      transaction.add(
-        await this.client.transferWrappedTokens(senderPk, {
-          recipient: {
-            chain: params.recipient.chain,
-            address: params.recipient.address.toUniversalAddress(),
-          },
-          userTokenAccount: ata,
-          transferredAmount: BigInt(params.amount.toString()),
-          gasDropoffAmount,
-          maxFeeLamports: BigInt(params.fee.toString() || 0),
-          unwrapIntent: params.unwrapIntent,
-          token,
-        }),
-      );
-    }
+    transaction.add(
+      await this.client.transferTokens(senderPk, {
+        recipient: {
+          chain: params.recipient.chain,
+          address: params.recipient.address.toUniversalAddress(),
+        },
+        userTokenAccount: ata,
+        transferredAmount: BigInt(params.amount.toString()),
+        gasDropoffAmount,
+        maxFeeLamports: BigInt(params.fee.toString() || 0),
+        unwrapIntent: params.unwrapIntent,
+      }),
+    );
 
     const { blockhash } = await this.connection.getLatestBlockhash('finalized');
     transaction.recentBlockhash = blockhash;
@@ -227,24 +208,13 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     const transaction = new Transaction();
     transaction.feePayer = signer;
 
-    if (vaa.payload.token.chain === 'Solana') {
-      transaction.add(
-        await this.client.completeNativeTransfer(
-          signer,
-          // @ts-expect-error
-          vaa, // TODO: fix at solana sdk
-          ata,
-        ),
-      );
-    } else {
-      transaction.add(
-        await this.client.completeWrappedTransfer(
-          signer,
-          // @ts-expect-error
-          vaa, // TODO: fix at solana sdk
-          ata,
-        ),
-      );
+    const instructions = await this.client.completeTransfer(
+      signer,
+      // @ts-expect-error
+      vaa, // TODO: fix at solana sdk
+    );
+    for (const instruction of instructions) {
+      transaction.add(instruction);
     }
 
     const { blockhash } = await this.connection.getLatestBlockhash('finalized');
