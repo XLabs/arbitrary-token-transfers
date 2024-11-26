@@ -170,6 +170,7 @@ export type TokenBridgeRelayer = {
             "of the bridged tokens. Mutable."
           ],
           "writable": true,
+          "optional": true,
           "pda": {
             "seeds": [
               {
@@ -1787,6 +1788,11 @@ export type TokenBridgeRelayer = {
       "code": 6016,
       "name": "invalidPeerAddress",
       "msg": "invalidPeerAddress"
+    },
+    {
+      "code": 6017,
+      "name": "missingAssociatedTokenAccount",
+      "msg": "missingAssociatedTokenAccount"
     }
   ],
   "types": [

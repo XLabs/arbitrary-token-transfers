@@ -423,10 +423,12 @@ describe('Token Bridge Relayer Program', () => {
     const recipientForeignToken = $.keypair.generate();
     let recipientTokenAccountForeignToken = PublicKey.default; // Will be initialized down the line
     let clientForeignToken: TbrWrapper = null as any;
+    let barMint: TestMint = null as any;
 
     before(async () => {
-      [clientForeignToken] = await Promise.all([
+      [clientForeignToken, barMint] = await Promise.all([
         TbrWrapper.create(recipientForeignToken, $.connection, DEBUG),
+        await TestMint.create($.connection, ownerClient.signer, 10),
         tokenBridgeClient.attestToken(ethereumTokenBridge, ETHEREUM, ethereumTokenAddressFoo, {
           decimals: 12,
         }),
@@ -479,8 +481,7 @@ describe('Token Bridge Relayer Program', () => {
       const unwrapIntent = false; // Does not matter anyway
       const transferredAmount = 321654n;
 
-      const mint = await TestMint.create($.connection, ownerClient.signer, 10);
-      const tokenAccount = await mint.mint(1_000_000_000n, unauthorizedClient.signer); //
+      const tokenAccount = await barMint.mint(1_000_000_000n, unauthorizedClient.signer); //
 
       const foreignAddress = $.universalAddress.generate();
       const canonicalEthereum = await unauthorizedClient.read.canonicalPeer(ETHEREUM);
@@ -533,8 +534,8 @@ describe('Token Bridge Relayer Program', () => {
         { chain: ETHEREUM, tokenBridge: ethereumTokenBridge, tbrPeer: ethereumTbrPeer1 },
         {
           recipient: new UniversalAddress(recipient.publicKey.toBuffer()),
-          gasDropoff: 0, //TODO increase the dropoff
-          unwrapIntent: false, //TODO test with true
+          gasDropoff: 0,
+          unwrapIntent: false,
         },
       );
       const vaa = await wormholeCoreClient.parseVaa(vaaAddress);
@@ -546,7 +547,70 @@ describe('Token Bridge Relayer Program', () => {
       expect(balance.value.amount).equal((amount * 10n).toString());
     });
 
-    //TODO get the other token back
+    it('Gets and unwraps wrapped SOL back from another chain', async () => {
+      const [payer, recipient] = await $.airdrop([Keypair.generate(), $.keypair.generate()]);
+
+      const initialRecipientBalance = BigInt(await $.connection.getBalance(recipient.publicKey));
+
+      const amount = 432n;
+
+      const vaaAddress = await wormholeCoreClient.postVaa(
+        payer,
+        // The token originally comes from Solana's native mint
+        { amount, chain: 'Solana', address: new UniversalAddress(spl.NATIVE_MINT.toBuffer()) },
+        { chain: ETHEREUM, tokenBridge: ethereumTokenBridge, tbrPeer: ethereumTbrPeer1 },
+        {
+          recipient: new UniversalAddress(recipient.publicKey.toBuffer()),
+          gasDropoff: 0,
+          unwrapIntent: true,
+        },
+      );
+      const vaa = await wormholeCoreClient.parseVaa(vaaAddress);
+      const { associatedTokenAccount } = unauthorizedClient.client.getRecipientAccountsFromVaa(vaa);
+
+      await unauthorizedClient.completeTransfer(vaa);
+
+      // No associated token account has been initialized because we want the SOL as gas, not SPL token:
+      const associatedTokenAccountBalance = await $.connection.getBalance(associatedTokenAccount);
+      expect(associatedTokenAccountBalance).equal(0);
+
+      // Verify that we got the tokens:
+      const newRecipientBalance = BigInt(await $.connection.getBalance(recipient.publicKey));
+      const transferredValue = amount * 10n;
+
+      expect(newRecipientBalance).equal(initialRecipientBalance + transferredValue);
+    });
+
+    it('Gets wrapped Foo token back from another chain with dropoff', async () => {
+      const [payer, recipient] = await $.airdrop([Keypair.generate(), $.keypair.generate()]);
+
+      const initialRecipientBalance = BigInt(await $.connection.getBalance(recipient.publicKey));
+      const amount = 123n;
+
+      const vaaAddress = await wormholeCoreClient.postVaa(
+        payer,
+        // The token originally comes from the Bar mint
+        { amount, chain: 'Solana', address: new UniversalAddress(barMint.address.toBuffer()) },
+        { chain: ETHEREUM, tokenBridge: ethereumTokenBridge, tbrPeer: ethereumTbrPeer1 },
+        {
+          recipient: new UniversalAddress(recipient.publicKey.toBuffer()),
+          gasDropoff: 0.1, // We want 0.1 SOL
+          unwrapIntent: false,
+        },
+      );
+      const vaa = await wormholeCoreClient.parseVaa(vaaAddress);
+      const { associatedTokenAccount } = unauthorizedClient.client.getRecipientAccountsFromVaa(vaa);
+
+      await unauthorizedClient.completeTransfer(vaa);
+
+      const balance = await $.connection.getTokenAccountBalance(associatedTokenAccount);
+      // The wrapped token has 8 decimals, but this token has 10. We must multiply the amount by 100:
+      expect(balance.value.amount).equal((amount * 100n).toString());
+
+      // Verify that we got the dropoff:
+      const newRecipientBalance = BigInt(await $.connection.getBalance(recipient.publicKey));
+      expect(newRecipientBalance).equal(initialRecipientBalance + 100_000_000n);
+    });
 
     it('Gets a foreign token from another chain', async () => {
       const payer = await $.airdrop(Keypair.generate());
@@ -563,7 +627,7 @@ describe('Token Bridge Relayer Program', () => {
         // TBRv3 message:
         {
           recipient: new UniversalAddress(recipientForeignToken.publicKey.toBuffer()),
-          gasDropoff: 0, //TODO increase the dropoff
+          gasDropoff: 0,
           unwrapIntent: false,
         },
       );

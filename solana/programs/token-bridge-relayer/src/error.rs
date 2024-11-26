@@ -77,4 +77,9 @@ pub(crate) enum TokenBridgeRelayerError {
     /// The peer address is empty, please set a peer address.
     #[msg("InvalidPeerAddress")]
     InvalidPeerAddress,
+
+    /// The associated token account can be skipped only when we get native tokens _and_ the
+    /// unwrap intent is set to `true`.
+    #[msg("MissingAssociatedTokenAccount")]
+    MissingAssociatedTokenAccount,
 }

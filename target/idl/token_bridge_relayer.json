@@ -164,6 +164,7 @@
             "of the bridged tokens. Mutable."
           ],
           "writable": true,
+          "optional": true,
           "pda": {
             "seeds": [
               {
@@ -1781,6 +1782,11 @@
       "code": 6016,
       "name": "InvalidPeerAddress",
       "msg": "InvalidPeerAddress"
+    },
+    {
+      "code": 6017,
+      "name": "MissingAssociatedTokenAccount",
+      "msg": "MissingAssociatedTokenAccount"
     }
   ],
   "types": [

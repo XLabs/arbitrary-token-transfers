@@ -37,7 +37,7 @@ pub struct CompleteTransfer<'info> {
         associated_token::mint = mint,
         associated_token::authority = recipient
     )]
-    pub recipient_token_account: Box<Account<'info, TokenAccount>>,
+    pub recipient_token_account: Option<Box<Account<'info, TokenAccount>>>,
 
     /// CHECK: recipient may differ from payer if a relayer paid for this
     /// transaction. This instruction verifies that the recipient key
@@ -336,7 +336,12 @@ fn redeem_token(
                 ctx.accounts.token_program.to_account_info(),
                 anchor_spl::token::Transfer {
                     from: ctx.accounts.temporary_account.to_account_info(),
-                    to: ctx.accounts.recipient_token_account.to_account_info(),
+                    to: ctx
+                        .accounts
+                        .recipient_token_account
+                        .as_ref()
+                        .ok_or(TokenBridgeRelayerError::MissingAssociatedTokenAccount)?
+                        .to_account_info(),
                     authority: ctx.accounts.wormhole_redeemer.to_account_info(),
                 },
                 &[redeemer_seeds],

@@ -668,15 +668,17 @@ export class SolanaTokenBridgeRelayer {
    */
   async completeTransfer(signer: PublicKey, vaa: VaaMessage): Promise<TransactionInstruction[]> {
     const { wallet, associatedTokenAccount } = this.getRecipientAccountsFromVaa(vaa);
+    const { unwrapIntent } = deserializeTbrV3Message(vaa.payload.payload);
     const native = vaa.payload.token.chain === 'Solana';
     const tokenBridgeAccounts = native
       ? this.tbAccBuilder.completeNative(vaa)
       : this.tbAccBuilder.completeWrapped(vaa);
+    const getSolDirectly = isNativeMint(tokenBridgeAccounts.mint) && unwrapIntent;
 
     const accounts = {
       payer: signer,
       tbrConfig: this.account.config().address,
-      recipientTokenAccount: associatedTokenAccount,
+      recipientTokenAccount: getSolDirectly ? null : associatedTokenAccount,
       recipient: wallet,
       vaa: this.account.vaa(vaa.hash).address,
       temporaryAccount: this.account.temporary(tokenBridgeAccounts.mint).address,
@@ -688,17 +690,20 @@ export class SolanaTokenBridgeRelayer {
 
     this.logDebug('completeTransfer:', native ? 'Native:' : 'Wrapped:', objToString(accounts));
 
-    const createAtaIdempotentIx = await createAssociatedTokenAccountIdempotent({
-      signer,
-      mint: tokenBridgeAccounts.mint,
-      wallet,
-    });
-    const completeTransferIx = await this.program.methods
-      .completeTransfer()
-      .accountsPartial(accounts)
-      .instruction();
+    const [createAtaIdempotentIx, completeTransferIx] = await Promise.all([
+      createAssociatedTokenAccountIdempotent({
+        signer,
+        mint: tokenBridgeAccounts.mint,
+        wallet,
+      }),
+      this.program.methods.completeTransfer().accountsPartial(accounts).instruction(),
+    ]);
 
-    return [createAtaIdempotentIx, completeTransferIx];
+    if (getSolDirectly) {
+      return [completeTransferIx];
+    } else {
+      return [createAtaIdempotentIx, completeTransferIx];
+    }
   }
 
   /* Queries */
@@ -994,4 +999,8 @@ async function simulateTransaction(
   }
 
   return response;
+}
+
+function isNativeMint(mintAddress: PublicKey): boolean {
+  return mintAddress.equals(spl.NATIVE_MINT) || mintAddress.equals(spl.NATIVE_MINT_2022);
 }
