@@ -41,7 +41,8 @@ After running, you should be ready to execute the deployment if no errors occurr
 cd deployment
 source ./config/testnet/key.env && yarn tsx ./evm/deploy.ts
 ```
-6. Register peers with `source ./config/testnet/key.env && yarn tsx ./evm/register-peers.ts`
+7. Register peers with `source ./config/testnet/key.env && yarn tsx ./evm/register-peers.ts`
+8. Verify contracts (TODO write how).
 
 # Deploy Solana on testnet
 
@@ -147,3 +148,21 @@ source ./config/testnet/key.env && yarn tsx ./evm/deploy.ts
   ```shell
   yarn tsx ./solana/unpause-contract.ts
   ```
+
+# Deploy EVM on mainnet
+
+1. Make sure you built both Solana and EVM contracts following above instructions first.
+2. Change directory to root of TBRv3 repository.
+3. Update or create `./deployment/config/mainnet/key.env` with ledger deployment key:
+```shell
+export WALLET_KEY=ledger
+export EVM_LEDGER_BIP32_PATH=<path>
+```
+4. Export ENV=mainnet
+5. Execute
+```shell
+cd deployment
+source ./config/mainnet/key.env && yarn tsx ./evm/deploy.ts
+```
+6. Register peers with `source ./config/mainnet/key.env && yarn tsx ./evm/register-peers.ts`
+7. Verify contracts (TODO write how).
