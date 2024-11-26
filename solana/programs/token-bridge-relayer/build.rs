@@ -33,7 +33,7 @@ struct Network {
     #[cfg(feature = "mainnet")]
     mainnet: String,
     #[cfg(feature = "testnet")]
-    testnet: NetworkAddresses,
+    testnet: String,
 }
 
 impl Network {
@@ -48,12 +48,12 @@ impl Network {
     }
 
     #[cfg(feature = "mainnet")]
-    fn value(&self) -> Result<NetworkAddresses> {
+    fn value(&self) -> Result<String> {
         Ok(self.mainnet.clone())
     }
 
     #[cfg(feature = "testnet")]
-    fn value(&self) -> Result<NetworkAddresses> {
+    fn value(&self) -> Result<String> {
         Ok(self.testnet.clone())
     }
 
