@@ -14,6 +14,7 @@ export const accessControlCommandLayout = {
   idTag: "command",
   layouts: [
     [[0x00, "RevokeAdmin"], evmAddressLayout],
+    // Owner only
     [[0x10, "ProposeOwnershipTransfer"], evmAddressLayout],
     [[0x11, "RelinquishOwnership"], []],
     [[0x12, "AddAdmin"], evmAddressLayout],
