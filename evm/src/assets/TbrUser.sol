@@ -462,7 +462,6 @@ abstract contract TbrUser is TbrBase {
       uint retOffset
     ) = TokenBridgeVAAParser.parse(data, offset, commandIndex);
 
-    // Check that this is a known peer
     if (!_isPeer(peerChain, peerAddress))
       revert UnrecognizedPeer(peerChain, peerAddress, commandIndex);
 

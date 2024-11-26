@@ -1,7 +1,7 @@
 # Build Solana and EVM contracts
 
 1. Change directory to root of TBRv3 repository.
-2. Run `git checkout 9276c17b87aff1497c1f718922b23e718281d55b`
+2. Run `git checkout 574f53b88950adbb9cdcb21ac4774b627f74ad34`
 3. Run `yarn` to link dependencies
 4. Bring submodules with ```git submodule update --init --recursive```
 5. Clean with `yarn clean:all`
@@ -41,7 +41,8 @@ After running, you should be ready to execute the deployment if no errors occurr
 cd deployment
 source ./config/testnet/key.env && yarn tsx ./evm/deploy.ts
 ```
-6. Register peers with `source ./config/testnet/key.env && yarn tsx ./evm/register-peers.ts`
+7. Register peers with `source ./config/testnet/key.env && yarn tsx ./evm/register-peers.ts`
+8. Verify contracts (TODO write how).
 
 # Deploy Solana on testnet
 
@@ -147,3 +148,21 @@ source ./config/testnet/key.env && yarn tsx ./evm/deploy.ts
   ```shell
   yarn tsx ./solana/unpause-contract.ts
   ```
+
+# Deploy EVM on mainnet
+
+1. Make sure you built both Solana and EVM contracts following above instructions first.
+2. Change directory to root of TBRv3 repository.
+3. Update or create `./deployment/config/mainnet/key.env` with ledger deployment key:
+```shell
+export WALLET_KEY=ledger
+export EVM_LEDGER_BIP32_PATH=<path>
+```
+4. Export ENV=mainnet
+5. Execute
+```shell
+cd deployment
+source ./config/mainnet/key.env && yarn tsx ./evm/deploy.ts
+```
+6. Register peers with `source ./config/mainnet/key.env && yarn tsx ./evm/register-peers.ts`
+7. Verify contracts (TODO write how).

@@ -10,7 +10,7 @@
   },
   {
     "chainId": 6,
-    "initGasErc20TokenizationIsExplicit": false,
+    "initGasErc20TokenizationIsExplicit": true,
     "relayFee": 1,
     "maxGasDropoff": 0.1,
     "txSizeSensitive": true
