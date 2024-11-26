@@ -1,10 +1,13 @@
-FROM ghcr.io/foundry-rs/foundry:nightly-4817280d96e0e33a2e96cf169770da60514d1764 as builder
+FROM ghcr.io/foundry-rs/foundry:nightly-4817280d96e0e33a2e96cf169770da60514d1764 AS builder
+
+# Preflight 
 
 WORKDIR /app
 COPY evm/foundry.toml evm/foundry.toml
 COPY --link lib lib
 COPY --link evm/lib evm/lib
 COPY --link evm/src evm/src
+RUN apk add --no-cache jq
 
 # Prepare compiler input.
 
@@ -20,13 +23,19 @@ RUN SOLC_VERSION=$(cd evm; forge config | grep "^solc =" | sed 's/solc = //' | s
 # Compile contract(s)
 
 RUN cd evm; \
-    ./solc --standard-json Tbr.input.json > Tbr.output.json 
+    ./solc --standard-json Tbr.input.json > Tbr.output.json && \
+    SOLC_ERR=$(jq '.errors[] | select(.severity == "error")' Tbr.output.json) && \
+    if [ ! -z "$SOLC_ERR" ]; then \
+        echo "Error detected during solc execution."; \
+        echo $SOLC_ERR; \
+        exit 2; \
+    fi
 
 # Generate Typechain bindings
 
 
 
-# Consolidate all generated output
-FROM scratch AS foundry-export 
+# # Consolidate all generated output
+# FROM scratch AS foundry-export 
     
-COPY --from=builder /app/evm/*.input.json /app/evm/*.output.json ./
+# COPY --from=builder /app/evm/*.input.json /app/evm/*.output.json ./
