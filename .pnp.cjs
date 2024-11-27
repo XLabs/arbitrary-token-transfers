@@ -6058,12 +6058,12 @@ const RAW_RUNTIME_STATE =
           ["@solana/web3.js", "npm:1.95.3"],\
           ["@types/chai", "npm:5.0.0"],\
           ["@types/mocha", "npm:10.0.9"],\
-          ["@wormhole-foundation/sdk-base", "npm:0.12.0"],\
-          ["@wormhole-foundation/sdk-connect", "npm:0.12.0"],\
-          ["@wormhole-foundation/sdk-definitions", "npm:0.12.0"],\
-          ["@wormhole-foundation/sdk-solana", "npm:0.12.0"],\
-          ["@wormhole-foundation/sdk-solana-core", "npm:0.12.0"],\
-          ["@wormhole-foundation/sdk-solana-tokenbridge", "npm:0.12.0"],\
+          ["@wormhole-foundation/sdk-base", "npm:1.1.1"],\
+          ["@wormhole-foundation/sdk-connect", "npm:1.1.1"],\
+          ["@wormhole-foundation/sdk-definitions", "npm:1.1.1"],\
+          ["@wormhole-foundation/sdk-solana", "npm:1.1.1"],\
+          ["@wormhole-foundation/sdk-solana-core", "npm:1.1.1"],\
+          ["@wormhole-foundation/sdk-solana-tokenbridge", "npm:1.1.1"],\
           ["@xlabs-xyz/solana-arbitrary-token-transfers", "workspace:sdk/solana"],\
           ["chai", "npm:5.1.1"],\
           ["common-arbitrary-token-transfer", "workspace:sdk/common"],\
