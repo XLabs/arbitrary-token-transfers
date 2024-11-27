@@ -218,10 +218,10 @@ export class TbrWrapper {
       ),
     );
 
-    console.log(
-      '[transferTokens] CU consumed:',
-      response?.meta?.computeUnitsConsumed ?? '<No information found>',
-    );
+    //console.log(
+    //  '[transferTokens] CU consumed:',
+    //  response?.meta?.computeUnitsConsumed ?? '<No information found>',
+    //);
 
     return response;
   }
@@ -231,10 +231,10 @@ export class TbrWrapper {
       await $.sendAndConfirm(await this.client.completeTransfer(this.publicKey, vaa), this.signer),
     );
 
-    console.log(
-      '[completeTransfer] CU consumed:',
-      response?.meta?.computeUnitsConsumed ?? '<No information found>',
-    );
+    //console.log(
+    //  '[completeTransfer] CU consumed:',
+    //  response?.meta?.computeUnitsConsumed ?? '<No information found>',
+    //);
 
     return response;
   }
