@@ -1,7 +1,7 @@
 # Build Solana and EVM contracts
 
 1. Change directory to root of TBRv3 repository.
-2. Run `git checkout 574f53b88950adbb9cdcb21ac4774b627f74ad34`
+2. Run `git checkout 12a7234300741fbfcbab31649a932d69ad862729`
 3. Run `yarn` to link dependencies
 4. Bring submodules with ```git submodule update --init --recursive```
 5. Clean with `yarn clean:all`
@@ -51,6 +51,9 @@ source ./config/testnet/key.env && yarn tsx ./evm/deploy.ts
 
 2. Generate vanity-addresses (att/atb prefixed) under `deployment` directory
    ```shell
+   
+   cd deployment
+
    export att_buffer_account=$(solana-keygen grind --ignore-case --starts-with atb:1 | grep 'Wrote keypair' | awk '{ sub(/\.json$/, "", $4); print $4 }')
    export att_program_address=$(solana-keygen grind --ignore-case --starts-with att:1 | grep 'Wrote keypair' | awk '{ sub(/\.json$/, "", $4); print $4 }')
    echo
@@ -76,10 +79,10 @@ source ./config/testnet/key.env && yarn tsx ./evm/deploy.ts
    export ENV=testnet | mainnet
    ```
 
-4. Replace program key (att prefixed) in `solana/programs/token-bridge-relayer/network.json` matching your deployment. You can do this with `jq` as follows:
+4. Replace program key (att prefixed) in `solana/programs/token-bridge-relayer/network.json` matching your deployment. You can do this with `jq` as follows, from `deployment` directory:
 
    ```shell
-   jq --arg v "$att_program_address" '.testnet.programId = $v' solana/programs/token-bridge-relayer/network.json > temp.json && mv temp.json solana/programs/token-bridge-relayer/network.json
+   jq --arg v "$att_program_address" '.testnet = $v' ../solana/programs/token-bridge-relayer/network.json > temp.json && mv temp.json ../solana/programs/token-bridge-relayer/network.json
    ```
 
    Replace the program address in contract.json as follows:
@@ -148,6 +151,13 @@ source ./config/testnet/key.env && yarn tsx ./evm/deploy.ts
   ```shell
   yarn tsx ./solana/unpause-contract.ts
   ```
+
+8. It may be necessary to updatethe canonical peers in the EVM counterparts with the new program address.  Set your EVM wallet key and set appropiate `operatingChains` entry in the ecosystem.json file. Then run:
+
+  ```shell
+  yarn tsx ./evm/set-canonical-peer.ts
+  ```
+  
 
 # Deploy EVM on mainnet
 
