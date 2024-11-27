@@ -1159,30 +1159,7 @@ export type TokenBridgeRelayer = {
           "name": "oracleConfig"
         },
         {
-          "name": "oracleEvmPrices",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  101,
-                  118,
-                  109,
-                  112,
-                  114,
-                  105,
-                  99,
-                  101,
-                  115
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "chain_config.chain_id",
-                "account": "chainConfigState"
-              }
-            ]
-          }
+          "name": "oracleEvmPrices"
         },
         {
           "name": "tokenBridgeConfig"
@@ -1771,26 +1748,31 @@ export type TokenBridgeRelayer = {
     },
     {
       "code": 6013,
+      "name": "chainPriceMismatch",
+      "msg": "chainPriceMismatch"
+    },
+    {
+      "code": 6014,
       "name": "pausedTransfers",
       "msg": "pausedTransfers"
     },
     {
-      "code": 6014,
+      "code": 6015,
       "name": "invalidSendingPeer",
       "msg": "invalidSendingPeer"
     },
     {
-      "code": 6015,
+      "code": 6016,
       "name": "cannotRegisterSolana",
       "msg": "cannotRegisterSolana"
     },
     {
-      "code": 6016,
+      "code": 6017,
       "name": "invalidPeerAddress",
       "msg": "invalidPeerAddress"
     },
     {
-      "code": 6017,
+      "code": 6018,
       "name": "missingAssociatedTokenAccount",
       "msg": "missingAssociatedTokenAccount"
     }

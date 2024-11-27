@@ -7,10 +7,7 @@ use crate::{
 };
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use solana_price_oracle::{
-    state::{EvmPricesState, PriceOracleConfigState},
-    PriceOracle,
-};
+use solana_price_oracle::state::{EvmPricesState, PriceOracleConfigState};
 use wormhole_anchor_sdk::{
     token_bridge::{self, program::TokenBridge},
     wormhole::program::Wormhole,
@@ -78,9 +75,8 @@ pub struct OutboundTransfer<'info> {
     pub oracle_config: Box<Account<'info, PriceOracleConfigState>>,
 
     #[account(
-        seeds = [EvmPricesState::SEED_PREFIX, chain_config.chain_id.to_be_bytes().as_ref()],
-        seeds::program = PriceOracle::id(),
-        bump,
+        constraint = oracle_evm_prices.chain_id == chain_config.chain_id
+            @ TokenBridgeRelayerError::ChainPriceMismatch,
     )]
     pub oracle_evm_prices: Box<Account<'info, EvmPricesState>>,
 

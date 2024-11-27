@@ -1153,30 +1153,7 @@
           "name": "oracle_config"
         },
         {
-          "name": "oracle_evm_prices",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  101,
-                  118,
-                  109,
-                  112,
-                  114,
-                  105,
-                  99,
-                  101,
-                  115
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "chain_config.chain_id",
-                "account": "ChainConfigState"
-              }
-            ]
-          }
+          "name": "oracle_evm_prices"
         },
         {
           "name": "token_bridge_config"
@@ -1765,26 +1742,31 @@
     },
     {
       "code": 6013,
+      "name": "ChainPriceMismatch",
+      "msg": "ChainPriceMismatch"
+    },
+    {
+      "code": 6014,
       "name": "PausedTransfers",
       "msg": "PausedTransfers"
     },
     {
-      "code": 6014,
+      "code": 6015,
       "name": "InvalidSendingPeer",
       "msg": "InvalidSendingPeer"
     },
     {
-      "code": 6015,
+      "code": 6016,
       "name": "CannotRegisterSolana",
       "msg": "CannotRegisterSolana"
     },
     {
-      "code": 6016,
+      "code": 6017,
       "name": "InvalidPeerAddress",
       "msg": "InvalidPeerAddress"
     },
     {
-      "code": 6017,
+      "code": 6018,
       "name": "MissingAssociatedTokenAccount",
       "msg": "MissingAssociatedTokenAccount"
     }
