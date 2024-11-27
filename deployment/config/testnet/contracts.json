@@ -62,7 +62,7 @@
     },
     {
       "chainId": 6,
-      "address": "0x1740211EbC1B7a25Ea97de6D12eEfCcd2A7CD7A7",
+      "address": "0x2ae4546a9aDE7001ADdEC0B52B122c02F3F62EC7",
       "constructorArgs": [
         "0x000000000022D473030F116dDEE9F6B43aC78BA3",
         "0x61E44E506Ca5659E6c0bba9b678586fA2d729756",
@@ -117,7 +117,7 @@
       "chainId": 6,
       "address": "0x2BCC362643B0aa3b2608de68b2C2ef2e6eFd2bb6",
       "constructorArgs": [
-        "0x2ae4546a9aDE7001ADdEC0B52B122c02F3F62EC7",
+        "0xC99E3A7BAaEb371b5eBEf714bA0b8b480359D168",
         "0xef14dd4a5b485ff12661450b1f0d1c1fd37db84eef14dd4a5b485ff12661450b1f0d1c1fd37db84e01ef14dd4a5b485ff12661450b1f0d1c1fd37db84e"
       ]
     }
