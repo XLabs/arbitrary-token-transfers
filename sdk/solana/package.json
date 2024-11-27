@@ -29,7 +29,7 @@
     "@wormhole-foundation/sdk-definitions": "^1.1.1",
     "@wormhole-foundation/sdk-solana": "^1.1.1",
     "@wormhole-foundation/sdk-solana-tokenbridge": "^1.1.1",
-    "@xlabs-xyz/solana-price-oracle-sdk": "0.0.16"
+    "@xlabs-xyz/solana-price-oracle-sdk": "^0.0.17"
   },
   "devDependencies": {
     "@types/node": "20.17.5",

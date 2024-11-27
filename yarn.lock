@@ -1823,32 +1823,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@wormhole-foundation/sdk-base@npm:0.11.0, @wormhole-foundation/sdk-base@npm:^0.11":
-  version: 0.11.0
-  resolution: "@wormhole-foundation/sdk-base@npm:0.11.0"
-  dependencies:
-    "@scure/base": "npm:^1.1.3"
-  checksum: 10c0/5ff3faf68dcaef76df14cd413bed746f8849ad06ff96cb60f924c2cccee6df6b4a678f7ef3706ec4679d4b693e3da72ff9932b66e042adaac419e126fb44c0e4
-  languageName: node
-  linkType: hard
-
 "@wormhole-foundation/sdk-base@npm:1.1.1, @wormhole-foundation/sdk-base@npm:^1.1.1":
   version: 1.1.1
   resolution: "@wormhole-foundation/sdk-base@npm:1.1.1"
   dependencies:
     "@scure/base": "npm:^1.1.3"
   checksum: 10c0/68c4fe7747c6a45a2dba4c3c84d26f24ac9babaa44cf9fe0d3e4a57963a0cadbf8d0884f38c57ed4591822750babb701d2549a5a98fa0db95a8d542bd5b4cf8f
-  languageName: node
-  linkType: hard
-
-"@wormhole-foundation/sdk-connect@npm:0.11.0":
-  version: 0.11.0
-  resolution: "@wormhole-foundation/sdk-connect@npm:0.11.0"
-  dependencies:
-    "@wormhole-foundation/sdk-base": "npm:0.11.0"
-    "@wormhole-foundation/sdk-definitions": "npm:0.11.0"
-    axios: "npm:^1.4.0"
-  checksum: 10c0/475bcc4f326c96e81f4e17761f6dc794756268c442bb4028e68a4a720ccd4df9c13a7cae8d7fc6d742e11d09e9563f6c50ffdcd98c53cec537e66f9d93a5a380
   languageName: node
   linkType: hard
 
@@ -1860,17 +1840,6 @@ __metadata:
     "@wormhole-foundation/sdk-definitions": "npm:1.1.1"
     axios: "npm:^1.4.0"
   checksum: 10c0/eb5495cb90e1cc4a23d1951ccd0eddba5b325a829c1c8bc1feff365cb2a20f92185470f6c88ca46630d69734dd73c55ff659f48f7347b65cf0838dab6013c573
-  languageName: node
-  linkType: hard
-
-"@wormhole-foundation/sdk-definitions@npm:0.11.0, @wormhole-foundation/sdk-definitions@npm:^0.11":
-  version: 0.11.0
-  resolution: "@wormhole-foundation/sdk-definitions@npm:0.11.0"
-  dependencies:
-    "@noble/curves": "npm:^1.4.0"
-    "@noble/hashes": "npm:^1.3.1"
-    "@wormhole-foundation/sdk-base": "npm:0.11.0"
-  checksum: 10c0/f6f4c84d48da2d6da30a1f94ab7e2ca182b193cd02da4de15cb2375ca18f8dcd9f180ef68b954859d3c7dcc5f37c1e091c81e80dcf136409085fedf480cf6590
   languageName: node
   linkType: hard
 
@@ -1956,20 +1925,6 @@ __metadata:
     "@wormhole-foundation/sdk-connect": "npm:1.1.1"
     rpc-websockets: "npm:^7.10.0"
   checksum: 10c0/2bb4d1cbaaf065959c5bf961e54f1d6b9b3ec1ef489afc6917c326e731306b7433c2684b73699db4749dea576391b7efee46bfa1a599614113f178f565cd70c1
-  languageName: node
-  linkType: hard
-
-"@wormhole-foundation/sdk-solana@npm:^0.11":
-  version: 0.11.0
-  resolution: "@wormhole-foundation/sdk-solana@npm:0.11.0"
-  dependencies:
-    "@coral-xyz/anchor": "npm:0.29.0"
-    "@coral-xyz/borsh": "npm:0.29.0"
-    "@solana/spl-token": "npm:0.3.9"
-    "@solana/web3.js": "npm:^1.95.2"
-    "@wormhole-foundation/sdk-connect": "npm:0.11.0"
-    rpc-websockets: "npm:^7.10.0"
-  checksum: 10c0/2134057b9e1d760b69105a9de3bcec16a87181fad1ae1e23d690301eef5f7f0be11564e7aab18d892e044e10b786708c419619df8faacde871a4503e948ea625
   languageName: node
   linkType: hard
 
@@ -2111,23 +2066,23 @@ __metadata:
     "@wormhole-foundation/sdk-definitions": "npm:^1.1.1"
     "@wormhole-foundation/sdk-solana": "npm:^1.1.1"
     "@wormhole-foundation/sdk-solana-tokenbridge": "npm:^1.1.1"
-    "@xlabs-xyz/solana-price-oracle-sdk": "npm:0.0.16"
+    "@xlabs-xyz/solana-price-oracle-sdk": "npm:^0.0.17"
     tsup: "npm:^8.3.5"
     tsx: "npm:4.19.2"
     typescript: "npm:5.6.3"
   languageName: unknown
   linkType: soft
 
-"@xlabs-xyz/solana-price-oracle-sdk@npm:0.0.16":
-  version: 0.0.16
-  resolution: "@xlabs-xyz/solana-price-oracle-sdk@npm:0.0.16"
+"@xlabs-xyz/solana-price-oracle-sdk@npm:^0.0.17":
+  version: 0.0.17
+  resolution: "@xlabs-xyz/solana-price-oracle-sdk@npm:0.0.17"
   dependencies:
     "@coral-xyz/anchor": "npm:^0.30.1"
     "@solana/web3.js": "npm:^1.95.2"
-    "@wormhole-foundation/sdk-base": "npm:^0.11"
-    "@wormhole-foundation/sdk-definitions": "npm:^0.11"
-    "@wormhole-foundation/sdk-solana": "npm:^0.11"
-  checksum: 10c0/cc3d3402c7416293cbb41bb8085d2c96802ebefc5dff79765f0cb291794c24dc8e5224ce75e8e9cbfbd3292957bf8c8918f47dd4c0391c80cc040ab44d47fa25
+    "@wormhole-foundation/sdk-base": "npm:^1.1.1"
+    "@wormhole-foundation/sdk-definitions": "npm:^1.1.1"
+    "@wormhole-foundation/sdk-solana": "npm:^1.1.1"
+  checksum: 10c0/1e173eebda100af4947334bff5e16a257cdbe5ce6e769dfc31646a826b656234295a3cbb5b535d50b22430ada8f1ec73c39f1ff6856f9c1126238e54ad35b7a9
   languageName: node
   linkType: hard
 
