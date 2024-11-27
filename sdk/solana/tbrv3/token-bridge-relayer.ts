@@ -9,8 +9,12 @@ import {
   Cluster,
   LAMPORTS_PER_SOL,
   Keypair,
+  TransactionMessage,
+  VersionedTransaction,
+  SimulatedTransactionResponse,
+  TransactionResponse,
 } from '@solana/web3.js';
-import * as borsh from 'borsh';
+import * as spl from '@solana/spl-token';
 import {
   Chain,
   chainToChainId,
@@ -18,14 +22,12 @@ import {
   contracts,
   Network,
   chainIdToChain,
+  deserializeLayout,
+  serializeLayout,
+  Layout,
+  LayoutToType,
 } from '@wormhole-foundation/sdk-base';
-import { UniversalAddress } from '@wormhole-foundation/sdk-definitions';
-import {
-  getTransferNativeWithPayloadCpiAccounts,
-  getTransferWrappedWithPayloadCpiAccounts,
-  getCompleteTransferNativeWithPayloadCpiAccounts,
-  getCompleteTransferWrappedWithPayloadCpiAccounts,
-} from '@wormhole-foundation/sdk-solana-tokenbridge';
+import { layoutItems, toNative, UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import { SolanaPriceOracle, bigintToBn, bnToBigint } from '@xlabs-xyz/solana-price-oracle-sdk';
 import { deserializeTbrV3Message, VaaMessage, throwError } from 'common-arbitrary-token-transfer';
 import { BpfLoaderUpgradeableProgram } from './bpf-loader-upgradeable.js';
@@ -34,6 +36,7 @@ import { TokenBridgeRelayer as IdlType } from './idl/token_bridge_relayer.js';
 import IDL from '../../../target/idl/token_bridge_relayer.json' with { type: 'json' };
 import networkConfig from '../../../solana/programs/token-bridge-relayer/network.json' with { type: 'json' };
 import testProgramKeypair from '../../../solana/programs/token-bridge-relayer/test-program-keypair.json' with { type: 'json' };
+import { TokenBridgeCpiAccountsBuilder } from './token-bridge-cpi-accounts-builder.js';
 
 // Export IDL
 export * from './idl/token_bridge_relayer.js';
@@ -46,26 +49,21 @@ export interface WormholeAddress {
   address: UniversalAddress;
 }
 
-export interface TransferNativeParameters {
+/**
+ * @param recipient The address on another chain to transfer the tokens to.
+ * @param userTokenAccount The end user's account with the token to be transferred.
+ * @param transferredAmount The amount to be transferred to the other chain.
+ * @param gasDropoffAmount The dropoff in µ-target-token.
+ * @param maxFeeLamports The maximum fee the user is ready to pay (including the dropoff).
+ * @param unwrapIntent Only used when transferring SOL back to Solana. Unused otherwise.
+ */
+export interface TransferParameters {
   recipient: WormholeAddress;
-  mint: PublicKey;
-  tokenAccount: PublicKey;
-  transferredAmount: bigint;
-  /** The dropoff in µ-target-token. */
-  gasDropoffAmount: number;
-  maxFeeLamports: bigint;
-  unwrapIntent: boolean;
-}
-
-export interface TransferWrappedParameters {
-  recipient: WormholeAddress;
-  token: WormholeAddress;
   userTokenAccount: PublicKey;
   transferredAmount: bigint;
-  /** The dropoff in µ-target-token. */
   gasDropoffAmount: number;
   maxFeeLamports: bigint;
-  unwrapIntent: boolean;
+  unwrapIntent?: boolean;
 }
 
 export type TbrConfigAccount = anchor.IdlAccounts<IdlType>['tbrConfigState'];
@@ -80,12 +78,14 @@ export type TbrNetwork = Exclude<Network, 'Devnet'> | 'Localnet';
  * Transforms a `UniversalAddress` into an array of numbers `number[]`.
  */
 export const uaToArray = (ua: UniversalAddress): number[] => Array.from(ua.toUint8Array());
+const uaToPubkey = (address: UniversalAddress) => toNative('Solana', address).unwrap();
 
 export class SolanaTokenBridgeRelayer {
   public readonly program: anchor.Program<IdlType>;
   private readonly priceOracleClient: SolanaPriceOracle;
   private readonly wormholeProgramId: PublicKey;
   private readonly tokenBridgeProgramId: PublicKey;
+  private readonly tbAccBuilder: TokenBridgeCpiAccountsBuilder;
 
   public debug: boolean;
 
@@ -94,7 +94,7 @@ export class SolanaTokenBridgeRelayer {
    * use `SolanaTokenBridgeRelayer.create`.
    */
   constructor(
-    provider: anchor.Provider,
+    connection: Connection,
     network: TbrNetwork,
     programId: PublicKey,
     priceOracle: SolanaPriceOracle,
@@ -102,10 +102,15 @@ export class SolanaTokenBridgeRelayer {
   ) {
     const wormholeNetwork = network === 'Localnet' ? 'Testnet' : network;
 
-    this.program = new anchor.Program(patchAddress(IDL, programId), provider);
+    this.program = new anchor.Program(patchAddress(IDL, programId), { connection });
     this.priceOracleClient = priceOracle;
-    this.wormholeProgramId = new PublicKey(contracts.coreBridge(wormholeNetwork, 'Solana'));
     this.tokenBridgeProgramId = new PublicKey(contracts.tokenBridge(wormholeNetwork, 'Solana'));
+    this.wormholeProgramId = new PublicKey(contracts.coreBridge(wormholeNetwork, 'Solana'));
+    this.tbAccBuilder = new TokenBridgeCpiAccountsBuilder(
+      programId,
+      this.tokenBridgeProgramId,
+      this.wormholeProgramId,
+    );
 
     this.debug = debug;
   }
@@ -114,64 +119,77 @@ export class SolanaTokenBridgeRelayer {
    * Creates a new instance by using the values in `network.json` in the program directory.
    */
   static async create(
-    provider: anchor.Provider,
+    connection: Connection,
     debug: boolean = false,
   ): Promise<SolanaTokenBridgeRelayer> {
-    const network = await networkFromConnection(provider.connection);
+    const network = await networkFromConnection(connection);
     const programId = programIdFromNetwork(network);
-    const priceOracle = await SolanaPriceOracle.create(provider.connection);
+    const priceOracle = await SolanaPriceOracle.create(connection);
     conditionalDebug(debug, 'Detected environment', {
       network,
       relayerProgramId: programId.toString(),
       oracleProgramId: priceOracle.program.programId.toString(),
     });
 
-    return new SolanaTokenBridgeRelayer(provider, network, programId, priceOracle, debug);
+    return new SolanaTokenBridgeRelayer(connection, network, programId, priceOracle, debug);
   }
 
   get connection(): Connection {
     return this.program.provider.connection;
   }
 
+  get programId(): PublicKey {
+    return this.program.programId;
+  }
+
   /** Raw Solana accounts. */
   get account() {
     return {
-      config: () => this.accountInfo(this.program.account.tbrConfigState, [Buffer.from('config')]),
+      config: () => this.accountInfo(this.program.account.tbrConfigState, ['config']),
       chainConfig: (chain: Chain) =>
-        this.accountInfo(this.program.account.chainConfigState, [
-          Buffer.from('chainconfig'),
-          chainSeed(chain),
-        ]),
+        this.accountInfo(this.program.account.chainConfigState, ['chainconfig', chainSeed(chain)]),
       peer: (chain: Chain, peerAddress: UniversalAddress) =>
         this.accountInfo(this.program.account.peerState, [
-          Buffer.from('peer'),
+          'peer',
           chainSeed(chain),
           peerAddress.toUint8Array(),
         ]),
       signerSequence: (signer: PublicKey) =>
-        this.accountInfo(this.program.account.signerSequenceState, [
-          Buffer.from('seq'),
-          signer.toBuffer(),
-        ]),
+        this.accountInfo(this.program.account.signerSequenceState, ['seq', signer.toBuffer()]),
       authBadge: (account: PublicKey) =>
-        this.accountInfo(this.program.account.authBadgeState, [
-          Buffer.from('authbadge'),
-          account.toBuffer(),
-        ]),
+        this.accountInfo(this.program.account.authBadgeState, ['authbadge', account.toBuffer()]),
 
-      temporary: (mint: PublicKey) =>
-        findPda(this.program.programId, [Buffer.from('tmp'), mint.toBuffer()]),
-      //TODO read the VAA with `fetch`
-      vaa: (vaaHash: Uint8Array) =>
-        findPda(this.wormholeProgramId, [Buffer.from('PostedVAA'), vaaHash]),
-      redeemer: () => findPda(this.program.programId, [Buffer.from('redeemer')]),
-      wormholeMessage: (payer: PublicKey, payerSequence: bigint) => {
-        const buf = Buffer.alloc(8);
-        buf.writeBigInt64BE(payerSequence);
+      temporary: (mint: PublicKey) => this.pda('tmp', mint.toBuffer()),
+      /** VAA address used to complete a transfer (inbound transfer). */
+      vaa: (vaaHash: Uint8Array) => {
+        const { address, bump } = findPda(this.wormholeProgramId, ['PostedVAA', vaaHash]);
         return {
-          ...findPda(this.program.programId, [Buffer.from('bridged'), payer.toBuffer(), buf]),
-          fetch: async () => {
-            return;
+          address,
+          bump,
+          fetch: async (): Promise<Uint8Array> => {
+            const { data } =
+              (await this.connection.getAccountInfo(address)) ??
+              throwError('No VAA with this hash');
+            return data;
+          },
+        };
+      },
+      redeemer: () => this.pda('redeemer'),
+      /** Message emitted during an outbound transfer. */
+      wormholeMessage: (payer: PublicKey, payerSequence: bigint) => {
+        const { address, bump } = this.pda(
+          'bridged',
+          payer.toBuffer(),
+          serializeLayout({ binary: 'uint', size: 8, endianness: 'big' }, payerSequence),
+        );
+        return {
+          address,
+          bump,
+          fetch: async (): Promise<Uint8Array> => {
+            const { data } =
+              (await this.connection.getAccountInfo(address)) ??
+              throwError('No message found at this address');
+            return data;
           },
         };
       },
@@ -189,6 +207,17 @@ export class SolanaTokenBridgeRelayer {
             evmTransactionSize: bnToBigint(evmTransactionSize),
             ...rest,
           })),
+      /** Returns all Wormhole messages emitted by a user */
+      allWormholeMessages: async (payer: PublicKey) => {
+        const maxSequence = await this.payerSequenceNumber(payer);
+
+        return Promise.all(
+          range(0n, maxSequence).map((seq) => {
+            const vaa = this.account.wormholeMessage(payer, seq).fetch();
+            return vaa;
+          }),
+        );
+      },
       allAdminAccounts: async () => {
         const [accounts, owner] = await Promise.all([
           this.program.account.authBadgeState.all().then((state) => state.map((pa) => pa.account)),
@@ -214,11 +243,12 @@ export class SolanaTokenBridgeRelayer {
         return new UniversalAddress(Uint8Array.from(canonicalPeer));
       },
       allPeers: async (chain?: Chain) => {
-        let filter: Buffer | undefined = undefined;
-        if (chain !== undefined) {
-          filter = Buffer.alloc(2);
-          filter.writeUInt16LE(chainToChainId(chain));
-        }
+        const filter =
+          chain === undefined
+            ? undefined
+            : Buffer.from(
+                serializeLayout({ ...layoutItems.chainItem(), endianness: 'big' }, chain),
+              );
         const states = await this.program.account.peerState
           .all(filter)
           .then((state) => state.map((pa) => pa.account));
@@ -281,19 +311,29 @@ export class SolanaTokenBridgeRelayer {
     };
   }
 
-  private async payerSequenceNumber(payer: PublicKey): Promise<bigint> {
-    const impl = async (payer: PublicKey) => {
-      try {
-        const account = await this.account.signerSequence(payer).fetch();
-        return bnToBigint(account.value);
-      } catch {
-        return 0n;
-      }
-    };
+  /** Returns a PDA belonging to this program. */
+  pda(...seeds: Array<string | Uint8Array>) {
+    return findPda(this.programId, seeds);
+  }
 
-    const sequenceNumber = await impl(payer);
-    this.logDebug({ payerSequenceNumber: sequenceNumber.toString() });
-    return sequenceNumber;
+  /** Returns the end user's wallet and associated token account */
+  getRecipientAccountsFromVaa(vaa: VaaMessage): {
+    wallet: PublicKey;
+    associatedTokenAccount: PublicKey;
+  } {
+    const mint =
+      vaa.payload.token.chain === 'Solana'
+        ? uaToPubkey(vaa.payload.token.address)
+        : findPda(this.tokenBridgeProgramId, [
+            'wrapped',
+            chainSeed(vaa.payload.token.chain),
+            vaa.payload.token.address.toUint8Array(),
+          ]).address;
+
+    const wallet = uaToPubkey(deserializeTbrV3Message(vaa.payload.payload).recipient);
+    const associatedTokenAccount = getAssociatedTokenAccount(wallet, mint);
+
+    return { wallet, associatedTokenAccount };
   }
 
   /* Initialize */
@@ -316,7 +356,7 @@ export class SolanaTokenBridgeRelayer {
       isWritable: true,
     }));
 
-    const program = new BpfLoaderUpgradeableProgram(this.program.programId, this.connection);
+    const program = new BpfLoaderUpgradeableProgram(this.programId, this.connection);
     const deployer =
       (await program.getdata()).upgradeAuthority ?? throwError('The program must be upgradeable');
 
@@ -552,89 +592,44 @@ export class SolanaTokenBridgeRelayer {
   /* Transfers */
 
   /**
-   * Signer: typically the Token Bridge.
+   * Signer: the tokens owner.
    */
-  async transferNativeTokens(
+  async transferTokens(
     signer: PublicKey,
-    params: TransferNativeParameters,
+    params: TransferParameters,
   ): Promise<TransactionInstruction> {
     const {
       recipient,
-      mint,
-      tokenAccount: userTokenAccount,
+      userTokenAccount,
       transferredAmount,
       gasDropoffAmount,
       maxFeeLamports,
       unwrapIntent,
     } = params;
 
-    const { feeRecipient } = await this.read.config();
-    const payerSequenceNumber = await this.payerSequenceNumber(signer);
+    let transferType = '?';
 
-    const tokenBridgeAccounts = transferNativeTokenBridgeAccounts({
-      programId: this.program.programId,
-      tokenBridgeProgramId: this.tokenBridgeProgramId,
-      wormholeProgramId: this.wormholeProgramId,
-      mint,
-    });
-    const accounts = {
-      payer: signer,
-      tbrConfig: this.account.config().address,
-      chainConfig: this.account.chainConfig(recipient.chain).address,
-      mint,
-      userTokenAccount,
-      temporaryAccount: this.account.temporary(mint).address,
-      feeRecipient,
-      oracleConfig: this.priceOracleClient.account.config().address,
-      oracleEvmPrices: this.priceOracleClient.account.evmPrices(recipient.chain).address,
-      ...tokenBridgeAccounts,
-      wormholeMessage: this.account.wormholeMessage(signer, payerSequenceNumber).address,
-      payerSequence: this.account.signerSequence(signer).address,
-      tokenBridgeProgram: this.tokenBridgeProgramId,
-      wormholeProgram: this.wormholeProgramId,
+    const getTokenBridgeAccounts = async () => {
+      const mint = await spl
+        .getAccount(this.connection, userTokenAccount)
+        .then(({ mint }) => spl.getMint(this.connection, mint));
+      if (mint.mintAuthority?.equals(this.tokenBridgeMintAuthority)) {
+        transferType = 'Wrapped';
+        return this.tbAccBuilder.transferWrapped(
+          await this.getWormholeAddressFromWrappedMint(mint.address),
+        );
+      } else {
+        transferType = 'Native';
+        return this.tbAccBuilder.transferNative(mint.address);
+      }
     };
 
-    this.logDebug('transferNativeTokens:', objToString(params), objToString(accounts));
+    const [{ feeRecipient }, payerSequenceNumber, tokenBridgeAccounts] = await Promise.all([
+      this.read.config(),
+      this.payerSequenceNumber(signer),
+      getTokenBridgeAccounts(),
+    ]);
 
-    return this.program.methods
-      .transferTokens(
-        uaToArray(recipient.address),
-        bigintToBn(transferredAmount),
-        unwrapIntent,
-        gasDropoffAmount,
-        bigintToBn(maxFeeLamports),
-      )
-      .accountsPartial(accounts)
-      .instruction();
-  }
-
-  /**
-   * Signer: typically the Token Bridge.
-   */
-  async transferWrappedTokens(
-    signer: PublicKey,
-    params: TransferWrappedParameters,
-  ): Promise<TransactionInstruction> {
-    const {
-      recipient,
-      token,
-      userTokenAccount,
-      transferredAmount,
-      gasDropoffAmount,
-      maxFeeLamports,
-      unwrapIntent,
-    } = params;
-
-    const { feeRecipient } = await this.read.config();
-    const payerSequenceNumber = await this.payerSequenceNumber(signer);
-
-    const tokenBridgeAccounts = transferWrappedTokenBridgeAccounts({
-      programId: this.program.programId,
-      tokenBridgeProgramId: this.tokenBridgeProgramId,
-      wormholeProgramId: this.wormholeProgramId,
-      tokenChain: chainToChainId(token.chain),
-      tokenAddress: Buffer.from(token.address.toUint8Array()),
-    });
     const accounts = {
       payer: signer,
       tbrConfig: this.account.config().address,
@@ -651,13 +646,13 @@ export class SolanaTokenBridgeRelayer {
       wormholeProgram: this.wormholeProgramId,
     };
 
-    this.logDebug('transferWrappedTokens:', objToString(params), objToString(accounts));
+    this.logDebug('transferTokens:', transferType, objToString(params), objToString(accounts));
 
     return this.program.methods
       .transferTokens(
         uaToArray(recipient.address),
         bigintToBn(transferredAmount),
-        unwrapIntent,
+        unwrapIntent ?? false,
         gasDropoffAmount,
         bigintToBn(maxFeeLamports),
       )
@@ -670,24 +665,21 @@ export class SolanaTokenBridgeRelayer {
    *
    * @param signer
    * @param vaa
-   * @param recipientTokenAccount The user's account receiving the SPL tokens.
    */
-  async completeNativeTransfer(
-    signer: PublicKey,
-    vaa: VaaMessage,
-    recipientTokenAccount: PublicKey,
-  ): Promise<TransactionInstruction> {
-    const tokenBridgeAccounts = completeNativeTokenBridgeAccounts({
-      tokenBridgeProgramId: this.tokenBridgeProgramId,
-      wormholeProgramId: this.wormholeProgramId,
-      vaa,
-    });
-    const { recipient } = deserializeTbrV3Message(vaa.payload.payload);
+  async completeTransfer(signer: PublicKey, vaa: VaaMessage): Promise<TransactionInstruction[]> {
+    const { wallet, associatedTokenAccount } = this.getRecipientAccountsFromVaa(vaa);
+    const { unwrapIntent } = deserializeTbrV3Message(vaa.payload.payload);
+    const native = vaa.payload.token.chain === 'Solana';
+    const tokenBridgeAccounts = native
+      ? this.tbAccBuilder.completeNative(vaa)
+      : this.tbAccBuilder.completeWrapped(vaa);
+    const getSolDirectly = isNativeMint(tokenBridgeAccounts.mint) && unwrapIntent;
+
     const accounts = {
       payer: signer,
       tbrConfig: this.account.config().address,
-      recipientTokenAccount,
-      recipient: new PublicKey(recipient.address),
+      recipientTokenAccount: getSolDirectly ? null : associatedTokenAccount,
+      recipient: wallet,
       vaa: this.account.vaa(vaa.hash).address,
       temporaryAccount: this.account.temporary(tokenBridgeAccounts.mint).address,
       ...tokenBridgeAccounts,
@@ -696,59 +688,67 @@ export class SolanaTokenBridgeRelayer {
       peer: this.account.peer(vaa.emitterChain, vaa.payload.from).address,
     };
 
-    this.logDebug('completeNativeTransfer:', accounts);
+    this.logDebug('completeTransfer:', native ? 'Native:' : 'Wrapped:', objToString(accounts));
 
-    return this.program.methods.completeTransfer().accountsPartial(accounts).instruction();
-  }
+    const [createAtaIdempotentIx, completeTransferIx] = await Promise.all([
+      createAssociatedTokenAccountIdempotent({
+        signer,
+        mint: tokenBridgeAccounts.mint,
+        wallet,
+      }),
+      this.program.methods.completeTransfer().accountsPartial(accounts).instruction(),
+    ]);
 
-  /**
-   * Signer: typically the Token Bridge.
-   *
-   * @param signer
-   * @param vaa
-   * @param recipientTokenAccount The user's account receiving the SPL tokens.
-   */
-  async completeWrappedTransfer(
-    signer: PublicKey,
-    vaa: VaaMessage,
-    recipientTokenAccount: PublicKey,
-  ): Promise<TransactionInstruction> {
-    const tokenBridgeAccounts = completeWrappedTokenBridgeAccounts({
-      tokenBridgeProgramId: this.tokenBridgeProgramId,
-      wormholeProgramId: this.wormholeProgramId,
-      vaa,
-    });
-    const { recipient } = deserializeTbrV3Message(vaa.payload.payload);
-    const accounts = {
-      payer: signer,
-      tbrConfig: this.account.config().address,
-      recipientTokenAccount,
-      recipient: new PublicKey(recipient.address),
-      vaa: this.account.vaa(vaa.hash).address,
-      temporaryAccount: this.account.temporary(tokenBridgeAccounts.mint).address,
-      ...tokenBridgeAccounts,
-      tokenBridgeProgram: this.tokenBridgeProgramId,
-      wormholeProgram: this.wormholeProgramId,
-      peer: this.account.peer(vaa.emitterChain, vaa.payload.from).address,
-    };
-
-    this.logDebug('completeWrappedTransfer:', accounts);
-
-    return this.program.methods.completeTransfer().accountsPartial(accounts).instruction();
+    if (getSolDirectly) {
+      return [completeTransferIx];
+    } else {
+      return [createAtaIdempotentIx, completeTransferIx];
+    }
   }
 
   /* Queries */
 
   /**
-   *
    * @param chain The target chain where the token will be sent to.
-   * @param dropoffAmount The amount to send to the target chain.
+   * @param dropoffAmount The amount to send to the target chain, in µUSD.
    * @returns The fee to pay for the transfer in SOL.
    */
   async relayingFee(chain: Chain, dropoffAmount: number): Promise<number> {
-    assertProvider(this.program.provider);
+    const [tbrConfig, chainConfig, evmPrices, oracleConfig] = await Promise.all([
+      this.read.config(),
+      this.account.chainConfig(chain).fetch(),
+      this.priceOracleClient.read.evmPrices(chain),
+      this.priceOracleClient.read.config(),
+    ]);
 
-    const tx = await this.program.methods
+    const MWEI_PER_MICRO_ETH = 1_000_000n;
+    const MWEI_PER_ETH = 1_000_000_000_000n;
+
+    const totalFeesMwei =
+      tbrConfig.evmTransactionGas * BigInt(evmPrices.gasPrice) +
+      tbrConfig.evmTransactionSize * BigInt(evmPrices.pricePerByte) +
+      BigInt(dropoffAmount) * MWEI_PER_MICRO_ETH;
+    const totalFeesMicroUsd =
+      (totalFeesMwei * evmPrices.gasTokenPrice) / MWEI_PER_ETH +
+      BigInt(chainConfig.relayerFeeMicroUsd);
+
+    return Number(totalFeesMicroUsd) / Number(oracleConfig.solPrice);
+  }
+
+  /**
+   * This function simulates a program call to get the exact relaying fee.
+   *
+   * @param payer Any account with gas. No signature is required, no fee is taken.
+   * @param chain The target chain where the token will be sent to.
+   * @param dropoffAmount The amount to send to the target chain, in µUSD.
+   * @returns The fee to pay for the transfer in SOL.
+   */
+  async relayingFeeSimulated(
+    payer: PublicKey,
+    chain: Chain,
+    dropoffAmount: number,
+  ): Promise<number> {
+    const ix = await this.program.methods
       .relayingFee(dropoffAmount)
       .accountsStrict({
         tbrConfig: this.account.config().address,
@@ -756,30 +756,75 @@ export class SolanaTokenBridgeRelayer {
         oracleConfig: this.priceOracleClient.account.config().address,
         oracleEvmPrices: this.priceOracleClient.account.evmPrices(chain).address,
       })
-      .rpc({ commitment: 'confirmed' });
-    const txResponse = await this.connection.getTransaction(tx, {
-      commitment: 'confirmed',
-      maxSupportedTransactionVersion: undefined,
-    });
-    const result = returnedDataFromTransaction<bigint>('u64', txResponse);
+      .instruction();
+    const txResponse = await simulateTransaction(this.connection, payer, [ix]);
+
+    const result = returnedDataFromTransaction(
+      { binary: 'uint', size: 8, endianness: 'little' },
+      txResponse,
+    );
 
     return Number(result) / LAMPORTS_PER_SOL;
   }
 
+  /* HELPERS */
+
+  /** Generates an object with a PDA address, bump and fetching function
+   * from an Anchor's `AccountClient`.
+   */
   private accountInfo<A extends keyof anchor.IdlAccounts<IdlType>>(
     account: anchor.AccountClient<IdlType, A>,
-    seeds: Array<Buffer | Uint8Array>,
+    seeds: Array<string | Uint8Array>,
   ) {
-    const { address, seed } = findPda(this.program.programId, seeds);
+    const { address, bump } = this.pda(...seeds);
     return {
       address,
-      seed,
+      bump,
       fetch: () => account.fetch(address),
     };
   }
 
-  /* HELPERS */
-  logDebug(message?: any, ...optionalParams: any[]) {
+  private async payerSequenceNumber(payer: PublicKey): Promise<bigint> {
+    const impl = async (payer: PublicKey) => {
+      try {
+        const account = await this.account.signerSequence(payer).fetch();
+        return bnToBigint(account.value);
+      } catch {
+        return 0n;
+      }
+    };
+
+    const sequenceNumber = await impl(payer);
+    this.logDebug({ payerSequenceNumber: sequenceNumber.toString() });
+    return sequenceNumber;
+  }
+
+  /** Get the info about the foreign address from a Wormhole mint */
+  private async getWormholeAddressFromWrappedMint(mint: PublicKey): Promise<WormholeAddress> {
+    const metaAddress = findPda(this.tokenBridgeProgramId, ['meta', mint.toBuffer()]).address;
+    const { data } =
+      (await this.connection.getAccountInfo(metaAddress)) ??
+      throwError(
+        'Cannot find the meta info\nThe mint authority indicates that the token is a Wormhole one, but no meta information is associated with it.',
+      );
+
+    const { chain, address } = deserializeLayout(
+      [
+        { name: 'chain', ...layoutItems.chainItem(), endianness: 'little' },
+        { name: 'address', ...layoutItems.universalAddressItem },
+        { name: 'decimals', binary: 'uint', size: 1 },
+      ],
+      data,
+    );
+
+    return { chain, address };
+  }
+
+  private get tokenBridgeMintAuthority(): PublicKey {
+    return findPda(this.tokenBridgeProgramId, ['mint_signer']).address;
+  }
+
+  private logDebug(message?: any, ...optionalParams: any[]) {
     conditionalDebug(this.debug, message, ...optionalParams);
   }
 }
@@ -791,223 +836,76 @@ function conditionalDebug(debug: boolean, message?: any, ...optionalParams: any[
 }
 
 const chainSeed = (chain: Chain) => encoding.bignum.toBytes(chainToChainId(chain), 2);
-function findPda(programId: PublicKey, seeds: Array<Buffer | Uint8Array>) {
-  const [address, seed] = PublicKey.findProgramAddressSync(seeds, programId);
+
+function findPda(programId: PublicKey, seeds: Array<string | Uint8Array>) {
+  const [address, bump] = PublicKey.findProgramAddressSync(
+    seeds.map((seed) => {
+      if (typeof seed === 'string') {
+        return Buffer.from(seed);
+      } else {
+        return seed;
+      }
+    }),
+    programId,
+  );
   return {
     address,
-    seed,
+    bump,
   };
 }
 
-function assertProvider(provider: anchor.Provider) {
-  if (provider.sendAndConfirm === undefined) {
-    throw new Error('The client must be created with a full provider to use this method');
-  }
+function getAssociatedTokenAccount(wallet: PublicKey, mint: PublicKey): PublicKey {
+  return PublicKey.findProgramAddressSync(
+    [wallet.toBuffer(), spl.TOKEN_PROGRAM_ID.toBuffer(), mint.toBuffer()],
+    spl.ASSOCIATED_TOKEN_PROGRAM_ID,
+  )[0];
 }
 
-export function returnedDataFromTransaction<T>(
-  schema: borsh.Schema,
-  confirmedTransaction: VersionedTransactionResponse | null,
-) {
+/** Return both the address and an idempotent instruction to create it. */
+async function createAssociatedTokenAccountIdempotent({
+  signer,
+  mint,
+  wallet,
+}: {
+  signer: PublicKey;
+  mint: PublicKey;
+  wallet: PublicKey;
+}): Promise<TransactionInstruction> {
+  const recipientTokenAccount = getAssociatedTokenAccount(wallet, mint);
+
+  const createAtaIdempotentIx = spl.createAssociatedTokenAccountIdempotentInstruction(
+    signer,
+    recipientTokenAccount,
+    wallet,
+    mint,
+  );
+
+  return createAtaIdempotentIx;
+}
+
+export function returnedDataFromTransaction<L extends Layout>(
+  typeLayout: L,
+  confirmedTransaction:
+    | VersionedTransactionResponse
+    | TransactionResponse
+    | SimulatedTransactionResponse,
+): LayoutToType<L> {
   const prefix = 'Program return: ';
-  const log = confirmedTransaction?.meta?.logMessages?.find((log) => log.startsWith(prefix));
-  if (log === undefined) {
-    throw new Error('Internal error: The transaction did not return any value');
+  const logs =
+    'meta' in confirmedTransaction
+      ? confirmedTransaction.meta?.logMessages
+      : confirmedTransaction.logs;
+  if (logs == null) {
+    throw new Error('Internal error: No logs in this transaction');
   }
+  const log =
+    logs.find((log) => log.startsWith(prefix)) ??
+    throwError('No returned value specified in these logs');
+
   // The line looks like 'Program return: <Public Key> <base64 encoded value>':
   const [, data] = log.slice(prefix.length).split(' ', 2);
 
-  return borsh.deserialize(schema, Buffer.from(data, 'base64')) as T;
-}
-
-function transferNativeTokenBridgeAccounts(params: {
-  programId: PublicKey;
-  tokenBridgeProgramId: PublicKey;
-  wormholeProgramId: PublicKey;
-  mint: PublicKey;
-}): {
-  tokenBridgeConfig: PublicKey;
-  tokenBridgeCustody: PublicKey;
-  tokenBridgeAuthoritySigner: PublicKey;
-  tokenBridgeCustodySigner: PublicKey;
-  tokenBridgeWrappedMeta: null;
-  wormholeBridge: PublicKey;
-  tokenBridgeEmitter: PublicKey;
-  tokenBridgeSequence: PublicKey;
-  wormholeFeeCollector: PublicKey;
-} {
-  const { programId, tokenBridgeProgramId, wormholeProgramId, mint } = params;
-
-  const {
-    tokenBridgeConfig,
-    tokenBridgeCustody,
-    tokenBridgeAuthoritySigner,
-    tokenBridgeCustodySigner,
-    wormholeBridge,
-    tokenBridgeEmitter,
-    tokenBridgeSequence,
-    wormholeFeeCollector,
-  } = getTransferNativeWithPayloadCpiAccounts(
-    programId,
-    tokenBridgeProgramId,
-    wormholeProgramId,
-    PublicKey.default, // we don't need payer
-    PublicKey.default, // we don't need message
-    PublicKey.default, // we don't need fromTokenAccount
-    mint,
-  );
-
-  return {
-    tokenBridgeConfig,
-    tokenBridgeCustody,
-    tokenBridgeAuthoritySigner,
-    tokenBridgeCustodySigner,
-    tokenBridgeWrappedMeta: null,
-    wormholeBridge,
-    tokenBridgeEmitter,
-    tokenBridgeSequence,
-    wormholeFeeCollector,
-  };
-}
-
-function transferWrappedTokenBridgeAccounts(params: {
-  programId: PublicKey;
-  tokenBridgeProgramId: PublicKey;
-  wormholeProgramId: PublicKey;
-  tokenChain: number;
-  tokenAddress: Buffer;
-}): {
-  tokenBridgeConfig: PublicKey;
-  tokenBridgeCustody: null;
-  tokenBridgeAuthoritySigner: PublicKey;
-  tokenBridgeCustodySigner: null;
-  tokenBridgeWrappedMeta: PublicKey;
-  wormholeBridge: PublicKey;
-  tokenBridgeEmitter: PublicKey;
-  tokenBridgeSequence: PublicKey;
-  mint: PublicKey;
-  wormholeFeeCollector: PublicKey;
-} {
-  const { programId, tokenBridgeProgramId, wormholeProgramId, tokenChain, tokenAddress } = params;
-
-  const {
-    tokenBridgeConfig,
-    tokenBridgeAuthoritySigner,
-    wormholeBridge,
-    tokenBridgeEmitter,
-    tokenBridgeSequence,
-    tokenBridgeWrappedMeta,
-    tokenBridgeWrappedMint,
-    wormholeFeeCollector,
-  } = getTransferWrappedWithPayloadCpiAccounts(
-    programId,
-    tokenBridgeProgramId,
-    wormholeProgramId,
-    PublicKey.default, // we don't need payer
-    PublicKey.default, // we don't need message
-    PublicKey.default, // we don't need fromTokenAccount
-    tokenChain,
-    tokenAddress,
-  );
-
-  return {
-    tokenBridgeConfig,
-    tokenBridgeCustody: null,
-    tokenBridgeAuthoritySigner,
-    tokenBridgeCustodySigner: null,
-    tokenBridgeWrappedMeta,
-    wormholeBridge,
-    tokenBridgeEmitter,
-    tokenBridgeSequence,
-    mint: tokenBridgeWrappedMint,
-    wormholeFeeCollector,
-  };
-}
-
-function completeNativeTokenBridgeAccounts(params: {
-  tokenBridgeProgramId: PublicKey;
-  wormholeProgramId: PublicKey;
-  vaa: VaaMessage;
-}): {
-  tokenBridgeConfig: PublicKey;
-  tokenBridgeClaim: PublicKey;
-  tokenBridgeForeignEndpoint: PublicKey;
-  tokenBridgeCustody: PublicKey;
-  tokenBridgeCustodySigner: PublicKey;
-  tokenBridgeMintAuthority: null;
-  tokenBridgeWrappedMeta: null;
-  mint: PublicKey;
-} {
-  const { tokenBridgeProgramId, wormholeProgramId, vaa } = params;
-
-  const {
-    tokenBridgeConfig,
-    tokenBridgeClaim,
-    tokenBridgeForeignEndpoint,
-    tokenBridgeCustody,
-    tokenBridgeCustodySigner,
-    mint,
-  } = getCompleteTransferNativeWithPayloadCpiAccounts(
-    tokenBridgeProgramId,
-    wormholeProgramId,
-    PublicKey.default,
-    vaa,
-    PublicKey.default,
-  );
-
-  return {
-    tokenBridgeConfig,
-    tokenBridgeClaim,
-    tokenBridgeForeignEndpoint,
-    tokenBridgeCustody,
-    tokenBridgeCustodySigner,
-    tokenBridgeMintAuthority: null,
-    tokenBridgeWrappedMeta: null,
-    mint,
-  };
-}
-
-function completeWrappedTokenBridgeAccounts(params: {
-  tokenBridgeProgramId: PublicKey;
-  wormholeProgramId: PublicKey;
-  vaa: VaaMessage;
-}): {
-  tokenBridgeConfig: PublicKey;
-  tokenBridgeClaim: PublicKey;
-  tokenBridgeForeignEndpoint: PublicKey;
-  tokenBridgeCustody: null;
-  tokenBridgeCustodySigner: null;
-  tokenBridgeMintAuthority: PublicKey;
-  tokenBridgeWrappedMeta: PublicKey;
-  mint: PublicKey;
-} {
-  const { tokenBridgeProgramId, wormholeProgramId, vaa } = params;
-
-  const {
-    tokenBridgeConfig,
-    tokenBridgeClaim,
-    tokenBridgeForeignEndpoint,
-    tokenBridgeMintAuthority,
-    tokenBridgeWrappedMeta,
-    tokenBridgeWrappedMint,
-  } = getCompleteTransferWrappedWithPayloadCpiAccounts(
-    tokenBridgeProgramId,
-    wormholeProgramId,
-    PublicKey.default,
-    vaa,
-    PublicKey.default,
-  );
-
-  return {
-    tokenBridgeConfig,
-    tokenBridgeClaim,
-    tokenBridgeForeignEndpoint,
-    tokenBridgeCustody: null,
-    tokenBridgeCustodySigner: null,
-    tokenBridgeMintAuthority,
-    tokenBridgeWrappedMeta,
-    mint: tokenBridgeWrappedMint,
-  };
+  return deserializeLayout<L>(typeLayout, Buffer.from(data, 'base64'), { consumeAll: true });
 }
 
 /**
@@ -1035,9 +933,9 @@ async function networkFromConnection(connection: Connection): Promise<TbrNetwork
 function programIdFromNetwork(network: TbrNetwork) {
   switch (network) {
     case 'Mainnet':
-      return new PublicKey(networkConfig.mainnet.programId);
+      return new PublicKey(networkConfig.mainnet);
     case 'Testnet':
-      return new PublicKey(networkConfig.testnet.programId);
+      return new PublicKey(networkConfig.testnet);
     case 'Localnet':
       return Keypair.fromSecretKey(Uint8Array.from(testProgramKeypair)).publicKey;
   }
@@ -1064,4 +962,45 @@ function patchAddress(idl: any, address?: PublicKey) {
   }
 
   return idl;
+}
+
+function range(from: bigint, to: bigint): bigint[] {
+  function* generator(from: bigint, to: bigint) {
+    for (let i = from; from < to; i++) {
+      yield i;
+    }
+  }
+  return Array.from(generator(from, to));
+}
+
+async function simulateTransaction(
+  connection: Connection,
+  payer: PublicKey,
+  instructions: TransactionInstruction[],
+): Promise<SimulatedTransactionResponse> {
+  const {
+    value: { blockhash },
+  } = await connection.getLatestBlockhashAndContext();
+  const txMessage = new TransactionMessage({
+    payerKey: payer,
+    recentBlockhash: blockhash,
+    instructions,
+  }).compileToV0Message();
+
+  const { value: response } = await connection.simulateTransaction(
+    new VersionedTransaction(txMessage),
+    {
+      sigVerify: false,
+    },
+  );
+
+  if (response.err !== null) {
+    throw new Error('Transaction simulation failed', { cause: response.err });
+  }
+
+  return response;
+}
+
+function isNativeMint(mintAddress: PublicKey): boolean {
+  return mintAddress.equals(spl.NATIVE_MINT) || mintAddress.equals(spl.NATIVE_MINT_2022);
 }

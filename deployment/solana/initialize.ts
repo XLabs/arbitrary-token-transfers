@@ -1,21 +1,16 @@
 import { SolanaTokenBridgeRelayer } from '@xlabs-xyz/solana-arbitrary-token-transfers';
-import { runOnSolana, ledgerSignAndSend, getConnection, SolanaSigner } from '../helpers/solana.js';
-import { SolanaChainInfo, LoggerFn } from '../helpers/interfaces.js';
+import { runOnSolana, ledgerSignAndSend, getConnection } from '../helpers/solana.js';
+import { SolanaScriptCb } from '../helpers/interfaces.js';
 import { PublicKey } from '@solana/web3.js';
 import { loadSolanaTbrInitParams } from '../helpers/env.js';
 
-runOnSolana('initialize-tbr', initializeSolanaTbr).catch((e) => {
-  console.error('Error executing script: ', e);
-});
-
-async function initializeSolanaTbr(
-  chain: SolanaChainInfo,
-  signer: SolanaSigner,
-  log: LoggerFn,
-): Promise<void> {
-  const signerKey = new PublicKey(await signer.getAddress());
+const initializeSolanaTbr: SolanaScriptCb = async function (
+  chain,
+  // signer,
+  // log,
+) {
   const connection = getConnection(chain);
-  const tbr = await SolanaTokenBridgeRelayer.create({ connection });
+  const tbr = await SolanaTokenBridgeRelayer.create(connection);
 
   const tbrInitParams = loadSolanaTbrInitParams();
 
@@ -35,3 +30,7 @@ async function initializeSolanaTbr(
 
   await ledgerSignAndSend(connection, [initializeIx], []);
 }
+
+runOnSolana('initialize-tbr', initializeSolanaTbr).catch((e) => {
+  console.error('Error executing script: ', e);
+});

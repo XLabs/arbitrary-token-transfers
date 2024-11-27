@@ -86,12 +86,18 @@ pub fn initialize<'a, 'b, 'c, 'info>(
         )?;
     }
 
+    let (mint_authority, _) = Pubkey::find_program_address(
+        &[b"mint_signer"],
+        &wormhole_anchor_sdk::token_bridge::program::ID,
+    );
+
     ctx.accounts.tbr_config.set_inner(TbrConfigState {
         owner: ctx.accounts.owner.key(),
         pending_owner: None,
         fee_recipient,
         evm_transaction_size: 0,
         evm_transaction_gas: 0,
+        mint_authority,
         sender_bump: ctx.bumps.wormhole_sender,
         redeemer_bump: ctx.bumps.wormhole_redeemer,
         bump: ctx.bumps.tbr_config,

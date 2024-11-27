@@ -85,26 +85,29 @@ fn check_prices_are_set(evm_prices: &EvmPricesState) -> Result<()> {
         TokenBridgeRelayerError::EvmChainPriceNotSet
     );
 
-    // We don't need to check the SOL price, because it will generate a division by 0
+    // We don't need to check the SOL price, because it will cause a division by 0
 
     Ok(())
 }
 
-/// Creates a closure allowing to verify that a native/wrapped transfer is indeed
-/// what it pretends to be.
-pub fn create_native_check(
-    mint_authority: COption<Pubkey>,
-) -> impl Fn(bool) -> TokenBridgeRelayerResult<bool> {
-    let is_wormhole_mint = mint_authority == COption::Some(crate::id::WORMHOLE_MINT_AUTHORITY);
+impl TbrConfigState {
+    /// Creates a closure allowing to verify that a native/wrapped transfer is indeed
+    /// what it pretends to be.
+    pub(crate) fn create_native_check(
+        &self,
+        mint_authority: COption<Pubkey>,
+    ) -> impl Fn(bool) -> TokenBridgeRelayerResult<bool> {
+        let is_wormhole_mint = mint_authority == COption::Some(self.mint_authority);
 
-    return move |expected_native| {
-        // Valid values: either:
-        // - The transfer is native and the mint is not the Wormhole one;
-        // - Or the transfer is wrapped and the mint is the Wormhole one.
-        (expected_native != is_wormhole_mint)
-            .then_some(expected_native)
-            .ok_or(TokenBridgeRelayerError::WrongMintAuthority)
-    };
+        return move |expected_native| {
+            // Valid values: either:
+            // - The transfer is native and the mint is not the Wormhole one;
+            // - Or the transfer is wrapped and the mint is the Wormhole one.
+            (expected_native != is_wormhole_mint)
+                .then_some(expected_native)
+                .ok_or(TokenBridgeRelayerError::WrongMintAuthority)
+        };
+    }
 }
 
 /// The Token Bridge uses 8 decimals. If we want to transfer a token whose mint has more decimals,

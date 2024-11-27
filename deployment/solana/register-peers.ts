@@ -1,9 +1,8 @@
-import { BN } from '@coral-xyz/anchor';
 import { chainIdToChain } from '@wormhole-foundation/sdk-base';
 import { UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import { SolanaTokenBridgeRelayer } from '@xlabs-xyz/solana-arbitrary-token-transfers';
-import { runOnSolana, ledgerSignAndSend, getConnection, SolanaSigner } from '../helpers/solana.js';
-import { SolanaChainInfo, LoggerFn } from '../helpers/interfaces.js';
+import { runOnSolana, ledgerSignAndSend, getConnection } from '../helpers/solana.js';
+import { SolanaScriptCb } from '../helpers/interfaces.js';
 import { dependencies } from '../helpers/env.js';
 import { PublicKey } from '@solana/web3.js';
 import { contracts } from '../helpers';
@@ -18,23 +17,18 @@ type ChainConfigEntry = {
   canonicalPeer: UniversalAddress;
 };
 
-runOnSolana('configure-tbr', configureSolanaTbr).catch((error) => {
-  console.error('Error executing script: ', error);
-  console.log('extra logs', error.getLogs());
-});
-
-async function configureSolanaTbr(
-  chain: SolanaChainInfo,
-  signer: SolanaSigner,
-  log: LoggerFn,
-): Promise<void> {
+const configureSolanaTbr: SolanaScriptCb = async function (
+  chain,
+  signer,
+  log,
+) {
   const signerKey = new PublicKey(await signer.getAddress());
   const connection = getConnection(chain);
   const solanaDependencies = dependencies.find((d) => d.chainId === chain.chainId);
   if (solanaDependencies === undefined) {
     throw new Error(`No dependencies found for chain ${chain.chainId}`);
   }
-  const tbr = await SolanaTokenBridgeRelayer.create({ connection });
+  const tbr = await SolanaTokenBridgeRelayer.create(connection);
 
   for (const tbrDeployment of contracts['TbrV3Proxies']) {
     if (tbrDeployment.chainId === chain.chainId) continue; // skip self;
@@ -113,3 +107,8 @@ async function configureSolanaTbr(
     }
   }
 }
+
+runOnSolana('configure-tbr', configureSolanaTbr).catch((error) => {
+  console.error('Error executing script: ', error);
+  console.log('extra logs', error.getLogs());
+});

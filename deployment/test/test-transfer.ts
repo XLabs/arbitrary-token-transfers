@@ -22,8 +22,7 @@ import { EvmAddress } from '@wormhole-foundation/sdk-evm';
 import { PublicKey, SystemProgram, TransactionInstruction } from '@solana/web3.js';
 import {
   SolanaTokenBridgeRelayer,
-  TransferNativeParameters,
-  TransferWrappedParameters,
+  TransferParameters,
 } from '@xlabs-xyz/solana-arbitrary-token-transfers';
 import {
   createAssociatedTokenAccountIdempotentInstruction,
@@ -304,48 +303,26 @@ async function sendSolanaTestTransaction(
         throw new Error(`No dependencies found for chain ${chain.chainId}`);
       }
 
-      const tbr = await SolanaTokenBridgeRelayer.create({ connection });
+      const tbr = await SolanaTokenBridgeRelayer.create(connection);
 
       const evmAddress = getEnv('RECIPIENT_EVM_ADDRESS');
       const maxFeeLamports = BigInt(getEnvOrDefault('MAX_FEE_KLAMPORTS', '5000000'));
 
       let transferIx: TransactionInstruction;
 
-      if (testTransfer.tokenChain !== "Solana") {
-        const tokenChain = testTransfer.tokenChain ?? getEnvOrDefault('TOKEN_CHAIN', 'Sepolia') as Chain;
-        const params = {
-          recipient: {
-            chain: targetChain.name as Chain,
-            address: toUniversal(targetChain.name as Chain, evmAddress),
-          },
-          token: {
-            chain: tokenChain,
-            address: toUniversal(testTransfer.tokenChain, testTransfer.sourceTokenAddress ?? testTransfer.tokenAddress!),
-          },
-          userTokenAccount: tokenAccount,
-          transferredAmount,
-          gasDropoffAmount,
-          maxFeeLamports,
-          unwrapIntent,
-        } satisfies TransferWrappedParameters;
+      const params = {
+        recipient: {
+          chain: targetChain.name as Chain,
+          address: toUniversal(targetChain.name as Chain, evmAddress),
+        },
+        userTokenAccount: tokenAccount,
+        transferredAmount,
+        gasDropoffAmount,
+        maxFeeLamports,
+        unwrapIntent,
+      } satisfies TransferParameters;
 
-        transferIx = await tbr.transferWrappedTokens(signerKey, params);
-      } else {
-        const params = {
-          recipient: {
-            chain: targetChain.name as Chain,
-            address: toUniversal(targetChain.name as Chain, evmAddress),
-          },
-          mint,
-          tokenAccount,
-          transferredAmount,
-          gasDropoffAmount,
-          maxFeeLamports,
-          unwrapIntent,
-        } satisfies TransferNativeParameters;
-
-        transferIx = await tbr.transferNativeTokens(signerKey, params);
-      }
+      transferIx = await tbr.transferTokens(signerKey, params);
       const ixs: TransactionInstruction[] = [];
 
       // if transferring SOL first we have to wrap it

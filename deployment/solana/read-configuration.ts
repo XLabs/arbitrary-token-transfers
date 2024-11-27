@@ -15,7 +15,7 @@ const readChainConfig: SolanaScriptCb = async function (
   if (solanaDependencies === undefined) {
     throw new Error(`No dependencies found for chain ${operatingChain.chainId}`);
   }
-  const tbr = await SolanaTokenBridgeRelayer.create({ connection });
+  const tbr = await SolanaTokenBridgeRelayer.create(connection);
 
   let allChainConfigs: ChainConfigEntry[];
   try {

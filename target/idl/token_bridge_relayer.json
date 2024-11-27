@@ -164,6 +164,7 @@
             "of the bridged tokens. Mutable."
           ],
           "writable": true,
+          "optional": true,
           "pda": {
             "seeds": [
               {
@@ -1781,6 +1782,11 @@
       "code": 6016,
       "name": "InvalidPeerAddress",
       "msg": "InvalidPeerAddress"
+    },
+    {
+      "code": 6017,
+      "name": "MissingAssociatedTokenAccount",
+      "msg": "MissingAssociatedTokenAccount"
     }
   ],
   "types": [
@@ -1989,6 +1995,14 @@
           {
             "name": "evm_transaction_size",
             "type": "u64"
+          },
+          {
+            "name": "mint_authority",
+            "docs": [
+              "The mint authority used by the Token Bridge. Used to check whether a transfer is native",
+              "or wrapped."
+            ],
+            "type": "pubkey"
           },
           {
             "name": "sender_bump",
