@@ -275,29 +275,16 @@ export type TokenBridgeRelayer = {
         {
           "name": "temporaryAccount",
           "docs": [
+            "so Anchor forces to initialize it by hand. Since it is closed in the same instruction,",
+            "it causes no security problem.",
+            "",
             "Program's temporary token account. This account is created before the",
             "instruction is invoked to temporarily take custody of the payer's",
             "tokens. When the tokens are finally bridged in, the tokens will be",
             "transferred to the destination token accounts. This account will have",
             "zero balance and can be closed."
           ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  116,
-                  109,
-                  112
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "mint"
-              }
-            ]
-          }
+          "writable": true
         },
         {
           "name": "peer"
@@ -373,24 +360,7 @@ export type TokenBridgeRelayer = {
           "optional": true
         },
         {
-          "name": "wormholeRedeemer",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
-                ]
-              }
-            ]
-          }
+          "name": "wormholeRedeemer"
         },
         {
           "name": "systemProgram",
@@ -413,7 +383,12 @@ export type TokenBridgeRelayer = {
           "address": "SysvarRent111111111111111111111111111111111"
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "temporaryAccountBump",
+          "type": "u8"
+        }
+      ]
     },
     {
       "name": "confirmOwnerTransferRequest",
@@ -1122,28 +1097,15 @@ export type TokenBridgeRelayer = {
         {
           "name": "temporaryAccount",
           "docs": [
+            "so Anchor forces to initialize it by hand. Since it is closed in the same instruction,",
+            "it causes no security problem.",
+            "",
             "Program's temporary token account. This account is created before the",
             "instruction is invoked to temporarily take custody of the payer's",
             "tokens. When the tokens are finally bridged out, the token account",
             "will have zero balance and can be closed."
           ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  116,
-                  109,
-                  112
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "mint"
-              }
-            ]
-          }
+          "writable": true
         },
         {
           "name": "feeRecipient",
@@ -1224,22 +1186,7 @@ export type TokenBridgeRelayer = {
           "writable": true
         },
         {
-          "name": "wormholeSender",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  115,
-                  101,
-                  110,
-                  100,
-                  101,
-                  114
-                ]
-              }
-            ]
-          }
+          "name": "wormholeSender"
         },
         {
           "name": "wormholeFeeCollector",
@@ -1294,6 +1241,10 @@ export type TokenBridgeRelayer = {
         }
       ],
       "args": [
+        {
+          "name": "temporaryAccountBump",
+          "type": "u8"
+        },
         {
           "name": "recipientAddress",
           "type": {

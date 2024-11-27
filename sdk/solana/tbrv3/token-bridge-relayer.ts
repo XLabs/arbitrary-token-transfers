@@ -630,18 +630,23 @@ export class SolanaTokenBridgeRelayer {
       getTokenBridgeAccounts(),
     ]);
 
+    const { address: temporaryAccount, bump: temporaryAccountBump } = this.account.temporary(
+      tokenBridgeAccounts.mint,
+    );
+
     const accounts = {
       payer: signer,
       tbrConfig: this.account.config().address,
       chainConfig: this.account.chainConfig(recipient.chain).address,
       userTokenAccount,
-      temporaryAccount: this.account.temporary(tokenBridgeAccounts.mint).address,
+      temporaryAccount,
       feeRecipient,
       oracleConfig: this.priceOracleClient.account.config().address,
       oracleEvmPrices: this.priceOracleClient.account.evmPrices(recipient.chain).address,
       ...tokenBridgeAccounts,
       wormholeMessage: this.account.wormholeMessage(signer, payerSequenceNumber).address,
       payerSequence: this.account.signerSequence(signer).address,
+      wormholeSender: this.pda('sender').address,
       tokenBridgeProgram: this.tokenBridgeProgramId,
       wormholeProgram: this.wormholeProgramId,
     };
@@ -650,6 +655,7 @@ export class SolanaTokenBridgeRelayer {
 
     return this.program.methods
       .transferTokens(
+        temporaryAccountBump,
         uaToArray(recipient.address),
         bigintToBn(transferredAmount),
         unwrapIntent ?? false,
@@ -675,14 +681,19 @@ export class SolanaTokenBridgeRelayer {
       : this.tbAccBuilder.completeWrapped(vaa);
     const getSolDirectly = isNativeMint(tokenBridgeAccounts.mint) && unwrapIntent;
 
+    const { address: temporaryAccount, bump: temporaryAccountBump } = this.account.temporary(
+      tokenBridgeAccounts.mint,
+    );
+
     const accounts = {
       payer: signer,
       tbrConfig: this.account.config().address,
       recipientTokenAccount: getSolDirectly ? null : associatedTokenAccount,
       recipient: wallet,
       vaa: this.account.vaa(vaa.hash).address,
-      temporaryAccount: this.account.temporary(tokenBridgeAccounts.mint).address,
+      temporaryAccount,
       ...tokenBridgeAccounts,
+      wormholeRedeemer: this.pda('redeemer').address,
       tokenBridgeProgram: this.tokenBridgeProgramId,
       wormholeProgram: this.wormholeProgramId,
       peer: this.account.peer(vaa.emitterChain, vaa.payload.from).address,
@@ -696,7 +707,10 @@ export class SolanaTokenBridgeRelayer {
         mint: tokenBridgeAccounts.mint,
         wallet,
       }),
-      this.program.methods.completeTransfer().accountsPartial(accounts).instruction(),
+      this.program.methods
+        .completeTransfer(temporaryAccountBump)
+        .accountsPartial(accounts)
+        .instruction(),
     ]);
 
     if (getSolDirectly) {

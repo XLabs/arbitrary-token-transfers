@@ -3,7 +3,7 @@ use crate::{
     error::{TokenBridgeRelayerError, TokenBridgeRelayerResult},
     message::RelayerMessage,
     state::{ChainConfigState, SignerSequenceState, TbrConfigState},
-    utils::{calculate_total_fee, normalize_token_amount},
+    utils::{calculate_total_fee, normalize_token_amount, CreateAndInitTokenAccount},
 };
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
@@ -51,22 +51,16 @@ pub struct OutboundTransfer<'info> {
     )]
     pub user_token_account: Box<Account<'info, TokenAccount>>,
 
+    /// CHECK: This will be a `TokenAccount`. It is initialized with a seed provided from the client,
+    /// so Anchor forces to initialize it by hand. Since it is closed in the same instruction,
+    /// it causes no security problem.
+    ///
     /// Program's temporary token account. This account is created before the
     /// instruction is invoked to temporarily take custody of the payer's
     /// tokens. When the tokens are finally bridged out, the token account
     /// will have zero balance and can be closed.
-    #[account(
-        init,
-        payer = payer,
-        seeds = [
-            SEED_PREFIX_TEMPORARY,
-            mint.key().as_ref(),
-        ],
-        bump,
-        token::mint = mint,
-        token::authority = tbr_config,
-    )]
-    pub temporary_account: Box<Account<'info, TokenAccount>>,
+    #[account(mut)]
+    pub temporary_account: UncheckedAccount<'info>,
 
     /// Fee recipient's account. The fee will be transferred to this account.
     #[account(mut)]
@@ -139,14 +133,10 @@ pub struct OutboundTransfer<'info> {
     )]
     pub wormhole_message: AccountInfo<'info>,
 
-    #[account(
-        seeds = [token_bridge::SEED_PREFIX_SENDER],
-        bump = tbr_config.sender_bump,
-    )]
     pub wormhole_sender: UncheckedAccount<'info>,
 
-    #[account(mut)]
     /// CHECK: Wormhole fee collector. Mutable.
+    #[account(mut)]
     pub wormhole_fee_collector: UncheckedAccount<'info>,
 
     /// Used to keep track of payer's Wormhole sequence number.
@@ -170,6 +160,7 @@ pub struct OutboundTransfer<'info> {
 
 pub fn transfer_tokens(
     mut ctx: Context<OutboundTransfer>,
+    temporary_account_bump: u8,
     transferred_amount: u64,
     unwrap_intent: bool,
     dropoff_amount_micro: u32,
@@ -205,6 +196,22 @@ pub fn transfer_tokens(
         total_fees_lamports <= max_fee_lamports,
         TokenBridgeRelayerError::FeeExceedingMaximum
     );
+
+    // Initialize the temporary account:
+    CreateAndInitTokenAccount {
+        system_program: ctx.accounts.system_program.to_account_info(),
+        token_program: ctx.accounts.token_program.to_account_info(),
+        rent: ctx.accounts.rent.clone(),
+        payer: ctx.accounts.payer.to_account_info(),
+        account: ctx.accounts.temporary_account.to_account_info(),
+        mint: ctx.accounts.mint.to_account_info(),
+        authority: ctx.accounts.tbr_config.to_account_info(),
+    }
+    .run_with_seeds(&[
+        SEED_PREFIX_TEMPORARY,
+        ctx.accounts.mint.to_account_info().key.as_ref(),
+        &[temporary_account_bump],
+    ])?;
 
     // Transfer the fee to the fee collector:
     anchor_lang::system_program::transfer(
