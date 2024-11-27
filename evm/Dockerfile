@@ -20,9 +20,12 @@ RUN SOLC_VERSION=$(cd evm; forge config | grep "^solc =" | sed 's/solc = //' | s
     if [ -z $SOLC_VERSION ]; then echo "SOLC_VERSION not set"; exit 1; fi; \
     wget --output-document=evm/solc https://github.com/ethereum/solidity/releases/download/v$SOLC_VERSION/solc-static-linux && chmod +x evm/solc
 
-# Compile contract(s)
+# Compile contract(s). NOTE: jq must be pre-applied to "clean" the output from forge
+# otherwise solc aborts with duplicated key/newline problems.
 
 RUN cd evm; \
+    cat Tbr.input.json | jq > Tbr.input.tmp.json; \
+    mv Tbr.input.tmp.json Tbr.input.json; \
     ./solc --standard-json Tbr.input.json > Tbr.output.json && \
     SOLC_ERR=$(jq '.errors[] | select(.severity == "error")' Tbr.output.json) && \
     if [ ! -z "$SOLC_ERR" ]; then \
