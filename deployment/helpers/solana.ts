@@ -7,6 +7,7 @@ import {
   Commitment,
 } from "@solana/web3.js";
 import { SolanaLedgerSigner } from "@xlabs-xyz/ledger-signer-solana";
+import { chainToChainId } from '@wormhole-foundation/sdk-base';
 import { ecosystemChains, getEnv, resolveEnv } from "./env.js";
 import type { SolanaScriptCb, SolanaChainInfo } from "./interfaces.js";
 import { inspect } from "util";
@@ -43,7 +44,7 @@ export function solanaOperatingChains() {
   const { operatingChains } = ecosystemChains;
   if (Array.isArray(operatingChains) && operatingChains.length >= 1) {
     return ecosystemChains.solana.networks.filter((x) => {
-      return operatingChains.includes(x.chainId);
+      return operatingChains.includes(chainToChainId(x.name));
     });
   }
   return ecosystemChains.solana.networks;
@@ -60,7 +61,7 @@ export async function runOnSolana(scriptName: string, cb: SolanaScriptCb) {
   console.log(`Running script on Solana:`, scriptName);
 
   const result = chains.map(async chain => {
-    const log = (...args: any[]) => console.log(`[${chain.chainId}]`, ...args);
+    const log = (...args: any[]) => console.log(`[${chainToChainId(chain.name)}]`, ...args);
     const signer = await getSigner();
     // TODO: encode in base58
     const signerPubkey = new PublicKey(await signer.getAddress()).toBase58();

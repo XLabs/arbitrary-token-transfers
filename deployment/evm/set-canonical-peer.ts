@@ -5,7 +5,7 @@ import {
   loadTbrPeers,
 } from "../helpers/index.js";
 import { toUniversal } from "@wormhole-foundation/sdk-definitions";
-import { chainIdToChain, encoding } from "@wormhole-foundation/sdk-base";
+import { chainIdToChain, chainToChainId, encoding } from "@wormhole-foundation/sdk-base";
 import { ConfigCommand, ConfigQuery, SupportedChain, Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
 import { wrapEthersProvider } from "../helpers/evm.js";
@@ -17,13 +17,13 @@ import { wrapEthersProvider } from "../helpers/evm.js";
  */
 evm.runOnEvms("set-canonical-peer", async (chain, signer, log) => {
   // HACK! resolveWrappedToken does not seem to work for CELO native currency.
-  const gasTokenAddress = chain.chainId === 14 ? new EvmAddress(getDependencyAddress("initGasToken", chain)) : undefined;
+  const gasTokenAddress = chain.name === "Celo" ? new EvmAddress(getDependencyAddress("initGasToken", chain)) : undefined;
 
-  const tbrv3ProxyAddress = new EvmAddress(getContractAddress("TbrV3Proxies", chain.chainId));
+  const tbrv3ProxyAddress = new EvmAddress(getContractAddress("TbrV3Proxies", chainToChainId(chain.name)));
   const tbrv3 = Tbrv3.connect(
     wrapEthersProvider(signer.provider!),
     chain.network,
-    chainIdToChain(chain.chainId),
+    chain.name,
     gasTokenAddress,
     tbrv3ProxyAddress
   );

@@ -1,4 +1,4 @@
-import { chainIdToChain } from '@wormhole-foundation/sdk-base';
+import { chainIdToChain, chainToChainId } from '@wormhole-foundation/sdk-base';
 import { UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import { SolanaTokenBridgeRelayer } from '@xlabs-xyz/solana-arbitrary-token-transfers';
 import { runOnSolana, ledgerSignAndSend, getConnection } from '../helpers/solana.js';
@@ -24,14 +24,14 @@ const configureSolanaTbr: SolanaScriptCb = async function (
 ) {
   const signerKey = new PublicKey(await signer.getAddress());
   const connection = getConnection(chain);
-  const solanaDependencies = dependencies.find((d) => d.chainId === chain.chainId);
+  const solanaDependencies = dependencies.find((d) => d.chainId === chainToChainId(chain.name));
   if (solanaDependencies === undefined) {
-    throw new Error(`No dependencies found for chain ${chain.chainId}`);
+    throw new Error(`No dependencies found for chain ${chainToChainId(chain.name)}`);
   }
   const tbr = await SolanaTokenBridgeRelayer.create(connection);
 
   for (const tbrDeployment of contracts['TbrV3Proxies']) {
-    if (tbrDeployment.chainId === chain.chainId) continue; // skip self;
+    if (tbrDeployment.chainId === chainToChainId(chain.name)) continue; // skip self;
 
     const desiredChainConfig = await getChainConfig<EvmTbrV3Config>(
       'tbr-v3',

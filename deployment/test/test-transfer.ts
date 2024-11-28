@@ -1,4 +1,5 @@
 import {
+  ChainInfo,
   dependencies,
   evm,
   EvmChainInfo,
@@ -15,7 +16,7 @@ import { ethers } from 'ethers';
 import { getProvider, runOnEvms, sendTxCatch, wrapEthersProvider } from '../helpers/evm';
 import { SupportedChain, Tbrv3, Transfer } from '@xlabs-xyz/evm-arbitrary-token-transfers';
 import { resolveWrappedToken, toUniversal, UniversalAddress } from '@wormhole-foundation/sdk-definitions';
-import { Chain, chainIdToChain, chainToChainId, chainToPlatform, contracts } from '@wormhole-foundation/sdk-base';
+import { Chain, chainToChainId, chainToPlatform, contracts } from '@wormhole-foundation/sdk-base';
 import { inspect } from 'util';
 import { solanaOperatingChains, getConnection, ledgerSignAndSend, runOnSolana, SolanaSigner } from '../helpers/solana';
 import { EvmAddress } from '@wormhole-foundation/sdk-evm';
@@ -36,8 +37,8 @@ import { deriveWrappedMintKey } from '@wormhole-foundation/sdk-solana-tokenbridg
 
 
 const processName = 'att-test-transfer';
-const chains = evm.evmOperatingChains();
-const availableChains = chains.concat(solanaOperatingChains());
+const evmChains = evm.evmOperatingChains();
+const availableChains = (evmChains as ChainInfo[]).concat(solanaOperatingChains());
 const usdcAddresses = {
   OptimismSepolia: '0x5fd84259d66Cd46123540766Be93DFE6D43130D7',
   Sepolia: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
@@ -162,12 +163,12 @@ async function sendEvmTestTransaction(
 
     console.log(`Operating chain: ${inspect(chain)}`);
 
-    const tbrv3ProxyAddress = new EvmAddress(getContractAddress('TbrV3Proxies', chain.chainId));
+    const tbrv3ProxyAddress = new EvmAddress(getContractAddress('TbrV3Proxies', chainToChainId(chain.name)));
     const provider = getProvider(chain);
     const tbrv3 = Tbrv3.connect(
       wrapEthersProvider(provider!),
       chain.network,
-      chainIdToChain(chain.chainId),
+      chain.name,
       undefined,
       tbrv3ProxyAddress
     );
@@ -176,7 +177,7 @@ async function sendEvmTestTransaction(
     let allAllowances = {};
     const promises = await Promise.allSettled(
       targetChains
-        .filter((targetChain) => chain.chainId !== targetChain.chainId)
+        .filter((targetChain) => chain.name !== targetChain.name)
         .map(async (targetChain) => {
           try {
             log(`Creating transfer for ${chain.name} -> ${targetChain.name}`);
@@ -291,16 +292,16 @@ async function sendSolanaTestTransaction(
     maxFeeSol,
     unwrapIntent,
   });
-  const targetChains = chains.filter((c) => c.name === testTransfer.toChain);
+  const targetChains = evmChains.filter((c) => c.name === testTransfer.toChain);
 
   await Promise.all(
     targetChains.map(async (targetChain) => {
       log(`Creating transfer for Solana->${targetChain.name}`);
       const signerKey = new PublicKey(await signer.getAddress());
       const connection = getConnection(chain);
-      const solanaDependencies = dependencies.find((d) => d.chainId === chain.chainId);
+      const solanaDependencies = dependencies.find((d) => d.chainId === chainToChainId(chain.name));
       if (solanaDependencies === undefined) {
-        throw new Error(`No dependencies found for chain ${chain.chainId}`);
+        throw new Error(`No dependencies found for chain ${chain.name}`);
       }
 
       const tbr = await SolanaTokenBridgeRelayer.create(connection);

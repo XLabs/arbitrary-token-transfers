@@ -4,7 +4,7 @@ import {
   loadTbrPeers,
   LoggerFn
 } from "../helpers/index.js";
-import { Chain, chainIdToChain, encoding } from "@wormhole-foundation/sdk-base";
+import { Chain, chainIdToChain, chainToChainId, encoding } from "@wormhole-foundation/sdk-base";
 import { ConfigCommand, ConfigQuery, SupportedChain, Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
 import { wrapEthersProvider } from "../helpers/evm.js";
@@ -13,12 +13,12 @@ import { wrapEthersProvider } from "../helpers/evm.js";
  * Unpause transfers for Tbrv3 contracts.
  */
 evm.runOnEvms("unpause-transfer", async (operatingChain, signer, log) => {
-  const tbrv3ProxyAddress = new EvmAddress(getContractAddress("TbrV3Proxies", operatingChain.chainId));
+  const tbrv3ProxyAddress = new EvmAddress(getContractAddress("TbrV3Proxies", chainToChainId(operatingChain.name)));
   const peers = loadTbrPeers(operatingChain);
   const tbrv3 = Tbrv3.connect(
     wrapEthersProvider(signer.provider!),
     operatingChain.network,
-    chainIdToChain(operatingChain.chainId),
+    operatingChain.name,
     undefined,
     tbrv3ProxyAddress
   );

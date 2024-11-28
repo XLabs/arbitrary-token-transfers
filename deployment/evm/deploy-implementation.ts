@@ -1,10 +1,11 @@
+import { chainToChainId } from '@wormhole-foundation/sdk-base';
 import { EvmTbrV3Config } from "../config/config.types";
 import { Tbr__factory } from "../ethers-contracts";
 import { EvmChainInfo, getDependencyAddress } from "../helpers";
 import { getSigner } from "../helpers/evm";
 
 export async function deployRelayerImplementation(chain: EvmChainInfo, config: EvmTbrV3Config) {
-  console.log("Deploying Relayer Implementation " + chain.chainId);
+  console.log("Deploying Relayer Implementation " + chainToChainId(chain.name));
   const signer = await getSigner(chain);
 
   const factory = new Tbr__factory(signer);
@@ -27,5 +28,5 @@ export async function deployRelayerImplementation(chain: EvmChainInfo, config: E
   
   const address = await contract.getAddress();
   console.log("Successfully deployed implementation at " + address);
-  return { address, chainId: chain.chainId, constructorArgs: [ permit2, tokenBridge, oracle, initGasToken, config.initGasErc20TokenizationIsExplicit ] };
+  return { address, chainId: chainToChainId(chain.name), constructorArgs: [ permit2, tokenBridge, oracle, initGasToken, config.initGasErc20TokenizationIsExplicit ] };
 }
