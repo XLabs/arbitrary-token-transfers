@@ -77,7 +77,7 @@ export function resolveEnv(envNames: string[]): string {
     const v = process.env[env];
     if (v) return v;
   }
-  throw Error(`Env vars not set: ${inspect(envNames)}`);
+  throw Error(`At least one of these env vars needs to be set: ${inspect(envNames)}`);
 }
 
 export async function getChainConfig<T extends ChainConfig>(filename: string, whChainId: ChainId): Promise<T> {

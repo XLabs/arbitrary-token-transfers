@@ -2,7 +2,7 @@
   "evm": {
     "networks": [
       {
-        "name": "Fuji",
+        "name": "Avalanche",
         "externalId": 43113,
         "chainId": 6,
         "rpc": "https://api.avax-test.network/ext/bc/C/rpc",
