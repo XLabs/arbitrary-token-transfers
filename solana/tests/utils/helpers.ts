@@ -168,10 +168,10 @@ export class TestsHelper {
   }
 
   async getTransaction(
-    signature: TransactionSignature,
+    signature: TransactionSignature | Promise<TransactionSignature>,
   ): Promise<VersionedTransactionResponse | null> {
-    return this.connection.getTransaction(signature, {
-      commitment: 'confirmed',
+    return this.connection.getTransaction(await signature, {
+      commitment: this.finality,
       maxSupportedTransactionVersion: 1,
     });
   }

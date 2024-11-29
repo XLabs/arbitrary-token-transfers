@@ -380,10 +380,8 @@ fn denormalize_dropoff_to_lamports(amount: u32) -> u64 {
 }
 
 fn read_token_amount(token_account: &UncheckedAccount) -> Result<u64> {
-    msg!("TRY DESER");
     let mut data: &[u8] = &token_account.try_borrow_data()?;
     let data = TokenAccount::try_deserialize(&mut data)?;
-    msg!("DESER OK");
 
     Ok(data.amount)
 }

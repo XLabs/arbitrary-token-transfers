@@ -82,43 +82,36 @@ export class TbrWrapper {
     feeRecipient: PublicKey;
     admins: PublicKey[];
   }): Promise<VersionedTransactionResponse | null> {
-    return $.getTransaction(
-      await $.sendAndConfirm(await this.client.initialize(args), this.signer),
-    );
+    return $.getTransaction($.sendAndConfirm(await this.client.initialize(args), this.signer));
   }
 
   async submitOwnerTransferRequest(
     newOwner: PublicKey,
   ): Promise<VersionedTransactionResponse | null> {
     return $.getTransaction(
-      await $.sendAndConfirm(await this.client.submitOwnerTransferRequest(newOwner), this.signer),
+      $.sendAndConfirm(await this.client.submitOwnerTransferRequest(newOwner), this.signer),
     );
   }
 
   async confirmOwnerTransferRequest(): Promise<VersionedTransactionResponse | null> {
     return $.getTransaction(
-      await $.sendAndConfirm(await this.client.confirmOwnerTransferRequest(), this.signer),
+      $.sendAndConfirm(await this.client.confirmOwnerTransferRequest(), this.signer),
     );
   }
 
   async cancelOwnerTransferRequest(): Promise<VersionedTransactionResponse | null> {
     return $.getTransaction(
-      await $.sendAndConfirm(await this.client.cancelOwnerTransferRequest(), this.signer),
+      $.sendAndConfirm(await this.client.cancelOwnerTransferRequest(), this.signer),
     );
   }
 
   async addAdmin(newAdmin: PublicKey): Promise<VersionedTransactionResponse | null> {
-    return $.getTransaction(
-      await $.sendAndConfirm(await this.client.addAdmin(newAdmin), this.signer),
-    );
+    return $.getTransaction($.sendAndConfirm(await this.client.addAdmin(newAdmin), this.signer));
   }
 
   async removeAdmin(adminToRemove: PublicKey): Promise<VersionedTransactionResponse | null> {
     return $.getTransaction(
-      await $.sendAndConfirm(
-        await this.client.removeAdmin(this.publicKey, adminToRemove),
-        this.signer,
-      ),
+      $.sendAndConfirm(await this.client.removeAdmin(this.publicKey, adminToRemove), this.signer),
     );
   }
 
@@ -127,7 +120,7 @@ export class TbrWrapper {
     peerAddress: UniversalAddress,
   ): Promise<VersionedTransactionResponse | null> {
     return $.getTransaction(
-      await $.sendAndConfirm(
+      $.sendAndConfirm(
         await this.client.registerPeer(this.publicKey, chain, peerAddress),
         this.signer,
       ),
@@ -139,10 +132,7 @@ export class TbrWrapper {
     peerAddress: UniversalAddress,
   ): Promise<VersionedTransactionResponse | null> {
     return $.getTransaction(
-      await $.sendAndConfirm(
-        await this.client.updateCanonicalPeer(chain, peerAddress),
-        this.signer,
-      ),
+      $.sendAndConfirm(await this.client.updateCanonicalPeer(chain, peerAddress), this.signer),
     );
   }
 
@@ -151,7 +141,7 @@ export class TbrWrapper {
     paused: boolean,
   ): Promise<VersionedTransactionResponse | null> {
     return $.getTransaction(
-      await $.sendAndConfirm(
+      $.sendAndConfirm(
         await this.client.setPauseForOutboundTransfers(this.publicKey, chain, paused),
         this.signer,
       ),
@@ -163,7 +153,7 @@ export class TbrWrapper {
     maxGasDropoff: number,
   ): Promise<VersionedTransactionResponse | null> {
     return $.getTransaction(
-      await $.sendAndConfirm(
+      $.sendAndConfirm(
         await this.client.updateMaxGasDropoff(this.publicKey, chain, maxGasDropoff),
         this.signer,
       ),
@@ -175,7 +165,7 @@ export class TbrWrapper {
     relayerFee: number,
   ): Promise<VersionedTransactionResponse | null> {
     return $.getTransaction(
-      await $.sendAndConfirm(
+      $.sendAndConfirm(
         await this.client.updateRelayerFee(this.publicKey, chain, relayerFee),
         this.signer,
       ),
@@ -186,7 +176,7 @@ export class TbrWrapper {
     newFeeRecipient: PublicKey,
   ): Promise<VersionedTransactionResponse | null> {
     return $.getTransaction(
-      await $.sendAndConfirm(
+      $.sendAndConfirm(
         await this.client.updateFeeRecipient(this.publicKey, newFeeRecipient),
         this.signer,
       ),
@@ -198,7 +188,7 @@ export class TbrWrapper {
     evmTransactionSize: bigint,
   ): Promise<VersionedTransactionResponse | null> {
     return $.getTransaction(
-      await $.sendAndConfirm(
+      $.sendAndConfirm(
         await this.client.updateEvmTransactionConfig(
           this.publicKey,
           evmTransactionGas,
@@ -212,7 +202,7 @@ export class TbrWrapper {
   /** Only the token owner can call this method. */
   async transferTokens(params: TransferParameters): Promise<VersionedTransactionResponse | null> {
     const response = await $.getTransaction(
-      await $.sendAndConfirm(
+      $.sendAndConfirm(
         await this.client.transferTokens(this.publicKey, params),
         this.signer, //...signers
       ),
@@ -228,7 +218,7 @@ export class TbrWrapper {
 
   async completeTransfer(vaa: VaaMessage): Promise<VersionedTransactionResponse | null> {
     const response = await $.getTransaction(
-      await $.sendAndConfirm(await this.client.completeTransfer(this.publicKey, vaa), this.signer),
+      $.sendAndConfirm(await this.client.completeTransfer(this.publicKey, vaa), this.signer),
     );
 
     //console.log(

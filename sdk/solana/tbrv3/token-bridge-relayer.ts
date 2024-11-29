@@ -13,6 +13,8 @@ import {
   VersionedTransaction,
   SimulatedTransactionResponse,
   TransactionResponse,
+  SYSVAR_RENT_PUBKEY,
+  SYSVAR_CLOCK_PUBKEY,
 } from '@solana/web3.js';
 import * as spl from '@solana/spl-token';
 import {
@@ -82,9 +84,10 @@ const uaToPubkey = (address: UniversalAddress) => toNative('Solana', address).un
 
 export class SolanaTokenBridgeRelayer {
   public readonly program: anchor.Program<IdlType>;
-  private readonly priceOracleClient: SolanaPriceOracle;
-  private readonly wormholeProgramId: PublicKey;
-  private readonly tokenBridgeProgramId: PublicKey;
+  public readonly priceOracleClient: SolanaPriceOracle;
+  public readonly wormholeProgramId: PublicKey;
+  public readonly tokenBridgeProgramId: PublicKey;
+
   private readonly tbAccBuilder: TokenBridgeCpiAccountsBuilder;
 
   public debug: boolean;
@@ -649,6 +652,10 @@ export class SolanaTokenBridgeRelayer {
       wormholeSender: this.pda('sender').address,
       tokenBridgeProgram: this.tokenBridgeProgramId,
       wormholeProgram: this.wormholeProgramId,
+      systemProgram: SystemProgram.programId,
+      tokenProgram: spl.TOKEN_PROGRAM_ID,
+      rent: SYSVAR_RENT_PUBKEY,
+      clock: SYSVAR_CLOCK_PUBKEY,
     };
 
     this.logDebug('transferTokens:', transferType, objToString(params), objToString(accounts));
@@ -662,7 +669,7 @@ export class SolanaTokenBridgeRelayer {
         gasDropoffAmount,
         bigintToBn(maxFeeLamports),
       )
-      .accountsPartial(accounts)
+      .accountsStrict(accounts)
       .instruction();
   }
 
@@ -697,6 +704,9 @@ export class SolanaTokenBridgeRelayer {
       tokenBridgeProgram: this.tokenBridgeProgramId,
       wormholeProgram: this.wormholeProgramId,
       peer: this.account.peer(vaa.emitterChain, vaa.payload.from).address,
+      systemProgram: SystemProgram.programId,
+      tokenProgram: spl.TOKEN_PROGRAM_ID,
+      rent: SYSVAR_RENT_PUBKEY,
     };
 
     this.logDebug('completeTransfer:', native ? 'Native:' : 'Wrapped:', objToString(accounts));
@@ -709,7 +719,7 @@ export class SolanaTokenBridgeRelayer {
       }),
       this.program.methods
         .completeTransfer(temporaryAccountBump)
-        .accountsPartial(accounts)
+        .accountsStrict(accounts)
         .instruction(),
     ]);
 
