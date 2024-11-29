@@ -15,7 +15,7 @@ evm.runOnEvmsSequentially("read-configured-fee-and-dropoff", async (operatingCha
   console.log(`Operating chain: ${operatingChain.name}`);
 
   const tbrv3ProxyAddress = new EvmAddress(getContractAddress("TbrV3Proxies", chainToChainId(operatingChain.name)));
-  const tbrv3 = Tbrv3.connect(
+  const tbrv3 = Tbrv3.connectUnknown(
     wrapEthersProvider(signer.provider!),
     operatingChain.network,
     operatingChain.name,

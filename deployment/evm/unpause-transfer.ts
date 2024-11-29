@@ -15,11 +15,10 @@ import { wrapEthersProvider } from "../helpers/evm.js";
 evm.runOnEvms("unpause-transfer", async (operatingChain, signer, log) => {
   const tbrv3ProxyAddress = new EvmAddress(getContractAddress("TbrV3Proxies", chainToChainId(operatingChain.name)));
   const peers = loadTbrPeers(operatingChain);
-  const tbrv3 = Tbrv3.connect(
+  const tbrv3 = Tbrv3.connectUnknown(
     wrapEthersProvider(signer.provider!),
     operatingChain.network,
     operatingChain.name,
-    undefined,
     tbrv3ProxyAddress
   );
 

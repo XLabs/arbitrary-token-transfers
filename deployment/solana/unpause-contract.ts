@@ -6,15 +6,15 @@ import { dependencies } from '../helpers/env.js';
 import { PublicKey } from '@solana/web3.js';
 
 const unpauseContract: SolanaScriptCb = async function (
-  chain,
+  operatingChain,
   signer,
   // log,
 ) {
   const signerKey = new PublicKey(await signer.getAddress());
-  const connection = getConnection(chain);
-  const solanaDependencies = dependencies.find((d) => d.chainId === chainToChainId(chain.name));
+  const connection = getConnection(operatingChain);
+  const solanaDependencies = dependencies.find((d) => d.chainId === chainToChainId(operatingChain.name));
   if (solanaDependencies === undefined) {
-    throw new Error(`No dependencies found for chain ${chain.name}`);
+    throw new Error(`No dependencies found for chain ${operatingChain.name}`);
   }
   const tbr = await SolanaTokenBridgeRelayer.create(connection);
 
