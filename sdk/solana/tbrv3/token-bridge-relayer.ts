@@ -968,7 +968,7 @@ function programIdFromNetwork(network: TbrNetwork) {
 function objToString(input: any): any {
   if (Array.isArray(input)) {
     return input.map((v) => objToString(v));
-  } else if (input.constructor.name === 'PublicKey' || input instanceof UniversalAddress) {
+  } else if (input?.constructor.name === 'PublicKey' || input instanceof UniversalAddress) {
     return input.toString();
   } else if (input && typeof input === 'object') {
     return Object.fromEntries(Object.entries(input).map(([k, v]) => [k, objToString(v)]));
