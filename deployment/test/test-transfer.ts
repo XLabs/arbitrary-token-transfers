@@ -165,11 +165,10 @@ async function sendEvmTestTransaction(
 
     const tbrv3ProxyAddress = new EvmAddress(getContractAddress('TbrV3Proxies', chainToChainId(chain.name)));
     const provider = getProvider(chain);
-    const tbrv3 = Tbrv3.connect(
+    const tbrv3 = Tbrv3.connectUnknown(
       wrapEthersProvider(provider!),
       chain.network,
       chain.name,
-      undefined,
       tbrv3ProxyAddress
     );
     const targetChains = availableChains.filter((c) => c.name === testTransfer.toChain);
