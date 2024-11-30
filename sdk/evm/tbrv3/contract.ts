@@ -136,7 +136,6 @@ export const tbrV3Contracts = constMap(addresses);
 export const tbrV3Chains = tbrV3Contracts.subMap;
 
 type ChainsForNetwork<N extends NetworkMain> = Parameters<ReturnType<typeof tbrV3Chains<N>>>[number];
-// type Test2 = ChainsForNetwork<"Testnet">; //["Ethereum", "Avalanche", "Optimism", "Arbitrum", "Solana", "Base", "Polygon", "Sui"]
 
 export class Tbrv3 {
   /**
