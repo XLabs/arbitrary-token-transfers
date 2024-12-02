@@ -10,7 +10,11 @@ import {
   WormholeContracts,
 } from './utils/helpers.js';
 import { TbrWrapper } from './utils/tbr-wrapper.js';
-import { SolanaPriceOracle, uaToArray } from '@xlabs-xyz/solana-arbitrary-token-transfers';
+import {
+  BpfLoaderUpgradeableProgram,
+  SolanaPriceOracle,
+  uaToArray,
+} from '@xlabs-xyz/solana-arbitrary-token-transfers';
 import { expect } from 'chai';
 
 import testProgramKeypair from '../programs/token-bridge-relayer/test-program-keypair.json' with { type: 'json' };
@@ -74,6 +78,8 @@ describe('Token Bridge Relayer Program', () => {
   const ethereumTbrPeer1 = $.universalAddress.generate('ethereum');
   const ethereumTbrPeer2 = $.universalAddress.generate('ethereum');
   const oasisTbrPeer = $.universalAddress.generate('ethereum');
+
+  const bpfProgram = new BpfLoaderUpgradeableProgram(ownerClient.client.programId, $.connection);
 
   before(async () => {
     await $.airdrop([
@@ -145,6 +151,10 @@ describe('Token Bridge Relayer Program', () => {
       admins: [adminClient1.publicKey, adminClient2.publicKey],
     });
 
+    // Verify that the authority has been updated to the new owner.
+    const { upgradeAuthority } = await bpfProgram.getdata();
+    expect(upgradeAuthority).deep.equal(ownerClient.publicKey);
+
     const config = await unauthorizedClient.read.config();
     expect(config.owner).deep.equal(ownerClient.publicKey);
 
@@ -181,6 +191,10 @@ describe('Token Bridge Relayer Program', () => {
 
     it('Accepts a transfer validation by the rightful new owner', async () => {
       await newOwnerClient.confirmOwnerTransferRequest();
+
+      // Verify that the authority has been updated to the new owner.
+      const { upgradeAuthority } = await bpfProgram.getdata();
+      expect(upgradeAuthority).deep.equal(newOwnerClient.publicKey);
 
       // The owner has an admin badge:
       expect(

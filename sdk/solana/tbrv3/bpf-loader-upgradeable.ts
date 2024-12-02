@@ -2,7 +2,7 @@ import { Connection, PublicKey, TransactionInstruction } from '@solana/web3.js';
 import { CustomConversion, Layout, layout } from '@wormhole-foundation/sdk-base';
 //import { programDataLayout } from '@wormhole-foundation/sdk-solana/utils/utils/';
 import { throwError } from 'common-arbitrary-token-transfer';
-import { BN } from "@xlabs-xyz/solana-price-oracle-sdk";
+import { BN } from '@xlabs-xyz/solana-price-oracle-sdk';
 
 export class BpfLoaderUpgradeableProgram {
   static id = new PublicKey('BPFLoaderUpgradeab1e11111111111111111111111');

@@ -674,7 +674,7 @@ export class SolanaTokenBridgeRelayer {
   }
 
   /**
-   * Signer: typically the Token Bridge.
+   * Signer: typically the relayer.
    *
    * @param signer
    * @param vaa
