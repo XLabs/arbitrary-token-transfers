@@ -4,6 +4,7 @@
   "scripts": {
     "build": "sui move build",
     "clean": "rm -rf build",
-    "test": "sui move test"
+    "test": "sui move test",
+    "build-for-local-test": "sui move build --dump-bytecode-as-base64 --with-unpublished-dependencies"
   }
 }

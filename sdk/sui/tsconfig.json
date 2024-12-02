@@ -8,7 +8,7 @@
     "outDir": "ts-build",
     "paths": {
       "common-arbitrary-token-transfer": ["../common/index.ts"]
-    }  
+    }
 },
   "include": [
     "tbrv3",
