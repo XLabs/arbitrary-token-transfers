@@ -185,12 +185,12 @@ describe('Token Bridge Relayer Program', () => {
 
     it('Rejects a transfer validation by an unauthorized account', async () => {
       await assert
-        .promise(unauthorizedClient.confirmOwnerTransferRequest())
+        .promise(unauthorizedClient.confirmOwnerTransferRequest(ownerClient.signer))
         .failsWith('Signature verification failed');
     });
 
     it('Accepts a transfer validation by the rightful new owner', async () => {
-      await newOwnerClient.confirmOwnerTransferRequest();
+      await newOwnerClient.confirmOwnerTransferRequest(ownerClient.signer);
 
       // Verify that the authority has been updated to the new owner.
       const { upgradeAuthority } = await bpfProgram.getdata();

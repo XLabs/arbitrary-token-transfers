@@ -4,7 +4,10 @@ use crate::{
     error::TokenBridgeRelayerError,
     state::{AuthBadgeState, TbrConfigState},
 };
-use anchor_lang::prelude::*;
+use anchor_lang::{
+    prelude::*,
+    solana_program::{bpf_loader_upgradeable, program::invoke},
+};
 
 #[derive(Accounts)]
 pub struct SubmitOwnerTransfer<'info> {
@@ -52,6 +55,8 @@ pub struct ConfirmOwnerTransfer<'info> {
     )]
     pub auth_badge_new_owner: Account<'info, AuthBadgeState>,
 
+    pub previous_owner: Signer<'info>,
+
     #[account(
         mut,
         seeds = [AuthBadgeState::SEED_PREFIX, tbr_config.owner.to_bytes().as_ref()],
@@ -70,11 +75,36 @@ pub struct ConfirmOwnerTransfer<'info> {
     )]
     pub tbr_config: Account<'info, TbrConfigState>,
 
+    #[account(
+        mut,
+        seeds = [crate::ID.as_ref()],
+        bump,
+        seeds::program = bpf_loader_upgradeable::ID,
+    )]
+    program_data: Account<'info, ProgramData>,
+
+    #[account(address = bpf_loader_upgradeable::ID)]
+    pub bpf_loader_upgradeable: UncheckedAccount<'info>,
+
     pub system_program: Program<'info, System>,
 }
 
 pub fn confirm_owner_transfer_request(ctx: Context<ConfirmOwnerTransfer>) -> Result<()> {
     let tbr_config = &mut ctx.accounts.tbr_config;
+
+    // Change the program authority to the new owner:
+    invoke(
+        &bpf_loader_upgradeable::set_upgrade_authority(
+            &ctx.program_id,
+            &ctx.accounts.previous_owner.key(),
+            Some(&ctx.accounts.new_owner.key()),
+        ),
+        &[
+            ctx.accounts.program_data.to_account_info(),
+            ctx.accounts.previous_owner.to_account_info(),
+            ctx.accounts.new_owner.to_account_info(),
+        ],
+    )?;
 
     tbr_config.owner = ctx.accounts.new_owner.key();
     tbr_config.pending_owner = None;

@@ -391,7 +391,7 @@ export class SolanaTokenBridgeRelayer {
   }
 
   /**
-   * Signer: the Pending Owner.
+   * Signer: the Pending Owner, the Owner to be replaced.
    */
   async confirmOwnerTransferRequest(): Promise<TransactionInstruction> {
     const config = await this.read.config();
@@ -400,6 +400,7 @@ export class SolanaTokenBridgeRelayer {
       .confirmOwnerTransferRequest()
       .accounts({
         newOwner: config.pendingOwner ?? throwError('No pending owner in the program'),
+        previousOwner: config.owner,
         tbrConfig: this.account.config().address,
       })
       .instruction();

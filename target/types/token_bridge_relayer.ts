@@ -438,6 +438,10 @@ export type TokenBridgeRelayer = {
           }
         },
         {
+          "name": "previousOwner",
+          "signer": true
+        },
+        {
           "name": "authBadgePreviousOwner",
           "writable": true,
           "pda": {
@@ -472,6 +476,92 @@ export type TokenBridgeRelayer = {
             "because we will update roles depending on the operation."
           ],
           "writable": true
+        },
+        {
+          "name": "programData",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  13,
+                  74,
+                  247,
+                  118,
+                  36,
+                  164,
+                  201,
+                  97,
+                  25,
+                  221,
+                  241,
+                  144,
+                  142,
+                  148,
+                  63,
+                  218,
+                  160,
+                  137,
+                  78,
+                  28,
+                  18,
+                  140,
+                  195,
+                  112,
+                  127,
+                  26,
+                  150,
+                  227,
+                  211,
+                  125,
+                  216,
+                  108
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                2,
+                168,
+                246,
+                145,
+                78,
+                136,
+                161,
+                176,
+                226,
+                16,
+                21,
+                62,
+                247,
+                99,
+                174,
+                43,
+                0,
+                194,
+                185,
+                61,
+                22,
+                193,
+                36,
+                210,
+                192,
+                83,
+                122,
+                16,
+                4,
+                128,
+                0,
+                0
+              ]
+            }
+          }
+        },
+        {
+          "name": "bpfLoaderUpgradeable",
+          "address": "BPFLoaderUpgradeab1e11111111111111111111111"
         },
         {
           "name": "systemProgram",
