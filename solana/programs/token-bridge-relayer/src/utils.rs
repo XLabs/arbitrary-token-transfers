@@ -5,6 +5,7 @@ use crate::{
 use anchor_lang::{
     prelude::*,
     solana_program::{native_token::LAMPORTS_PER_SOL, program_option::COption},
+    system_program,
 };
 use anchor_spl::token::Mint;
 use solana_price_oracle::state::{EvmPricesState, PriceOracleConfigState};
@@ -138,5 +139,48 @@ pub fn normalize_token_amount(transferred_amount: u64, mint: &Mint) -> u64 {
         transferred_amount / factor * factor
     } else {
         transferred_amount
+    }
+}
+
+pub struct CreateAndInitTokenAccount<'info> {
+    pub system_program: AccountInfo<'info>,
+    pub token_program: AccountInfo<'info>,
+    pub rent: Sysvar<'info, Rent>,
+    pub payer: AccountInfo<'info>,
+    pub account: AccountInfo<'info>,
+    pub mint: AccountInfo<'info>,
+    pub authority: AccountInfo<'info>,
+}
+
+impl<'info> CreateAndInitTokenAccount<'info> {
+    pub fn run_with_seeds(self, seeds: &[&[u8]]) -> Result<()> {
+        const LEN: usize = anchor_spl::token::TokenAccount::LEN;
+
+        system_program::create_account(
+            CpiContext::new_with_signer(
+                self.system_program,
+                system_program::CreateAccount {
+                    from: self.payer,
+                    to: self.account.clone(),
+                },
+                &[seeds],
+            ),
+            self.rent.minimum_balance(LEN),
+            LEN.try_into().unwrap(),
+            self.token_program.key,
+        )?;
+
+        anchor_spl::token::initialize_account(CpiContext::new_with_signer(
+            self.token_program,
+            anchor_spl::token::InitializeAccount {
+                account: self.account,
+                mint: self.mint,
+                authority: self.authority,
+                rent: self.rent.to_account_info(),
+            },
+            &[seeds],
+        ))?;
+
+        Ok(())
     }
 }

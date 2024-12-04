@@ -161,6 +161,7 @@ pub mod token_bridge_relayer {
     /// - `max_fee_lamports`: the maximum fee the user is willing to pay, in lamports.
     pub fn transfer_tokens(
         ctx: Context<OutboundTransfer>,
+        temporary_account_bump: u8,
         recipient_address: [u8; 32],
         transferred_amount: u64,
         unwrap_intent: bool,
@@ -169,6 +170,7 @@ pub mod token_bridge_relayer {
     ) -> Result<()> {
         processor::transfer_tokens(
             ctx,
+            temporary_account_bump,
             transferred_amount,
             unwrap_intent,
             dropoff_amount_micro,
@@ -178,8 +180,11 @@ pub mod token_bridge_relayer {
     }
 
     /// Complete a transfer initiated from another chain.
-    pub fn complete_transfer(ctx: Context<CompleteTransfer>) -> Result<()> {
-        processor::complete_transfer(ctx)
+    pub fn complete_transfer(
+        ctx: Context<CompleteTransfer>,
+        temporary_account_bump: u8,
+    ) -> Result<()> {
+        processor::complete_transfer(ctx, temporary_account_bump)
     }
 
     /* Helpers */

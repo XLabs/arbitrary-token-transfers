@@ -62,6 +62,10 @@ pub(crate) enum TokenBridgeRelayerError {
     #[msg("EvmChainPriceNotSet")]
     EvmChainPriceNotSet,
 
+    /// The prices account chain must match the chain config.
+    #[msg("ChainPriceMismatch")]
+    ChainPriceMismatch,
+
     /// Transfers are paused for this chain.
     #[msg("PausedTransfers")]
     PausedTransfers,

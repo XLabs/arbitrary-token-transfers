@@ -13,6 +13,8 @@ import {
   VersionedTransaction,
   SimulatedTransactionResponse,
   TransactionResponse,
+  SYSVAR_RENT_PUBKEY,
+  SYSVAR_CLOCK_PUBKEY,
 } from '@solana/web3.js';
 import * as spl from '@solana/spl-token';
 import {
@@ -82,9 +84,10 @@ const uaToPubkey = (address: UniversalAddress) => toNative('Solana', address).un
 
 export class SolanaTokenBridgeRelayer {
   public readonly program: anchor.Program<IdlType>;
-  private readonly priceOracleClient: SolanaPriceOracle;
-  private readonly wormholeProgramId: PublicKey;
-  private readonly tokenBridgeProgramId: PublicKey;
+  public readonly priceOracleClient: SolanaPriceOracle;
+  public readonly wormholeProgramId: PublicKey;
+  public readonly tokenBridgeProgramId: PublicKey;
+
   private readonly tbAccBuilder: TokenBridgeCpiAccountsBuilder;
 
   public debug: boolean;
@@ -388,7 +391,7 @@ export class SolanaTokenBridgeRelayer {
   }
 
   /**
-   * Signer: the Pending Owner.
+   * Signer: the Pending Owner, the Owner to be replaced.
    */
   async confirmOwnerTransferRequest(): Promise<TransactionInstruction> {
     const config = await this.read.config();
@@ -397,6 +400,7 @@ export class SolanaTokenBridgeRelayer {
       .confirmOwnerTransferRequest()
       .accounts({
         newOwner: config.pendingOwner ?? throwError('No pending owner in the program'),
+        previousOwner: config.owner,
         tbrConfig: this.account.config().address,
       })
       .instruction();
@@ -630,38 +634,48 @@ export class SolanaTokenBridgeRelayer {
       getTokenBridgeAccounts(),
     ]);
 
+    const { address: temporaryAccount, bump: temporaryAccountBump } = this.account.temporary(
+      tokenBridgeAccounts.mint,
+    );
+
     const accounts = {
       payer: signer,
       tbrConfig: this.account.config().address,
       chainConfig: this.account.chainConfig(recipient.chain).address,
       userTokenAccount,
-      temporaryAccount: this.account.temporary(tokenBridgeAccounts.mint).address,
+      temporaryAccount,
       feeRecipient,
       oracleConfig: this.priceOracleClient.account.config().address,
       oracleEvmPrices: this.priceOracleClient.account.evmPrices(recipient.chain).address,
       ...tokenBridgeAccounts,
       wormholeMessage: this.account.wormholeMessage(signer, payerSequenceNumber).address,
       payerSequence: this.account.signerSequence(signer).address,
+      wormholeSender: this.pda('sender').address,
       tokenBridgeProgram: this.tokenBridgeProgramId,
       wormholeProgram: this.wormholeProgramId,
+      systemProgram: SystemProgram.programId,
+      tokenProgram: spl.TOKEN_PROGRAM_ID,
+      rent: SYSVAR_RENT_PUBKEY,
+      clock: SYSVAR_CLOCK_PUBKEY,
     };
 
     this.logDebug('transferTokens:', transferType, objToString(params), objToString(accounts));
 
     return this.program.methods
       .transferTokens(
+        temporaryAccountBump,
         uaToArray(recipient.address),
         bigintToBn(transferredAmount),
         unwrapIntent ?? false,
         gasDropoffAmount,
         bigintToBn(maxFeeLamports),
       )
-      .accountsPartial(accounts)
+      .accountsStrict(accounts)
       .instruction();
   }
 
   /**
-   * Signer: typically the Token Bridge.
+   * Signer: typically the relayer.
    *
    * @param signer
    * @param vaa
@@ -675,17 +689,25 @@ export class SolanaTokenBridgeRelayer {
       : this.tbAccBuilder.completeWrapped(vaa);
     const getSolDirectly = isNativeMint(tokenBridgeAccounts.mint) && unwrapIntent;
 
+    const { address: temporaryAccount, bump: temporaryAccountBump } = this.account.temporary(
+      tokenBridgeAccounts.mint,
+    );
+
     const accounts = {
       payer: signer,
       tbrConfig: this.account.config().address,
       recipientTokenAccount: getSolDirectly ? null : associatedTokenAccount,
       recipient: wallet,
       vaa: this.account.vaa(vaa.hash).address,
-      temporaryAccount: this.account.temporary(tokenBridgeAccounts.mint).address,
+      temporaryAccount,
       ...tokenBridgeAccounts,
+      wormholeRedeemer: this.pda('redeemer').address,
       tokenBridgeProgram: this.tokenBridgeProgramId,
       wormholeProgram: this.wormholeProgramId,
       peer: this.account.peer(vaa.emitterChain, vaa.payload.from).address,
+      systemProgram: SystemProgram.programId,
+      tokenProgram: spl.TOKEN_PROGRAM_ID,
+      rent: SYSVAR_RENT_PUBKEY,
     };
 
     this.logDebug('completeTransfer:', native ? 'Native:' : 'Wrapped:', objToString(accounts));
@@ -696,7 +718,10 @@ export class SolanaTokenBridgeRelayer {
         mint: tokenBridgeAccounts.mint,
         wallet,
       }),
-      this.program.methods.completeTransfer().accountsPartial(accounts).instruction(),
+      this.program.methods
+        .completeTransfer(temporaryAccountBump)
+        .accountsStrict(accounts)
+        .instruction(),
     ]);
 
     if (getSolDirectly) {
@@ -944,7 +969,7 @@ function programIdFromNetwork(network: TbrNetwork) {
 function objToString(input: any): any {
   if (Array.isArray(input)) {
     return input.map((v) => objToString(v));
-  } else if (input instanceof PublicKey || input instanceof UniversalAddress) {
+  } else if (input?.constructor.name === 'PublicKey' || input instanceof UniversalAddress) {
     return input.toString();
   } else if (input && typeof input === 'object') {
     return Object.fromEntries(Object.entries(input).map(([k, v]) => [k, objToString(v)]));
