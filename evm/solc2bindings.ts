@@ -19,11 +19,17 @@ import { exit } from 'process';
     const contracts: any = json['contracts']
     const fileDescriptions: FileDescription[] = []
 
-    console.log(`Found ${Object.keys(contracts).length} contracts to process...`)
-
+    console.log(`Found ${Object.keys(contracts).length} entries to process...`)
+    
     for (const [path, contents] of Object.entries(contracts)) {
-        fileDescriptions.push({ path, contents: JSON.stringify(contents) });
+        const contractsInFile = Object.entries(contents as { [key: string]: any });
+        console.log(`  Found path ${path} with ${contractsInFile.length} contracts `)
+        for (const [contractName, abiAndBytecodeData] of contractsInFile) {
+            console.log(`    Adding contract ${contractName} `)
+            fileDescriptions.push({ path, contents: JSON.stringify(abiAndBytecodeData) });
+        }
     }
+    
     const pc: Omit<PublicConfig, "filesToProcess"> = {
         cwd: path.join(process.cwd()),
         allFiles: fileDescriptions.map(k => k.contents),
