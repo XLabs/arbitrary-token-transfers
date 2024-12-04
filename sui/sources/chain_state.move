@@ -1,11 +1,11 @@
 module tbrv3::chain_state {
 	// ----- Imports -----
 
-	use tbrv3::admin::AdminPermission;
 	use tbrv3::peer::PeerCap;
 	use tbrv3::tbrv3::TBRV3;
 
 	use xlabs::owner::OwnerCap;
+	use xlabs::admin::AdminCap;
 
 	// ----- Structs -----
 
@@ -20,7 +20,7 @@ module tbrv3::chain_state {
 	// ----- Constructors -----
 
 	public fun new(
-		_perm: &AdminPermission,
+		_perm: &AdminCap<TBRV3>,
 		chain_id: u16,
 		max_gas_dropoff_micro_token: u32,
 		relayer_fee_micro_usd: u32,
@@ -72,7 +72,7 @@ module tbrv3::chain_state {
 
 	public fun set_max_gas_dropoff_micro_token(
 		chain_state: &mut ChainState,
-		_perm: &AdminPermission,
+		_perm: &AdminCap<TBRV3>,
 		max_gas_dropoff_micro_token: u32,
 	) {
 		chain_state.max_gas_dropoff_micro_token = max_gas_dropoff_micro_token;
@@ -80,7 +80,7 @@ module tbrv3::chain_state {
 
 	public fun set_relayer_fee_micro_usd(
 		chain_state: &mut ChainState,
-		_perm: &AdminPermission,
+		_perm: &AdminCap<TBRV3>,
 		relayer_fee_micro_usd: u32,
 	) {
 		chain_state.relayer_fee_micro_usd = relayer_fee_micro_usd;
@@ -88,7 +88,7 @@ module tbrv3::chain_state {
 
 	public fun set_outbound_transfers_paused(
 		chain_state: &mut ChainState,
-		_perm: &AdminPermission,
+		_perm: &AdminCap<TBRV3>,
 		outbound_transfers_paused: bool,
 	) {
 		chain_state.outbound_transfers_paused = outbound_transfers_paused;

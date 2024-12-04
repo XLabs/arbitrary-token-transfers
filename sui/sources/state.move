@@ -1,7 +1,9 @@
 module tbrv3::state {
 	// ----- Imports -----
 
-	use tbrv3::admin::AdminPermission;
+	use tbrv3::tbrv3::TBRV3;
+
+	use xlabs::admin::AdminCap;
 
 	use sui::balance::{Balance, zero};
 	use sui::coin::Coin;
@@ -84,7 +86,7 @@ module tbrv3::state {
 	// Authorization: Admin
 	public fun set_fee_recipient(
 		state: &mut State,
-		_perm: &AdminPermission,
+		_perm: &AdminCap<TBRV3>,
 		new_fee_recipient: address,
 	) {
 		// Verify the state version
@@ -98,7 +100,7 @@ module tbrv3::state {
 	// Authorization: Admin
 	public fun set_evm_transaction_config(
 		state: &mut State,
-		_perm: &AdminPermission,
+		_perm: &AdminCap<TBRV3>,
 		evm_transaction_gas: u64,
 		evm_transaction_size: u64,
 	) {
@@ -118,7 +120,7 @@ module tbrv3::state {
 
 	public fun add_gas_token_supply(
 		state: &mut State,
-		_perm: &AdminPermission,
+		_perm: &AdminCap<TBRV3>,
 		amount: Coin<SUI>,
 	) {
 		// Verify the state version

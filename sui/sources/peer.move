@@ -1,7 +1,9 @@
 module tbrv3::peer {
 	// ----- Imports -----
 
-	use tbrv3::admin::AdminPermission;
+	use tbrv3::tbrv3::TBRV3;
+
+	use xlabs::admin::AdminCap;
 
 	use wormhole::external_address::ExternalAddress;
 
@@ -18,7 +20,7 @@ module tbrv3::peer {
 	// Create a new peer from an admin cap
 	// Authorization: Admin
 	public fun new_peer(
-		_perm: &AdminPermission,
+		_perm: &AdminCap<TBRV3>,
 		chain: u16,
 		chain_address: ExternalAddress,
 		ctx: &mut TxContext,

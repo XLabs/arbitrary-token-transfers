@@ -1,20 +1,17 @@
 [package]
-name = "TBRv3"
+name = "tbrv3"
 edition = "2024.beta" # edition = "legacy" to use legacy (pre-2024) Move
 
 [dependencies]
 Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet", override = true }
 Wormhole = { local = "../lib/wormhole/sui/wormhole" }
 TokenBridge = { local = "../lib/wormhole/sui/token_bridge" }
-tbrv3_quoting_oracle = { local = "../lib/relayer-infra-contracts/src/sui/contracts" }
+tbrv3_quoting_oracle = { local = "../lib/relayer-infra-contracts/src/sui/contracts/oracle" }
+xlabs = { local = "../lib/relayer-infra-contracts/src/sui/contracts/xlabs" }
 
 [addresses]
-tbrv3 = "0x0"
-wormhole = "0xaeab97f96cf9877fee2883315d459552b2b921edc16d7ceac6eab944dd88919c"
-token_bridge = "0xc57508ee0d4595e5a8728974a4a93a787d38f339757230d441e895422c07aba9"
-tbrv3_quoting_oracle = "_"
+xlabs = "0x1000"
+tbrv3_quoting_oracle = "0x1001"
+tbrv3 = "0x1002"
 
 [dev-addresses]
-wormhole = "0x100"
-token_bridge = "0x200"
-tbrv3_quoting_oracle = "0x300"

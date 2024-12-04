@@ -2,13 +2,14 @@
 
 [move]
 version = 3
-manifest_digest = "547E86C39942679795D0CCC738A1D9E044789EC64D7801D0C9D3FCDA6BF07B87"
-deps_digest = "F9B494B64F0615AED0E98FC12A85B85ECD2BC5185C22D30E7F67786BB52E507C"
+manifest_digest = "035F2A33B2FFCFCEA8F56F703594A5E3F284AA8DB59806EB464B9F8C1D18041D"
+deps_digest = "397E6A9F7A624706DBDFEE056CE88391A15876868FD18A88504DA74EB458D697"
 dependencies = [
   { id = "Sui", name = "Sui" },
   { id = "TokenBridge", name = "TokenBridge" },
   { id = "Wormhole", name = "Wormhole" },
   { id = "tbrv3_quoting_oracle", name = "tbrv3_quoting_oracle" },
+  { id = "xlabs", name = "xlabs" },
 ]
 
 [[move.package]]
@@ -45,7 +46,16 @@ dependencies = [
 
 [[move.package]]
 id = "tbrv3_quoting_oracle"
-source = { local = "..\\lib\\relayer-infra-contracts\\src\\sui\\contracts" }
+source = { local = "..\\lib\\relayer-infra-contracts\\src\\sui\\contracts\\oracle" }
+
+dependencies = [
+  { id = "Sui", name = "Sui" },
+  { id = "xlabs", name = "xlabs" },
+]
+
+[[move.package]]
+id = "xlabs"
+source = { local = "..\\lib\\relayer-infra-contracts\\src\\sui\\contracts\\xlabs" }
 
 dependencies = [
   { id = "Sui", name = "Sui" },
