@@ -79,7 +79,7 @@ describe('Token Bridge Relayer Program', () => {
   const ethereumTbrPeer2 = $.universalAddress.generate('ethereum');
   const oasisTbrPeer = $.universalAddress.generate('ethereum');
 
-  const bpfProgram = new BpfLoaderUpgradeableProgram(ownerClient.client.programId, $.connection);
+  const bpfProgram = new BpfLoaderUpgradeableProgram(ownerClient.client.program.programId, $.connection);
 
   before(async () => {
     await $.airdrop([
@@ -216,7 +216,7 @@ describe('Token Bridge Relayer Program', () => {
 
       // Now the original owner cannot accept the ownership:
       await assert
-        .promise(ownerClient.confirmOwnerTransferRequest())
+        .promise(ownerClient.confirmOwnerTransferRequest(ownerClient.signer))
         .failsWith('No pending owner in the program');
     });
 
