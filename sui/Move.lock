@@ -2,56 +2,56 @@
 
 [move]
 version = 3
-manifest_digest = "DEC81154D5EF46426B594980CEF8BA9A0D5F2109D97995D8436195D15F4D83E7"
+manifest_digest = "547E86C39942679795D0CCC738A1D9E044789EC64D7801D0C9D3FCDA6BF07B87"
 deps_digest = "F9B494B64F0615AED0E98FC12A85B85ECD2BC5185C22D30E7F67786BB52E507C"
 dependencies = [
-  { name = "Sui" },
-  { name = "TokenBridge" },
-  { name = "Wormhole" },
-  { name = "tbrv3_quoting_oracle" },
+  { id = "Sui", name = "Sui" },
+  { id = "TokenBridge", name = "TokenBridge" },
+  { id = "Wormhole", name = "Wormhole" },
+  { id = "tbrv3_quoting_oracle", name = "tbrv3_quoting_oracle" },
 ]
 
 [[move.package]]
-name = "MoveStdlib"
-source = { git = "https://github.com/MystenLabs/sui.git", rev = "framework/testnet", subdir = "crates/sui-framework/packages/move-stdlib" }
+id = "MoveStdlib"
+source = { git = "https://github.com/MystenLabs/sui.git", rev = "framework/testnet", subdir = "crates\\sui-framework\\packages\\move-stdlib" }
 
 [[move.package]]
-name = "Sui"
+id = "Sui"
 source = { git = "https://github.com/MystenLabs/sui.git", rev = "framework/testnet", subdir = "crates/sui-framework/packages/sui-framework" }
 
 dependencies = [
-  { name = "MoveStdlib" },
+  { id = "MoveStdlib", name = "MoveStdlib" },
 ]
 
 [[move.package]]
-name = "TokenBridge"
-source = { local = "../lib/wormhole/sui/token_bridge" }
+id = "TokenBridge"
+source = { local = "..\\lib\\wormhole\\sui\\token_bridge" }
 
 dependencies = [
-  { name = "Sui" },
+  { id = "Sui", name = "Sui" },
 ]
 
 dev-dependencies = [
-  { name = "Wormhole" },
+  { id = "Wormhole", name = "Wormhole" },
 ]
 
 [[move.package]]
-name = "Wormhole"
-source = { local = "../lib/wormhole/sui/wormhole" }
+id = "Wormhole"
+source = { local = "..\\lib\\wormhole\\sui\\wormhole" }
 
 dependencies = [
-  { name = "Sui" },
+  { id = "Sui", name = "Sui" },
 ]
 
 [[move.package]]
-name = "tbrv3_quoting_oracle"
-source = { local = "../lib/relayer-infra-contracts/src/sui/contracts" }
+id = "tbrv3_quoting_oracle"
+source = { local = "..\\lib\\relayer-infra-contracts\\src\\sui\\contracts" }
 
 dependencies = [
-  { name = "Sui" },
+  { id = "Sui", name = "Sui" },
 ]
 
 [move.toolchain-version]
-compiler-version = "1.34.2"
+compiler-version = "1.35.0"
 edition = "2024.beta"
 flavor = "sui"
