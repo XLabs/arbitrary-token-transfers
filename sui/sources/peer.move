@@ -5,12 +5,19 @@ module tbrv3::peer {
 
 	use xlabs::admin::AdminCap;
 
+	use sui::event::emit;
+
 	use wormhole::external_address::ExternalAddress;
 
 	// ----- Structs -----
 
 	public struct PeerCap has key, store {
 		id: UID,
+		chain: u16,
+		chain_address: ExternalAddress,
+	}
+
+	public struct NewPeerEvent has copy, drop {
 		chain: u16,
 		chain_address: ExternalAddress,
 	}
@@ -25,6 +32,13 @@ module tbrv3::peer {
 		chain_address: ExternalAddress,
 		ctx: &mut TxContext,
 	) {
+		emit(
+			NewPeerEvent {
+				chain,
+				chain_address,
+			}
+		);
+
 		transfer::share_object(
 			PeerCap {
 				id: object::new(ctx),

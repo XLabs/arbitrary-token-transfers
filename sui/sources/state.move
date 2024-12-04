@@ -21,8 +21,8 @@ module tbrv3::state {
 	public struct State has key {
 		id: UID,
 		version: u64,
-
-		fee_recipient: address,
+	
+		fee_recipient: address, // TODO: Make this into a cap, hold the fee balance in the state
 
 		evm_transaction_gas: u64,
 		evm_transaction_size: u64,
