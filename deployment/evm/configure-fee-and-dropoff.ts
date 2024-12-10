@@ -7,7 +7,7 @@ import {
 import { chainIdToChain, chainToChainId, encoding } from "@wormhole-foundation/sdk-base";
 import { SupportedChain, Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
 import { EvmTbrV3Config } from "../config/config.types.js";
-import { EvmAddress } from "@wormhole-foundation/sdk-evm/dist/cjs";
+import { EvmAddress } from "@wormhole-foundation/sdk-evm";
 import { wrapEthersProvider } from "../helpers/evm.js";
 
 /**
@@ -15,7 +15,12 @@ import { wrapEthersProvider } from "../helpers/evm.js";
  */
 evm.runOnEvms("configure-fee-and-dropoff", async (chain, signer, log) => {
   const tbrv3ProxyAddress = new EvmAddress(getContractAddress("TbrV3Proxies", chainToChainId(chain.name)));
-  const tbrv3 = Tbrv3.connect(wrapEthersProvider(signer.provider!), chain.network, "Sepolia", tbrv3ProxyAddress);
+  const tbrv3 = Tbrv3.connectUnknown(
+    wrapEthersProvider(signer.provider!),
+    chain.network,
+    chain.name,
+    tbrv3ProxyAddress
+  );
   const peers = loadTbrPeers(chain);
 
   const queries = [];

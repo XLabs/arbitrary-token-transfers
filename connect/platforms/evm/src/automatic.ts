@@ -65,10 +65,11 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
     const address = tokenBridgeRelayerV3Contracts.get(network, chain);
     if (!address) throw new Error(`TokenBridgeRelayerV3 contract not defined for chain ${chain}`);
 
-    this.tbr = Tbrv3.connect(
+    this.tbr = Tbrv3.connectUnknown(
       wrapEthersProvider(provider),
       network,
       chain,
+      new EvmAddress(address)
     );
 
     this.networkId = nativeChainIds.networkChainToNativeChainId.get(

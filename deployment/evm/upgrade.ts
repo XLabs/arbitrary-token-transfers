@@ -8,10 +8,9 @@ import {
   writeDeployedContract
 } from "../helpers";
 import { EvmTbrV3Config } from "../config/config.types";
-import { ethers } from "ethers";
-import { getSigner, getProvider, sendTx, wrapEthersProvider } from "../helpers/evm";
+import { getSigner, sendTx, wrapEthersProvider } from "../helpers/evm";
 import { EvmAddress } from '@wormhole-foundation/sdk-evm';
-import { chainToChainId } from '@wormhole-foundation/sdk-base';
+import { chainToChainId, encoding } from '@wormhole-foundation/sdk-base';
 import { deployRelayerImplementation } from "./deploy-implementation";
 
 
@@ -68,24 +67,26 @@ async function upgradeTbrV3Relayer(chain: EvmChainInfo, config: EvmTbrV3Config) 
 }
 
 async function upgradeProxyWithNewImplementation(
-  chain: EvmChainInfo,
+  operatingChain: EvmChainInfo,
   config: EvmTbrV3Config,
   implementationAddress: string,
 ) {
-  console.log("Upgrade Proxy with new implementation " + chain.name);
-  const signer = await getSigner(chain);
+  console.log("Upgrade Proxy with new implementation " + operatingChain.name);
+  const signer = await getSigner(operatingChain);
   const { Tbrv3 } = await import("@xlabs-xyz/evm-arbitrary-token-transfers");
 
   // HACK! resolveWrappedToken does not seem to work for CELO native currency.
-  const gasTokenAddress = chain.name === "Celo" ? new EvmAddress(getDependencyAddress("initGasToken", chain)) : undefined;
+  const gasTokenAddress = operatingChain.name === "Celo"
+    ? new EvmAddress(getDependencyAddress("initGasToken", operatingChain))
+    : undefined;
 
-  const proxyAddress = new EvmAddress(getContractAddress("TbrV3Proxies", chainToChainId(chain.name)));
-  const tbr = Tbrv3.connect(
-    wrapEthersProvider(getProvider(chain)),
-    chain.network,
-    chain.name,
-    gasTokenAddress,
+  const proxyAddress = new EvmAddress(getContractAddress("TbrV3Proxies", chainToChainId(operatingChain.name)));
+  const tbr = Tbrv3.connectUnknown(
+    wrapEthersProvider(signer.provider!),
+    operatingChain.network,
+    operatingChain.name,
     proxyAddress,
+    gasTokenAddress
   );
 
   const tx = tbr.execTx(0n, [{
@@ -95,18 +96,18 @@ async function upgradeProxyWithNewImplementation(
 
   const { txid } = await sendTx(signer, {
     ...tx,
-    data: ethers.hexlify(tx.data),
+    data: encoding.hex.encode(tx.data, true),
   });
 
   console.log(`Tx Included!. TxHash: ${txid}`);
 
   const constructorArgs = [implementationAddress];
-  const previousConstructorArgs = getDeploymentArgs("TbrV3Proxies", chainToChainId(chain.name));
+  const previousConstructorArgs = getDeploymentArgs("TbrV3Proxies", chainToChainId(operatingChain.name));
   if (previousConstructorArgs) {
     constructorArgs.push(...previousConstructorArgs.slice(1));
   }
 
-  return { chainId: chainToChainId(chain.name), address: proxyAddress, constructorArgs };
+  return { chainId: chainToChainId(operatingChain.name), address: proxyAddress, constructorArgs };
 }
 
 

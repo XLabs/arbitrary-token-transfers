@@ -1,11 +1,14 @@
 import {
   RoArray,
+  MapLevels,
   Chain,
   Network,
   serializeLayout,
   deserializeLayout,
   chainToPlatform,
   encoding,
+  constMap,
+  PlatformToChains,
 } from "@wormhole-foundation/sdk-base";
 import {
   keccak256,
@@ -46,8 +49,6 @@ import { evmAddressItem } from "./solidity-sdk/common.js";
 import { getCanonicalToken } from "@wormhole-foundation/sdk-base/tokens";
 
 const WHOLE_EVM_GAS_TOKEN_UNITS = 10 ** 18;
-
-const zeroAddress = new EvmAddress(new Uint8Array(20));
 
 export interface PartialTx {
   /**
@@ -113,12 +114,29 @@ export interface Transfer {
   args: TransferTokenWithRelayInput | TransferGasTokenWithRelayInput;
 };
 
-export class Tbrv3 {
-  static readonly addresses = {
-    Mainnet: zeroAddress,
-    Testnet: zeroAddress,
-  } as const satisfies Record<NetworkMain, EvmAddress>;
+// prettier-ignore
+export const addresses = [[
+  // TODO: update `Tbrv3.connect` parameter type when adding mainnet addresses.
+  "Mainnet", [
+  ]], [
+  "Testnet", [
+    ["Solana",          "ATtNvUvPZ3RU78P8Z5NuwHMTwQ8u8YsDWJ6YN6XvCErS"],
+    ["Avalanche",       "0x2BCC362643B0aa3b2608de68b2C2ef2e6eFd2bb6"],
+    ["Celo",            "0xAafD9ED1B11b1E1Bf08094Fa0E53e4eEa807B5D5"],
+    ["Sepolia",         "0xDc74c34F88d17895e31792439eaCE7cB1ed17d3a"],
+    ["ArbitrumSepolia", "0x7Ab71581b33948DdD07a4995a594d631BC4D2988"],
+    ["BaseSepolia",     "0xFe8dE1cf8893f0D928F007E787fD072660EAc06B"],
+    ["OptimismSepolia", "0x7057447A58b92e2C68A46548B6992203233e92eC"],
+  ]],
+] as const satisfies MapLevels<[Network, Chain, string]>;
 
+export const tbrV3Contracts = constMap(addresses);
+export const tbrV3Chains = tbrV3Contracts.subMap;
+
+type ChainsForNetwork<N extends NetworkMain> = Parameters<ReturnType<typeof tbrV3Chains<N>>>[number];
+type EvmChainsForNetwork<N extends NetworkMain> = ChainsForNetwork<N> & PlatformToChains<"Evm">;
+
+export class Tbrv3 {
   /**
    * Creates the initialization configuration for the TBRv3 proxy contract.
    * 
@@ -141,17 +159,26 @@ export class Tbrv3 {
     return serializeLayout(proxyConstructorLayout, initConfig);
   }
 
-  static connect(
+  // TODO: update T constraint when adding mainnet addresses.
+  static connect<const T extends "Testnet">(
+    provider: ConnectionPrimitives,
+    network: T,
+    chain: EvmChainsForNetwork<T>,
+    gasToken?: EvmAddress,
+  ) {
+    // TODO: remove the need for these casts with an adequate helper from the SDK when there is one.
+    const address = tbrV3Contracts(network, chain as any) as string;
+    const evmAddress = new EvmAddress(address);
+    return this.connectUnknown(provider, network, chain, evmAddress, gasToken);
+  }
+
+  static connectUnknown(
     provider: ConnectionPrimitives,
     network: NetworkMain,
     chain: Chain,
+    address: EvmAddress,
     gasToken?: EvmAddress,
-    address?: EvmAddress,
   ) {
-    if (address === undefined && this.addresses[network].equals(zeroAddress)) {
-      throw new Error(`Tbrv3 address needs to be provided for network ${network}`);
-    }
-
     let defaultGasToken;
     try {
       ([,{address: defaultGasToken}] = resolveWrappedToken(network, chain, "native"));
@@ -170,7 +197,7 @@ export class Tbrv3 {
       throw new Error(`Unexpected gas token address ${gasToken} for network ${network} and chain ${chain}`);
     }
 
-    return new Tbrv3(provider, address ?? Tbrv3.addresses[network], gasToken);
+    return new Tbrv3(provider, address, gasToken);
   }
 
   constructor(
