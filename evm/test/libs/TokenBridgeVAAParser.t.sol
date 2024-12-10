@@ -41,12 +41,11 @@ contract TokenBridgeVAAParserTest is TbrTestBase {
     uint16 recipientChain,
     address recipient,
     uint32 gasDropoff,
-    bool unwrapIntent,
-    uint64 sequence
+    bool unwrapIntent
   ) public {
     vm.assume(recipient != address(0));
     bytes32 tokenAddress = toUniversalAddress(address(usdt));
-    bytes memory encoded = craftTbrV3Vaa(
+    (bytes memory encodedVaa, uint64 sequence) = craftTbrV3Vaa(
       wormholeCore,
       originTokenBridge,
       originTBR,
@@ -58,8 +57,7 @@ contract TokenBridgeVAAParserTest is TbrTestBase {
       recipientChain,
       recipient,
       gasDropoff,
-      unwrapIntent,
-      sequence
+      unwrapIntent
     );
 
     uint commandIndex = 0;
@@ -75,7 +73,7 @@ contract TokenBridgeVAAParserTest is TbrTestBase {
       uint32 gasDropoffParsed, 
       bool unwrapIntentParsed, 
       uint retOffset
-    ) = this.parse(encoded, offset, commandIndex);
+    ) = this.parse(encodedVaa, offset, commandIndex);
 
     assertEq(peerChainParsed, peerChain);
     assertEq(peerAddressParsed, originTBR);
@@ -85,6 +83,6 @@ contract TokenBridgeVAAParserTest is TbrTestBase {
     assertEq(tokenAmount, amount);
     assertEq(gasDropoffParsed, gasDropoff);
     assertEq(unwrapIntentParsed, unwrapIntent);
-    assertEq(retOffset, encoded.length);
+    assertEq(retOffset, encodedVaa.length);
   } 
 }

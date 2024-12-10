@@ -1248,7 +1248,6 @@ contract UserTest is TbrTestBase {
   function testCompleteTransfer_gasToken(
     uint256 amount,
     uint32 gasDropoff,
-    uint64 sequence,
     uint256 unallocatedBalance,
     uint8 transferReturn
   ) public {
@@ -1273,7 +1272,7 @@ contract UserTest is TbrTestBase {
       abi.encode(abi.encodePacked(uint16(HOME_CHAIN_ID)))
     );
 
-    bytes memory encodedVaa = craftTbrV3Vaa(
+    (bytes memory encodedVaa, uint64 sequence) = craftTbrV3Vaa(
       wormholeCore,
       originTokenBridge,
       originTBR,
@@ -1285,8 +1284,7 @@ contract UserTest is TbrTestBase {
       recipientChain,
       recipient,
       gasDropoff,
-      unwrapIntent,
-      sequence
+      unwrapIntent
     );
 
     uint decimals = IERC20Metadata(address(gasToken)).decimals();
@@ -1321,7 +1319,6 @@ contract UserTest is TbrTestBase {
   function testCompleteTransfer_nonGasToken(
     uint256 amount,
     uint32 gasDropoff,
-    uint64 sequence,
     uint256 unallocatedBalance,
     uint8 transferReturn
   ) public {
@@ -1340,7 +1337,7 @@ contract UserTest is TbrTestBase {
     address recipient = makeAddr("recipient");
     bool unwrapIntent = true;
 
-    bytes memory encodedVaa = craftTbrV3Vaa(
+    (bytes memory encodedVaa, uint64 sequence) = craftTbrV3Vaa(
       wormholeCore,
       originTokenBridge,
       originTBR,
@@ -1352,8 +1349,7 @@ contract UserTest is TbrTestBase {
       recipientChain,
       recipient,
       gasDropoff,
-      unwrapIntent,
-      sequence
+      unwrapIntent
     );
 
     address tokenToTransfer = tokenBridge.wrappedAsset(tokenChain, tokenAddress);
@@ -1400,13 +1396,12 @@ contract UserTest is TbrTestBase {
     bytes32 targetTBR,
     uint16 tokenChain,
     uint16 recipientChain,
-    bytes32 tokenAddress,
-    uint64 sequence
+    bytes32 tokenAddress
   ) public {
     bytes32 originTBR = makeBytes32("FakePeer");
     uint commandIndex = 0;
 
-    bytes memory encodedVaa = craftTbrV3Vaa(
+    (bytes memory encodedVaa, uint64 sequence) = craftTbrV3Vaa(
       wormholeCore,
       originTokenBridge,
       originTBR,
@@ -1418,8 +1413,7 @@ contract UserTest is TbrTestBase {
       recipientChain,
       recipient,
       gasDropoff,
-      unwrapIntent,
-      sequence
+      unwrapIntent
     );
 
     vm.expectRevert(
@@ -1451,7 +1445,6 @@ contract UserTest is TbrTestBase {
     uint16 tokenChain,
     uint16 recipientChain,
     bytes32 tokenAddress,
-    uint64 sequence,
     uint256 unallocatedBalance
   ) public {
     gasDropoff = uint32(bound(gasDropoff, 1, MAX_GAS_DROPOFF_AMOUNT));
@@ -1462,7 +1455,7 @@ contract UserTest is TbrTestBase {
     bytes32 originTBR = EVM_L2_CANONICAL_PEER;
     uint commandIndex = 0;
 
-    bytes memory encodedVaa = craftTbrV3Vaa(
+    (bytes memory encodedVaa, uint64 sequence) = craftTbrV3Vaa(
       wormholeCore,
       originTokenBridge,
       originTBR,
@@ -1474,8 +1467,7 @@ contract UserTest is TbrTestBase {
       recipientChain,
       recipient,
       gasDropoff,
-      unwrapIntent,
-      sequence
+      unwrapIntent
     );
 
     vm.expectRevert(
