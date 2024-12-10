@@ -6,7 +6,7 @@ import { EvmTbrV3Config } from "../config/config.types";
 import { Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
 import { chainToChainId, encoding } from "@wormhole-foundation/sdk-base";
 import { ethers } from "ethers";
-import { EvmAddress } from "@wormhole-foundation/sdk-evm/dist/cjs";
+import { EvmAddress } from "@wormhole-foundation/sdk-evm";
 
 evm.runOnEvms("bytecode-verification-token-router", async (operatingChain, signer, log) => {
   // The root path of the foundry project

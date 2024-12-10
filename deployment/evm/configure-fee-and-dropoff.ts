@@ -7,7 +7,7 @@ import {
 import { chainIdToChain, chainToChainId, encoding } from "@wormhole-foundation/sdk-base";
 import { SupportedChain, Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
 import { EvmTbrV3Config } from "../config/config.types.js";
-import { EvmAddress } from "@wormhole-foundation/sdk-evm/dist/cjs";
+import { EvmAddress } from "@wormhole-foundation/sdk-evm";
 import { wrapEthersProvider } from "../helpers/evm.js";
 
 /**

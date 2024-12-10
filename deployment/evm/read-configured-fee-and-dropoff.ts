@@ -4,7 +4,7 @@ import {
   loadTbrPeers,
 } from "../helpers/index.js";
 import { chainIdToChain, chainToChainId } from "@wormhole-foundation/sdk-base";
-import { EvmAddress } from "@wormhole-foundation/sdk-evm/dist/cjs";
+import { EvmAddress } from "@wormhole-foundation/sdk-evm";
 import { SupportedChain, Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
 import { wrapEthersProvider } from "../helpers/evm.js";
   
