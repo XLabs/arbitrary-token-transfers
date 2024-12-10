@@ -134,6 +134,7 @@ export const tbrV3Contracts = constMap(addresses);
 export const tbrV3Chains = tbrV3Contracts.subMap;
 
 type ChainsForNetwork<N extends NetworkMain> = Parameters<ReturnType<typeof tbrV3Chains<N>>>[number];
+type EvmChainsForNetwork<N extends NetworkMain> = ChainsForNetwork<N> & PlatformToChains<"Evm">;
 
 export class Tbrv3 {
   /**
@@ -162,7 +163,7 @@ export class Tbrv3 {
   static connect<const T extends "Testnet">(
     provider: ConnectionPrimitives,
     network: T,
-    chain: ChainsForNetwork<T> & PlatformToChains<"Evm">,
+    chain: EvmChainsForNetwork<T>,
     gasToken?: EvmAddress,
   ) {
     // TODO: remove the need for these casts with an adequate helper from the SDK when there is one.
