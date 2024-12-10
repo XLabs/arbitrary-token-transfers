@@ -17,10 +17,10 @@ This repo contains a root package and 5 workspaces:
 
 Depending on the desired target environment you have 2 different build options:
 
-- For `devnet` run:
+- For `testnet` run:
 
   ```bash
-  $ yarn build:all-devnet
+  $ yarn build:all-testnet
   ```
 
 - For `mainnet` run:
@@ -37,10 +37,10 @@ Run `yarn ./evm build`. It'll also generate the typechain.
 
 For solana you have 2 different build options:
 
-- For `devnet` run:
+- For `testnet` run:
 
   ```bash
-  $ yarn ./solana build:devnet
+  $ yarn ./solana build:testnet
   ```
 
 - For `mainnet` run:

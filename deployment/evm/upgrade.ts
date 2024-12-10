@@ -3,15 +3,14 @@ import {
   EvmChainInfo,
   getChainConfig,
   getContractAddress,
+  getDependencyAddress,
   getDeploymentArgs,
   writeDeployedContract
 } from "../helpers";
 import { EvmTbrV3Config } from "../config/config.types";
-import { ethers } from "ethers";
-import { Tbr__factory } from "../ethers-contracts/index.js";
-import { getSigner, getProvider, sendTx, wrapEthersProvider } from "../helpers/evm";
+import { getSigner, sendTx, wrapEthersProvider } from "../helpers/evm";
 import { EvmAddress } from '@wormhole-foundation/sdk-evm';
-import { chainIdToChain } from '@wormhole-foundation/sdk-base';
+import { chainToChainId, encoding } from '@wormhole-foundation/sdk-base';
 import { deployRelayerImplementation } from "./deploy-implementation";
 
 
@@ -23,10 +22,10 @@ async function run() {
 
   const results = await Promise.all(
     chains.map(async (chain) => {
-      console.log(`Deploy starting for chain ${chain.chainId}...`);
-      const config = await getChainConfig<EvmTbrV3Config>("tbr-v3", chain.chainId);
+      console.log(`Deploy starting for chain ${chain.name}...`);
+      const config = await getChainConfig<EvmTbrV3Config>("tbr-v3", chainToChainId(chain.name));
       const result = await upgradeTbrV3Relayer(chain, config);
-      console.log(`Deploy finished for chain ${chain.chainId}...`);
+      console.log(`Deploy finished for chain ${chain.name}...`);
 
       return result;
     })
@@ -41,7 +40,7 @@ async function run() {
       console.log(`Successfully deployed to chain ${result.chainId}`);
 
       writeDeployedContract(result.chainId, "TbrV3", result.implementation?.address ?? "", result.implementation?.constructorArgs ?? []);
-      writeDeployedContract(result.chainId, "TbrV3Proxies", result.proxy?.address ?? "", result.proxy?.constructorArgs ?? []);
+      writeDeployedContract(result.chainId, "TbrV3Proxies", result.proxy?.address.toString() ?? "", result.proxy?.constructorArgs ?? []);
     }
   }
 
@@ -53,35 +52,41 @@ async function upgradeTbrV3Relayer(chain: EvmChainInfo, config: EvmTbrV3Config) 
   try {
     implementation = await deployRelayerImplementation(chain, config);
   } catch (error) {
-    console.log(`Failed to deploy contract implementation for chain ${chain.chainId}`);
-    return { chainId: chain.chainId, error };
+    console.log(`Failed to deploy contract implementation for chain ${chain.name}`);
+    return { chainId: chainToChainId(chain.name), error };
   }
 
   try {
     proxy = await upgradeProxyWithNewImplementation(chain, config, implementation.address);
   } catch (error) {
-    console.log(`Failed to upgrade proxy implementation for chain ${chain.chainId}`);
-    return { chainId: chain.chainId, error };
+    console.log(`Failed to upgrade proxy implementation for chain ${chain.name}`);
+    return { chainId: chainToChainId(chain.name), error };
   }
 
-  return { chainId: chain.chainId, implementation, proxy };
+  return { chainId: chainToChainId(chain.name), implementation, proxy };
 }
 
 async function upgradeProxyWithNewImplementation(
-  chain: EvmChainInfo,
+  operatingChain: EvmChainInfo,
   config: EvmTbrV3Config,
   implementationAddress: string,
 ) {
-  console.log("Upgrade Proxy with new implementation " + chain.chainId);
-  const signer = await getSigner(chain);
+  console.log("Upgrade Proxy with new implementation " + operatingChain.name);
+  const signer = await getSigner(operatingChain);
   const { Tbrv3 } = await import("@xlabs-xyz/evm-arbitrary-token-transfers");
 
-  const proxyAddress = new EvmAddress(getContractAddress("TbrV3Proxies", chain.chainId));
-  const tbr = Tbrv3.connect(
-    wrapEthersProvider(getProvider(chain)),
-    chain.network,
-    chainIdToChain(chain.chainId),
+  // HACK! resolveWrappedToken does not seem to work for CELO native currency.
+  const gasTokenAddress = operatingChain.name === "Celo"
+    ? new EvmAddress(getDependencyAddress("initGasToken", operatingChain))
+    : undefined;
+
+  const proxyAddress = new EvmAddress(getContractAddress("TbrV3Proxies", chainToChainId(operatingChain.name)));
+  const tbr = Tbrv3.connectUnknown(
+    wrapEthersProvider(signer.provider!),
+    operatingChain.network,
+    operatingChain.name,
     proxyAddress,
+    gasTokenAddress
   );
 
   const tx = tbr.execTx(0n, [{
@@ -91,18 +96,18 @@ async function upgradeProxyWithNewImplementation(
 
   const { txid } = await sendTx(signer, {
     ...tx,
-    data: ethers.hexlify(tx.data),
+    data: encoding.hex.encode(tx.data, true),
   });
 
   console.log(`Tx Included!. TxHash: ${txid}`);
 
   const constructorArgs = [implementationAddress];
-  const previousConstructorArgs = getDeploymentArgs("TbrV3Proxies", chain.chainId);
+  const previousConstructorArgs = getDeploymentArgs("TbrV3Proxies", chainToChainId(operatingChain.name));
   if (previousConstructorArgs) {
     constructorArgs.push(...previousConstructorArgs.slice(1));
   }
 
-  return { chainId: chain.chainId, address: proxyAddress, constructorArgs };
+  return { chainId: chainToChainId(operatingChain.name), address: proxyAddress, constructorArgs };
 }
 
 

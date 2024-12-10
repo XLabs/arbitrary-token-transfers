@@ -5,8 +5,10 @@ use crate::{
 use anchor_lang::{
     prelude::*,
     solana_program::{native_token::LAMPORTS_PER_SOL, program_option::COption},
+    system_program,
 };
-use solana_price_oracle::state::{EvmPricesAccount, PriceOracleConfigAccount};
+use anchor_spl::token::Mint;
+use solana_price_oracle::state::{EvmPricesState, PriceOracleConfigState};
 
 const MWEI_PER_MICRO_ETH: u64 = 1_000_000;
 const MWEI_PER_ETH: u128 = 1_000_000_000_000;
@@ -26,8 +28,8 @@ const MWEI_PER_ETH: u128 = 1_000_000_000_000;
 pub fn calculate_total_fee(
     config: &TbrConfigState,
     chain_config: &ChainConfigState,
-    oracle_evm_prices: &EvmPricesAccount,
-    oracle_config: &PriceOracleConfigAccount,
+    oracle_evm_prices: &EvmPricesState,
+    oracle_config: &PriceOracleConfigState,
     dropoff_amount_micro: u32,
 ) -> Result<u64> {
     check_prices_are_set(oracle_evm_prices)?;
@@ -72,7 +74,7 @@ pub fn calculate_total_fee(
 
 /// This is a basic security against a wrong manip, to be sure that the prices
 /// have been set correctly.
-fn check_prices_are_set(evm_prices: &EvmPricesAccount) -> Result<()> {
+fn check_prices_are_set(evm_prices: &EvmPricesState) -> Result<()> {
     require_neq!(
         evm_prices.gas_price,
         0,
@@ -84,24 +86,101 @@ fn check_prices_are_set(evm_prices: &EvmPricesAccount) -> Result<()> {
         TokenBridgeRelayerError::EvmChainPriceNotSet
     );
 
-    // We don't need to check the SOL price, because it will generate a division by 0
+    // We don't need to check the SOL price, because it will cause a division by 0
 
     Ok(())
 }
 
-/// Creates a closure allowing to verify that a native/wrapped transfer is indeed
-/// what it pretends to be.
-pub fn create_native_check(
-    mint_authority: COption<Pubkey>,
-) -> impl Fn(bool) -> TokenBridgeRelayerResult<bool> {
-    let is_wormhole_mint = mint_authority == COption::Some(crate::WORMHOLE_MINT_AUTHORITY);
+impl TbrConfigState {
+    /// Creates a closure allowing to verify that a native/wrapped transfer is indeed
+    /// what it pretends to be.
+    pub(crate) fn create_native_check(
+        &self,
+        mint_authority: COption<Pubkey>,
+    ) -> impl Fn(bool) -> TokenBridgeRelayerResult<bool> {
+        let is_wormhole_mint = mint_authority == COption::Some(self.mint_authority);
 
-    return move |expected_native| {
-        // Valid values: either:
-        // - The transfer is native and the mint is not the Wormhole one;
-        // - Or the transfer is wrapped and the mint is the Wormhole one.
-        (expected_native != is_wormhole_mint)
-            .then_some(expected_native)
-            .ok_or(TokenBridgeRelayerError::WrongMintAuthority)
-    };
+        return move |expected_native| {
+            // Valid values: either:
+            // - The transfer is native and the mint is not the Wormhole one;
+            // - Or the transfer is wrapped and the mint is the Wormhole one.
+            (expected_native != is_wormhole_mint)
+                .then_some(expected_native)
+                .ok_or(TokenBridgeRelayerError::WrongMintAuthority)
+        };
+    }
+}
+
+/// The Token Bridge uses 8 decimals. If we want to transfer a token whose mint has more decimals,
+/// we need to set the decimals past 8 to zero.
+pub fn normalize_token_amount(transferred_amount: u64, mint: &Mint) -> u64 {
+    if mint.decimals > 8 {
+        //WARNING: Do not compute the values. It is heavy and make the call exceed the CU limit.
+        let factor = match mint.decimals - 8 {
+            1 => 10,
+            2 => 100,
+            3 => 1000,
+            4 => 10_000,
+            5 => 100_000,
+            6 => 1000_000,
+            7 => 10_000_000,
+            8 => 100_000_000,
+            9 => 1000_000_000,
+            10 => 10_000_000_000,
+            11 => 100_000_000_000,
+            12 => 1000_000_000_000,
+            13 => 10_000_000_000_000,
+            14 => 100_000_000_000_000,
+            15 => 1000_000_000_000_000,
+            16 => 10_000_000_000_000_000,
+            _ => panic!("Too many decimals in the mint"),
+        };
+
+        transferred_amount / factor * factor
+    } else {
+        transferred_amount
+    }
+}
+
+pub struct CreateAndInitTokenAccount<'info> {
+    pub system_program: AccountInfo<'info>,
+    pub token_program: AccountInfo<'info>,
+    pub rent: Sysvar<'info, Rent>,
+    pub payer: AccountInfo<'info>,
+    pub account: AccountInfo<'info>,
+    pub mint: AccountInfo<'info>,
+    pub authority: AccountInfo<'info>,
+}
+
+impl<'info> CreateAndInitTokenAccount<'info> {
+    pub fn run_with_seeds(self, seeds: &[&[u8]]) -> Result<()> {
+        const LEN: usize = anchor_spl::token::TokenAccount::LEN;
+
+        system_program::create_account(
+            CpiContext::new_with_signer(
+                self.system_program,
+                system_program::CreateAccount {
+                    from: self.payer,
+                    to: self.account.clone(),
+                },
+                &[seeds],
+            ),
+            self.rent.minimum_balance(LEN),
+            LEN.try_into().unwrap(),
+            self.token_program.key,
+        )?;
+
+        anchor_spl::token::initialize_account(CpiContext::new_with_signer(
+            self.token_program,
+            anchor_spl::token::InitializeAccount {
+                account: self.account,
+                mint: self.mint,
+                authority: self.authority,
+                rent: self.rent.to_account_info(),
+            },
+            &[seeds],
+        ))?;
+
+        Ok(())
+    }
 }

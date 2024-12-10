@@ -4,12 +4,14 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "build": "tsc --build tsconfig.json && yarn workspaces foreach --all run build",
-    "build:ts": "yarn workspaces foreach --all run build:ts",
-    "build:all-devnet": "yarn ./solana build:contract:devnet && yarn ./evm build && yarn sdk/common build && yarn sdk/solana build && yarn sdk/evm build && yarn ./deployment build:evm && yarn ./solana build:ts",
-    "build:all-mainnet": "yarn ./solana build:contract:mainnet && yarn ./evm build && yarn sdk/common build && yarn sdk/solana build && yarn sdk/evm build && yarn ./deployment build:evm && yarn ./solana build:ts",
+    "build": "yarn ./deployment build:evm:typechain; yarn ./sdk/common build && yarn ./sdk/evm build && yarn ./sdk/solana build && yarn ./sdk/deployment test:build && yarn ./solana build:ts && yarn ./connect/definitions build && yarn ./connect/platforms/evm build && yarn ./connect/platforms/solana build && yarn ./connect/route build",
+    "build:all:common": "yarn ./evm build:all && yarn build",
+    "build:all-testnet": "yarn ./solana build:contract:testnet && yarn build:all:common",
+    "build:verifiable:all-testnet": "yarn ./solana build:contract:verifiable:testnet && yarn build:all:common",
+    "build:all-mainnet": "yarn ./solana build:contract:mainnet && yarn build:all:common",
+    "build:verifiable:all-mainnet": "yarn ./solana build:contract:verifiable:mainnet && yarn build:all:common",
     "clean": "yarn workspaces foreach --all --exclude ./solana run clean && yarn ./solana run clean:ts",
-    "clean:all": "yarn workspaces foreach --all run clean",
+    "clean:all": "yarn workspaces foreach --all run clean && yarn ./evm clean:contracts",
     "test:evm": "yarn ./evm test",
     "test:solana": "anchor run setup-test && anchor test",
     "test:sdk-evm": "yarn sdk/evm test:deploy:integration",
@@ -31,13 +33,13 @@
     "@types/bn.js": "^5.1.5",
     "@types/chai": "^4.3.19",
     "@types/mocha": "^10",
-    "@types/node": "20.16.10",
+    "@types/node": "20.17.5",
     "chai": "^5.1.1",
     "mocha": "^10",
     "prettier": "^3.3.3",
     "ts-mocha": "^10",
-    "tsx": "^4.19.1",
-    "typescript": "5.6.2"
+    "tsx": "^4.19.2",
+    "typescript": "5.6.3"
   },
   "workspaces": [
     "sdk/common",
@@ -45,7 +47,10 @@
     "sdk/solana",
     "evm",
     "solana",
-    "deployment"
+    "deployment",
+    "connect/definitions",
+    "connect/platforms/*",
+    "connect/route"
   ],
   "packageManager": "yarn@4.4.1"
 }

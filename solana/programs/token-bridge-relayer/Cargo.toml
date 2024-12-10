@@ -9,7 +9,7 @@ crate-type = ["cdylib", "lib"]
 name = "token_bridge_relayer"
 
 [features]
-default = ["solana-price-oracle/cpi", "localnet"]
+default = ["solana-price-oracle/cpi"]
 cpi = ["no-entrypoint"]
 no-entrypoint = []
 no-idl = []
@@ -19,15 +19,9 @@ idl-build = [
     "anchor-spl/idl-build",
     "wormhole-anchor-sdk/idl-build",
 ]
-
-# Environments
+# Networks:
 mainnet = ["solana-price-oracle/mainnet", "wormhole-anchor-sdk/mainnet"]
-solana-devnet = [
-    "solana-price-oracle/solana-devnet",
-    "wormhole-anchor-sdk/solana-devnet",
-]
-tilt-devnet = ["solana-price-oracle/tilt-devnet"]
-localnet = ["solana-price-oracle/mainnet", "wormhole-anchor-sdk/mainnet"]
+testnet = ["solana-price-oracle/testnet", "wormhole-anchor-sdk/solana-devnet"]
 
 [dependencies]
 cfg-if = "1"
@@ -36,7 +30,6 @@ anchor-lang = { version = "0.30.1", git = "https://github.com/coral-xyz/anchor/"
 ] }
 anchor-spl = { version = "0.30.1", git = "https://github.com/coral-xyz/anchor/", rev = "8d52c1c" }
 
-#solana-price-oracle = { git = "ssh://git@github.com/XLabs/relayer-infra-contracts/", branch = "main" }
 solana-price-oracle = { path = "../../../lib/relayer-infra-contracts/src/solana/programs/price-oracle" }
 
 #wormhole-anchor-sdk = { git = "https://github.com/wormhole-foundation/wormhole-scaffolding.git", rev = "1acd10e3cbeea0df06976b606bd24da2e8e849e1", features = ["token-bridge"] }
@@ -48,3 +41,10 @@ wormhole-anchor-sdk = { git = "https://github.com/real-felix/wormhole-scaffoldin
 #wormhole-solana-utils = { version = "0.3.0-alpha.1", features = ["anchor"]}
 
 wormhole-io = "0.1"
+
+[build-dependencies]
+serde = "1"
+serde_json = "1"
+anyhow = "1"
+ed25519-dalek = "1.0.1" # Same as in the Solana dependencies
+bs58 = "0.5.1"

@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/token_bridge_relayer.json`.
  */
 export type TokenBridgeRelayer = {
-  "address": "7TLiBkpDGshV4o3jmacTCx93CLkmo3VjZ111AsijN9f8",
+  "address": "ttbrcA1ckR3D3Ff4VR1MJNCvA7t4d4XV9TcvrVp4AoM",
   "metadata": {
     "name": "tokenBridgeRelayer",
     "version": "3.0.0",
@@ -170,6 +170,7 @@ export type TokenBridgeRelayer = {
             "of the bridged tokens. Mutable."
           ],
           "writable": true,
+          "optional": true,
           "pda": {
             "seeds": [
               {
@@ -274,29 +275,16 @@ export type TokenBridgeRelayer = {
         {
           "name": "temporaryAccount",
           "docs": [
+            "so Anchor forces to initialize it by hand. Since it is closed in the same instruction,",
+            "it causes no security problem.",
+            "",
             "Program's temporary token account. This account is created before the",
             "instruction is invoked to temporarily take custody of the payer's",
             "tokens. When the tokens are finally bridged in, the tokens will be",
             "transferred to the destination token accounts. This account will have",
             "zero balance and can be closed."
           ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  116,
-                  109,
-                  112
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "mint"
-              }
-            ]
-          }
+          "writable": true
         },
         {
           "name": "peer"
@@ -372,24 +360,7 @@ export type TokenBridgeRelayer = {
           "optional": true
         },
         {
-          "name": "wormholeRedeemer",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
-                ]
-              }
-            ]
-          }
+          "name": "wormholeRedeemer"
         },
         {
           "name": "systemProgram",
@@ -401,18 +372,23 @@ export type TokenBridgeRelayer = {
         },
         {
           "name": "wormholeProgram",
-          "address": "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth"
+          "address": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"
         },
         {
           "name": "tokenBridgeProgram",
-          "address": "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"
+          "address": "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe"
         },
         {
           "name": "rent",
           "address": "SysvarRent111111111111111111111111111111111"
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "temporaryAccountBump",
+          "type": "u8"
+        }
+      ]
     },
     {
       "name": "confirmOwnerTransferRequest",
@@ -462,6 +438,10 @@ export type TokenBridgeRelayer = {
           }
         },
         {
+          "name": "previousOwner",
+          "signer": true
+        },
+        {
           "name": "authBadgePreviousOwner",
           "writable": true,
           "pda": {
@@ -496,6 +476,92 @@ export type TokenBridgeRelayer = {
             "because we will update roles depending on the operation."
           ],
           "writable": true
+        },
+        {
+          "name": "programData",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  13,
+                  74,
+                  247,
+                  118,
+                  36,
+                  164,
+                  201,
+                  97,
+                  25,
+                  221,
+                  241,
+                  144,
+                  142,
+                  148,
+                  63,
+                  218,
+                  160,
+                  137,
+                  78,
+                  28,
+                  18,
+                  140,
+                  195,
+                  112,
+                  127,
+                  26,
+                  150,
+                  227,
+                  211,
+                  125,
+                  216,
+                  108
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                2,
+                168,
+                246,
+                145,
+                78,
+                136,
+                161,
+                176,
+                226,
+                16,
+                21,
+                62,
+                247,
+                99,
+                174,
+                43,
+                0,
+                194,
+                185,
+                61,
+                22,
+                193,
+                36,
+                210,
+                192,
+                83,
+                122,
+                16,
+                4,
+                128,
+                0,
+                0
+              ]
+            }
+          }
+        },
+        {
+          "name": "bpfLoaderUpgradeable",
+          "address": "BPFLoaderUpgradeab1e11111111111111111111111"
         },
         {
           "name": "systemProgram",
@@ -589,38 +655,38 @@ export type TokenBridgeRelayer = {
               {
                 "kind": "const",
                 "value": [
-                  95,
-                  229,
-                  130,
-                  69,
-                  46,
-                  141,
-                  178,
-                  231,
-                  56,
-                  213,
-                  199,
-                  161,
-                  79,
-                  236,
-                  191,
-                  130,
-                  165,
-                  181,
-                  246,
-                  134,
-                  44,
-                  135,
-                  169,
-                  19,
-                  212,
-                  103,
-                  182,
-                  152,
-                  69,
-                  169,
-                  9,
-                  75
+                  13,
+                  74,
+                  247,
+                  118,
+                  36,
+                  164,
+                  201,
+                  97,
+                  25,
+                  221,
+                  241,
+                  144,
+                  142,
+                  148,
+                  63,
+                  218,
+                  160,
+                  137,
+                  78,
+                  28,
+                  18,
+                  140,
+                  195,
+                  112,
+                  127,
+                  26,
+                  150,
+                  227,
+                  211,
+                  125,
+                  216,
+                  108
                 ]
               }
             ],
@@ -1121,28 +1187,15 @@ export type TokenBridgeRelayer = {
         {
           "name": "temporaryAccount",
           "docs": [
+            "so Anchor forces to initialize it by hand. Since it is closed in the same instruction,",
+            "it causes no security problem.",
+            "",
             "Program's temporary token account. This account is created before the",
             "instruction is invoked to temporarily take custody of the payer's",
             "tokens. When the tokens are finally bridged out, the token account",
             "will have zero balance and can be closed."
           ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  116,
-                  109,
-                  112
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "mint"
-              }
-            ]
-          }
+          "writable": true
         },
         {
           "name": "feeRecipient",
@@ -1158,30 +1211,7 @@ export type TokenBridgeRelayer = {
           "name": "oracleConfig"
         },
         {
-          "name": "oracleEvmPrices",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  101,
-                  118,
-                  109,
-                  112,
-                  114,
-                  105,
-                  99,
-                  101,
-                  115
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "chain_config.chain_id",
-                "account": "chainConfigState"
-              }
-            ]
-          }
+          "name": "oracleEvmPrices"
         },
         {
           "name": "tokenBridgeConfig"
@@ -1246,22 +1276,7 @@ export type TokenBridgeRelayer = {
           "writable": true
         },
         {
-          "name": "wormholeSender",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  115,
-                  101,
-                  110,
-                  100,
-                  101,
-                  114
-                ]
-              }
-            ]
-          }
+          "name": "wormholeSender"
         },
         {
           "name": "wormholeFeeCollector",
@@ -1300,11 +1315,11 @@ export type TokenBridgeRelayer = {
         },
         {
           "name": "tokenBridgeProgram",
-          "address": "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"
+          "address": "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe"
         },
         {
           "name": "wormholeProgram",
-          "address": "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth"
+          "address": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"
         },
         {
           "name": "clock",
@@ -1316,6 +1331,10 @@ export type TokenBridgeRelayer = {
         }
       ],
       "args": [
+        {
+          "name": "temporaryAccountBump",
+          "type": "u8"
+        },
         {
           "name": "recipientAddress",
           "type": {
@@ -1637,16 +1656,16 @@ export type TokenBridgeRelayer = {
       ]
     },
     {
-      "name": "evmPricesAccount",
+      "name": "evmPricesState",
       "discriminator": [
-        222,
-        30,
-        172,
-        90,
-        189,
-        184,
-        118,
-        31
+        96,
+        16,
+        101,
+        97,
+        209,
+        101,
+        197,
+        178
       ]
     },
     {
@@ -1663,16 +1682,16 @@ export type TokenBridgeRelayer = {
       ]
     },
     {
-      "name": "priceOracleConfigAccount",
+      "name": "priceOracleConfigState",
       "discriminator": [
-        192,
-        215,
-        139,
-        0,
-        191,
-        210,
-        185,
-        218
+        86,
+        37,
+        173,
+        69,
+        170,
+        230,
+        127,
+        150
       ]
     },
     {
@@ -1770,23 +1789,33 @@ export type TokenBridgeRelayer = {
     },
     {
       "code": 6013,
+      "name": "chainPriceMismatch",
+      "msg": "chainPriceMismatch"
+    },
+    {
+      "code": 6014,
       "name": "pausedTransfers",
       "msg": "pausedTransfers"
     },
     {
-      "code": 6014,
+      "code": 6015,
       "name": "invalidSendingPeer",
       "msg": "invalidSendingPeer"
     },
     {
-      "code": 6015,
+      "code": 6016,
       "name": "cannotRegisterSolana",
       "msg": "cannotRegisterSolana"
     },
     {
-      "code": 6016,
+      "code": 6017,
       "name": "invalidPeerAddress",
       "msg": "invalidPeerAddress"
+    },
+    {
+      "code": 6018,
+      "name": "missingAssociatedTokenAccount",
+      "msg": "missingAssociatedTokenAccount"
     }
   ],
   "types": [
@@ -1848,13 +1877,20 @@ export type TokenBridgeRelayer = {
       }
     },
     {
-      "name": "evmPricesAccount",
+      "name": "evmPricesState",
       "docs": [
         "EVM chains prices."
       ],
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "chainId",
+            "docs": [
+              "The chain that will be read or updated is identified by this field."
+            ],
+            "type": "u16"
+          },
           {
             "name": "gasPrice",
             "docs": [
@@ -1904,7 +1940,7 @@ export type TokenBridgeRelayer = {
       }
     },
     {
-      "name": "priceOracleConfigAccount",
+      "name": "priceOracleConfigState",
       "docs": [
         "The program's main account."
       ],
@@ -1915,20 +1951,6 @@ export type TokenBridgeRelayer = {
             "name": "owner",
             "docs": [
               "Program's owner."
-            ],
-            "type": "pubkey"
-          },
-          {
-            "name": "admin",
-            "docs": [
-              "Program's admin. Can be used to update the prices or appoint a new assistant."
-            ],
-            "type": "pubkey"
-          },
-          {
-            "name": "assistant",
-            "docs": [
-              "Program's assistant. Can be used to update the prices."
             ],
             "type": "pubkey"
           },
@@ -2002,6 +2024,14 @@ export type TokenBridgeRelayer = {
           {
             "name": "evmTransactionSize",
             "type": "u64"
+          },
+          {
+            "name": "mintAuthority",
+            "docs": [
+              "The mint authority used by the Token Bridge. Used to check whether a transfer is native",
+              "or wrapped."
+            ],
+            "type": "pubkey"
           },
           {
             "name": "senderBump",

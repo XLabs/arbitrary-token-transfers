@@ -1,30 +1,26 @@
-import { BN } from '@coral-xyz/anchor';
 import { SolanaTokenBridgeRelayer } from '@xlabs-xyz/solana-arbitrary-token-transfers';
-import { runOnSolana, ledgerSignAndSend, getConnection, SolanaSigner } from '../helpers/solana.js';
-import { SolanaChainInfo, LoggerFn } from '../helpers/interfaces.js';
+import { chainToChainId } from '@wormhole-foundation/sdk-base';
+import { runOnSolana, ledgerSignAndSend, getConnection } from '../helpers/solana.js';
+import { SolanaScriptCb } from '../helpers/interfaces.js';
 import { dependencies } from '../helpers/env.js';
 import { PublicKey } from '@solana/web3.js';
-import { getChainConfig, getChainInfo } from '../helpers/env';
+import { getChainConfig } from '../helpers/env';
 import { SolanaTbrV3Config } from '../config/config.types.js';
 
-runOnSolana('configure-tbr', configureSolanaTbr).catch((error) => {
-  console.error('Error executing script: ', error);
-});
-
-async function configureSolanaTbr(
-  chain: SolanaChainInfo,
-  signer: SolanaSigner,
-  log: LoggerFn,
-): Promise<void> {
+const configureSolanaTbr: SolanaScriptCb = async function (
+  chain,
+  signer,
+  log,
+) {
   const signerKey = new PublicKey(await signer.getAddress());
   const connection = getConnection(chain);
-  const solanaDependencies = dependencies.find((d) => d.chainId === chain.chainId);
+  const solanaDependencies = dependencies.find((d) => d.chainId === chainToChainId(chain.name));
   if (solanaDependencies === undefined) {
-    throw new Error(`No dependencies found for chain ${chain.chainId}`);
+    throw new Error(`No dependencies found for chain ${chainToChainId(chain.name)}`);
   }
-  const tbr = new SolanaTokenBridgeRelayer({ connection });
+  const tbr = await SolanaTokenBridgeRelayer.create(connection);
 
-  const config = await getChainConfig<SolanaTbrV3Config>('tbr-v3', chain.chainId);
+  const config = await getChainConfig<SolanaTbrV3Config>('tbr-v3', chainToChainId(chain.name));
 
   const contractConfig = await tbr.read.config();
 
@@ -49,10 +45,14 @@ async function configureSolanaTbr(
     log(`Updating EVM Transaction config.`);
     const ix = await tbr.updateEvmTransactionConfig(
       signerKey,
-      new BN(evmTxGas.toString()),
-      new BN(evmTxSize.toString()),
+      evmTxGas,
+      evmTxSize
     );
 
     await ledgerSignAndSend(connection, [ix], []);
   }
 }
+
+runOnSolana('configure-tbr', configureSolanaTbr).catch((error) => {
+  console.error('Error executing script: ', error);
+});

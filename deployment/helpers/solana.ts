@@ -5,17 +5,28 @@ import {
   PublicKey,
   Connection,
   Commitment,
-  VersionedTransaction
 } from "@solana/web3.js";
 import { SolanaLedgerSigner } from "@xlabs-xyz/ledger-signer-solana";
-import { ecosystemChains, getEnv } from "./env.js";
+import { chainToChainId } from '@wormhole-foundation/sdk-base';
+import { ecosystemChains, getEnv, resolveEnv } from "./env.js";
 import type { SolanaScriptCb, SolanaChainInfo } from "./interfaces.js";
 import { inspect } from "util";
 import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet.js";
+import { UniversalAddress } from "@wormhole-foundation/sdk-definitions";
+
 
 // Ensure SolanaAddress is registered
 import "@wormhole-foundation/sdk-solana";
 
+
+
+export interface ChainConfigEntry {
+  chainId: number;
+  maxGasDropoffMicroToken: number;
+  relayerFeeMicroUsd: number;
+  pausedOutboundTransfers: boolean;
+  canonicalPeer: UniversalAddress;
+};
 
 export const connectionCommitmentLevel = (process.env.SOLANA_COMMITMENT || "confirmed") as Commitment;
 export const priorityMicrolamports = process.env.PRIORITY_MICROLAMPORTS !== "undefined" ? Number(process.env.PRIORITY_MICROLAMPORTS) : 1;
@@ -33,7 +44,7 @@ export function solanaOperatingChains() {
   const { operatingChains } = ecosystemChains;
   if (Array.isArray(operatingChains) && operatingChains.length >= 1) {
     return ecosystemChains.solana.networks.filter((x) => {
-      return operatingChains.includes(x.chainId);
+      return operatingChains.includes(chainToChainId(x.name));
     });
   }
   return ecosystemChains.solana.networks;
@@ -42,10 +53,15 @@ export function solanaOperatingChains() {
 export async function runOnSolana(scriptName: string, cb: SolanaScriptCb) {
   const chains = solanaOperatingChains() as SolanaChainInfo[];
 
+  if (chains.length === 0) {
+    console.log("No operating chains entries found");
+    return;
+  }
+
   console.log(`Running script on Solana:`, scriptName);
 
   const result = chains.map(async chain => {
-    const log = (...args: any[]) => console.log(`[${chain.chainId}]`, ...args);
+    const log = (...args: any[]) => console.log(`[${chainToChainId(chain.name)}]`, ...args);
     const signer = await getSigner();
     // TODO: encode in base58
     const signerPubkey = new PublicKey(await signer.getAddress()).toBase58();
@@ -71,7 +87,7 @@ export interface SolanaSigner {
 
 let signer: SolanaSigner | null;
 export async function getSigner(): Promise<SolanaSigner> {
-  const privateKey = getEnv("WALLET_KEY");
+  const privateKey = resolveEnv(["SOLANA_WALLET_KEY", "WALLET_KEY"]);
 
   if (privateKey !== "ledger") {
     if (!signer) {

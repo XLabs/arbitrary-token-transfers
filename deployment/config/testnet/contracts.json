@@ -2,12 +2,12 @@
   "TbrV3": [
     {
       "chainId": 10002,
-      "address": "0x3Bc865474FC34dEa988Fd46Af86F4d469F735eb1",
+      "address": "0xa737b3feB1Dc4d1630647E54954564FB3c903f0A",
       "constructorArgs": [
         "0x000000000022D473030F116dDEE9F6B43aC78BA3",
         "0xDB5492265f6038831E89f495670FF909aDe94bd9",
-        "0xC26b5b530F001e00F67ad7B4f7c33003fA72C65b",
-        "0x7b79995e5f793a07bc00c21412e50ecae098e7f9",
+        "0x2a17CD094f45f3574E10C584FE53FB1074087794",
+        "0xeef12A83EE5b7161D3873317c8E0E7B76e0B5D9c",
         true
       ]
     },
@@ -35,28 +35,50 @@
     },
     {
       "chainId": 1,
-      "address": "ATTeSuR8BuHCwHVxfmDV6qHi73i89g4PQrYjfyHQ7Rwf",
+      "address": "ATtNvUvPZ3RU78P8Z5NuwHMTwQ8u8YsDWJ6YN6XvCErS",
       "constructorArgs": []
     },
     {
       "chainId": 14,
-      "address": "0x5b5dfD8781A83314196DC458329d4d0525Cd10d4",
+      "address": "0x8F285478A4AE32B8cAF54987E9040C34330acd75",
       "constructorArgs": [
         "0x000000000022D473030F116dDEE9F6B43aC78BA3",
         "0x05ca6037eC51F8b712eD2E6Fa72219FEaE74E153",
-        "0x1EA112f9bE384F19D11c883732150De6Bf718E03",
+        "0x0931A80dF1B883A193283861D5A9fff7804A0b8b",
         "0xF194afDf50B03e69Bd7D057c1Aa9e10c9954E4C9",
+        false
+      ]
+    },
+    {
+      "chainId": 10003,
+      "address": "0xb0Cf4ae0482e579c2F04DC5Ec8f59Ad1570f301e",
+      "constructorArgs": [
+        "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+        "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e",
+        "0x64B46956c50eC3B554482F430a740AEb2643dEdB",
+        "0x980B62Da83eFf3D4576C647993b0c1D7faf17c73",
         true
+      ]
+    },
+    {
+      "chainId": 6,
+      "address": "0x2ae4546a9aDE7001ADdEC0B52B122c02F3F62EC7",
+      "constructorArgs": [
+        "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+        "0x61E44E506Ca5659E6c0bba9b678586fA2d729756",
+        "0xF8A6F089a3eaFC4592F8EaDDCD90B82A926f72B1",
+        "0xd00ae08403B9bbb9124bB305C09058E32C39A48c",
+        false
       ]
     }
   ],
   "TbrV3Proxies": [
     {
       "chainId": 10002,
-      "address": "0x77A70bCA55813ec70528184F7Cb02eFeD71D6031",
+      "address": "0xDc74c34F88d17895e31792439eaCE7cB1ed17d3a",
       "constructorArgs": [
-        "0x3Bc865474FC34dEa988Fd46Af86F4d469F735eb1",
-        "0x6f9b66c711a46d9c37706396ec8444bf6c8e7b176f9b66c711a46d9c37706396ec8444bf6c8e7b176f9b66c711a46d9c37706396ec8444bf6c8e7b17"
+        "0xa737b3feB1Dc4d1630647E54954564FB3c903f0A",
+        "0xef14dd4a5b485ff12661450b1f0d1c1fd37db84eef14dd4a5b485ff12661450b1f0d1c1fd37db84e01ef14dd4a5b485ff12661450b1f0d1c1fd37db84e"
       ]
     },
     {
@@ -77,8 +99,27 @@
     },
     {
       "chainId": 14,
-      "address": "0xdbe75EfF77dF67524B13c38e07d2451456098DC7",
-      "constructorArgs": []
+      "address": "0xAafD9ED1B11b1E1Bf08094Fa0E53e4eEa807B5D5",
+      "constructorArgs": [
+        "0x8F285478A4AE32B8cAF54987E9040C34330acd75",
+        "0xef14dd4a5b485ff12661450b1f0d1c1fd37db84eef14dd4a5b485ff12661450b1f0d1c1fd37db84e01ef14dd4a5b485ff12661450b1f0d1c1fd37db84e"
+      ]
+    },
+    {
+      "chainId": 10003,
+      "address": "0x7Ab71581b33948DdD07a4995a594d631BC4D2988",
+      "constructorArgs": [
+        "0xb0Cf4ae0482e579c2F04DC5Ec8f59Ad1570f301e",
+        "0xef14dd4a5b485ff12661450b1f0d1c1fd37db84eef14dd4a5b485ff12661450b1f0d1c1fd37db84e01ef14dd4a5b485ff12661450b1f0d1c1fd37db84e"
+      ]
+    },
+    {
+      "chainId": 6,
+      "address": "0x2BCC362643B0aa3b2608de68b2C2ef2e6eFd2bb6",
+      "constructorArgs": [
+        "0xC99E3A7BAaEb371b5eBEf714bA0b8b480359D168",
+        "0xef14dd4a5b485ff12661450b1f0d1c1fd37db84eef14dd4a5b485ff12661450b1f0d1c1fd37db84e01ef14dd4a5b485ff12661450b1f0d1c1fd37db84e"
+      ]
     }
   ]
 }

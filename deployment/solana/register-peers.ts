@@ -1,44 +1,47 @@
-import { BN } from '@coral-xyz/anchor';
-import { chainIdToChain } from '@wormhole-foundation/sdk-base';
+import { chainIdToChain, chainToChainId } from '@wormhole-foundation/sdk-base';
 import { UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import { SolanaTokenBridgeRelayer } from '@xlabs-xyz/solana-arbitrary-token-transfers';
-import { runOnSolana, ledgerSignAndSend, getConnection, SolanaSigner } from '../helpers/solana.js';
-import { SolanaChainInfo, LoggerFn } from '../helpers/interfaces.js';
+import { runOnSolana, ledgerSignAndSend, getConnection } from '../helpers/solana.js';
+import { SolanaScriptCb } from '../helpers/interfaces.js';
 import { dependencies } from '../helpers/env.js';
 import { PublicKey } from '@solana/web3.js';
 import { contracts } from '../helpers';
 import { getChainConfig } from '../helpers/env';
 import { EvmTbrV3Config } from '../config/config.types.js';
 
-runOnSolana('configure-tbr', configureSolanaTbr).catch((error) => {
-  console.error('Error executing script: ', error);
-  console.log('extra logs', error.getLogs());
-});
+type ChainConfigEntry = {
+  chainId: number;
+  maxGasDropoffMicroToken: number;
+  relayerFeeMicroUsd: number;
+  pausedOutboundTransfers: boolean;
+  canonicalPeer: UniversalAddress;
+};
 
-async function configureSolanaTbr(
-  chain: SolanaChainInfo,
-  signer: SolanaSigner,
-  log: LoggerFn,
-): Promise<void> {
+const configureSolanaTbr: SolanaScriptCb = async function (
+  chain,
+  signer,
+  log,
+) {
   const signerKey = new PublicKey(await signer.getAddress());
   const connection = getConnection(chain);
-  const solanaDependencies = dependencies.find((d) => d.chainId === chain.chainId);
+  const solanaDependencies = dependencies.find((d) => d.chainId === chainToChainId(chain.name));
   if (solanaDependencies === undefined) {
-    throw new Error(`No dependencies found for chain ${chain.chainId}`);
+    throw new Error(`No dependencies found for chain ${chainToChainId(chain.name)}`);
   }
-  const tbr = new SolanaTokenBridgeRelayer({ connection });
+  const tbr = await SolanaTokenBridgeRelayer.create(connection);
 
   for (const tbrDeployment of contracts['TbrV3Proxies']) {
-    if (tbrDeployment.chainId === chain.chainId) continue; // skip self;
+    if (tbrDeployment.chainId === chainToChainId(chain.name)) continue; // skip self;
 
     const desiredChainConfig = await getChainConfig<EvmTbrV3Config>(
       'tbr-v3',
       tbrDeployment.chainId,
     );
 
-    let currentChainConfig;
+    let currentChainConfig: ChainConfigEntry | undefined;
     try {
-      currentChainConfig = await tbr.read.chainConfig(chainIdToChain(tbrDeployment.chainId));
+      const allChainConfigs: ChainConfigEntry[]  = await tbr.read.allChainConfigs();
+      currentChainConfig = allChainConfigs.find((config) => config.chainId === tbrDeployment.chainId);
     } catch (error) {
       if (!(error instanceof Error) || !error.message?.includes('Account does not exist'))
         throw error;
@@ -56,7 +59,7 @@ async function configureSolanaTbr(
       const tx = await ledgerSignAndSend(connection, [ix], []);
       log(`Register succeeded on tx: ${tx}`);
     } else {
-      const currentPeer = new UniversalAddress(new Uint8Array(currentChainConfig.canonicalPeer));
+      const currentPeer =currentChainConfig.canonicalPeer.toUniversalAddress();
 
       if (!currentPeer.equals(peerUniversalAddress)) {
         log(
@@ -75,7 +78,7 @@ async function configureSolanaTbr(
       !currentChainConfig ||
       currentChainConfig.maxGasDropoffMicroToken.toString() !== desiredChainConfig.maxGasDropoff
     ) {
-      await log(
+      log(
         `Updating maxGasDropoff on chain ${tbrDeployment.chainId} to ${desiredChainConfig.maxGasDropoff}`,
       );
       const ix = await tbr.updateMaxGasDropoff(
@@ -91,7 +94,7 @@ async function configureSolanaTbr(
       !currentChainConfig ||
       currentChainConfig.relayerFeeMicroUsd !== desiredChainConfig.relayFee
     ) {
-      await log(
+      log(
         `Updating relayerFee on chain ${tbrDeployment.chainId} to ${desiredChainConfig.relayFee}`,
       );
       const ix = await tbr.updateRelayerFee(
@@ -104,3 +107,8 @@ async function configureSolanaTbr(
     }
   }
 }
+
+runOnSolana('configure-tbr', configureSolanaTbr).catch((error) => {
+  console.error('Error executing script: ', error);
+  console.log('extra logs', error.getLogs());
+});

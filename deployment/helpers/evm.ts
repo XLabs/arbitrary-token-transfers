@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
-import { ChainInfo, ecosystemChains, EvmScriptCb, getEnv, EvmChainInfo, UncheckedConstructorArgs } from "./index.js";
-import { toChain } from "@wormhole-foundation/sdk-base";
+import { ecosystemChains, EvmScriptCb, getEnv, EvmChainInfo, UncheckedConstructorArgs, resolveEnv } from "./index.js";
+import { chainToChainId } from "@wormhole-foundation/sdk-base";
 import { PartialTx } from "@xlabs-xyz/evm-arbitrary-token-transfers";
 
 // Ensures EvmAddress is registered
@@ -9,12 +9,12 @@ import "@wormhole-foundation/sdk-evm";
 export async function runOnEvms(scriptName: string, cb: EvmScriptCb) {
   const chains = evmOperatingChains() as EvmChainInfo[];
 
-  console.log(`Running script on EVMs (${chains.map(c => c.chainId).join(", ")}):`, scriptName);
+  console.log(`Running script on EVMs (${chains.map(c => chainToChainId(c.name)).join(", ")}):`, scriptName);
 
   const result = chains.map(async chain => {
-    const log = (...args: any[]) => console.log(`[${chain.chainId}]`, ...args);
+    const log = (...args: any[]) => console.log(`[${chainToChainId(chain.name)}]`, ...args);
     const signer = await getSigner(chain);
-    log(`Starting script. Signer: ${await signer.getAddress()}. Chain: ${toChain(chain.chainId)}`);
+    log(`Starting script. Signer: ${await signer.getAddress()}. Chain: ${chain.name}`);
 
     try {
       await cb(chain, signer, log);
@@ -31,10 +31,10 @@ export async function runOnEvms(scriptName: string, cb: EvmScriptCb) {
 export async function runOnEvmsSequentially(scriptName: string, cb: EvmScriptCb) {
   const chains = evmOperatingChains();
 
-  console.log(`Running script on EVMs (${chains.map(c => c.chainId).join(", ")}):`, scriptName);
+  console.log(`Running script on EVMs (${chains.map(c => chainToChainId(c.name)).join(", ")}):`, scriptName);
 
   for (const chain of chains) {
-    const log = (...args: any[]) => console.log(`[${chain.chainId}]`, ...args);
+    const log = (...args: any[]) => console.log(`[${chainToChainId(chain.name)}]`, ...args);
     const signer = await getSigner(chain);
     log(`Starting script. Signer: ${await signer.getAddress()}`);
 
@@ -52,14 +52,14 @@ export function evmOperatingChains(): EvmChainInfo[] {
   const { operatingChains } = ecosystemChains;
   if (Array.isArray(operatingChains) && operatingChains.length >= 1) {
     return ecosystemChains.evm.networks.filter((x) => {
-      return operatingChains.includes(x.chainId);
+      return operatingChains.includes(chainToChainId(x.name));
     });
   }
   return ecosystemChains.evm.networks;
 };
 
-export async function getSigner(chain: ChainInfo): Promise<ethers.Signer> {
-  const privateKey = getEnv("WALLET_KEY");
+export async function getSigner(chain: EvmChainInfo): Promise<ethers.Signer> {
+  const privateKey = resolveEnv(["EVM_WALLET_KEY", "WALLET_KEY"]);
   if (privateKey == "ledger") {
     const { LedgerSigner } = await import("@xlabs-xyz/ledger-signer-ethers-v6");
 
@@ -73,15 +73,15 @@ export async function getSigner(chain: ChainInfo): Promise<ethers.Signer> {
 }
 
 export function getProvider(
-  chain: ChainInfo
+  chain: EvmChainInfo
 ): ethers.Provider {
-  const providerRpc = ecosystemChains.evm.networks.find((x: any) => x.chainId == chain.chainId)?.rpc || "";
+  const providerRpc = ecosystemChains.evm.networks.find((x) => chainToChainId(x.name) === chainToChainId(chain.name))?.rpc || "";
 
   if (!providerRpc) {
-    throw new Error("Failed to find a provider RPC for chain " + chain.chainId);
+    throw new Error(`Failed to find a provider RPC for chain ${chain.name}`);
   }
 
-  let provider = new ethers.JsonRpcProvider(
+  const provider = new ethers.JsonRpcProvider(
     providerRpc,
     undefined,
     {staticNetwork: true},
@@ -175,7 +175,7 @@ export function getVerifyCommand({
   apiKey?: string
 }): string {
   if (chain.externalId === undefined)
-    throw new Error(`Chain ${chain.chainId} does not have an external ID`);
+    throw new Error(`Chain ${chain.name} does not have an external ID`);
 
   if (verifier === "blockscout" && verifierUrl === undefined)
     throw new Error(`Verifier URL is required for Blockscout verifier`);

@@ -16,22 +16,22 @@
     "ts-build"
   ],
   "scripts": {
-    "build:ts": "tsc --noEmit -p ./tsconfig.json && tsup",
+    "build:ts": "rm -rf ts-build && tsc --noEmit -p ./tsconfig.json && tsup",
     "build": "yarn run build:ts",
-    "clean": "rm -r ts-build",
+    "clean": "rm -rf ts-build",
     "prettier": "prettier --write ."
   },
   "dependencies": {
-    "@wormhole-foundation/sdk-base": "^0.10.9",
-    "@wormhole-foundation/sdk-definitions": "^0.10.9",
+    "@wormhole-foundation/sdk-base": "^1.1.1",
+    "@wormhole-foundation/sdk-definitions": "^1.1.1",
     "bn.js": "^5.2.1"
   },
   "devDependencies": {
     "@types/bn.js": "^5.1.5",
-    "@types/node": "20.16.10",
-    "tsup": "^8.3.0",
-    "tsx": "4.19.1",
-    "typescript": "5.6.2"
+    "@types/node": "20.17.5",
+    "tsup": "^8.3.5",
+    "tsx": "4.19.2",
+    "typescript": "5.6.3"
   },
   "tsup": {
     "entry": [

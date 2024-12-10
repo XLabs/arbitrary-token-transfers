@@ -1,11 +1,23 @@
 import fs from "fs";
 import { ethers } from "ethers";
 import { validateSolAddress } from "./solana.js";
-import { ChainConfig, ChainInfo, ContractsJson, Dependencies, DependenciesConfig, Ecosystem, VerificationApiKeys, UncheckedConstructorArgs, SolanaTbrInitParams } from "./interfaces.js";
+import {
+  ChainConfig,
+  ChainInfo,
+  ContractsJson,
+  Dependencies,
+  DependenciesConfig,
+  Ecosystem,
+  VerificationApiKeys,
+  UncheckedConstructorArgs,
+  SolanaTbrInitParams,
+  EvmChainInfo
+} from "./interfaces.js";
 import { getSigner } from "./evm.js";
 // TODO: support different env files
 import 'dotenv/config';
-import { ChainId, contracts as connectDependencies, toChain } from "@wormhole-foundation/sdk-base";
+import { ChainId, chainToChainId, contracts as connectDependencies } from "@wormhole-foundation/sdk-base";
+import { inspect } from "util";
 
 export const env = getEnv("ENV");
 export const network = env === "mainnet" ? "Mainnet" : "Testnet";
@@ -57,22 +69,15 @@ export function getEnv(env: string): string {
   return v;
 }
 
-export function getChainInfo(chainId: ChainId): ChainInfo {
-  if (ecosystemChains.solana.networks.length > 1) {
-    throw Error("Unexpected number of Solana networks.");
+/**
+ * Reads env vars and returns the first one that is defined and non empty.
+ */
+export function resolveEnv(envNames: string[]): string {
+  for (const env of envNames) {
+    const v = process.env[env];
+    if (v) return v;
   }
-
-  const chains = [
-    ...ecosystemChains.evm.networks,
-    ...ecosystemChains.solana.networks,
-  ];
-
-  const chain = chains.find((c) => c.chainId === chainId);
-  if (chain === undefined) {
-    throw Error(`Failed to find chain info for chain id: ${chainId}`);
-  }
-
-  return chain;
+  throw Error(`At least one of these env vars needs to be set: ${inspect(envNames)}`);
 }
 
 export async function getChainConfig<T extends ChainConfig>(filename: string, whChainId: ChainId): Promise<T> {
@@ -103,20 +108,20 @@ export function getContractAddress(contractName: string, whChainId: ChainId): st
 }
 
 export function getLocalDependencyAddress(dependencyName: keyof Dependencies, chain: ChainInfo): string {
-  const chainDependencies = dependencies.find((d) => d.chainId === chain.chainId);
+  const chainDependencies = dependencies.find((d) => d.chainId === chainToChainId(chain.name));
 
   if (chainDependencies === undefined ) {
-    throw new Error(`No dependencies found for chain ${chain.chainId}`);
+    throw new Error(`No dependencies found for chain ${chain.name}`);
   }
 
   const dependency = chainDependencies[dependencyName as keyof Dependencies] as string;
   if (dependency === undefined) {
-    throw new Error(`No dependency found for ${String(dependencyName)} for chain ${chain.chainId}`);
+    throw new Error(`No dependency found for ${dependencyName} for chain ${chain.name}`);
   }
 
   
   if (!ethers.isAddress(dependency) && !validateSolAddress(dependency)){
-    throw new Error(`Invalid address for ${String(dependencyName)} dependency found for chain ${chain.chainId}`);
+    throw new Error(`Invalid address for ${dependencyName} dependency found for chain ${chain.name}`);
   }
 
   return dependency;
@@ -128,10 +133,9 @@ export function getDependencyAddress(dependencyName: keyof Dependencies, chain: 
     tokenBridge,
   } = connectDependencies;
 
-
   const dependencies = {
-    wormhole: coreBridge.get(chain.network, toChain(chain.chainId)),
-    tokenBridge: tokenBridge.get(chain.network, toChain(chain.chainId)),
+    wormhole: coreBridge.get(chain.network, chain.name),
+    tokenBridge: tokenBridge.get(chain.network, chain.name),
   } as Dependencies;
   const connectDependency = dependencies[dependencyName as keyof Dependencies];
   
@@ -140,7 +144,7 @@ export function getDependencyAddress(dependencyName: keyof Dependencies, chain: 
     return localDependency === connectDependency ? connectDependency : localDependency;
   } catch (e) {
     if (connectDependency === undefined) {
-      throw new Error(`No dependency found for ${String(dependencyName)} for chain ${chain.chainId} on connect sdk`);
+      throw new Error(`No dependency found for ${dependencyName} for chain ${chain.name} on connect sdk`);
     }
 
     return connectDependency;
@@ -150,7 +154,7 @@ export function getDependencyAddress(dependencyName: keyof Dependencies, chain: 
 export async function getContractInstance(
   contractName: string,
   contractAddress: string,
-  chain: ChainInfo,
+  chain: EvmChainInfo,
 ): Promise<ethers.BaseContract> {
   const factory = require("../contract-bindings")[`${contractName}__factory`];
   const signer = await getSigner(chain);
@@ -168,7 +172,7 @@ export function getDeploymentArgs(contractName: string, whChainId: ChainId): Unc
  * @returns peers: evm proxies and solana program
  */
 export function loadTbrPeers(currentOperatingChain: ChainInfo) {
-  const deployedTbrv3s = contracts["TbrV3Proxies"].filter((tbr) => tbr.chainId !== currentOperatingChain.chainId);
+  const deployedTbrv3s = contracts["TbrV3Proxies"].filter((tbr) => tbr.chainId !== chainToChainId(currentOperatingChain.name));
   const solana = contracts["TbrV3"].find((tbr) => tbr.chainId === 1);
   if (solana) {
     deployedTbrv3s.push(solana);
@@ -177,7 +181,7 @@ export function loadTbrPeers(currentOperatingChain: ChainInfo) {
   return deployedTbrv3s;
 }
 
-export function writeDeployedContract(whChainId: ChainId, contractName: string, address: string, constructorArgs: UncheckedConstructorArgs ) {
+export function writeDeployedContract(whChainId: ChainId, contractName: string, address: string, constructorArgs: UncheckedConstructorArgs) {
   const contracts = loadContracts();
   if (!contracts[contractName]) {
     contracts[contractName] = [{ chainId: whChainId, address, constructorArgs }];

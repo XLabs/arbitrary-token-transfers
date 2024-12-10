@@ -1,0 +1,73 @@
+{
+  "name": "@xlabs-xyz/arbitrary-token-transfers-definitions",
+  "version": "0.0.1-alpha7",
+  "description": "",
+  "type": "module",
+  "module": "ts-build/src/index.js",
+  "types": "ts-build/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./ts-build/src/index.d.ts",
+      "require": "./ts-build/src/index.cjs",
+      "import": "./ts-build/src/index.js"
+    }
+  },
+  "scripts": {
+    "build": "yarn run build:ts",
+    "build:ts": "tsc -p ./tsconfig.json && tsup",
+    "lint:fix": "prettier \"src/**/*{.js,.ts}\" -w",
+    "lint": "prettier \"src/**/*{.js,.ts}\" --check",
+    "clean": "rm -rf ts-build build"
+  },
+  "files": [
+    "ts-build",
+    "!**/*.tsbuildinfo"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/XLabs/arbitrary-token-transfers.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "Apache 2",
+  "dependencies": {
+    "@wormhole-foundation/sdk-base": "^1.1.1",
+    "@wormhole-foundation/sdk-definitions": "^1.1.1",
+    "ethers": "^6.13.3"
+  },
+  "devDependencies": {
+    "@types/node": "20.17.5",
+    "prettier": "^3.3.3",
+    "tsup": "^8.3.5",
+    "tsx": "4.19.2",
+    "typescript": "5.6.3"
+  },
+  "tsup": {
+    "entry": [
+      "src/index.ts"
+    ],
+    "tsconfig": "tsconfig.build.json",
+    "splitting": false,
+    "sourcemap": true,
+    "minify": false,
+    "clean": true,
+    "outDir": "ts-build/src",
+    "format": [
+      "esm",
+      "cjs"
+    ],
+    "dts": {
+      "resolve": true
+    },
+    "external": [
+      "@internal/loader",
+      "@wormhole-foundation/sdk-definitions",
+      "@wormhole-foundation/sdk-base",
+      "@wormhole-foundation/sdk-evm",
+      "ethers"
+    ],
+    "noExternal": [
+      "common-arbitrary-token-transfer"
+    ]
+  }
+}

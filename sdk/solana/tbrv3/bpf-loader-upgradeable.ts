@@ -1,14 +1,8 @@
-import anchor from '@coral-xyz/anchor';
-import {
-  Cluster,
-  clusterApiUrl,
-  Connection,
-  PublicKey,
-  TransactionInstruction,
-} from '@solana/web3.js';
-import { CustomConversion, Layout, layout, Network } from '@wormhole-foundation/sdk-base';
+import { Connection, PublicKey, TransactionInstruction } from '@solana/web3.js';
+import { CustomConversion, Layout, layout } from '@wormhole-foundation/sdk-base';
 //import { programDataLayout } from '@wormhole-foundation/sdk-solana/utils/utils/';
 import { throwError } from 'common-arbitrary-token-transfer';
+import { BN } from '@xlabs-xyz/solana-price-oracle-sdk';
 
 export class BpfLoaderUpgradeableProgram {
   static id = new PublicKey('BPFLoaderUpgradeab1e11111111111111111111111');
@@ -38,7 +32,7 @@ export class BpfLoaderUpgradeableProgram {
     const upgradeAuthority = data.upgradeAuthority.isSome ? data.upgradeAuthority.value : undefined;
 
     return {
-      slot: new anchor.BN(data.slot.toString()),
+      slot: new BN(data.slot.toString()),
       upgradeAuthority,
     };
   }

@@ -1,27 +1,30 @@
-import { Commitment } from "@solana/web3.js";
-import { Chain, ChainId } from "@wormhole-foundation/sdk-base";
-import { ethers } from "ethers";
-import { SolanaSigner } from "./solana";
+import type { Commitment } from "@solana/web3.js";
+import type { Chain, ChainId } from "@wormhole-foundation/sdk-base";
+import type { ethers } from "ethers";
+import type { SolanaSigner } from "./solana";
+import type { EvmChain } from "@wormhole-foundation/sdk-evm";
 
 export type EvmScriptCb = (chain: EvmChainInfo, signer: ethers.Signer, logFn: LoggerFn) => Promise<void>;
 export type SolanaScriptCb = (chain: SolanaChainInfo, signer: SolanaSigner, logFn: LoggerFn) => Promise<void>;
 
 export type LoggerFn = (...args: any[]) => void;
 
-export type EvmChainInfo = ChainInfo & {
+export interface EvmChainInfo extends CommonChainInfo {
+  name: EvmChain["chain"];
   /**
    * Native (e.g. EIP-155) ChainId
    */
   externalId?: string;
 }
 
-export type SolanaChainInfo = ChainInfo & {
+export interface SolanaChainInfo extends CommonChainInfo {
+  name: "Solana";
   commitmentLevel: Commitment;
 };
 
-export type ChainInfo = {
-  name: string;
-  chainId: ChainId; // wormhole chain id
+export type ChainInfo = EvmChainInfo | SolanaChainInfo;
+
+export interface CommonChainInfo {
   rpc: string;
   network: "Mainnet" | "Testnet";
 };
@@ -45,6 +48,7 @@ export type Ecosystem = {
   }
 };
 
+// FIXME: why is this just for Solana?
 export type SolanaTbrInitParams = {
   owner: string;
   feeRecipient: string;
@@ -76,7 +80,7 @@ export interface ValueDiff<T = any> {
 }
 
 export type BooleanDiff = ValueDiff<boolean>;
-export type BigNumberDiff = ValueDiff<BigInt>;
+export type BigNumberDiff = ValueDiff<bigint>;
 export type StringDiff = ValueDiff<string>;
 
 export type UncheckedConstructorArgs = readonly any[];

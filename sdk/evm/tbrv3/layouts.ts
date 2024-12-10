@@ -15,19 +15,24 @@ const peerChainItem = {
   name: "chain", ...layoutItems.chainItem({ allowedChains: supportedChains }) 
 } as const satisfies NamedLayoutItem;
 
+export const peerAddressItem = {
+  name: "address",
+  ...layoutItems.universalAddressItem,
+} as const;
+
 const peerChainAndAddressItem = {
   binary: "bytes",
   layout: [
     peerChainItem,
-    { name: "address", ...layoutItems.universalAddressItem }
+    peerAddressItem
   ]
 } as const;
 
 //TODO eliminate copy paste from oracle sdk and unify in some shared repo
-const decimalDownShift = (downShift: number) => ({
+const decimalDownShift = (downShift: number, roundingFunction: (x: number) => number) => ({
   to: (val: number): number => val / 10 ** downShift,
   from: (price: number): number => {
-    const encoded = Math.round(price * 10 ** downShift);
+    const encoded = roundingFunction(price * 10 ** downShift);
     if (encoded === 0 && price !== 0)
       throw new Error(`losing all precision when storing ${price} with shift ${downShift}`);
 
@@ -42,7 +47,7 @@ const decimalDownShift = (downShift: number) => ({
 export const gasDropoffItem = {
   binary: "uint",
   size: 4,
-  custom: decimalDownShift(6),
+  custom: decimalDownShift(6, Math.floor),
 } as const satisfies LayoutItem;
 
 /**
@@ -66,7 +71,7 @@ const feeItem = {
   custom: bigintDownshift(12),
 } as const satisfies LayoutItem;
 
-const acquireModeItem = {
+export const acquireModeItem = {
   name: "acquireMode",
   binary: "switch",
   idSize: 1,
@@ -164,14 +169,14 @@ const configCommandLayout =
     layouts: [
       [[ 0x00, "AddPeer"], [
         peerChainItem,
-        { name: "address", ...layoutItems.universalAddressItem }
+        peerAddressItem
       ]],
       [[ 0x01, "UpdateBaseFee"       ], [peerChainItem, { name: "value", ...baseFeeItem}]],
       [[ 0x02, "UpdateMaxGasDropoff" ], [peerChainItem, { name: "value", ...gasDropoffItem }]],
       [[ 0x03, "UpdateTransferPause" ], [peerChainItem, { name: "value", ...layoutItems.boolItem }]],
       [[ 0x0a, "UpdateFeeRecipient"  ], [{ name: "address",...evmAddressItem }]],
       // Only owner
-      [[ 0x0b, "UpdateCanonicalPeer" ], [peerChainItem, { name: "address", ...layoutItems.universalAddressItem }]],
+      [[ 0x0b, "UpdateCanonicalPeer" ], [peerChainItem, peerAddressItem]],
     ]
   } as const satisfies Layout;
 export type ConfigCommand = LayoutToType<typeof configCommandLayout>;
@@ -186,7 +191,7 @@ export const configQueryLayout = {
     [[0x82, "BaseFee"         ], [peerChainItem]],
     [[0x83, "MaxGasDropoff"   ], [peerChainItem]],
     [[0x84, "CanonicalPeer"   ], [peerChainItem]],
-    [[0x85, "IsPeer"          ], [peerChainItem, { name: "address", ...layoutItems.universalAddressItem }]],
+    [[0x85, "IsPeer"          ], [peerChainItem, peerAddressItem]],
     [[0x86, "FeeRecipient"    ], []],
   ],
 } as const satisfies Layout;

@@ -4,27 +4,30 @@ import {
   getChainConfig,
   writeDeployedContract
 } from "../helpers";
+import { chainToChainId } from '@wormhole-foundation/sdk-base';
 import { EvmTbrV3Config } from "../config/config.types";
 import { ethers } from "ethers";
 import { encoding } from "@wormhole-foundation/sdk-base";
 import { Proxy__factory } from "../ethers-contracts/index.js";
 import { getSigner } from "../helpers/evm";
-import { EvmAddress } from "@wormhole-foundation/sdk-evm/dist/cjs";
+import { EvmAddress } from "@wormhole-foundation/sdk-evm";
 import { deployRelayerImplementation } from "./deploy-implementation";
 
 
 const processName = "tbr-v3";
 const chains = evm.evmOperatingChains();
 
+// Why not use runOnEVMs?
+
 async function run() {
   console.log(`Start ${processName}!`);
 
   const results = await Promise.all(
     chains.map(async (chain) => {
-      console.log(`Deploy starting for chain ${chain.chainId}...`);
-      const config = await getChainConfig<EvmTbrV3Config>("tbr-v3", chain.chainId);
+      console.log(`Deploy starting for chain ${chain.name}...`);
+      const config = await getChainConfig<EvmTbrV3Config>("tbr-v3", chainToChainId(chain.name));
       const result = await deployTbrV3Relayer(chain, config);
-      console.log(`Deploy finished for chain ${chain.chainId}...`);
+      console.log(`Deploy finished for chain ${chain.name}...`);
 
       return result;
     })
@@ -51,8 +54,8 @@ async function deployTbrV3Relayer(chain: EvmChainInfo, config: EvmTbrV3Config) {
   try {
     implementation = await deployRelayerImplementation(chain, config);
   } catch (error) {
-    console.log(`Failed to deploy contract implementation for chain ${chain.chainId}`);
-    return { chainId: chain.chainId, error };
+    console.log(`Failed to deploy contract implementation for chain ${chain.name}`);
+    return { chainId: chainToChainId(chain.name), error };
   }
 
   try {
@@ -62,12 +65,12 @@ async function deployTbrV3Relayer(chain: EvmChainInfo, config: EvmTbrV3Config) {
       implementation.address
     );
   } catch (error) {
-    console.log(`Failed to deploy proxy for chain ${chain.chainId}`);
-    return { chainId: chain.chainId, error };
+    console.log(`Failed to deploy proxy for chain ${chain.name}`);
+    return { chainId: chainToChainId(chain.name), error };
   }
 
   return {
-    chainId: chain.chainId,
+    chainId: chainToChainId(chain.name),
     implementation,
     proxy,
   };
@@ -78,7 +81,7 @@ async function deployProxy(
   config: EvmTbrV3Config,
   implementationAddress: string,
 ) {
-  console.log("deployRelayerProxy " + chain.chainId);
+  console.log("deployRelayerProxy " + chain.name);
   const signer = await getSigner(chain);
   const signerAddress = new EvmAddress(await signer.getAddress());
   const { Tbrv3 } = await import("@xlabs-xyz/evm-arbitrary-token-transfers");
@@ -115,7 +118,7 @@ async function deployProxy(
   }
   const address = await contract.getAddress();
   console.log("Successfully deployed proxy at " + address);
-  return { address, chainId: chain.chainId, constructorArgs: [implementationAddress, encoding.hex.encode(proxyConstructorArgs, true)] };
+  return { address, chainId: chainToChainId(chain.name), constructorArgs: [implementationAddress, encoding.hex.encode(proxyConstructorArgs, true)] };
 }
 
 

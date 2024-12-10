@@ -1,5 +1,5 @@
 {
-  "address": "7TLiBkpDGshV4o3jmacTCx93CLkmo3VjZ111AsijN9f8",
+  "address": "HrZSAEW9QVbC4kQu51C7oFMHaam18AvAhpbBYeY9mKht",
   "metadata": {
     "name": "token_bridge_relayer",
     "version": "3.0.0",
@@ -164,6 +164,7 @@
             "of the bridged tokens. Mutable."
           ],
           "writable": true,
+          "optional": true,
           "pda": {
             "seeds": [
               {
@@ -268,29 +269,16 @@
         {
           "name": "temporary_account",
           "docs": [
+            "so Anchor forces to initialize it by hand. Since it is closed in the same instruction,",
+            "it causes no security problem.",
+            "",
             "Program's temporary token account. This account is created before the",
             "instruction is invoked to temporarily take custody of the payer's",
             "tokens. When the tokens are finally bridged in, the tokens will be",
             "transferred to the destination token accounts. This account will have",
             "zero balance and can be closed."
           ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  116,
-                  109,
-                  112
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "mint"
-              }
-            ]
-          }
+          "writable": true
         },
         {
           "name": "peer"
@@ -366,24 +354,7 @@
           "optional": true
         },
         {
-          "name": "wormhole_redeemer",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
-                ]
-              }
-            ]
-          }
+          "name": "wormhole_redeemer"
         },
         {
           "name": "system_program",
@@ -395,18 +366,23 @@
         },
         {
           "name": "wormhole_program",
-          "address": "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth"
+          "address": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"
         },
         {
           "name": "token_bridge_program",
-          "address": "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"
+          "address": "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe"
         },
         {
           "name": "rent",
           "address": "SysvarRent111111111111111111111111111111111"
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "temporary_account_bump",
+          "type": "u8"
+        }
+      ]
     },
     {
       "name": "confirm_owner_transfer_request",
@@ -456,6 +432,10 @@
           }
         },
         {
+          "name": "previous_owner",
+          "signer": true
+        },
+        {
           "name": "auth_badge_previous_owner",
           "writable": true,
           "pda": {
@@ -490,6 +470,92 @@
             "because we will update roles depending on the operation."
           ],
           "writable": true
+        },
+        {
+          "name": "program_data",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  13,
+                  74,
+                  247,
+                  118,
+                  36,
+                  164,
+                  201,
+                  97,
+                  25,
+                  221,
+                  241,
+                  144,
+                  142,
+                  148,
+                  63,
+                  218,
+                  160,
+                  137,
+                  78,
+                  28,
+                  18,
+                  140,
+                  195,
+                  112,
+                  127,
+                  26,
+                  150,
+                  227,
+                  211,
+                  125,
+                  216,
+                  108
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                2,
+                168,
+                246,
+                145,
+                78,
+                136,
+                161,
+                176,
+                226,
+                16,
+                21,
+                62,
+                247,
+                99,
+                174,
+                43,
+                0,
+                194,
+                185,
+                61,
+                22,
+                193,
+                36,
+                210,
+                192,
+                83,
+                122,
+                16,
+                4,
+                128,
+                0,
+                0
+              ]
+            }
+          }
+        },
+        {
+          "name": "bpf_loader_upgradeable",
+          "address": "BPFLoaderUpgradeab1e11111111111111111111111"
         },
         {
           "name": "system_program",
@@ -583,38 +649,38 @@
               {
                 "kind": "const",
                 "value": [
-                  95,
-                  229,
-                  130,
-                  69,
-                  46,
-                  141,
-                  178,
-                  231,
-                  56,
-                  213,
-                  199,
-                  161,
-                  79,
-                  236,
-                  191,
-                  130,
-                  165,
-                  181,
-                  246,
-                  134,
-                  44,
-                  135,
-                  169,
-                  19,
-                  212,
-                  103,
-                  182,
-                  152,
-                  69,
-                  169,
-                  9,
-                  75
+                  13,
+                  74,
+                  247,
+                  118,
+                  36,
+                  164,
+                  201,
+                  97,
+                  25,
+                  221,
+                  241,
+                  144,
+                  142,
+                  148,
+                  63,
+                  218,
+                  160,
+                  137,
+                  78,
+                  28,
+                  18,
+                  140,
+                  195,
+                  112,
+                  127,
+                  26,
+                  150,
+                  227,
+                  211,
+                  125,
+                  216,
+                  108
                 ]
               }
             ],
@@ -1115,28 +1181,15 @@
         {
           "name": "temporary_account",
           "docs": [
+            "so Anchor forces to initialize it by hand. Since it is closed in the same instruction,",
+            "it causes no security problem.",
+            "",
             "Program's temporary token account. This account is created before the",
             "instruction is invoked to temporarily take custody of the payer's",
             "tokens. When the tokens are finally bridged out, the token account",
             "will have zero balance and can be closed."
           ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  116,
-                  109,
-                  112
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "mint"
-              }
-            ]
-          }
+          "writable": true
         },
         {
           "name": "fee_recipient",
@@ -1152,30 +1205,7 @@
           "name": "oracle_config"
         },
         {
-          "name": "oracle_evm_prices",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  101,
-                  118,
-                  109,
-                  112,
-                  114,
-                  105,
-                  99,
-                  101,
-                  115
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "chain_config.chain_id",
-                "account": "ChainConfigState"
-              }
-            ]
-          }
+          "name": "oracle_evm_prices"
         },
         {
           "name": "token_bridge_config"
@@ -1240,22 +1270,7 @@
           "writable": true
         },
         {
-          "name": "wormhole_sender",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  115,
-                  101,
-                  110,
-                  100,
-                  101,
-                  114
-                ]
-              }
-            ]
-          }
+          "name": "wormhole_sender"
         },
         {
           "name": "wormhole_fee_collector",
@@ -1294,11 +1309,11 @@
         },
         {
           "name": "token_bridge_program",
-          "address": "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"
+          "address": "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe"
         },
         {
           "name": "wormhole_program",
-          "address": "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth"
+          "address": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"
         },
         {
           "name": "clock",
@@ -1310,6 +1325,10 @@
         }
       ],
       "args": [
+        {
+          "name": "temporary_account_bump",
+          "type": "u8"
+        },
         {
           "name": "recipient_address",
           "type": {
@@ -1631,16 +1650,16 @@
       ]
     },
     {
-      "name": "EvmPricesAccount",
+      "name": "EvmPricesState",
       "discriminator": [
-        222,
-        30,
-        172,
-        90,
-        189,
-        184,
-        118,
-        31
+        96,
+        16,
+        101,
+        97,
+        209,
+        101,
+        197,
+        178
       ]
     },
     {
@@ -1657,16 +1676,16 @@
       ]
     },
     {
-      "name": "PriceOracleConfigAccount",
+      "name": "PriceOracleConfigState",
       "discriminator": [
-        192,
-        215,
-        139,
-        0,
-        191,
-        210,
-        185,
-        218
+        86,
+        37,
+        173,
+        69,
+        170,
+        230,
+        127,
+        150
       ]
     },
     {
@@ -1764,23 +1783,33 @@
     },
     {
       "code": 6013,
+      "name": "ChainPriceMismatch",
+      "msg": "ChainPriceMismatch"
+    },
+    {
+      "code": 6014,
       "name": "PausedTransfers",
       "msg": "PausedTransfers"
     },
     {
-      "code": 6014,
+      "code": 6015,
       "name": "InvalidSendingPeer",
       "msg": "InvalidSendingPeer"
     },
     {
-      "code": 6015,
+      "code": 6016,
       "name": "CannotRegisterSolana",
       "msg": "CannotRegisterSolana"
     },
     {
-      "code": 6016,
+      "code": 6017,
       "name": "InvalidPeerAddress",
       "msg": "InvalidPeerAddress"
+    },
+    {
+      "code": 6018,
+      "name": "MissingAssociatedTokenAccount",
+      "msg": "MissingAssociatedTokenAccount"
     }
   ],
   "types": [
@@ -1842,13 +1871,20 @@
       }
     },
     {
-      "name": "EvmPricesAccount",
+      "name": "EvmPricesState",
       "docs": [
         "EVM chains prices."
       ],
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "chain_id",
+            "docs": [
+              "The chain that will be read or updated is identified by this field."
+            ],
+            "type": "u16"
+          },
           {
             "name": "gas_price",
             "docs": [
@@ -1898,7 +1934,7 @@
       }
     },
     {
-      "name": "PriceOracleConfigAccount",
+      "name": "PriceOracleConfigState",
       "docs": [
         "The program's main account."
       ],
@@ -1909,20 +1945,6 @@
             "name": "owner",
             "docs": [
               "Program's owner."
-            ],
-            "type": "pubkey"
-          },
-          {
-            "name": "admin",
-            "docs": [
-              "Program's admin. Can be used to update the prices or appoint a new assistant."
-            ],
-            "type": "pubkey"
-          },
-          {
-            "name": "assistant",
-            "docs": [
-              "Program's assistant. Can be used to update the prices."
             ],
             "type": "pubkey"
           },
@@ -1996,6 +2018,14 @@
           {
             "name": "evm_transaction_size",
             "type": "u64"
+          },
+          {
+            "name": "mint_authority",
+            "docs": [
+              "The mint authority used by the Token Bridge. Used to check whether a transfer is native",
+              "or wrapped."
+            ],
+            "type": "pubkey"
           },
           {
             "name": "sender_bump",

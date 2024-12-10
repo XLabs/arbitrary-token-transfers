@@ -3,13 +3,13 @@ use crate::{
     error::{TokenBridgeRelayerError, TokenBridgeRelayerResult},
     message::{PostedRelayerMessage, RelayerMessage},
     state::{PeerState, TbrConfigState},
-    utils::create_native_check,
+    utils::CreateAndInitTokenAccount,
 };
 use anchor_lang::{prelude::*, system_program};
 use anchor_spl::token::{spl_token::native_mint, Mint, Token, TokenAccount};
 use wormhole_anchor_sdk::{
     token_bridge::{self, program::TokenBridge},
-    wormhole::{self, program::Wormhole},
+    wormhole::program::Wormhole,
 };
 
 #[derive(Accounts)]
@@ -38,7 +38,7 @@ pub struct CompleteTransfer<'info> {
         associated_token::mint = mint,
         associated_token::authority = recipient
     )]
-    pub recipient_token_account: Box<Account<'info, TokenAccount>>,
+    pub recipient_token_account: Option<Box<Account<'info, TokenAccount>>>,
 
     /// CHECK: recipient may differ from payer if a relayer paid for this
     /// transaction. This instruction verifies that the recipient key
@@ -49,23 +49,17 @@ pub struct CompleteTransfer<'info> {
     /// Verified Wormhole message account. Read-only.
     pub vaa: Account<'info, PostedRelayerMessage>,
 
+    /// CHECK: This will be a `TokenAccount`. It is initialized with a seed provided from the client,
+    /// so Anchor forces to initialize it by hand. Since it is closed in the same instruction,
+    /// it causes no security problem.
+    ///
     /// Program's temporary token account. This account is created before the
     /// instruction is invoked to temporarily take custody of the payer's
     /// tokens. When the tokens are finally bridged in, the tokens will be
     /// transferred to the destination token accounts. This account will have
     /// zero balance and can be closed.
-    #[account(
-        init,
-        payer = payer,
-        seeds = [
-            SEED_PREFIX_TEMPORARY,
-            mint.key().as_ref(),
-        ],
-        bump,
-        token::mint = mint,
-        token::authority = tbr_config
-    )]
-    pub temporary_account: Account<'info, TokenAccount>,
+    #[account(mut)]
+    pub temporary_account: UncheckedAccount<'info>,
 
     #[account(
         constraint = {
@@ -128,10 +122,7 @@ pub struct CompleteTransfer<'info> {
     /// Wrapped transfer only.
     pub token_bridge_wrapped_meta: Option<UncheckedAccount<'info>>,
 
-    #[account(
-        seeds = [token_bridge::SEED_PREFIX_REDEEMER],
-        bump = tbr_config.redeemer_bump
-    )]
+    /// CHECK: Verified by the Token Bridge program.
     pub wormhole_redeemer: UncheckedAccount<'info>,
 
     /* Programs */
@@ -142,7 +133,10 @@ pub struct CompleteTransfer<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub fn complete_transfer(mut ctx: Context<CompleteTransfer>) -> Result<()> {
+pub fn complete_transfer(
+    mut ctx: Context<CompleteTransfer>,
+    temporary_account_bump: u8,
+) -> Result<()> {
     let RelayerMessage::V0 {
         recipient,
         gas_dropoff_amount,
@@ -150,10 +144,6 @@ pub fn complete_transfer(mut ctx: Context<CompleteTransfer>) -> Result<()> {
     } = *ctx.accounts.vaa.message().data();
     let gas_dropoff_amount = denormalize_dropoff_to_lamports(gas_dropoff_amount);
 
-    let tbr_config_seeds = &[
-        TbrConfigState::SEED_PREFIX.as_ref(),
-        &[ctx.accounts.tbr_config.bump],
-    ];
     let redeemer_seeds = &[
         token_bridge::SEED_PREFIX_REDEEMER.as_ref(),
         &[ctx.accounts.tbr_config.redeemer_bump],
@@ -165,6 +155,22 @@ pub fn complete_transfer(mut ctx: Context<CompleteTransfer>) -> Result<()> {
         TokenBridgeRelayerError::InvalidRecipient
     );
 
+    // Initialize the temporary account:
+    CreateAndInitTokenAccount {
+        system_program: ctx.accounts.system_program.to_account_info(),
+        token_program: ctx.accounts.token_program.to_account_info(),
+        rent: ctx.accounts.rent.clone(),
+        payer: ctx.accounts.payer.to_account_info(),
+        account: ctx.accounts.temporary_account.to_account_info(),
+        mint: ctx.accounts.mint.to_account_info(),
+        authority: ctx.accounts.wormhole_redeemer.to_account_info(),
+    }
+    .run_with_seeds(&[
+        SEED_PREFIX_TEMPORARY,
+        ctx.accounts.mint.to_account_info().key.as_ref(),
+        &[temporary_account_bump],
+    ])?;
+
     // The tokens are transferred into the temporary_account:
     if is_native(&ctx)? {
         msg!("Native transfer");
@@ -175,13 +181,16 @@ pub fn complete_transfer(mut ctx: Context<CompleteTransfer>) -> Result<()> {
     }
 
     redeem_gas(&ctx, gas_dropoff_amount)?;
-    redeem_token(&mut ctx, unwrap_intent, tbr_config_seeds)?;
+    redeem_token(&mut ctx, unwrap_intent, redeemer_seeds)?;
 
     Ok(())
 }
 
 fn is_native(ctx: &Context<CompleteTransfer>) -> TokenBridgeRelayerResult<bool> {
-    let check_native = create_native_check(ctx.accounts.mint.mint_authority);
+    let check_native = ctx
+        .accounts
+        .tbr_config
+        .create_native_check(ctx.accounts.mint.mint_authority);
 
     match (
         &ctx.accounts.token_bridge_mint_authority,
@@ -296,13 +305,10 @@ fn redeem_gas(ctx: &Context<CompleteTransfer>, gas_dropoff_amount: u64) -> Resul
 fn redeem_token(
     ctx: &mut Context<CompleteTransfer>,
     unwrap_intent: bool,
-    tbr_config_seeds: &[&[u8]],
+    redeemer_seeds: &[&[u8]],
 ) -> Result<()> {
     let unwrap_spl_sol_as_sol = unwrap_intent && ctx.accounts.mint.key() == native_mint::ID;
-    let token_amount = {
-        ctx.accounts.temporary_account.reload()?;
-        ctx.accounts.temporary_account.amount
-    };
+    let token_amount = read_token_amount(&ctx.accounts.temporary_account)?;
 
     if unwrap_spl_sol_as_sol {
         msg!("Native token to be unwrapped");
@@ -312,9 +318,9 @@ fn redeem_token(
             anchor_spl::token::CloseAccount {
                 account: ctx.accounts.temporary_account.to_account_info(),
                 destination: ctx.accounts.payer.to_account_info(),
-                authority: ctx.accounts.tbr_config.to_account_info(),
+                authority: ctx.accounts.wormhole_redeemer.to_account_info(),
             },
-            &[tbr_config_seeds],
+            &[redeemer_seeds],
         ))?;
 
         // If the payer is not the recipient, the tokens must be transferred to the recipient:
@@ -338,10 +344,15 @@ fn redeem_token(
                 ctx.accounts.token_program.to_account_info(),
                 anchor_spl::token::Transfer {
                     from: ctx.accounts.temporary_account.to_account_info(),
-                    to: ctx.accounts.recipient_token_account.to_account_info(),
-                    authority: ctx.accounts.tbr_config.to_account_info(),
+                    to: ctx
+                        .accounts
+                        .recipient_token_account
+                        .as_ref()
+                        .ok_or(TokenBridgeRelayerError::MissingAssociatedTokenAccount)?
+                        .to_account_info(),
+                    authority: ctx.accounts.wormhole_redeemer.to_account_info(),
                 },
-                &[tbr_config_seeds],
+                &[redeemer_seeds],
             ),
             token_amount,
         )?;
@@ -353,9 +364,9 @@ fn redeem_token(
             anchor_spl::token::CloseAccount {
                 account: ctx.accounts.temporary_account.to_account_info(),
                 destination: ctx.accounts.payer.to_account_info(),
-                authority: ctx.accounts.tbr_config.to_account_info(),
+                authority: ctx.accounts.wormhole_redeemer.to_account_info(),
             },
-            &[tbr_config_seeds],
+            &[redeemer_seeds],
         ))?;
     }
 
@@ -366,4 +377,11 @@ fn redeem_token(
 /// we need to get the value in lamports.
 fn denormalize_dropoff_to_lamports(amount: u32) -> u64 {
     u64::from(amount) * 1_000
+}
+
+fn read_token_amount(token_account: &UncheckedAccount) -> Result<u64> {
+    let mut data: &[u8] = &token_account.try_borrow_data()?;
+    let data = TokenAccount::try_deserialize(&mut data)?;
+
+    Ok(data.amount)
 }

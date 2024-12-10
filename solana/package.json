@@ -3,9 +3,11 @@
   "scripts": {
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
-    "build:contract:devnet": "anchor build -- --features solana-devnet",
+    "build:contract:testnet": "anchor build -- --features testnet",
+    "build:contract:verifiable:testnet": "anchor build --verifiable -- --features testnet",
     "build:ts": "yarn run tsc --project ./tsconfig.json",
     "build:contract:mainnet": "anchor build",
+    "build:contract:verifiable:mainnet": "anchor build --verifiable",
     "build": "yarn build:contract:mainnet && yarn build:ts",
     "clean:ts": "rm -rf ts-build/",
     "clean": "yarn run clean:ts && rm -rf ../target/idl ../target/types",
@@ -14,17 +16,25 @@
   "type": "module",
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.1",
+    "@solana/spl-token": "^0.4.9",
     "@solana/web3.js": "^1.95.3",
-    "@types/chai": "^4.3.19",
-    "@types/mocha": "8.*",
-    "@wormhole-foundation/sdk-base": "^0.10.9",
-    "@wormhole-foundation/sdk-definitions": "^0.10.9",
-    "@wormhole-foundation/sdk-solana-core": "^0.10.9",
-    "@wormhole-foundation/sdk-solana-tokenbridge": "^0.10.9",
+    "@types/chai": "^5",
+    "@types/mocha": "10.*",
+    "@wormhole-foundation/sdk-base": "^1.1.1",
+    "@wormhole-foundation/sdk-connect": "^1.1.1",
+    "@wormhole-foundation/sdk-definitions": "^1.1.1",
+    "@wormhole-foundation/sdk-solana": "^1.1.1",
+    "@wormhole-foundation/sdk-solana-core": "^1.1.1",
+    "@wormhole-foundation/sdk-solana-tokenbridge": "^1.1.1",
     "@xlabs-xyz/solana-arbitrary-token-transfers": "workspace:^",
     "chai": "^5.1.1",
-    "mocha": "8.*",
-    "ts-mocha": "8.*",
-    "typescript": "^5.6.2"
-  }
+    "common-arbitrary-token-transfer": "workspace:^",
+    "mocha": "11.*",
+    "toml": "^3.0.0",
+    "ts-mocha": "10.*",
+    "typescript": "^5.6.3"
+  },
+  "noExternal": [
+    "common-arbitrary-token-transfer"
+  ]
 }

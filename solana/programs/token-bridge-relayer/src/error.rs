@@ -62,6 +62,10 @@ pub(crate) enum TokenBridgeRelayerError {
     #[msg("EvmChainPriceNotSet")]
     EvmChainPriceNotSet,
 
+    /// The prices account chain must match the chain config.
+    #[msg("ChainPriceMismatch")]
+    ChainPriceMismatch,
+
     /// Transfers are paused for this chain.
     #[msg("PausedTransfers")]
     PausedTransfers,
@@ -77,4 +81,9 @@ pub(crate) enum TokenBridgeRelayerError {
     /// The peer address is empty, please set a peer address.
     #[msg("InvalidPeerAddress")]
     InvalidPeerAddress,
+
+    /// The associated token account can be skipped only when we get native tokens _and_ the
+    /// unwrap intent is set to `true`.
+    #[msg("MissingAssociatedTokenAccount")]
+    MissingAssociatedTokenAccount,
 }

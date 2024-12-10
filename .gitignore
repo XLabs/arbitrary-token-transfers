@@ -11,7 +11,6 @@ build/
 ts-build/
 build-test/
 build-forge/
-ethers-contracts/
 
 # Ignore log files
 *.log
@@ -43,9 +42,12 @@ target/*
 !target/idl/
 !target/types/
 .anchor/
+solana/programs/token-bridge-relayer/src/id.rs
 
 # keys
 verification-api-keys.json
 
 # env files
 .env.evm-test
+
+.vscode/launch.json

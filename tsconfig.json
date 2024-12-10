@@ -9,7 +9,6 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
-    "sourceMap": true,
     "strict": true,
     "noImplicitAny": true,
     "noErrorTruncation": true,
@@ -18,26 +17,19 @@
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "downlevelIteration": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "inlineSourceMap": true,
+    "inlineSources": true
   },
   "references": [
-    {
-      "path": "./sdk/common/tsconfig.json"
-    },
-    {
-      "path": "./sdk/evm/tsconfig.json"
-    },
-    {
-      "path": "./sdk/solana/tsconfig.json"
-    },
-    {
-      "path": "./deployment"
-    },
-    {
-      "path": "./solana/tsconfig.json"
-    },
-    {
-      "path": "./evm/tsconfig.json"
-    }
+    { "path": "./sdk/common" },
+    { "path": "./sdk/evm" },
+    { "path": "./sdk/solana" },
+    { "path": "./deployment" },
+    { "path": "./solana" },
+    { "path": "./connect/definitions" },
+    { "path": "./connect/platforms/evm" },
+    { "path": "./connect/platforms/solana" },
+    { "path": "./connect/route" }
   ]
 }

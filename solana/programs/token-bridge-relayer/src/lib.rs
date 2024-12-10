@@ -1,4 +1,5 @@
 mod error;
+mod id;
 mod message;
 mod processor;
 mod state;
@@ -7,21 +8,7 @@ mod utils;
 use anchor_lang::prelude::*;
 use processor::*;
 
-cfg_if::cfg_if! {
-    if #[cfg(feature = "mainnet")] {
-        declare_id!("AtTrxsPbTfBhC9uwwJGJbkFMux78t5EWTAXAbwUW8yC7");
-        const WORMHOLE_MINT_AUTHORITY: Pubkey = anchor_lang::pubkey!("BCD75RNBHrJJpW4dXVagL5mPjzRLnVZq4YirJdjEYMV7");
-    } else if #[cfg(feature = "solana-devnet")] {
-        declare_id!("ATT7enfWTMV4dDTe2NQ2yBaTByuXXwrYRznsioQEUW6r");
-        const WORMHOLE_MINT_AUTHORITY: Pubkey = anchor_lang::pubkey!("rRsXLHe7sBHdyKU3KY3wbcgWvoT1Ntqudf6e9PKusgb");
-    } else if #[cfg(feature = "tilt-devnet")] {
-        declare_id!("46kv4wCpfEtLsHPDh4zm7jJb2pVdvke8Pj2ABYYJotFD");
-        const WORMHOLE_MINT_AUTHORITY: Pubkey = anchor_lang::pubkey!("8P2wAnHr2t4pAVEyJftzz7k6wuCE7aP1VugNwehzCJJY");
-    } else if #[cfg(feature = "localnet")] {
-        declare_id!("7TLiBkpDGshV4o3jmacTCx93CLkmo3VjZ111AsijN9f8");
-        const WORMHOLE_MINT_AUTHORITY: Pubkey = anchor_lang::pubkey!("BCD75RNBHrJJpW4dXVagL5mPjzRLnVZq4YirJdjEYMV7");
-    }
-}
+pub use id::ID;
 
 pub mod constant {
     use anchor_lang::prelude::*;
@@ -174,6 +161,7 @@ pub mod token_bridge_relayer {
     /// - `max_fee_lamports`: the maximum fee the user is willing to pay, in lamports.
     pub fn transfer_tokens(
         ctx: Context<OutboundTransfer>,
+        temporary_account_bump: u8,
         recipient_address: [u8; 32],
         transferred_amount: u64,
         unwrap_intent: bool,
@@ -182,6 +170,7 @@ pub mod token_bridge_relayer {
     ) -> Result<()> {
         processor::transfer_tokens(
             ctx,
+            temporary_account_bump,
             transferred_amount,
             unwrap_intent,
             dropoff_amount_micro,
@@ -191,8 +180,11 @@ pub mod token_bridge_relayer {
     }
 
     /// Complete a transfer initiated from another chain.
-    pub fn complete_transfer(ctx: Context<CompleteTransfer>) -> Result<()> {
-        processor::complete_transfer(ctx)
+    pub fn complete_transfer(
+        ctx: Context<CompleteTransfer>,
+        temporary_account_bump: u8,
+    ) -> Result<()> {
+        processor::complete_transfer(ctx, temporary_account_bump)
     }
 
     /* Helpers */
