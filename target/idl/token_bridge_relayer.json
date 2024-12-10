@@ -269,29 +269,16 @@
         {
           "name": "temporary_account",
           "docs": [
+            "so Anchor forces to initialize it by hand. Since it is closed in the same instruction,",
+            "it causes no security problem.",
+            "",
             "Program's temporary token account. This account is created before the",
             "instruction is invoked to temporarily take custody of the payer's",
             "tokens. When the tokens are finally bridged in, the tokens will be",
             "transferred to the destination token accounts. This account will have",
             "zero balance and can be closed."
           ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  116,
-                  109,
-                  112
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "mint"
-              }
-            ]
-          }
+          "writable": true
         },
         {
           "name": "peer"
@@ -367,24 +354,7 @@
           "optional": true
         },
         {
-          "name": "wormhole_redeemer",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  114,
-                  101,
-                  100,
-                  101,
-                  101,
-                  109,
-                  101,
-                  114
-                ]
-              }
-            ]
-          }
+          "name": "wormhole_redeemer"
         },
         {
           "name": "system_program",
@@ -407,7 +377,12 @@
           "address": "SysvarRent111111111111111111111111111111111"
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "temporary_account_bump",
+          "type": "u8"
+        }
+      ]
     },
     {
       "name": "confirm_owner_transfer_request",
@@ -457,6 +432,10 @@
           }
         },
         {
+          "name": "previous_owner",
+          "signer": true
+        },
+        {
           "name": "auth_badge_previous_owner",
           "writable": true,
           "pda": {
@@ -491,6 +470,92 @@
             "because we will update roles depending on the operation."
           ],
           "writable": true
+        },
+        {
+          "name": "program_data",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  13,
+                  74,
+                  247,
+                  118,
+                  36,
+                  164,
+                  201,
+                  97,
+                  25,
+                  221,
+                  241,
+                  144,
+                  142,
+                  148,
+                  63,
+                  218,
+                  160,
+                  137,
+                  78,
+                  28,
+                  18,
+                  140,
+                  195,
+                  112,
+                  127,
+                  26,
+                  150,
+                  227,
+                  211,
+                  125,
+                  216,
+                  108
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                2,
+                168,
+                246,
+                145,
+                78,
+                136,
+                161,
+                176,
+                226,
+                16,
+                21,
+                62,
+                247,
+                99,
+                174,
+                43,
+                0,
+                194,
+                185,
+                61,
+                22,
+                193,
+                36,
+                210,
+                192,
+                83,
+                122,
+                16,
+                4,
+                128,
+                0,
+                0
+              ]
+            }
+          }
+        },
+        {
+          "name": "bpf_loader_upgradeable",
+          "address": "BPFLoaderUpgradeab1e11111111111111111111111"
         },
         {
           "name": "system_program",
@@ -1116,28 +1181,15 @@
         {
           "name": "temporary_account",
           "docs": [
+            "so Anchor forces to initialize it by hand. Since it is closed in the same instruction,",
+            "it causes no security problem.",
+            "",
             "Program's temporary token account. This account is created before the",
             "instruction is invoked to temporarily take custody of the payer's",
             "tokens. When the tokens are finally bridged out, the token account",
             "will have zero balance and can be closed."
           ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  116,
-                  109,
-                  112
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "mint"
-              }
-            ]
-          }
+          "writable": true
         },
         {
           "name": "fee_recipient",
@@ -1153,30 +1205,7 @@
           "name": "oracle_config"
         },
         {
-          "name": "oracle_evm_prices",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  101,
-                  118,
-                  109,
-                  112,
-                  114,
-                  105,
-                  99,
-                  101,
-                  115
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "chain_config.chain_id",
-                "account": "ChainConfigState"
-              }
-            ]
-          }
+          "name": "oracle_evm_prices"
         },
         {
           "name": "token_bridge_config"
@@ -1241,22 +1270,7 @@
           "writable": true
         },
         {
-          "name": "wormhole_sender",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  115,
-                  101,
-                  110,
-                  100,
-                  101,
-                  114
-                ]
-              }
-            ]
-          }
+          "name": "wormhole_sender"
         },
         {
           "name": "wormhole_fee_collector",
@@ -1311,6 +1325,10 @@
         }
       ],
       "args": [
+        {
+          "name": "temporary_account_bump",
+          "type": "u8"
+        },
         {
           "name": "recipient_address",
           "type": {
@@ -1765,26 +1783,31 @@
     },
     {
       "code": 6013,
+      "name": "ChainPriceMismatch",
+      "msg": "ChainPriceMismatch"
+    },
+    {
+      "code": 6014,
       "name": "PausedTransfers",
       "msg": "PausedTransfers"
     },
     {
-      "code": 6014,
+      "code": 6015,
       "name": "InvalidSendingPeer",
       "msg": "InvalidSendingPeer"
     },
     {
-      "code": 6015,
+      "code": 6016,
       "name": "CannotRegisterSolana",
       "msg": "CannotRegisterSolana"
     },
     {
-      "code": 6016,
+      "code": 6017,
       "name": "InvalidPeerAddress",
       "msg": "InvalidPeerAddress"
     },
     {
-      "code": 6017,
+      "code": 6018,
       "name": "MissingAssociatedTokenAccount",
       "msg": "MissingAssociatedTokenAccount"
     }

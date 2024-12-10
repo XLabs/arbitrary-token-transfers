@@ -12,6 +12,7 @@ import {
   SystemProgram,
   sendAndConfirmTransaction,
   Finality,
+  VersionedTransactionResponse,
 } from '@solana/web3.js';
 import * as spl from '@solana/spl-token';
 import { Contracts, UniversalAddress } from '@wormhole-foundation/sdk-definitions';
@@ -164,6 +165,15 @@ export class TestsHelper {
     ...signers: Signer[]
   ): Promise<TransactionSignature> {
     return sendAndConfirm(this.connection, ixs, payer, ...signers);
+  }
+
+  async getTransaction(
+    signature: TransactionSignature | Promise<TransactionSignature>,
+  ): Promise<VersionedTransactionResponse | null> {
+    return this.connection.getTransaction(await signature, {
+      commitment: this.finality,
+      maxSupportedTransactionVersion: 1,
+    });
   }
 
   /** Requests airdrop to an account or several ones. */

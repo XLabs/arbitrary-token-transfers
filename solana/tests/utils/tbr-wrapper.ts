@@ -1,5 +1,5 @@
 import anchor from '@coral-xyz/anchor';
-import { Connection, PublicKey, Signer, TransactionSignature } from '@solana/web3.js';
+import { Connection, PublicKey, Signer, VersionedTransactionResponse } from '@solana/web3.js';
 import { Chain } from '@wormhole-foundation/sdk-base';
 import { UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import {
@@ -81,99 +81,152 @@ export class TbrWrapper {
     owner: PublicKey;
     feeRecipient: PublicKey;
     admins: PublicKey[];
-  }): Promise<TransactionSignature> {
-    return $.sendAndConfirm(await this.client.initialize(args), this.signer);
+  }): Promise<VersionedTransactionResponse | null> {
+    return $.getTransaction($.sendAndConfirm(await this.client.initialize(args), this.signer));
   }
 
-  async submitOwnerTransferRequest(newOwner: PublicKey): Promise<TransactionSignature> {
-    return $.sendAndConfirm(await this.client.submitOwnerTransferRequest(newOwner), this.signer);
-  }
-
-  async confirmOwnerTransferRequest(): Promise<TransactionSignature> {
-    return await $.sendAndConfirm(await this.client.confirmOwnerTransferRequest(), this.signer);
-  }
-
-  async cancelOwnerTransferRequest(): Promise<TransactionSignature> {
-    return $.sendAndConfirm(await this.client.cancelOwnerTransferRequest(), this.signer);
-  }
-
-  async addAdmin(newAdmin: PublicKey): Promise<TransactionSignature> {
-    return $.sendAndConfirm(await this.client.addAdmin(newAdmin), this.signer);
-  }
-
-  async removeAdmin(adminToRemove: PublicKey): Promise<TransactionSignature> {
-    return $.sendAndConfirm(
-      await this.client.removeAdmin(this.publicKey, adminToRemove),
-      this.signer,
+  async submitOwnerTransferRequest(
+    newOwner: PublicKey,
+  ): Promise<VersionedTransactionResponse | null> {
+    return $.getTransaction(
+      $.sendAndConfirm(await this.client.submitOwnerTransferRequest(newOwner), this.signer),
     );
   }
 
-  async registerPeer(chain: Chain, peerAddress: UniversalAddress): Promise<TransactionSignature> {
-    return $.sendAndConfirm(
-      await this.client.registerPeer(this.publicKey, chain, peerAddress),
-      this.signer,
+  async confirmOwnerTransferRequest(owner: Signer): Promise<VersionedTransactionResponse | null> {
+    return $.getTransaction(
+      $.sendAndConfirm(await this.client.confirmOwnerTransferRequest(), this.signer, owner),
+    );
+  }
+
+  async cancelOwnerTransferRequest(): Promise<VersionedTransactionResponse | null> {
+    return $.getTransaction(
+      $.sendAndConfirm(await this.client.cancelOwnerTransferRequest(), this.signer),
+    );
+  }
+
+  async addAdmin(newAdmin: PublicKey): Promise<VersionedTransactionResponse | null> {
+    return $.getTransaction($.sendAndConfirm(await this.client.addAdmin(newAdmin), this.signer));
+  }
+
+  async removeAdmin(adminToRemove: PublicKey): Promise<VersionedTransactionResponse | null> {
+    return $.getTransaction(
+      $.sendAndConfirm(await this.client.removeAdmin(this.publicKey, adminToRemove), this.signer),
+    );
+  }
+
+  async registerPeer(
+    chain: Chain,
+    peerAddress: UniversalAddress,
+  ): Promise<VersionedTransactionResponse | null> {
+    return $.getTransaction(
+      $.sendAndConfirm(
+        await this.client.registerPeer(this.publicKey, chain, peerAddress),
+        this.signer,
+      ),
     );
   }
 
   async updateCanonicalPeer(
     chain: Chain,
     peerAddress: UniversalAddress,
-  ): Promise<TransactionSignature> {
-    return $.sendAndConfirm(await this.client.updateCanonicalPeer(chain, peerAddress), this.signer);
-  }
-
-  async setPauseForOutboundTransfers(chain: Chain, paused: boolean): Promise<TransactionSignature> {
-    return $.sendAndConfirm(
-      await this.client.setPauseForOutboundTransfers(this.publicKey, chain, paused),
-      this.signer,
+  ): Promise<VersionedTransactionResponse | null> {
+    return $.getTransaction(
+      $.sendAndConfirm(await this.client.updateCanonicalPeer(chain, peerAddress), this.signer),
     );
   }
 
-  async updateMaxGasDropoff(chain: Chain, maxGasDropoff: number): Promise<TransactionSignature> {
-    return $.sendAndConfirm(
-      await this.client.updateMaxGasDropoff(this.publicKey, chain, maxGasDropoff),
-      this.signer,
+  async setPauseForOutboundTransfers(
+    chain: Chain,
+    paused: boolean,
+  ): Promise<VersionedTransactionResponse | null> {
+    return $.getTransaction(
+      $.sendAndConfirm(
+        await this.client.setPauseForOutboundTransfers(this.publicKey, chain, paused),
+        this.signer,
+      ),
     );
   }
 
-  async updateRelayerFee(chain: Chain, relayerFee: number): Promise<TransactionSignature> {
-    return $.sendAndConfirm(
-      await this.client.updateRelayerFee(this.publicKey, chain, relayerFee),
-      this.signer,
+  async updateMaxGasDropoff(
+    chain: Chain,
+    maxGasDropoff: number,
+  ): Promise<VersionedTransactionResponse | null> {
+    return $.getTransaction(
+      $.sendAndConfirm(
+        await this.client.updateMaxGasDropoff(this.publicKey, chain, maxGasDropoff),
+        this.signer,
+      ),
     );
   }
 
-  async updateFeeRecipient(newFeeRecipient: PublicKey): Promise<TransactionSignature> {
-    return $.sendAndConfirm(
-      await this.client.updateFeeRecipient(this.publicKey, newFeeRecipient),
-      this.signer,
+  async updateRelayerFee(
+    chain: Chain,
+    relayerFee: number,
+  ): Promise<VersionedTransactionResponse | null> {
+    return $.getTransaction(
+      $.sendAndConfirm(
+        await this.client.updateRelayerFee(this.publicKey, chain, relayerFee),
+        this.signer,
+      ),
+    );
+  }
+
+  async updateFeeRecipient(
+    newFeeRecipient: PublicKey,
+  ): Promise<VersionedTransactionResponse | null> {
+    return $.getTransaction(
+      $.sendAndConfirm(
+        await this.client.updateFeeRecipient(this.publicKey, newFeeRecipient),
+        this.signer,
+      ),
     );
   }
 
   async updateEvmTransactionConfig(
     evmTransactionGas: bigint,
     evmTransactionSize: bigint,
-  ): Promise<TransactionSignature> {
-    return $.sendAndConfirm(
-      await this.client.updateEvmTransactionConfig(
-        this.publicKey,
-        evmTransactionGas,
-        evmTransactionSize,
+  ): Promise<VersionedTransactionResponse | null> {
+    return $.getTransaction(
+      $.sendAndConfirm(
+        await this.client.updateEvmTransactionConfig(
+          this.publicKey,
+          evmTransactionGas,
+          evmTransactionSize,
+        ),
+        this.signer,
       ),
-      this.signer,
     );
   }
 
   /** Only the token owner can call this method. */
-  async transferTokens(params: TransferParameters): Promise<TransactionSignature> {
-    return $.sendAndConfirm(
-      await this.client.transferTokens(this.publicKey, params),
-      this.signer, //...signers
+  async transferTokens(params: TransferParameters): Promise<VersionedTransactionResponse | null> {
+    const response = await $.getTransaction(
+      $.sendAndConfirm(
+        await this.client.transferTokens(this.publicKey, params),
+        this.signer, //...signers
+      ),
     );
+
+    //console.log(
+    //  '[transferTokens] CU consumed:',
+    //  response?.meta?.computeUnitsConsumed ?? '<No information found>',
+    //);
+
+    return response;
   }
 
-  async completeTransfer(vaa: VaaMessage): Promise<TransactionSignature> {
-    return $.sendAndConfirm(await this.client.completeTransfer(this.publicKey, vaa), this.signer);
+  async completeTransfer(vaa: VaaMessage): Promise<VersionedTransactionResponse | null> {
+    const response = await $.getTransaction(
+      $.sendAndConfirm(await this.client.completeTransfer(this.publicKey, vaa), this.signer),
+    );
+
+    //console.log(
+    //  '[completeTransfer] CU consumed:',
+    //  response?.meta?.computeUnitsConsumed ?? '<No information found>',
+    //);
+
+    return response;
   }
 
   async relayingFeeSimulated(chain: Chain, dropoffAmount: number): Promise<number> {
