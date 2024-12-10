@@ -50,8 +50,6 @@ import { getCanonicalToken } from "@wormhole-foundation/sdk-base/tokens";
 
 const WHOLE_EVM_GAS_TOKEN_UNITS = 10 ** 18;
 
-const zeroAddress = new EvmAddress(new Uint8Array(20));
-
 export interface PartialTx {
   /**
    * Amount of native token that should be attached to the transaction.
