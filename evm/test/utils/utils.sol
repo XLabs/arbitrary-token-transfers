@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.25;
 
-import { WormholeOverride } from "wormhole-sdk/testing/WormholeOverride.sol";
+import { WormholeOverride, AdvancedWormholeOverride } from "wormhole-sdk/testing/WormholeOverride.sol";
 import { IWormhole } from "wormhole-sdk/interfaces/IWormhole.sol";
 import { TBR_V3_MESSAGE_VERSION } from "tbr/assets/TbrUser.sol";
 import { toUniversalAddress } from "wormhole-sdk/Utils.sol";
@@ -55,36 +55,35 @@ function craftTbrV3Vaa(
   uint16 recipientChain,
   address recipient,
   uint32 gasDropoff,
-  bool unwrapIntent,
-  uint64 sequence
-) returns (bytes memory) {
+  bool unwrapIntent
+) returns (bytes memory, uint64) {
   uint8 TOKEN_BRIDGE_PAYLOAD_ID = 3;
   bytes32 universalRecipient = toUniversalAddress(recipient);
   
   bytes memory tokenBridgePayload = abi.encodePacked(
-      TOKEN_BRIDGE_PAYLOAD_ID,
-      amount,
-      tokenAddress,
-      tokenChain,
-      targetTBR,
-      recipientChain,
-      originTBR,
-      abi.encodePacked(
-        TBR_V3_MESSAGE_VERSION,
-        universalRecipient,
-        gasDropoff,
-        unwrapIntent
-      )
+    TOKEN_BRIDGE_PAYLOAD_ID,
+    amount,
+    tokenAddress,
+    tokenChain,
+    targetTBR,
+    recipientChain,
+    originTBR,
+    abi.encodePacked(
+      TBR_V3_MESSAGE_VERSION,
+      universalRecipient,
+      gasDropoff,
+      unwrapIntent
+    )
   );
 
   WormholeOverride.setUpOverride(wormhole);
-  (, bytes memory encoded) = WormholeOverride.craftVaa(
-    wormhole, 
-    peerChain, 
+  uint64 sequence = AdvancedWormholeOverride.getSequence(wormhole);
+  bytes memory encoded = WormholeOverride.craftVaa(
+    wormhole,
+    peerChain,
     originTokenBridge,
-    sequence, 
     tokenBridgePayload
-  );  
+  );
 
-  return abi.encodePacked(uint16(encoded.length), encoded);
+  return (abi.encodePacked(uint16(encoded.length), encoded), sequence);
 }
