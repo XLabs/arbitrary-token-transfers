@@ -1435,6 +1435,57 @@ contract UserTest is TbrTestBase {
     );
   }
 
+  function testCompleteTransfer_FamiliarPeerFromUnexpectedChain(
+    uint16 peerChain,
+    uint256 amount,
+    uint32 gasDropoff,
+    bool unwrapIntent,
+    address recipient,
+    bytes32 originTokenBridge,
+    bytes32 targetTBR,
+    uint16 tokenChain,
+    uint16 recipientChain,
+    bytes32 tokenAddress
+  ) public {
+    bytes32 originTBR = EVM_L2_CANONICAL_PEER;
+    uint commandIndex = 0;
+
+    vm.assume(peerChain != EVM_L2_CHAIN_ID);
+
+    (bytes memory encodedVaa,) = craftTbrV3Vaa(
+      wormholeCore,
+      originTokenBridge,
+      originTBR,
+      targetTBR,
+      peerChain,
+      tokenChain,
+      tokenAddress,
+      amount,
+      recipientChain,
+      recipient,
+      gasDropoff,
+      unwrapIntent
+    );
+
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        UnrecognizedPeer.selector,
+        peerChain,
+        originTBR,
+        commandIndex
+      )
+    );
+
+    invokeTbr(
+      abi.encodePacked(
+        tbr.exec768.selector,
+        DISPATCHER_PROTOCOL_VERSION0,
+        COMPLETE_TRANSFER_ID,
+        encodedVaa
+      )
+    );
+  }
+
   function testCompleteTransfer_InsufficientGasDropoff(
     uint256 amount,
     uint32 gasDropoff,
