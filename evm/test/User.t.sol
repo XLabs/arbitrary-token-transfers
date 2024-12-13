@@ -1401,7 +1401,7 @@ contract UserTest is TbrTestBase {
     bytes32 originTBR = makeBytes32("FakePeer");
     uint commandIndex = 0;
 
-    (bytes memory encodedVaa, uint64 sequence) = craftTbrV3Vaa(
+    (bytes memory encodedVaa,) = craftTbrV3Vaa(
       wormholeCore,
       originTokenBridge,
       originTBR,
@@ -1455,7 +1455,7 @@ contract UserTest is TbrTestBase {
     bytes32 originTBR = EVM_L2_CANONICAL_PEER;
     uint commandIndex = 0;
 
-    (bytes memory encodedVaa, uint64 sequence) = craftTbrV3Vaa(
+    (bytes memory encodedVaa,) = craftTbrV3Vaa(
       wormholeCore,
       originTokenBridge,
       originTBR,

@@ -45,7 +45,7 @@ contract TokenBridgeVAAParserTest is TbrTestBase {
   ) public {
     vm.assume(recipient != address(0));
     bytes32 tokenAddress = toUniversalAddress(address(usdt));
-    (bytes memory encodedVaa, uint64 sequence) = craftTbrV3Vaa(
+    (bytes memory encodedVaa,) = craftTbrV3Vaa(
       wormholeCore,
       originTokenBridge,
       originTBR,
