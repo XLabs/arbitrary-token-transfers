@@ -24,12 +24,6 @@ export async function main(): Promise<void> {
     const addAdminTx = oracle.createTransactionBlock(owner)
     addAdminTx.add_admin(admin.getPublicKey().toSuiAddress())
     await addAdminTx.execute()
-    console.log("Updating EVM prices...")
-    const evmUpdateBlock = oracle.createTransactionBlock(admin)
-    evmUpdateBlock.update_gas_price(1, BigInt(1))
-    evmUpdateBlock.update_gas_token_price(1, BigInt(1))
-    evmUpdateBlock.update_price_per_byte(1, BigInt(1))
-    await evmUpdateBlock.execute()
 }
 
 main().then(() => {

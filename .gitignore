@@ -9,6 +9,7 @@ node_modules/
 dist/
 build/
 ts-build/
+move-build/
 build-test/
 build-forge/
 ethers-contracts/

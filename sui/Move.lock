@@ -2,63 +2,63 @@
 
 [move]
 version = 3
-manifest_digest = "035F2A33B2FFCFCEA8F56F703594A5E3F284AA8DB59806EB464B9F8C1D18041D"
+manifest_digest = "CEEE496CA25E083A5E69CB2FD12F8CA3B0CF5CB64B297B651992473D69F827B3"
 deps_digest = "397E6A9F7A624706DBDFEE056CE88391A15876868FD18A88504DA74EB458D697"
 dependencies = [
-  { id = "Sui", name = "Sui" },
-  { id = "TokenBridge", name = "TokenBridge" },
-  { id = "Wormhole", name = "Wormhole" },
-  { id = "tbrv3_quoting_oracle", name = "tbrv3_quoting_oracle" },
-  { id = "xlabs", name = "xlabs" },
+  { name = "Sui" },
+  { name = "TokenBridge" },
+  { name = "Wormhole" },
+  { name = "tbrv3_quoting_oracle" },
+  { name = "xlabs" },
 ]
 
 [[move.package]]
-id = "MoveStdlib"
-source = { git = "https://github.com/MystenLabs/sui.git", rev = "framework/testnet", subdir = "crates\\sui-framework\\packages\\move-stdlib" }
+name = "MoveStdlib"
+source = { git = "https://github.com/MystenLabs/sui.git", rev = "framework/testnet", subdir = "crates/sui-framework/packages/move-stdlib" }
 
 [[move.package]]
-id = "Sui"
+name = "Sui"
 source = { git = "https://github.com/MystenLabs/sui.git", rev = "framework/testnet", subdir = "crates/sui-framework/packages/sui-framework" }
 
 dependencies = [
-  { id = "MoveStdlib", name = "MoveStdlib" },
+  { name = "MoveStdlib" },
 ]
 
 [[move.package]]
-id = "TokenBridge"
-source = { local = "..\\lib\\wormhole\\sui\\token_bridge" }
+name = "TokenBridge"
+source = { local = "../lib/wormhole/sui/token_bridge" }
 
 dependencies = [
-  { id = "Sui", name = "Sui" },
+  { name = "Sui" },
 ]
 
 dev-dependencies = [
-  { id = "Wormhole", name = "Wormhole" },
+  { name = "Wormhole" },
 ]
 
 [[move.package]]
-id = "Wormhole"
-source = { local = "..\\lib\\wormhole\\sui\\wormhole" }
+name = "Wormhole"
+source = { local = "../lib/wormhole/sui/wormhole" }
 
 dependencies = [
-  { id = "Sui", name = "Sui" },
+  { name = "Sui" },
 ]
 
 [[move.package]]
-id = "tbrv3_quoting_oracle"
-source = { local = "..\\lib\\relayer-infra-contracts\\src\\sui\\contracts\\oracle" }
+name = "tbrv3_quoting_oracle"
+source = { local = "../lib/relayer-infra-contracts/src/sui/contracts/oracle" }
 
 dependencies = [
-  { id = "Sui", name = "Sui" },
-  { id = "xlabs", name = "xlabs" },
+  { name = "Sui" },
+  { name = "xlabs" },
 ]
 
 [[move.package]]
-id = "xlabs"
-source = { local = "..\\lib\\relayer-infra-contracts\\src\\sui\\contracts\\xlabs" }
+name = "xlabs"
+source = { local = "../lib/relayer-infra-contracts/src/sui/contracts/xlabs" }
 
 dependencies = [
-  { id = "Sui", name = "Sui" },
+  { name = "Sui" },
 ]
 
 [move.toolchain-version]

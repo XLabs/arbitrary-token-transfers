@@ -1,10 +1,10 @@
-import { DevInspectResults, SuiClient, SuiTransaction, SuiTransactionBlockResponse } from '@mysten/sui/client';
+import { DevInspectResults, SuiClient, SuiTransactionBlockResponse } from '@mysten/sui/client';
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
-import { Transaction, TransactionArgument, TransactionResult } from '@mysten/sui/transactions';
-import path from 'path';
-import { promises as fs } from "fs";
-import { ChainId, SuiAddress, SuiObjectId, SuiPackage } from './types.js';
+import { Transaction, TransactionResult } from '@mysten/sui/transactions';
+import { ChainId, SuiAddress, SuiObjectId, SuiPackageId } from './types.js';
 import { executeTransaction, inspectTransaction } from './execute.js';
+import { deploySuiContract } from './deploy.js';
+import { deployLocally } from './deployLocal.js';
 
 export const CHAIN_ID_SUI = 21
 export class TBRV3TransactionBlock {
@@ -65,140 +65,22 @@ export class TBRV3TransactionBlock {
       arguments: [this.tx.object(this.oracle.state), this.tx.pure.address(admin)]
     });
   }
-
-  reset_new_owner(): TransactionResult {
-    return this.tx.moveCall({
-      package: this.oracle.pkg,
-      module: "quoting_oracle",
-      function: "reset_new_owner",
-      arguments: [this.tx.object(this.oracle.state)]
-    });
-  }
-
-  accept_new_owner(): TransactionResult {
-    return this.tx.moveCall({
-      package: this.oracle.pkg,
-      module: "quoting_oracle",
-      function: "accept_new_owner",
-      arguments: [this.tx.object(this.oracle.state)]
-    });
-  }
-
-  update_gas_token_price(chain_id: ChainId, gas_token_price: bigint): TransactionResult {
-    return this.tx.moveCall({
-      package: this.oracle.pkg,
-      module: "quoting_oracle",
-      function: "update_gas_token_price",
-      arguments: [this.tx.object(this.oracle.state), this.tx.pure.u16(chain_id), this.tx.pure.u256(gas_token_price)]
-    });
-  }
-
-  update_gas_price(chain_id: ChainId, gas_price: bigint): TransactionResult {
-    return this.tx.moveCall({
-      package: this.oracle.pkg,
-      module: "quoting_oracle",
-      function: "update_gas_price",
-      arguments: [this.tx.object(this.oracle.state), this.tx.pure.u16(chain_id), this.tx.pure.u256(gas_price)]
-    });
-  }
-
-  update_price_per_byte(chain_id: ChainId, price_per_byte: bigint): TransactionResult {
-    return this.tx.moveCall({
-      package: this.oracle.pkg,
-      module: "quoting_oracle",
-      function: "update_price_per_byte",
-      arguments: [this.tx.object(this.oracle.state), this.tx.pure.u16(chain_id), this.tx.pure.u256(price_per_byte)]
-    });
-  }
-
-  update_solana_account_size_cost(account_size_cost: bigint): TransactionResult {
-    return this.tx.moveCall({
-      package: this.oracle.pkg,
-      module: "quoting_oracle",
-      function: "update_solana_account_size_cost",
-      arguments: [this.tx.object(this.oracle.state), this.tx.pure.u256(account_size_cost)]
-    });
-  }
-
-  update_solana_account_overhead(account_overhead: bigint): TransactionResult {
-    return this.tx.moveCall({
-      package: this.oracle.pkg,
-      module: "quoting_oracle",
-      function: "update_solana_account_overhead",
-      arguments: [this.tx.object(this.oracle.state), this.tx.pure.u256(account_overhead)]
-    });
-  }
-
-  evm_transaction_quote(
-    chain_id: ChainId,
-    gas_dropoff: bigint,
-    gas: bigint,
-    base_fee: bigint,
-    billed_size: bigint,
-  ): TransactionResult {
-    return this.tx.moveCall({
-      package: this.oracle.pkg,
-      module: "quoting_oracle",
-      function: "evm_transaction_quote",
-      arguments: [
-        this.tx.object(this.oracle.state),
-        this.tx.pure.u16(chain_id),
-        this.tx.pure.u256(gas_dropoff),
-        this.tx.pure.u256(gas),
-        this.tx.pure.u256(base_fee),
-        this.tx.pure.u256(billed_size),
-      ]
-    });
-  }
-
-  solana_transaction_quote(
-    gas_dropoff: bigint,
-    number_of_spawned_accounts: bigint,
-    total_size_of_accounts: bigint,
-    base_fee: bigint,
-  ): TransactionResult {
-    return this.tx.moveCall({
-      package: this.oracle.pkg,
-      module: "quoting_oracle",
-      function: "solana_transaction_quote",
-      arguments: [
-        this.tx.object(this.oracle.state),
-        this.tx.pure.u256(gas_dropoff),
-        this.tx.pure.u256(number_of_spawned_accounts),
-        this.tx.pure.u256(total_size_of_accounts),
-        this.tx.pure.u256(base_fee),
-      ]
-    });
-  }
-
 }
 
 export class TBRV3 {
 
   constructor(
     readonly client: SuiClient,
-    readonly pkg: SuiPackage,
+    readonly pkg: SuiPackageId,
     readonly state: SuiObjectId
   ) {}
 
   static async deploy(client: SuiClient, deployer: Ed25519Keypair): Promise<TBRV3> {
-    const contractPath = "../../sui/contracts/tbrv3.json"
-    const { modules, dependencies } = JSON.parse(await fs.readFile(contractPath, "utf-8"))
-    const tx = new Transaction();
-    tx.setSender(deployer.getPublicKey().toSuiAddress());
-    tx.setGasBudget(50000000000);
-    const upgradeCap = tx.publish({ modules, dependencies });
-    tx.transferObjects([upgradeCap], deployer.getPublicKey().toSuiAddress());
-    const result = await executeTransaction(client, tx, deployer);
-    const contract = result.effects?.created?.find((c) => c.owner === "Immutable")
-    if (contract === undefined) {
-      throw new Error("Resulting contract object was undefined")
-    }
-    const state = result.effects?.created?.find((c) => c.owner !== 'Immutable' && "Shared" in c.owner)
-    if (state === undefined) {
-      throw new Error("Resulting state object was undefined")
-    }
-    return new TBRV3(client, contract.reference.objectId, state.reference.objectId)
+    const packages = await deployLocally(client, deployer)
+    console.log("Deployed packages:")
+    console.dir(packages, { depth: null })
+    // FIXME: Properly retrieve the state after initialization
+    return new TBRV3(client, packages.relayer.packageId, "")
   }
 
   public createTransactionBlock(sender: Ed25519Keypair, gasBudget = BigInt(50000000)): TBRV3TransactionBlock {
