@@ -237,9 +237,8 @@ abstract contract AccessControl {
       uint256 rawIndex = state.isAdmin[admin];
       if (rawIndex != state.admins.length) {
         address tmpAdmin = state.admins[state.admins.length - 1];
-        uint256 newIndex = rawIndex - 1;
-        state.isAdmin[tmpAdmin] = newIndex;
-        state.admins[newIndex] = tmpAdmin;
+        state.isAdmin[tmpAdmin] = rawIndex;
+        state.admins[rawIndex - 1] = tmpAdmin;
       }
 
       state.isAdmin[admin] = 0;
