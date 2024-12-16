@@ -61,10 +61,10 @@ pub struct CompleteTransfer<'info> {
     #[account(mut)]
     pub temporary_account: UncheckedAccount<'info>,
 
+    /// The TBR peer (_i.e._ `data().from_address()`). We do not care about the Token Bridge peer `vaa.meta.emitter_address`.
     #[account(
-        constraint = {
-            peer.address == *vaa.data().from_address()
-        } @ TokenBridgeRelayerError::InvalidSendingPeer
+        constraint = peer.address == *vaa.data().from_address() && peer.chain_id == vaa.meta.emitter_chain
+            @ TokenBridgeRelayerError::InvalidSendingPeer
     )]
     pub peer: Account<'info, PeerState>,
 
@@ -143,6 +143,8 @@ pub fn complete_transfer(
         unwrap_intent,
     } = *ctx.accounts.vaa.message().data();
     let gas_dropoff_amount = denormalize_dropoff_to_lamports(gas_dropoff_amount);
+
+    let _x = ctx.accounts.vaa.message();
 
     let redeemer_seeds = &[
         token_bridge::SEED_PREFIX_REDEEMER.as_ref(),
