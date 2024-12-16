@@ -400,7 +400,6 @@ export class SolanaTokenBridgeRelayer {
       .confirmOwnerTransferRequest()
       .accounts({
         newOwner: config.pendingOwner ?? throwError('No pending owner in the program'),
-        previousOwner: config.owner,
         tbrConfig: this.account.config().address,
       })
       .instruction();
@@ -410,12 +409,9 @@ export class SolanaTokenBridgeRelayer {
    * Signer: the Owner.
    */
   async cancelOwnerTransferRequest(): Promise<TransactionInstruction> {
-    const config = await this.read.config();
-
     return this.program.methods
       .cancelOwnerTransferRequest()
-      .accountsStrict({
-        owner: config.owner,
+      .accounts({
         tbrConfig: this.account.config().address,
       })
       .instruction();
