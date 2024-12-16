@@ -92,9 +92,9 @@ export class TbrWrapper {
     );
   }
 
-  async confirmOwnerTransferRequest(owner: Signer): Promise<VersionedTransactionResponse | null> {
+  async confirmOwnerTransferRequest(): Promise<VersionedTransactionResponse | null> {
     return $.getTransaction(
-      $.sendAndConfirm(await this.client.confirmOwnerTransferRequest(), this.signer, owner),
+      $.sendAndConfirm(await this.client.confirmOwnerTransferRequest(), this.signer),
     );
   }
 

@@ -78,7 +78,11 @@ describe('Token Bridge Relayer Program', () => {
   const ethereumTbrPeer1 = $.universalAddress.generate('ethereum');
   const ethereumTbrPeer2 = $.universalAddress.generate('ethereum');
   const oasisTbrPeer = $.universalAddress.generate('ethereum');
-  const bpfProgram = new BpfLoaderUpgradeableProgram(ownerClient.client.program.programId, $.connection);
+
+  const bpfProgram = new BpfLoaderUpgradeableProgram(
+    ownerClient.client.program.programId,
+    $.connection,
+  );
 
   before(async () => {
     await $.airdrop([
@@ -187,12 +191,12 @@ describe('Token Bridge Relayer Program', () => {
 
     it('Rejects a transfer validation by an unauthorized account', async () => {
       await assert
-        .promise(unauthorizedClient.confirmOwnerTransferRequest(ownerClient.signer))
+        .promise(unauthorizedClient.confirmOwnerTransferRequest())
         .failsWith('Signature verification failed');
     });
 
     it('Accepts a transfer validation by the rightful new owner', async () => {
-      await newOwnerClient.confirmOwnerTransferRequest(ownerClient.signer);
+      await newOwnerClient.confirmOwnerTransferRequest();
 
       // Verify that the authority has been updated to the new owner.
       const { upgradeAuthority } = await bpfProgram.getdata();
@@ -218,7 +222,7 @@ describe('Token Bridge Relayer Program', () => {
 
       // Now the original owner cannot accept the ownership:
       await assert
-        .promise(ownerClient.confirmOwnerTransferRequest(ownerClient.signer))
+        .promise(ownerClient.confirmOwnerTransferRequest())
         .failsWith('No pending owner in the program');
     });
 

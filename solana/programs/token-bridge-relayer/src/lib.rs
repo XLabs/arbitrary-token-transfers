@@ -18,6 +18,9 @@ pub mod constant {
 
     #[constant]
     pub const SEED_PREFIX_TEMPORARY: &[u8] = b"tmp";
+
+    #[constant]
+    pub const SEED_PREFIX_UPGRADE_LOCK: &[u8] = b"upgrade lock";
 }
 
 #[program]
@@ -35,6 +38,11 @@ pub mod token_bridge_relayer {
     /* Roles */
 
     /// Updates the owner account. This needs to be either cancelled or approved.
+    ///
+    /// For safety reasons, transferring ownership is a 2-step process. This first step is to set the
+    /// new owner, and the second step is for the new owner to claim the ownership.
+    /// This is to prevent a situation where the ownership is transferred to an
+    /// address that is not able to claim the ownership (by mistake).
     pub fn submit_owner_transfer_request(
         ctx: Context<SubmitOwnerTransfer>,
         new_owner: Pubkey,
