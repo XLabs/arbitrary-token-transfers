@@ -1,3 +1,4 @@
+import { UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import {
   amount,
   api,
@@ -15,6 +16,7 @@ import {
   signAndSendWait,
   Signer,
   TokenId,
+  TokenKey,
   TokenTransfer,
   TransferReceipt,
   TransferState,
@@ -24,14 +26,32 @@ import {
   isNative,
   TokenAddress,
   toNative,
-  UniversalAddress,
   UniversalOrNative,
 } from '@wormhole-foundation/sdk-definitions';
 import {
   SupportedChains,
+  testnetTokensByChain,
   tokenBridgeRelayerV3Chains,
 } from '@xlabs-xyz/arbitrary-token-transfers-definitions';
-import '@xlabs-xyz/arbitrary-token-transfers-definitions';
+import { chainToPlatform, platformToAddressFormat } from '@wormhole-foundation/sdk-base';
+
+
+function getChainTokens(network: Network, chain: Chain): TokenId[] {
+  if (network === "Testnet") {
+    if (!testnetTokensByChain.has(chain)) throw new Error(`No tokens for chain ${chain}`);
+    const chainTokens = testnetTokensByChain.get(chain);
+    console.log("chainTokens", chainTokens);
+    return chainTokens!.map(
+      ([key, token]) => ({
+        ...token,
+        chain,
+        address: new UniversalAddress(token.address, platformToAddressFormat(chainToPlatform(chain))),
+      })
+    )
+  }
+
+  throw new Error(`Unsupported Network: ${network}`);
+}
 
 interface TransferOptions {
   nativeGas: number; // this is a percentage
@@ -69,9 +89,31 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
   }
 
   static async supportedSourceTokens(fromChain: ChainContext<Network>): Promise<TokenId[]> {
-    return Object.values(fromChain.config.tokenMap!).map((td) =>
+    // tmp note: this is what wormhole-connect needs of a token
+    // export type TokenConfig = {
+    //   key: string;
+    //   symbol: string;
+    //   nativeChain: Chain;
+    //   icon: Icon | string;
+    //   tokenId?: TokenId; // if no token id, it is the native token
+    //   coinGeckoId: string;
+    //   color?: string;
+    //   decimals: number;
+    //   wrappedAsset?: string;
+    //   displayName?: string;
+    // };
+
+
+
+    const a = Object.values(fromChain.config.tokenMap!).map((td) =>
       Wormhole.tokenId(td.chain, td.address),
     );
+
+    console.log("supported source tokens", a);
+
+    console.log("getChainTokens", getChainTokens(fromChain.network, fromChain.chain));
+    // return [Wormhole.tokenId(fromChain.chain, 'native')];
+    return [...a, ...getChainTokens(fromChain.network, fromChain.chain)];
   }
 
   static async supportedDestinationTokens<N extends Network>(
@@ -80,7 +122,12 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
     toChain: ChainContext<N>,
   ): Promise<TokenId[]> {
     try {
-      return [await TokenTransfer.lookupDestinationToken(fromChain, toChain, sourceToken)];
+      const a =  [await TokenTransfer.lookupDestinationToken(fromChain, toChain, sourceToken)];
+      console.log("fromChain", fromChain);
+      console.log("toChain", toChain);
+      console.log("sourceToken", sourceToken);
+      console.log("dest token lookup", a);
+      return a;
     } catch (e) {
       console.error(`Failed to get destination token: ${e}`);
       return [];
@@ -88,10 +135,18 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
   }
 
   static isProtocolSupported<N extends Network>(chain: ChainContext<N>): boolean {
-    return chain.supportsProtocol('AutomaticTokenBridgeV3');
+    console.log("isProtocolSupported");
+    console.log(chain.supportsProtocol('AutomaticTokenBridgeV3'));
+
+    return true;
+  }
+
+  constructor(wh: Wormhole<N>) {
+    super(wh);
   }
 
   async isAvailable(request: routes.RouteTransferRequest<N>): Promise<boolean> {
+    console.log("isAvailable");
     const tbr = await request.fromChain.getProtocol('AutomaticTokenBridgeV3');
 
     return tbr.isChainAvailable(request.toChain.chain);
@@ -101,6 +156,7 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
     request: routes.RouteTransferRequest<N>,
     params: routes.TransferParams<TransferOptions>,
   ): Promise<routes.ValidationResult<TransferOptions>> {
+    console.log("validate");
     try {
       if (tokenBridgeRelayerV3Chains.has(request.fromChain.chain))
         throw new Error('Source chain not supported');

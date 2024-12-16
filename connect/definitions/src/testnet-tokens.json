@@ -1,0 +1,44 @@
+[
+  [
+    "Avalanche",
+    [
+      [
+        "WETH",
+        {
+          "symbol": "WETH",
+          "decimals": 18,
+          "address": "0xbB5A2dC896Ec4E2fa77F40FA630582ed9c6D0172",
+          "original": "Ethereum"
+        }
+      ]
+    ]
+  ],
+  [
+    "Celo",
+    [
+      [
+        "WETH",
+        {
+          "symbol": "WETH",
+          "decimals": 18,
+          "address": "0x898471a82737dFFfB61915F9e8381e279076D72b",
+          "original": "Ethereum"
+        }
+      ]
+    ]
+  ],
+  [
+    "Solana",
+    [
+      [
+        "WETH",
+        {
+          "symbol": "WETH",
+          "decimals": 8,
+          "address": "7VPWjBhCXrpYYBiRKZh1ubh9tLZZNkZGp2ReRphEV4Mc",
+          "original": "Ethereum"
+        }
+      ]
+    ]
+  ]
+]
