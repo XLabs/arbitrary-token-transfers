@@ -1,12 +1,13 @@
 //! Everything about the owner or admin role transfer.
 
 use crate::{
+    constant::SEED_PREFIX_UPGRADE_LOCK,
     error::TokenBridgeRelayerError,
     state::{AuthBadgeState, TbrConfigState},
 };
 use anchor_lang::{
     prelude::*,
-    solana_program::{bpf_loader_upgradeable, program::invoke},
+    solana_program::{bpf_loader_upgradeable, program::invoke_signed},
 };
 
 #[derive(Accounts)]
@@ -23,6 +24,24 @@ pub struct SubmitOwnerTransfer<'info> {
         bump = tbr_config.bump
     )]
     pub tbr_config: Account<'info, TbrConfigState>,
+
+    /// CHECK: The seeds constraint enforces that this is the correct address
+    #[account(
+        seeds = [SEED_PREFIX_UPGRADE_LOCK],
+        bump,
+    )]
+    upgrade_lock: UncheckedAccount<'info>,
+
+    #[account(
+        mut,
+        seeds = [crate::ID.as_ref()],
+        bump,
+        seeds::program = bpf_loader_upgradeable::ID,
+    )]
+    program_data: Account<'info, ProgramData>,
+
+    #[account(address = bpf_loader_upgradeable::ID)]
+    pub bpf_loader_upgradeable: UncheckedAccount<'info>,
 }
 
 pub fn submit_owner_transfer_request(
@@ -37,6 +56,22 @@ pub fn submit_owner_transfer_request(
     );
 
     ctx.accounts.tbr_config.pending_owner = Some(new_owner);
+
+    // Change the program authority to the upgrade lock PDA, so that the owner does not need
+    // to sign the transaction when confirming the ownership transfer:
+    invoke_signed(
+        &bpf_loader_upgradeable::set_upgrade_authority_checked(
+            &ctx.program_id,
+            &ctx.accounts.owner.key(),
+            &ctx.accounts.upgrade_lock.key(),
+        ),
+        &[
+            ctx.accounts.program_data.to_account_info(),
+            ctx.accounts.owner.to_account_info(),
+            ctx.accounts.upgrade_lock.to_account_info(),
+        ],
+        &[&[SEED_PREFIX_UPGRADE_LOCK, &[ctx.bumps.upgrade_lock]]],
+    )?;
 
     Ok(())
 }
@@ -54,8 +89,6 @@ pub struct ConfirmOwnerTransfer<'info> {
         bump
     )]
     pub auth_badge_new_owner: Account<'info, AuthBadgeState>,
-
-    pub previous_owner: Signer<'info>,
 
     #[account(
         mut,
@@ -75,6 +108,13 @@ pub struct ConfirmOwnerTransfer<'info> {
     )]
     pub tbr_config: Account<'info, TbrConfigState>,
 
+    /// CHECK: The seeds constraint enforces that this is the correct address
+    #[account(
+        seeds = [SEED_PREFIX_UPGRADE_LOCK],
+        bump,
+    )]
+    upgrade_lock: UncheckedAccount<'info>,
+
     #[account(
         mut,
         seeds = [crate::ID.as_ref()],
@@ -93,17 +133,18 @@ pub fn confirm_owner_transfer_request(ctx: Context<ConfirmOwnerTransfer>) -> Res
     let tbr_config = &mut ctx.accounts.tbr_config;
 
     // Change the program authority to the new owner:
-    invoke(
+    invoke_signed(
         &bpf_loader_upgradeable::set_upgrade_authority(
             &ctx.program_id,
-            &ctx.accounts.previous_owner.key(),
+            &ctx.accounts.upgrade_lock.key(),
             Some(&ctx.accounts.new_owner.key()),
         ),
         &[
             ctx.accounts.program_data.to_account_info(),
-            ctx.accounts.previous_owner.to_account_info(),
+            ctx.accounts.upgrade_lock.to_account_info(),
             ctx.accounts.new_owner.to_account_info(),
         ],
+        &[&[SEED_PREFIX_UPGRADE_LOCK, &[ctx.bumps.upgrade_lock]]],
     )?;
 
     tbr_config.owner = ctx.accounts.new_owner.key();
@@ -118,6 +159,7 @@ pub fn confirm_owner_transfer_request(ctx: Context<ConfirmOwnerTransfer>) -> Res
 
 #[derive(Accounts)]
 pub struct CancelOwnerTransfer<'info> {
+    #[account(mut)]
     pub owner: Signer<'info>,
 
     /// Program Config account. This program requires that the [`signer`] specified
@@ -128,10 +170,43 @@ pub struct CancelOwnerTransfer<'info> {
         has_one = owner @ TokenBridgeRelayerError::OwnerOnly,
     )]
     pub tbr_config: Account<'info, TbrConfigState>,
+
+    /// CHECK: The seeds constraint enforces that this is the correct address
+    #[account(
+        seeds = [SEED_PREFIX_UPGRADE_LOCK],
+        bump,
+    )]
+    upgrade_lock: UncheckedAccount<'info>,
+
+    #[account(
+        mut,
+        seeds = [crate::ID.as_ref()],
+        bump,
+        seeds::program = bpf_loader_upgradeable::ID,
+    )]
+    program_data: Account<'info, ProgramData>,
+
+    #[account(address = bpf_loader_upgradeable::ID)]
+    pub bpf_loader_upgradeable: UncheckedAccount<'info>,
 }
 
 pub fn cancel_owner_transfer_request(ctx: Context<CancelOwnerTransfer>) -> Result<()> {
     ctx.accounts.tbr_config.pending_owner = None;
+
+    // Transfer the program authority back to the owner:
+    invoke_signed(
+        &bpf_loader_upgradeable::set_upgrade_authority(
+            &ctx.program_id,
+            &ctx.accounts.upgrade_lock.key(),
+            Some(&ctx.accounts.owner.key()),
+        ),
+        &[
+            ctx.accounts.program_data.to_account_info(),
+            ctx.accounts.upgrade_lock.to_account_info(),
+            ctx.accounts.owner.to_account_info(),
+        ],
+        &[&[SEED_PREFIX_UPGRADE_LOCK, &[ctx.bumps.upgrade_lock]]],
+    )?;
 
     Ok(())
 }
