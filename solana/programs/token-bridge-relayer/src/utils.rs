@@ -156,6 +156,15 @@ impl<'info> CreateAndInitTokenAccount<'info> {
     pub fn run_with_seeds(self, seeds: &[&[u8]]) -> Result<()> {
         const LEN: usize = anchor_spl::token::TokenAccount::LEN;
 
+        // Before calling `create_account`, we need to verify that the account
+        // has an empty balance, otherwise the instruction would fail:
+        DrainAccount {
+            system_program: self.system_program.clone(),
+            account: self.account.clone(),
+            recipient: self.payer.clone(),
+        }
+        .run_with_seeds(seeds)?;
+
         system_program::create_account(
             CpiContext::new_with_signer(
                 self.system_program,
@@ -180,6 +189,33 @@ impl<'info> CreateAndInitTokenAccount<'info> {
             },
             &[seeds],
         ))?;
+
+        Ok(())
+    }
+}
+
+/// Empties the account balance to the provided recipient.
+pub struct DrainAccount<'info> {
+    pub system_program: AccountInfo<'info>,
+    pub account: AccountInfo<'info>,
+    pub recipient: AccountInfo<'info>,
+}
+
+impl<'info> DrainAccount<'info> {
+    pub fn run_with_seeds(self, seeds: &[&[u8]]) -> Result<()> {
+        if self.account.lamports() != 0 {
+            anchor_lang::system_program::transfer(
+                CpiContext::new_with_signer(
+                    self.system_program.to_account_info(),
+                    anchor_lang::system_program::Transfer {
+                        from: self.account.clone(),
+                        to: self.recipient,
+                    },
+                    &[seeds],
+                ),
+                self.account.lamports(),
+            )?;
+        }
 
         Ok(())
     }

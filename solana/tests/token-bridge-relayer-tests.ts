@@ -145,6 +145,9 @@ describe('Token Bridge Relayer Program', () => {
       DEBUG,
     );
 
+    // Let's credit a badge, to verify that we cannot trigger a denial of service:
+    await $.airdrop(upgradeAuthorityClient.account.authBadge(adminClient1.publicKey).address);
+
     await upgradeAuthorityClient.initialize({
       feeRecipient,
       owner: ownerClient.publicKey,
@@ -458,6 +461,9 @@ describe('Token Bridge Relayer Program', () => {
 
       const foreignAddress = $.universalAddress.generate();
       const canonicalEthereum = await unauthorizedClient.read.canonicalPeer(ETHEREUM);
+
+      // Let's credit the temporary token account, to verify that we cannot trigger a denial of service:
+      await $.airdrop(unauthorizedClient.account.temporary(spl.NATIVE_MINT).address);
 
       await unauthorizedClient.transferTokens({
         recipient: { address: foreignAddress, chain: ETHEREUM },
