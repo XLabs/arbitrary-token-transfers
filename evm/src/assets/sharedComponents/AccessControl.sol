@@ -235,8 +235,12 @@ abstract contract AccessControl {
     }
     else {
       uint256 rawIndex = state.isAdmin[admin];
-      if (rawIndex != state.admins.length)
-        state.admins[rawIndex - 1] = state.admins[state.admins.length - 1];
+      if (rawIndex != state.admins.length) {
+        address tmpAdmin = state.admins[state.admins.length - 1];
+        uint256 newIndex = rawIndex - 1;
+        state.isAdmin[tmpAdmin] = newIndex;
+        state.admins[newIndex] = tmpAdmin;
+      }
 
       state.isAdmin[admin] = 0;
       state.admins.pop();
