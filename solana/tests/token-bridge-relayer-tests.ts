@@ -532,7 +532,7 @@ describe('Token Bridge Relayer Program', () => {
     });
 
     it('Gets wrapped SOL back from another chain', async () => {
-      const [payer, recipient] = await $.airdrop([Keypair.generate(), $.keypair.generate()]);
+      const [payer, recipient] = await $.airdrop($.keypair.several(2));
       // Associated token account already existing (to test if it breaks the transfer completion):
       const recipientTokenAccount = await spl.createAssociatedTokenAccount(
         $.connection,
