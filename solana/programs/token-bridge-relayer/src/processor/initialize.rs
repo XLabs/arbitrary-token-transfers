@@ -1,6 +1,7 @@
 use crate::{
     error::TokenBridgeRelayerError,
     state::{AuthBadgeState, TbrConfigState},
+    utils::DrainAccount,
 };
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::{bpf_loader_upgradeable, program::invoke};
@@ -119,6 +120,16 @@ pub fn initialize<'a, 'b, 'c, 'info>(
             ctx.program_id,
         )
         .1;
+        let badge_seeds = [AuthBadgeState::SEED_PREFIX, &admin.to_bytes(), &[bump]];
+
+        // Before calling `create_account`, we need to verify that the account
+        // has an empty balance, otherwise the instruction would fail:
+        DrainAccount {
+            system_program: ctx.accounts.system_program.to_account_info(),
+            account: badge_acc_info.to_account_info(),
+            recipient: ctx.accounts.deployer.to_account_info(),
+        }
+        .run_with_seeds(&badge_seeds)?;
 
         anchor_lang::system_program::create_account(
             CpiContext::new_with_signer(
@@ -127,11 +138,7 @@ pub fn initialize<'a, 'b, 'c, 'info>(
                     from: ctx.accounts.deployer.to_account_info(),
                     to: badge_acc_info.clone(),
                 },
-                &[&[
-                    AuthBadgeState::SEED_PREFIX,
-                    admin.to_bytes().as_ref(),
-                    &[bump],
-                ]],
+                &[&badge_seeds],
             ),
             Rent::get()?.minimum_balance(8 + AuthBadgeState::INIT_SPACE),
             (8 + AuthBadgeState::INIT_SPACE) as u64,
