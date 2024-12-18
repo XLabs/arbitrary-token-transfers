@@ -1,9 +1,9 @@
 import {
   CustomConversion,
+  deserializeLayout,
   Layout,
-  layout,
-  LayoutItem,
   LayoutToType,
+  serializeLayout,
 } from '@wormhole-foundation/sdk-base';
 import { layoutItems, UniversalAddress, VAA } from '@wormhole-foundation/sdk-definitions';
 
@@ -27,11 +27,11 @@ export function throwError(message: string): never {
 
 /** Deserialize the inner payload aka the message: `vaa.payload.payload`. */
 export function deserializeTbrV3Message(payload: Uint8Array): TbrV3Payload {
-  return layout.deserializeLayout(TBRv3MessageLayout, payload);
+  return deserializeLayout(TBRv3MessageLayout, payload);
 }
 
 export function serializeTbrV3Message(message: TbrV3Payload): Uint8Array {
-  return layout.serializeLayout(TBRv3MessageLayout, message);
+  return serializeLayout(TBRv3MessageLayout, message);
 }
 
 export function toVaaWithTbrV3Message(vaa: VaaMessage): VaaMessageWithTbrV3Payload {
@@ -64,7 +64,7 @@ const gasDropoffItem = {
   binary: 'uint',
   size: 4,
   custom: decimalDownShift(6),
-} as const satisfies LayoutItem;
+} as const;
 
 export const TBRv3MessageLayout = [
   //we can turn this into a switch layout if we ever get a version 1

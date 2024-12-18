@@ -91,7 +91,8 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     provider: Connection,
     config: ChainsConfig<N, SolanaPlatformType>,
   ): Promise<AutomaticTokenBridgeV3Solana<N, SolanaChains>> {
-    const [network, chain] = await SolanaPlatform.chainFromRpc(provider);
+    // TODO: Update @solana/web3.js to the latest version
+    const [network, chain] = await SolanaPlatform.chainFromRpc(provider as any);
     const conf = config[chain]!;
 
     if (conf.network !== network)
@@ -187,7 +188,8 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     // create a versioned transaction to avoid errors down the line due to
     // different Transaction constructors from different @solana/web3.js package versions
     yield new SolanaUnsignedTransaction(
-      { transaction: new VersionedTransaction(transaction.compileMessage()) },
+      // TODO: Update @solana/web3.js to the latest version
+      { transaction: new VersionedTransaction(transaction.compileMessage()) } as any,
       this.network,
       this.chainName,
       'TokenBridgeRelayerV3.transfer',
@@ -223,7 +225,8 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     // create a versioned transaction to avoid errors down the line due to
     // different Transaction constructors from different @solana/web3.js package versions
     yield new SolanaUnsignedTransaction(
-      { transaction: new VersionedTransaction(transaction.compileMessage()) },
+      // TODO: Update @solana/web3.js to the latest version
+      { transaction: new VersionedTransaction(transaction.compileMessage()) } as any,
       this.network,
       this.chainName,
       'TokenBridgeRelayerV3.redeem',
