@@ -31,7 +31,8 @@ import {
   SupportedChains,
   tokenBridgeRelayerV3Chains,
 } from '@xlabs-xyz/arbitrary-token-transfers-definitions';
-import '@xlabs-xyz/arbitrary-token-transfers-definitions';
+import '@xlabs-xyz/arbitrary-token-transfer-evm-route';
+import '@xlabs-xyz/arbitrary-token-transfer-solana-route';
 
 interface TransferOptions {
   nativeGas: number; // this is a percentage

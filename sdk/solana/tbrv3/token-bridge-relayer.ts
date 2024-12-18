@@ -646,7 +646,8 @@ export class SolanaTokenBridgeRelayer {
       temporaryAccount,
       feeRecipient,
       oracleConfig: this.priceOracleClient.account.config().address,
-      oracleEvmPrices: this.priceOracleClient.account.evmPrices(recipient.chain).address,
+      // TODO: Update @wormhole-foundation/sdk in @xlabs-xyz/solana-oracle-prices-sdk to have the latest Chain interface
+      oracleEvmPrices: this.priceOracleClient.account.evmPrices(recipient.chain as any).address,
       ...tokenBridgeAccounts,
       wormholeMessage: this.account.wormholeMessage(signer, payerSequenceNumber).address,
       payerSequence: this.account.signerSequence(signer).address,
@@ -742,7 +743,8 @@ export class SolanaTokenBridgeRelayer {
     const [tbrConfig, chainConfig, evmPrices, oracleConfig] = await Promise.all([
       this.read.config(),
       this.account.chainConfig(chain).fetch(),
-      this.priceOracleClient.read.evmPrices(chain),
+      // TODO: Update @wormhole-foundation/sdk in @xlabs-xyz/solana-oracle-prices-sdk to have the latest Chain interface
+      this.priceOracleClient.read.evmPrices(chain as any),
       this.priceOracleClient.read.config(),
     ]);
 
@@ -779,7 +781,8 @@ export class SolanaTokenBridgeRelayer {
         tbrConfig: this.account.config().address,
         chainConfig: this.account.chainConfig(chain).address,
         oracleConfig: this.priceOracleClient.account.config().address,
-        oracleEvmPrices: this.priceOracleClient.account.evmPrices(chain).address,
+        // TODO: Update @wormhole-foundation/sdk in @xlabs-xyz/solana-oracle-prices-sdk to have the latest Chain interface
+        oracleEvmPrices: this.priceOracleClient.account.evmPrices(chain as any).address,
       })
       .instruction();
     const txResponse = await simulateTransaction(this.connection, payer, [ix]);
@@ -930,7 +933,7 @@ export function returnedDataFromTransaction<L extends Layout>(
   // The line looks like 'Program return: <Public Key> <base64 encoded value>':
   const [, data] = log.slice(prefix.length).split(' ', 2);
 
-  return deserializeLayout<L>(typeLayout, Buffer.from(data, 'base64'), { consumeAll: true });
+  return deserializeLayout<L>(typeLayout, Buffer.from(data, 'base64'), true);
 }
 
 /**

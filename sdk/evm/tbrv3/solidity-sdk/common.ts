@@ -1,4 +1,4 @@
-import { CustomConversion, Layout, ManualSizePureBytes } from "@wormhole-foundation/sdk-base";
+import { CustomConversion, Layout } from "@wormhole-foundation/sdk-base";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
 
 export const evmAddressItem = {
@@ -8,7 +8,7 @@ export const evmAddressItem = {
     to: (encoded: Uint8Array) => new EvmAddress(encoded),
     from: (addr: EvmAddress) => addr.toUint8Array(),
   } satisfies CustomConversion<Uint8Array, EvmAddress>,
-} as const satisfies ManualSizePureBytes;
+} as const;
 
 export const evmAddressLayout = [
   { name: "address", ...evmAddressItem },

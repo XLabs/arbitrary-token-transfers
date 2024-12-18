@@ -244,14 +244,11 @@ export class Tbrv3 {
     let [bytesHeader, offset] = deserializeLayout(
       solidityBytesEncodingLayout,
       encodedResults,
-      { offset: 0, consumeAll: false }
+      false,
     );
 
     const deserializeResult = (query: any, layout: any) => {
-      const [result, newOffset] = deserializeLayout(layout, encodedResults, {
-        offset,
-        consumeAll: false,
-      });
+      const [result, newOffset] = deserializeLayout(layout, encodedResults,false);
       decodedResults.push({ ...query, result});
       offset = newOffset;
 
@@ -265,7 +262,7 @@ export class Tbrv3 {
         deserializeResult(query, relayingFeeReturnLayout);
       else if (query.query === "BaseRelayingConfig")
         deserializeResult(query, baseRelayingConfigReturnLayout);
-      else if (query.query === "ConfigQueries")
+      else if (query.query === "ConfigQueries" && "queries" in query)
         for (const configQuery of query.queries)
           if (["IsChainSupported", "IsChainPaused", "IsPeer"].includes(configQuery.query))
             deserializeResult(configQuery, layoutItems.boolItem);
@@ -279,7 +276,7 @@ export class Tbrv3 {
             deserializeResult(configQuery, evmAddressItem);
       else if (query.query === "AllowanceTokenBridge")
         deserializeResult(query, allowanceTokenBridgeReturnLayout);
-      else if (query.query === "AccessControlQueries")
+      else if (query.query === "AccessControlQueries" && "queries" in query)
         for (const acquery of query.queries)
           if (acquery.query === "IsAdmin")
             deserializeResult(acquery, layoutItems.boolItem);
