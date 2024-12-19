@@ -248,9 +248,9 @@ export class Tbrv3 {
     );
 
     const deserializeResult = (query: any, layout: any) => {
-      const [result, newOffset] = deserializeLayout(layout, encodedResults,false);
+      const [result, newOffset] = deserializeLayout(layout, encodedResults.subarray(offset), false);
       decodedResults.push({ ...query, result});
-      offset = newOffset;
+      offset = offset + newOffset;
 
       if (offset > encodedResults.length)
         throw new Error("Query response too short");
