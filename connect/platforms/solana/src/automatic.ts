@@ -179,6 +179,7 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
         gasDropoffAmount,
         maxFeeLamports: BigInt(params.fee.toString() || 0),
         unwrapIntent: params.unwrapIntent,
+        mintAddress: mint,
       }),
     );
 
