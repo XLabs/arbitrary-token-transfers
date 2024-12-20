@@ -66,6 +66,7 @@ export interface TransferParameters {
   gasDropoffAmount: number;
   maxFeeLamports: bigint;
   unwrapIntent?: boolean;
+  mintAddress: PublicKey;
 }
 
 export type TbrConfigAccount = anchor.IdlAccounts<IdlType>['tbrConfigState'];
@@ -609,14 +610,13 @@ export class SolanaTokenBridgeRelayer {
       gasDropoffAmount,
       maxFeeLamports,
       unwrapIntent,
+      mintAddress,
     } = params;
 
     let transferType = '?';
 
     const getTokenBridgeAccounts = async () => {
-      const mint = await spl
-        .getAccount(this.connection, userTokenAccount)
-        .then(({ mint }) => spl.getMint(this.connection, mint));
+      const mint = await spl.getMint(this.connection, mintAddress);
       if (mint.mintAuthority?.equals(this.tokenBridgeMintAuthority)) {
         transferType = 'Wrapped';
         return this.tbAccBuilder.transferWrapped(
@@ -836,14 +836,28 @@ export class SolanaTokenBridgeRelayer {
         'Cannot find the meta info\nThe mint authority indicates that the token is a Wormhole one, but no meta information is associated with it.',
       );
 
-    const { chain, address } = deserializeLayout(
-      [
-        { name: 'chain', ...layoutItems.chainItem(), endianness: 'little' },
-        { name: 'address', ...layoutItems.universalAddressItem },
-        { name: 'decimals', binary: 'uint', size: 1 },
-      ],
-      data,
-    );
+    const uint64Layout = { binary: 'uint', size: 8, endianness: 'little' } as const
+    const wrapMetaLayout = [
+      { name: 'chain', ...layoutItems.chainItem(), endianness: 'little' },
+      { name: 'address', ...layoutItems.universalAddressItem },
+      { name: 'decimals', binary: 'uint', size: 1 },
+      // FIXME: This should be in wormhole typescript sdk in the token bridge protocol for Solana:
+      // https://github.com/wormhole-foundation/wormhole-sdk-ts/blob/a0daa3869620ddcddd87c073941de7d9ec65b38c/platforms/solana/protocols/tokenBridge/src/utils/tokenBridge/accounts/wrapped.ts#L60-L94
+      // Last updated sequence only exists in Testnet:
+      // https://github.com/wormhole-foundation/wormhole/blob/7bd40b595e22c5512dfaa2ed8e6d7441df743a69/solana/programs/token-bridge/src/legacy/state/wrapped_asset.rs#L32-L35
+      { name: 'lastUpdatedSequence', binary: 'bytes', custom: {
+          to: (encoded: Uint8Array) => {
+            if (encoded.length === 0) return undefined;
+            if (encoded.length === 8) return deserializeLayout(uint64Layout, encoded);
+            throwError('Invalid lastUpdatedSequence length');
+          },
+          from: (decoded: bigint | undefined) =>
+            decoded === undefined ? new Uint8Array(0) : serializeLayout(uint64Layout, decoded),
+        }
+      },
+    ] as const;
+
+    const { chain, address } = deserializeLayout(wrapMetaLayout, data);
 
     return { chain, address };
   }
