@@ -262,7 +262,7 @@ export class Tbrv3 {
         deserializeResult(query, relayingFeeReturnLayout);
       else if (query.query === "BaseRelayingConfig")
         deserializeResult(query, baseRelayingConfigReturnLayout);
-      else if (query.query === "ConfigQueries" && "queries" in query)
+      else if (query.query === "ConfigQueries")
         for (const configQuery of query.queries)
           if (["IsChainSupported", "IsChainPaused", "IsPeer"].includes(configQuery.query))
             deserializeResult(configQuery, layoutItems.boolItem);
@@ -276,7 +276,7 @@ export class Tbrv3 {
             deserializeResult(configQuery, evmAddressItem);
       else if (query.query === "AllowanceTokenBridge")
         deserializeResult(query, allowanceTokenBridgeReturnLayout);
-      else if (query.query === "AccessControlQueries" && "queries" in query)
+      else if (query.query === "AccessControlQueries")
         for (const acquery of query.queries)
           if (acquery.query === "IsAdmin")
             deserializeResult(acquery, layoutItems.boolItem);
