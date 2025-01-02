@@ -103,7 +103,6 @@ export type TokenBridgeRelayer = {
       "accounts": [
         {
           "name": "owner",
-          "writable": true,
           "signer": true,
           "relations": [
             "tbrConfig"
@@ -1636,7 +1635,6 @@ export type TokenBridgeRelayer = {
           "docs": [
             "Owner of the program as set in the [`TbrConfig`] account."
           ],
-          "writable": true,
           "signer": true,
           "relations": [
             "tbrConfig"

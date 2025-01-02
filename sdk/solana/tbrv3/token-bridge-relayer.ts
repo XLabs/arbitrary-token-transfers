@@ -419,9 +419,12 @@ export class SolanaTokenBridgeRelayer {
    * Signer: the Owner.
    */
   async cancelOwnerTransferRequest(): Promise<TransactionInstruction> {
+    const config = await this.read.config();
+
     return this.program.methods
       .cancelOwnerTransferRequest()
-      .accounts({
+      .accountsPartial({
+        owner: config.owner,
         tbrConfig: this.account.config().address,
       })
       .instruction();
