@@ -184,6 +184,11 @@ pub fn transfer_tokens(
         &[ctx.accounts.tbr_config.sender_bump],
     ];
 
+    require!(
+        dropoff_amount_micro <= ctx.accounts.chain_config.max_gas_dropoff_micro_token,
+        TokenBridgeRelayerError::DropoffExceedingMaximum
+    );
+
     let transferred_amount = normalize_token_amount(transferred_amount, &ctx.accounts.mint);
     let total_fees_lamports = calculate_total_fee(
         &ctx.accounts.tbr_config,

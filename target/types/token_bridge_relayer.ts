@@ -2006,61 +2006,66 @@ export type TokenBridgeRelayer = {
     },
     {
       "code": 6007,
+      "name": "dropoffExceedingMaximum",
+      "msg": "dropoffExceedingMaximum"
+    },
+    {
+      "code": 6008,
       "name": "feeExceedingMaximum",
       "msg": "feeExceedingMaximum"
     },
     {
-      "code": 6008,
+      "code": 6009,
       "name": "wrongFeeRecipient",
       "msg": "wrongFeeRecipient"
     },
     {
-      "code": 6009,
+      "code": 6010,
       "name": "wronglySetOptionalAccounts",
       "msg": "wronglySetOptionalAccounts"
     },
     {
-      "code": 6010,
+      "code": 6011,
       "name": "wrongMintAuthority",
       "msg": "wrongMintAuthority"
     },
     {
-      "code": 6011,
+      "code": 6012,
       "name": "invalidRecipient",
       "msg": "invalidRecipient"
     },
     {
-      "code": 6012,
+      "code": 6013,
       "name": "evmChainPriceNotSet",
       "msg": "evmChainPriceNotSet"
     },
     {
-      "code": 6013,
+      "code": 6014,
       "name": "chainPriceMismatch",
       "msg": "chainPriceMismatch"
     },
     {
-      "code": 6014,
+      "code": 6015,
       "name": "pausedTransfers",
       "msg": "pausedTransfers"
     },
     {
-      "code": 6015,
+      "code": 6016,
       "name": "invalidSendingPeer",
       "msg": "invalidSendingPeer"
     },
     {
-      "code": 6016,
+      "code": 6017,
       "name": "cannotRegisterSolana",
       "msg": "cannotRegisterSolana"
     },
     {
-      "code": 6017,
+      "code": 6018,
       "name": "invalidPeerAddress",
       "msg": "invalidPeerAddress"
     },
     {
-      "code": 6018,
+      "code": 6019,
       "name": "missingAssociatedTokenAccount",
       "msg": "missingAssociatedTokenAccount"
     }

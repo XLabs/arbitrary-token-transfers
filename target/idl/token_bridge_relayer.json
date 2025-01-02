@@ -2000,61 +2000,66 @@
     },
     {
       "code": 6007,
+      "name": "DropoffExceedingMaximum",
+      "msg": "DropoffExceedingMaximum"
+    },
+    {
+      "code": 6008,
       "name": "FeeExceedingMaximum",
       "msg": "FeeExceedingMaximum"
     },
     {
-      "code": 6008,
+      "code": 6009,
       "name": "WrongFeeRecipient",
       "msg": "WrongFeeRecipient"
     },
     {
-      "code": 6009,
+      "code": 6010,
       "name": "WronglySetOptionalAccounts",
       "msg": "WronglySetOptionalAccounts"
     },
     {
-      "code": 6010,
+      "code": 6011,
       "name": "WrongMintAuthority",
       "msg": "WrongMintAuthority"
     },
     {
-      "code": 6011,
+      "code": 6012,
       "name": "InvalidRecipient",
       "msg": "InvalidRecipient"
     },
     {
-      "code": 6012,
+      "code": 6013,
       "name": "EvmChainPriceNotSet",
       "msg": "EvmChainPriceNotSet"
     },
     {
-      "code": 6013,
+      "code": 6014,
       "name": "ChainPriceMismatch",
       "msg": "ChainPriceMismatch"
     },
     {
-      "code": 6014,
+      "code": 6015,
       "name": "PausedTransfers",
       "msg": "PausedTransfers"
     },
     {
-      "code": 6015,
+      "code": 6016,
       "name": "InvalidSendingPeer",
       "msg": "InvalidSendingPeer"
     },
     {
-      "code": 6016,
+      "code": 6017,
       "name": "CannotRegisterSolana",
       "msg": "CannotRegisterSolana"
     },
     {
-      "code": 6017,
+      "code": 6018,
       "name": "InvalidPeerAddress",
       "msg": "InvalidPeerAddress"
     },
     {
-      "code": 6018,
+      "code": 6019,
       "name": "MissingAssociatedTokenAccount",
       "msg": "MissingAssociatedTokenAccount"
     }

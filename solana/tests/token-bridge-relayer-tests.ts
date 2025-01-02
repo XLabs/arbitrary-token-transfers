@@ -715,6 +715,26 @@ describe('Token Bridge Relayer Program', () => {
       expect(vaa.payload.payload.recipient).deep.equal(foreignAddress);
     });
 
+    it('Fails to transfer a token due to dropoff exceeding maximum', async () => {
+      const gasDropoffAmount = 11_000_000; // ETH11
+      const unwrapIntent = false;
+      const transferredAmount = 321654n;
+
+      const tokenAccount = await barMint.mint(1_000_000_000n, unauthorizedClient.signer); //
+
+      const foreignAddress = $.universalAddress.generate();
+
+      const transferPromise = unauthorizedClient.transferTokens({
+        recipient: { address: foreignAddress, chain: ETHEREUM },
+        userTokenAccount: tokenAccount.publicKey,
+        transferredAmount,
+        gasDropoffAmount,
+        maxFeeLamports: 100_000_000n, // 0.1SOL max
+        unwrapIntent,
+      });
+      await assert.promise(transferPromise).failsWith('DropoffExceedingMaximum');
+    });
+
     after(async () => {
       await clientForeignToken.close();
     });

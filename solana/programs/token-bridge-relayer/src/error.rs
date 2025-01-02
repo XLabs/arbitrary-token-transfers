@@ -33,6 +33,10 @@ pub(crate) enum TokenBridgeRelayerError {
     #[msg("AlreadyTheCanonicalPeer")]
     AlreadyTheCanonicalPeer,
 
+    /// The dropoff amount it higher than the one authorized for the target chain.
+    #[msg("DropoffExceedingMaximum")]
+    DropoffExceedingMaximum,
+
     /// Fee exceed what the user has set as a maximum.
     #[msg("FeeExceedingMaximum")]
     FeeExceedingMaximum,
