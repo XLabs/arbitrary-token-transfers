@@ -82,7 +82,6 @@ pub fn register_peer(
 #[derive(Accounts)]
 pub struct UpdateCanonicalPeer<'info> {
     /// Owner of the program as set in the [`TbrConfig`] account.
-    #[account(mut)]
     pub owner: Signer<'info>,
 
     /// Owner Config account. This program requires that the `owner` specified

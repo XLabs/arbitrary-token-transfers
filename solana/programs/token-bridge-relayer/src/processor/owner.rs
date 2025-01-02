@@ -159,7 +159,6 @@ pub fn confirm_owner_transfer_request(ctx: Context<ConfirmOwnerTransfer>) -> Res
 
 #[derive(Accounts)]
 pub struct CancelOwnerTransfer<'info> {
-    #[account(mut)]
     pub owner: Signer<'info>,
 
     /// Program Config account. This program requires that the [`signer`] specified

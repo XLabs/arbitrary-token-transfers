@@ -97,7 +97,6 @@
       "accounts": [
         {
           "name": "owner",
-          "writable": true,
           "signer": true,
           "relations": [
             "tbr_config"
@@ -1630,7 +1629,6 @@
           "docs": [
             "Owner of the program as set in the [`TbrConfig`] account."
           ],
-          "writable": true,
           "signer": true,
           "relations": [
             "tbr_config"
