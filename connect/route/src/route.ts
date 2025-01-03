@@ -22,9 +22,7 @@ import {
 } from '@wormhole-foundation/sdk-connect';
 import {
   isNative,
-  TokenAddress,
   toNative,
-  UniversalAddress,
   UniversalOrNative,
 } from '@wormhole-foundation/sdk-definitions';
 import {
@@ -49,6 +47,10 @@ interface QuotedTransferOptions extends ValidatedTransferOptions {
 
 type Receipt = TransferReceipt<AttestationReceipt<'AutomaticTokenBridgeV3'>>;
 
+export interface AutomaticTokenBridgeRouteV3Config {
+  allowedTokenAddresses?: TokenId<Chain>[];
+}
+
 export class AutomaticTokenBridgeRouteV3<N extends Network>
   extends routes.AutomaticRoute<N, any, any, any>
   implements routes.StaticRouteMethods<typeof AutomaticTokenBridgeRouteV3>
@@ -69,10 +71,18 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
     return [...(chains || [])];
   }
 
+  static config: AutomaticTokenBridgeRouteV3Config | undefined = undefined;
+
   static async supportedSourceTokens(fromChain: ChainContext<Network>): Promise<TokenId[]> {
+    const allowedTokenAddresses = this.config?.allowedTokenAddresses || [];
+    const isWhitelistConfigAvailable = this.config && allowedTokenAddresses.length > 0;
     return Object.values(fromChain.config.tokenMap!).map((td) =>
       Wormhole.tokenId(td.chain, td.address),
-    );
+    ).filter((token) => !(isWhitelistConfigAvailable && !allowedTokenAddresses.some(
+      (whitelistedToken) =>
+        whitelistedToken.chain === token.chain &&
+        whitelistedToken.address.toString() === token.address.toString()
+    )))
   }
 
   static async supportedDestinationTokens<N extends Network>(
