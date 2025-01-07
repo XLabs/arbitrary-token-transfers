@@ -958,13 +958,6 @@ export type TokenBridgeRelayer = {
           ]
         },
         {
-          "name": "tbrConfig",
-          "docs": [
-            "Owner Config account. This program requires that the `signer` specified",
-            "in the context equals an authorized pubkey specified in this account."
-          ]
-        },
-        {
           "name": "peer",
           "writable": true,
           "pda": {
@@ -1186,14 +1179,6 @@ export type TokenBridgeRelayer = {
         {
           "name": "chainConfig",
           "writable": true
-        },
-        {
-          "name": "tbrConfig",
-          "docs": [
-            "Program Config account. This program requires that the [`signer`] specified",
-            "in the context equals a pubkey specified in this account. Mutable,",
-            "because we will update roles depending on the operation."
-          ]
         }
       ],
       "args": [
@@ -1635,17 +1620,7 @@ export type TokenBridgeRelayer = {
           "docs": [
             "Owner of the program as set in the [`TbrConfig`] account."
           ],
-          "signer": true,
-          "relations": [
-            "tbrConfig"
-          ]
-        },
-        {
-          "name": "tbrConfig",
-          "docs": [
-            "Owner Config account. This program requires that the `owner` specified",
-            "in the context equals the `owner` pubkey specified in this account."
-          ]
+          "signer": true
         },
         {
           "name": "peer"
@@ -1802,14 +1777,6 @@ export type TokenBridgeRelayer = {
         {
           "name": "chainConfig",
           "writable": true
-        },
-        {
-          "name": "tbrConfig",
-          "docs": [
-            "Program Config account. This program requires that the [`signer`] specified",
-            "in the context equals a pubkey specified in this account. Mutable,",
-            "because we will update roles depending on the operation."
-          ]
         }
       ],
       "args": [
@@ -1857,14 +1824,6 @@ export type TokenBridgeRelayer = {
         {
           "name": "chainConfig",
           "writable": true
-        },
-        {
-          "name": "tbrConfig",
-          "docs": [
-            "Program Config account. This program requires that the [`signer`] specified",
-            "in the context equals a pubkey specified in this account. Mutable,",
-            "because we will update roles depending on the operation."
-          ]
         }
       ],
       "args": [

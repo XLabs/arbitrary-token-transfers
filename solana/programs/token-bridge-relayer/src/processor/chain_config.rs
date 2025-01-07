@@ -1,6 +1,6 @@
 use crate::{
     error::TokenBridgeRelayerError,
-    state::{AuthBadgeState, ChainConfigState, TbrConfigState},
+    state::{AuthBadgeState, ChainConfigState},
 };
 use anchor_lang::prelude::*;
 
@@ -16,11 +16,6 @@ pub struct UpdateChainConfig<'info> {
 
     #[account(mut)]
     pub chain_config: Account<'info, ChainConfigState>,
-
-    /// Program Config account. This program requires that the [`signer`] specified
-    /// in the context equals a pubkey specified in this account. Mutable,
-    /// because we will update roles depending on the operation.
-    pub tbr_config: Account<'info, TbrConfigState>,
 }
 
 pub fn set_pause_for_outbound_transfers(
