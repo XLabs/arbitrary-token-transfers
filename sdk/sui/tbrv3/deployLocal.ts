@@ -1,5 +1,5 @@
 import { SuiClient } from '@mysten/sui/client';
-import { SuiAddress, SuiPackageId } from './types.js';
+import { SuiAddress, SuiObjectId, SuiPackageId } from './types.js';
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import { CreatedObjectsAndPackageId, deploySuiContract, getCreatedObjectsAndPackageIdFromResponse } from './deploy.js';
 import { cp, mkdir, writeFile } from 'fs/promises'
@@ -18,6 +18,7 @@ $$addresses
 `
 
 const PACKAGE_DIRECTORY = path.join(import.meta.dirname, "../move-build/")
+const UPGRADE_CAP_TYPE = "0x2::package::UpgradeCap"
 
 export type Directory = string
 export type TomlPackageParams = {
@@ -54,14 +55,32 @@ export function formatToml(params: TomlPackageParams): string {
     )
 }
 
+function getWormholeCaps(wormholePackage: CreatedObjectsAndPackageId): { upgradeCap: SuiObjectId, deployerCap: SuiObjectId } {
+    const upgradeCap = wormholePackage.objects.find(obj => obj.type === UPGRADE_CAP_TYPE)?.objectId
+    if (upgradeCap === undefined) {
+        throw new Error("No upgrade cap found")
+    }
+    const deployerCapType = wormholePackage.packageId + "::setup::DeployerCap"
+    const deployerCap = wormholePackage.objects.find(obj => obj.type === deployerCapType)?.objectId
+    if (deployerCap === undefined) {
+        throw new Error("No deployer cap found")
+    }
+    return { upgradeCap, deployerCap }
+}
+
 export async function deployLocally(client: SuiClient, deployer: Ed25519Keypair): Promise<DeployedPackages> {
     mkdir(PACKAGE_DIRECTORY, { recursive: true })
     const wormholeCore = await deployWormholeCore(client, deployer)
     const wormholeCoreId = wormholeCore.packageId
     console.log("WORMHOLE CORE DEPLOYED:", wormholeCoreId)
+    const coreCaps = getWormholeCaps(wormholeCore)
+    console.log("CORE CAPABILITIES:", coreCaps)
+
     const tokenBridge = await deployTokenBridge(client, deployer, wormholeCoreId)
     const tokenBridgeId = tokenBridge.packageId
     console.log("TOKEN BRIDGE DEPLOYED:", tokenBridgeId)
+    const bridgeCaps = getWormholeCaps(tokenBridge)
+    console.log("BRIDGE CAPABILITIES:", bridgeCaps)
     const xlabs = await deployXLabs(client, deployer)
     const xlabsId = xlabs.packageId
     console.log("XLABS DEPLOYED:", xlabsId)
