@@ -761,7 +761,7 @@ export type TokenBridgeRelayer = {
           "name": "tbrConfig",
           "docs": [
             "Owner Config account. This program requires that the `owner` specified",
-            "in the context equals the pubkey specified in this account. Mutable."
+            "in the context equals the pubkey specified in this account."
           ],
           "writable": true,
           "pda": {
@@ -2027,6 +2027,11 @@ export type TokenBridgeRelayer = {
       "code": 6019,
       "name": "missingAssociatedTokenAccount",
       "msg": "missingAssociatedTokenAccount"
+    },
+    {
+      "code": 6020,
+      "name": "overflow",
+      "msg": "overflow"
     }
   ],
   "types": [

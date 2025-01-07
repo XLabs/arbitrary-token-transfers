@@ -90,4 +90,8 @@ pub(crate) enum TokenBridgeRelayerError {
     /// unwrap intent is set to `true`.
     #[msg("MissingAssociatedTokenAccount")]
     MissingAssociatedTokenAccount,
+
+    /// Numerical overflow.
+    #[msg("Overflow")]
+    Overflow,
 }
