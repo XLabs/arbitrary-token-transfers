@@ -1,5 +1,5 @@
 {
-  "address": "HrZSAEW9QVbC4kQu51C7oFMHaam18AvAhpbBYeY9mKht",
+  "address": "ttbrcA1ckR3D3Ff4VR1MJNCvA7t4d4XV9TcvrVp4AoM",
   "metadata": {
     "name": "token_bridge_relayer",
     "version": "3.0.0",
@@ -952,13 +952,6 @@
           ]
         },
         {
-          "name": "tbr_config",
-          "docs": [
-            "Owner Config account. This program requires that the `signer` specified",
-            "in the context equals an authorized pubkey specified in this account."
-          ]
-        },
-        {
           "name": "peer",
           "writable": true,
           "pda": {
@@ -1180,14 +1173,6 @@
         {
           "name": "chain_config",
           "writable": true
-        },
-        {
-          "name": "tbr_config",
-          "docs": [
-            "Program Config account. This program requires that the [`signer`] specified",
-            "in the context equals a pubkey specified in this account. Mutable,",
-            "because we will update roles depending on the operation."
-          ]
         }
       ],
       "args": [
@@ -1629,17 +1614,7 @@
           "docs": [
             "Owner of the program as set in the [`TbrConfig`] account."
           ],
-          "signer": true,
-          "relations": [
-            "tbr_config"
-          ]
-        },
-        {
-          "name": "tbr_config",
-          "docs": [
-            "Owner Config account. This program requires that the `owner` specified",
-            "in the context equals the `owner` pubkey specified in this account."
-          ]
+          "signer": true
         },
         {
           "name": "peer"
@@ -1796,14 +1771,6 @@
         {
           "name": "chain_config",
           "writable": true
-        },
-        {
-          "name": "tbr_config",
-          "docs": [
-            "Program Config account. This program requires that the [`signer`] specified",
-            "in the context equals a pubkey specified in this account. Mutable,",
-            "because we will update roles depending on the operation."
-          ]
         }
       ],
       "args": [
@@ -1851,14 +1818,6 @@
         {
           "name": "chain_config",
           "writable": true
-        },
-        {
-          "name": "tbr_config",
-          "docs": [
-            "Program Config account. This program requires that the [`signer`] specified",
-            "in the context equals a pubkey specified in this account. Mutable,",
-            "because we will update roles depending on the operation."
-          ]
         }
       ],
       "args": [

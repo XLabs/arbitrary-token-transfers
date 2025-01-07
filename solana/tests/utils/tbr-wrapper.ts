@@ -165,7 +165,7 @@ export class TbrWrapper {
   ): Promise<VersionedTransactionResponse | null> {
     return $.getTransaction(
       $.sendAndConfirm(
-        await this.client.updateRelayerFee(this.publicKey, chain, relayerFee),
+        await this.client.updateBaseFee(this.publicKey, chain, relayerFee),
         this.signer,
       ),
     );

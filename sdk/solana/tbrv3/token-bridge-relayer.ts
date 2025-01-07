@@ -477,7 +477,6 @@ export class SolanaTokenBridgeRelayer {
       .accountsStrict({
         signer,
         authBadge: this.account.authBadge(signer).address,
-        tbrConfig: this.account.config().address,
         peer: this.account.peer(chain, peerAddress).address,
         chainConfig: this.account.chainConfig(chain).address,
         systemProgram: SystemProgram.programId,
@@ -498,7 +497,6 @@ export class SolanaTokenBridgeRelayer {
       .updateCanonicalPeer()
       .accountsStrict({
         owner: config.owner,
-        tbrConfig: this.account.config().address,
         peer: this.account.peer(chain, peerAddress).address,
         chainConfig: this.account.chainConfig(chain).address,
         systemProgram: SystemProgram.programId,
@@ -522,7 +520,6 @@ export class SolanaTokenBridgeRelayer {
         signer,
         authBadge: this.account.authBadge(signer).address,
         chainConfig: this.account.chainConfig(chain).address,
-        tbrConfig: this.account.config().address,
       })
       .instruction();
   }
@@ -541,15 +538,16 @@ export class SolanaTokenBridgeRelayer {
         signer,
         authBadge: this.account.authBadge(signer).address,
         chainConfig: this.account.chainConfig(chain).address,
-        tbrConfig: this.account.config().address,
       })
       .instruction();
   }
 
   /**
+   * Change the fee asked for relaying a transfer.
+   *
    * Signer: the Owner or an Admin.
    */
-  async updateRelayerFee(
+  async updateBaseFee(
     signer: PublicKey,
     chain: Chain,
     relayerFee: number,
@@ -560,7 +558,6 @@ export class SolanaTokenBridgeRelayer {
         signer,
         authBadge: this.account.authBadge(signer).address,
         chainConfig: this.account.chainConfig(chain).address,
-        tbrConfig: this.account.config().address,
       })
       .instruction();
   }

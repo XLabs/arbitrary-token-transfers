@@ -720,7 +720,7 @@ describe('Token Bridge Relayer Program', () => {
       const unwrapIntent = false;
       const transferredAmount = 321654n;
 
-      const tokenAccount = await barMint.mint(1_000_000_000n, unauthorizedClient.signer); //
+      const tokenAccount = await barMint.mint(1_000_000_000n, unauthorizedClient.signer);
 
       const foreignAddress = $.universalAddress.generate();
 

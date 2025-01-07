@@ -116,7 +116,7 @@ pub struct OutboundTransfer<'info> {
     /// CHECK: Token Bridge emitter.
     pub token_bridge_emitter: UncheckedAccount<'info>,
 
-    /// CHECK: Token Bridge sequence.
+    /// CHECK: Token Bridge sequence. Mutable.
     #[account(mut)]
     pub token_bridge_sequence: UncheckedAccount<'info>,
 

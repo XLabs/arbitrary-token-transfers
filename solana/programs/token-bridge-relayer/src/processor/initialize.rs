@@ -17,7 +17,7 @@ pub struct Initialize<'info> {
     pub deployer: Signer<'info>,
 
     /// The designated owner of the program.
-    pub owner: UncheckedAccount<'info>,
+    pub owner: AccountInfo<'info>,
 
     #[account(
         init,
@@ -29,7 +29,7 @@ pub struct Initialize<'info> {
     pub auth_badge: Account<'info, AuthBadgeState>,
 
     /// Owner Config account. This program requires that the `owner` specified
-    /// in the context equals the pubkey specified in this account. Mutable.
+    /// in the context equals the pubkey specified in this account.
     #[account(
         init,
         payer = deployer,
@@ -47,12 +47,14 @@ pub struct Initialize<'info> {
     )]
     program_data: Account<'info, ProgramData>,
 
+    /// CHECK: An account used by the Token Bridge.
     #[account(
         seeds = [token_bridge::SEED_PREFIX_SENDER],
         bump
     )]
     pub wormhole_sender: UncheckedAccount<'info>,
 
+    /// CHECK: An account used by the Token Bridge.
     #[account(
         seeds = [token_bridge::SEED_PREFIX_REDEEMER],
         bump
@@ -115,11 +117,10 @@ pub fn initialize<'a, 'b, 'c, 'info>(
     );
 
     for (admin, badge_acc_info) in zip(admins, ctx.remaining_accounts) {
-        let bump = Pubkey::find_program_address(
+        let (_pubkey, bump) = Pubkey::find_program_address(
             &[AuthBadgeState::SEED_PREFIX, admin.to_bytes().as_ref()],
             ctx.program_id,
-        )
-        .1;
+        );
         let badge_seeds = [AuthBadgeState::SEED_PREFIX, &admin.to_bytes(), &[bump]];
 
         // Before calling `create_account`, we need to verify that the account
