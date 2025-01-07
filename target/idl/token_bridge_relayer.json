@@ -755,7 +755,7 @@
           "name": "tbr_config",
           "docs": [
             "Owner Config account. This program requires that the `owner` specified",
-            "in the context equals the pubkey specified in this account. Mutable."
+            "in the context equals the pubkey specified in this account."
           ],
           "writable": true,
           "pda": {
@@ -2021,6 +2021,11 @@
       "code": 6019,
       "name": "MissingAssociatedTokenAccount",
       "msg": "MissingAssociatedTokenAccount"
+    },
+    {
+      "code": 6020,
+      "name": "Overflow",
+      "msg": "Overflow"
     }
   ],
   "types": [
