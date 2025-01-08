@@ -70,6 +70,7 @@ evm.runOnEvms("configure-fee-and-dropoff", async (chain, signer, log) => {
   }
 
   const partialTx = tbrv3.execTx(0n, [{ command: "ConfigCommands", commands}]);
-  const { txid } = await evm.sendTx(signer, { ...partialTx, data: encoding.hex.encode(partialTx.data) });
+  
+  const { txid } = await evm.sendTx(signer, { ...partialTx, data: '0x' + encoding.hex.encode(partialTx.data) });
   log(`Update tx successful in ${txid}`);
 });
