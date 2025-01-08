@@ -618,7 +618,8 @@ export class SolanaTokenBridgeRelayer {
     let transferType = '?';
 
     const getTokenBridgeAccounts = async () => {
-      const mint = await spl.getMint(this.connection, mintAddress);
+      // TODO: fix type error due to solana web3.js version mismatch
+      const mint = await spl.getMint(this.connection as any, mintAddress);
       if (mint.mintAuthority?.equals(this.tokenBridgeMintAuthority)) {
         transferType = 'Wrapped';
         return this.tbAccBuilder.transferWrapped(
