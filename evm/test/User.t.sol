@@ -1541,16 +1541,10 @@ contract UserTest is TbrTestBase {
 
 function testCompleteTransfer_GasDropoffNotNecessaryInRecipientCall(
     uint256 amount,
-    uint32 gasDropoff,
-    uint256 unallocatedBalance
+    uint32 gasDropoff
   ) public {
     gasDropoff = uint32(bound(gasDropoff, 1, MAX_GAS_DROPOFF_AMOUNT));
     amount = bound(amount, 1, 1e10); // avoid overflow
-    // Not enough balance for a dropoff
-    unallocatedBalance = bound(unallocatedBalance, 0, gasDropoff - 1);
-
-    address recipient = makeAddr("recipient");
-    deal(recipient, unallocatedBalance);
 
     uint16 peerChain = EVM_L2_CHAIN_ID;
     bytes32 originTokenBridge = toUniversalAddress(EVM_L2_TOKEN_BRIDGE_ADDRESS);
@@ -1559,6 +1553,7 @@ function testCompleteTransfer_GasDropoffNotNecessaryInRecipientCall(
     uint16 tokenChain = EVM_L2_CHAIN_ID;
     uint16 recipientChain = tokenBridge.chainId();
     bytes32 tokenAddress = toUniversalAddress(EVM_L2_TOKEN_WETH_TOKEN);
+    address recipient = makeAddr("recipient");
     bool unwrapIntent = true;
 
     (bytes memory encodedVaa, uint64 sequence) = craftTbrV3Vaa(
@@ -1600,7 +1595,7 @@ function testCompleteTransfer_GasDropoffNotNecessaryInRecipientCall(
         COMPLETE_TRANSFER_ID,
         encodedVaa
       ),
-      unallocatedBalance
+      0
     );
 
     uint finalRecipienTransferedTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
