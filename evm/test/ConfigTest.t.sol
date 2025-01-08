@@ -126,6 +126,7 @@ contract ConfigTest is TbrTestBase {
   }
 
   function testOwnershipTransfer(address newOwner) public {
+    vm.assume(newOwner != owner);
     uint8 commandCount = 1;
 
     vm.expectRevert(NotAuthorized.selector);
@@ -260,6 +261,7 @@ contract ConfigTest is TbrTestBase {
   }
 
   function testExternalReceiveOwnership(address newOwner) public {
+    vm.assume(newOwner != owner);
     vm.prank(owner);
     tbr.transferOwnership(newOwner);
 
