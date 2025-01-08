@@ -1252,8 +1252,9 @@ contract UserTest is TbrTestBase {
     uint8 transferReturn
   ) public {
     gasDropoff = uint32(bound(gasDropoff, 0, MAX_GAS_DROPOFF_AMOUNT));
+    uint256 gasDropoffInWei = gasDropoff * WEI_PER_MICROETH;
     amount = bound(amount, 1, 1e10); // avoid overflow
-    unallocatedBalance = bound(unallocatedBalance, gasDropoff + transferReturn + amount, (gasDropoff + transferReturn + amount) * 10);
+    unallocatedBalance = bound(unallocatedBalance, gasDropoffInWei + transferReturn + amount, (gasDropoffInWei + transferReturn + amount) * 10);
     deal(address(this), unallocatedBalance);
 
     uint16 peerChain = EVM_L2_CHAIN_ID;
@@ -1289,7 +1290,7 @@ contract UserTest is TbrTestBase {
 
     uint decimals = IERC20Metadata(address(gasToken)).decimals();
     uint256 denormalizedAmount = deNormalizeAmount(amount, uint8(decimals));
-    uint initialRecipienGasTokenBalance = recipient.balance;
+    uint initialRecipientGasTokenBalance = recipient.balance;
     uint initialCallerBalance = address(this).balance;
 
     vm.expectEmit(address(tokenBridge));
@@ -1312,8 +1313,8 @@ contract UserTest is TbrTestBase {
     );
 
     uint finalCallerBalance = address(this).balance;
-    assertEq(recipient.balance, initialRecipienGasTokenBalance + gasDropoff + denormalizedAmount);
-    assertEq(finalCallerBalance, initialCallerBalance - gasDropoff);
+    assertEq(recipient.balance, initialRecipientGasTokenBalance + gasDropoffInWei + denormalizedAmount);
+    assertEq(finalCallerBalance, initialCallerBalance - gasDropoffInWei);
   }
 
   function testCompleteTransfer_nonGasToken(
@@ -1323,8 +1324,9 @@ contract UserTest is TbrTestBase {
     uint8 transferReturn
   ) public {
     gasDropoff = uint32(bound(gasDropoff, 0, MAX_GAS_DROPOFF_AMOUNT));
+    uint256 gasDropoffInWei = gasDropoff * WEI_PER_MICROETH;
     amount = bound(amount, 1, 1e10); // avoid overflow
-    unallocatedBalance = bound(unallocatedBalance, gasDropoff + transferReturn, (gasDropoff + transferReturn) * 10);
+    unallocatedBalance = bound(unallocatedBalance, gasDropoffInWei + transferReturn, (gasDropoffInWei + transferReturn) * 10);
     deal(address(this), unallocatedBalance);
 
     uint16 peerChain = EVM_L2_CHAIN_ID;
@@ -1355,8 +1357,8 @@ contract UserTest is TbrTestBase {
     address tokenToTransfer = tokenBridge.wrappedAsset(tokenChain, tokenAddress);
     uint decimals = IERC20Metadata(tokenToTransfer).decimals();
     uint256 denormalizedAmount = deNormalizeAmount(amount, uint8(decimals));
-    uint initialRecipienGasTokenBalance = recipient.balance;
-    uint initialRecipienTransferredTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
+    uint initialRecipientGasTokenBalance = recipient.balance;
+    uint initialRecipientTransferredTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
     uint initialCallerBalance = address(this).balance;
 
     vm.expectEmit(address(tokenBridge));
@@ -1378,12 +1380,12 @@ contract UserTest is TbrTestBase {
       unallocatedBalance
     );
 
-    uint finalRecipienTransferredTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
+    uint finalRecipientTransferredTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
     uint finalCallerBalance = address(this).balance;
 
-    assertEq(recipient.balance, initialRecipienGasTokenBalance + gasDropoff);
-    assertEq(finalRecipienTransferredTokenBalance, initialRecipienTransferredTokenBalance + denormalizedAmount);
-    assertEq(finalCallerBalance, initialCallerBalance - gasDropoff);
+    assertEq(recipient.balance, initialRecipientGasTokenBalance + gasDropoffInWei);
+    assertEq(finalRecipientTransferredTokenBalance, initialRecipientTransferredTokenBalance + denormalizedAmount);
+    assertEq(finalCallerBalance, initialCallerBalance - gasDropoffInWei);
   }
 
   function testCompleteTransfer_UnrecognizedPeer(
@@ -1499,7 +1501,8 @@ contract UserTest is TbrTestBase {
     uint256 unallocatedBalance
   ) public {
     gasDropoff = uint32(bound(gasDropoff, 1, MAX_GAS_DROPOFF_AMOUNT));
-    unallocatedBalance = bound(unallocatedBalance, 0, gasDropoff - 1);
+    uint256 gasDropoffInWei = gasDropoff * WEI_PER_MICROETH;
+    unallocatedBalance = bound(unallocatedBalance, 0, gasDropoffInWei - 1);
     deal(address(this), unallocatedBalance);
 
     uint16 peerChain = EVM_L2_CHAIN_ID;
@@ -1574,8 +1577,8 @@ function testCompleteTransfer_GasDropoffNotNecessaryInRecipientCall(
     address tokenToTransfer = tokenBridge.wrappedAsset(tokenChain, tokenAddress);
     uint decimals = IERC20Metadata(tokenToTransfer).decimals();
     uint256 denormalizedAmount = deNormalizeAmount(amount, uint8(decimals));
-    uint initialRecipienGasTokenBalance = recipient.balance;
-    uint initialRecipienTransferredTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
+    uint initialRecipientGasTokenBalance = recipient.balance;
+    uint initialRecipientTransferredTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
 
     vm.prank(recipient);
 
@@ -1598,9 +1601,9 @@ function testCompleteTransfer_GasDropoffNotNecessaryInRecipientCall(
       0
     );
 
-    uint finalRecipienTransferredTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
+    uint finalRecipientTransferredTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
 
-    assertEq(recipient.balance, initialRecipienGasTokenBalance);
-    assertEq(finalRecipienTransferredTokenBalance, initialRecipienTransferredTokenBalance + denormalizedAmount);
+    assertEq(recipient.balance, initialRecipientGasTokenBalance);
+    assertEq(finalRecipientTransferredTokenBalance, initialRecipientTransferredTokenBalance + denormalizedAmount);
   }
 }
