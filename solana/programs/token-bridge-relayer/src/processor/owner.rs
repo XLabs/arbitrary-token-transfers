@@ -81,8 +81,9 @@ pub struct ConfirmOwnerTransfer<'info> {
     #[account(mut)]
     pub new_owner: Signer<'info>,
 
+    /// CHECK: init_if_needed: If the new owner has already a badge, _i.e._ is an admin, we can reuse it. 
     #[account(
-        init,
+        init_if_needed,
         payer = new_owner,
         space = 8 + AuthBadgeState::INIT_SPACE,
         seeds = [AuthBadgeState::SEED_PREFIX, new_owner.key.to_bytes().as_ref()],
