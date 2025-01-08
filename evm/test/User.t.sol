@@ -1356,7 +1356,7 @@ contract UserTest is TbrTestBase {
     uint decimals = IERC20Metadata(tokenToTransfer).decimals();
     uint256 denormalizedAmount = deNormalizeAmount(amount, uint8(decimals));
     uint initialRecipienGasTokenBalance = recipient.balance;
-    uint initialRecipienTransferedTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
+    uint initialRecipienTransferredTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
     uint initialCallerBalance = address(this).balance;
 
     vm.expectEmit(address(tokenBridge));
@@ -1378,11 +1378,11 @@ contract UserTest is TbrTestBase {
       unallocatedBalance
     );
 
-    uint finalRecipienTransferedTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
+    uint finalRecipienTransferredTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
     uint finalCallerBalance = address(this).balance;
 
     assertEq(recipient.balance, initialRecipienGasTokenBalance + gasDropoff);
-    assertEq(finalRecipienTransferedTokenBalance, initialRecipienTransferedTokenBalance + denormalizedAmount);
+    assertEq(finalRecipienTransferredTokenBalance, initialRecipienTransferredTokenBalance + denormalizedAmount);
     assertEq(finalCallerBalance, initialCallerBalance - gasDropoff);
   }
 
@@ -1575,7 +1575,7 @@ function testCompleteTransfer_GasDropoffNotNecessaryInRecipientCall(
     uint decimals = IERC20Metadata(tokenToTransfer).decimals();
     uint256 denormalizedAmount = deNormalizeAmount(amount, uint8(decimals));
     uint initialRecipienGasTokenBalance = recipient.balance;
-    uint initialRecipienTransferedTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
+    uint initialRecipienTransferredTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
 
     vm.prank(recipient);
 
@@ -1598,9 +1598,9 @@ function testCompleteTransfer_GasDropoffNotNecessaryInRecipientCall(
       0
     );
 
-    uint finalRecipienTransferedTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
+    uint finalRecipienTransferredTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
 
     assertEq(recipient.balance, initialRecipienGasTokenBalance);
-    assertEq(finalRecipienTransferedTokenBalance, initialRecipienTransferedTokenBalance + denormalizedAmount);
+    assertEq(finalRecipienTransferredTokenBalance, initialRecipienTransferredTokenBalance + denormalizedAmount);
   }
 }
