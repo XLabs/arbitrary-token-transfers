@@ -424,7 +424,7 @@ abstract contract TbrUser is TbrBase {
     // From low byte offset to high byte offset:
     // 1 byte version
     // 32 byte recipient
-    // 4 byte gas dropoff
+    // 4 byte gas dropoff, in µToken units.
     // 1 byte unwrap intent
     return abi.encodePacked(
       TBR_V3_MESSAGE_VERSION,
