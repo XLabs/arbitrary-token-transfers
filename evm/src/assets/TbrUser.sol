@@ -68,10 +68,10 @@ uint32 constant SOLANA_RELAY_TOTAL_SIZE =
    4 + //COption prefix (0 or 1, 4 bytes, waste) - see https://github.com/solana-labs/solana-program-library/blob/6d92f4537a8dc278285abd66d93e7d49caaca0c5/token/program/src/state.rs#L267
   32 + //delegate COption<Pubkey>
    1 + //account state enum
-   4 + //COoption prefix 
+   4 + //COoption prefix
    8 + //is_native COption<u64>
    8 + //delegated amount
-   4 + //COoption prefix 
+   4 + //COoption prefix
   32; //close authority COption<Pubkey>
 
 // Gas cost of a single `complete transfer` method execution.
@@ -466,6 +466,10 @@ abstract contract TbrUser is TbrBase {
     if (!_isPeer(peerChain, peerAddress))
       revert UnrecognizedPeer(peerChain, peerAddress, commandIndex);
 
+    // If the recipient redeems manually it doesn't need the gasDropoff
+    if (msg.sender == recipient)
+      gasDropoff = 0;
+
     if (gasDropoff > unallocatedBalance)
       revert InsufficientGasDropoff(commandIndex);
 
@@ -614,7 +618,7 @@ library TokenBridgeVAAParser {
     (tbrV3Version, dataOffset) = data.asUint8CdUnchecked(dataOffset);
     if (tbrV3Version != TBR_V3_MESSAGE_VERSION)
       revert InvalidMsgVersion(tbrV3Version, commandIndex);
-    
+
     bytes32 universalRecipient;
     (universalRecipient, dataOffset) = data.asBytes32CdUnchecked(dataOffset);
     recipient = fromUniversalAddress(universalRecipient);

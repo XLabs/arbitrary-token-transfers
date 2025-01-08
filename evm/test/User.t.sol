@@ -1314,7 +1314,7 @@ contract UserTest is TbrTestBase {
     uint finalCallerBalance = address(this).balance;
     assertEq(recipient.balance, initialRecipienGasTokenBalance + gasDropoff + denormalizedAmount);
     assertEq(finalCallerBalance, initialCallerBalance - gasDropoff);
-  } 
+  }
 
   function testCompleteTransfer_nonGasToken(
     uint256 amount,
@@ -1356,7 +1356,7 @@ contract UserTest is TbrTestBase {
     uint decimals = IERC20Metadata(tokenToTransfer).decimals();
     uint256 denormalizedAmount = deNormalizeAmount(amount, uint8(decimals));
     uint initialRecipienGasTokenBalance = recipient.balance;
-    uint initialRecipienTransferedTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
+    uint initialRecipienTransferredTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
     uint initialCallerBalance = address(this).balance;
 
     vm.expectEmit(address(tokenBridge));
@@ -1364,7 +1364,7 @@ contract UserTest is TbrTestBase {
 
     vm.expectEmit(tokenToTransfer);
     emit IERC20.Transfer(address(0), address(tbr), denormalizedAmount);
-    
+
     vm.expectEmit(tokenToTransfer);
     emit IERC20.Transfer(address(tbr), recipient, denormalizedAmount);
 
@@ -1378,11 +1378,11 @@ contract UserTest is TbrTestBase {
       unallocatedBalance
     );
 
-    uint finalRecipienTransferedTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
+    uint finalRecipienTransferredTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
     uint finalCallerBalance = address(this).balance;
 
     assertEq(recipient.balance, initialRecipienGasTokenBalance + gasDropoff);
-    assertEq(finalRecipienTransferedTokenBalance, initialRecipienTransferedTokenBalance + denormalizedAmount);
+    assertEq(finalRecipienTransferredTokenBalance, initialRecipienTransferredTokenBalance + denormalizedAmount);
     assertEq(finalCallerBalance, initialCallerBalance - gasDropoff);
   }
 
@@ -1421,7 +1421,7 @@ contract UserTest is TbrTestBase {
         UnrecognizedPeer.selector,
         peerChain,
         originTBR,
-        commandIndex 
+        commandIndex
       )
     );
 
@@ -1524,7 +1524,7 @@ contract UserTest is TbrTestBase {
     vm.expectRevert(
       abi.encodeWithSelector(
         InsufficientGasDropoff.selector,
-        commandIndex 
+        commandIndex
       )
     );
 
@@ -1537,5 +1537,70 @@ contract UserTest is TbrTestBase {
       ),
       unallocatedBalance
     );
-  } 
+  }
+
+function testCompleteTransfer_GasDropoffNotNecessaryInRecipientCall(
+    uint256 amount,
+    uint32 gasDropoff
+  ) public {
+    gasDropoff = uint32(bound(gasDropoff, 1, MAX_GAS_DROPOFF_AMOUNT));
+    amount = bound(amount, 1, 1e10); // avoid overflow
+
+    uint16 peerChain = EVM_L2_CHAIN_ID;
+    bytes32 originTokenBridge = toUniversalAddress(EVM_L2_TOKEN_BRIDGE_ADDRESS);
+    bytes32 originTBR = EVM_L2_CANONICAL_PEER;
+    bytes32 targetTBR = toUniversalAddress(address(tbr));
+    uint16 tokenChain = EVM_L2_CHAIN_ID;
+    uint16 recipientChain = tokenBridge.chainId();
+    bytes32 tokenAddress = toUniversalAddress(EVM_L2_TOKEN_WETH_TOKEN);
+    address recipient = makeAddr("recipient");
+    bool unwrapIntent = true;
+
+    (bytes memory encodedVaa, uint64 sequence) = craftTbrV3Vaa(
+      wormholeCore,
+      originTokenBridge,
+      originTBR,
+      targetTBR,
+      peerChain,
+      tokenChain,
+      tokenAddress,
+      amount,
+      recipientChain,
+      recipient,
+      gasDropoff,
+      unwrapIntent
+    );
+
+    address tokenToTransfer = tokenBridge.wrappedAsset(tokenChain, tokenAddress);
+    uint decimals = IERC20Metadata(tokenToTransfer).decimals();
+    uint256 denormalizedAmount = deNormalizeAmount(amount, uint8(decimals));
+    uint initialRecipienGasTokenBalance = recipient.balance;
+    uint initialRecipienTransferredTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
+
+    vm.prank(recipient);
+
+    vm.expectEmit(address(tokenBridge));
+    emit ITokenBridge.TransferRedeemed(peerChain, originTokenBridge, sequence);
+
+    vm.expectEmit(tokenToTransfer);
+    emit IERC20.Transfer(address(0), address(tbr), denormalizedAmount);
+
+    vm.expectEmit(tokenToTransfer);
+    emit IERC20.Transfer(address(tbr), recipient, denormalizedAmount);
+
+    invokeTbr(
+      abi.encodePacked(
+        tbr.exec768.selector,
+        DISPATCHER_PROTOCOL_VERSION0,
+        COMPLETE_TRANSFER_ID,
+        encodedVaa
+      ),
+      0
+    );
+
+    uint finalRecipienTransferredTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
+
+    assertEq(recipient.balance, initialRecipienGasTokenBalance);
+    assertEq(finalRecipienTransferredTokenBalance, initialRecipienTransferredTokenBalance + denormalizedAmount);
+  }
 }
