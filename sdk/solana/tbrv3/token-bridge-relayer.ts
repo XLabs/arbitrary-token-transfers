@@ -260,7 +260,7 @@ export class SolanaTokenBridgeRelayer {
           chain === undefined
             ? undefined
             : Buffer.from(
-                serializeLayout({ ...layoutItems.chainItem(), endianness: 'big' }, chain),
+                serializeLayout({ ...layoutItems.chainItem(), endianness: 'little' }, chain),
               );
         const states = await this.program.account.peerState
           .all(filter)
@@ -467,7 +467,49 @@ export class SolanaTokenBridgeRelayer {
   /**
    * Signer: the Owner or an Admin.
    */
-  async registerPeer(
+  async registerFirstPeer(
+    signer: PublicKey,
+    chain: Chain,
+    peerAddress: UniversalAddress,
+    config: {
+      maxGasDropoffMicroToken: number;
+      relayerFeeMicroUsd: number;
+      pausedOutboundTransfers: boolean;
+    },
+  ): Promise<TransactionInstruction[]> {
+    // Check if there are no existing peers:
+    const existingPeers = await this.read.allPeers(chain);
+    if (existingPeers.length > 0) {
+      throw new Error('Peers already exist. Use registerAdditionalPeer to add more peers.');
+    }
+
+    const ixs = [];
+
+    ixs.push(this.registerPeer(signer, chain, peerAddress));
+    if (config.maxGasDropoffMicroToken !== 0) {
+      ixs.push(this.updateMaxGasDropoff(signer, chain, config.maxGasDropoffMicroToken));
+    }
+    ixs.push(this.updateBaseFee(signer, chain, config.relayerFeeMicroUsd));
+    ixs.push(this.setPauseForOutboundTransfers(signer, chain, config.pausedOutboundTransfers));
+
+    return Promise.all(ixs);
+  }
+
+  async registerAdditionalPeer(
+    signer: PublicKey,
+    chain: Chain,
+    peerAddress: UniversalAddress,
+  ): Promise<TransactionInstruction> {
+    // Check if there are no existing peers:
+    const existingPeers = await this.read.allPeers(chain);
+    if (existingPeers.length === 0) {
+      throw new Error('No peer for this chain. Use registerFirstPeer instead.');
+    }
+
+    return this.registerPeer(signer, chain, peerAddress);
+  }
+
+  private async registerPeer(
     signer: PublicKey,
     chain: Chain,
     peerAddress: UniversalAddress,
