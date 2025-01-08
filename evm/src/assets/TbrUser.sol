@@ -80,6 +80,8 @@ uint32 constant EVM_RELAY_GAS_COST = 400_000;
 // Size of the transaction in bytes.
 // TODO: measure this.
 uint32 constant EVM_RELAY_TX_SIZE = 1000;
+// Amount of WEI in a microeth
+uint256 constant WEI_PER_MICROETH = 1E12;
 
 /**
  * There are no peers in the target chain.
@@ -470,7 +472,10 @@ abstract contract TbrUser is TbrBase {
     if (msg.sender == recipient)
       gasDropoff = 0;
 
-    if (gasDropoff > unallocatedBalance)
+    // The dropoff in the message is measured in microeth so we should convert it to wei first
+    uint256 gasDropoffInWei = gasDropoff * WEI_PER_MICROETH;
+
+    if (gasDropoffInWei > unallocatedBalance)
       revert InsufficientGasDropoff(commandIndex);
 
     // TODO: evaluate whether to define the token amount received based on balance difference before and after transferring tokens from the TB.
@@ -490,7 +495,7 @@ abstract contract TbrUser is TbrBase {
     uint256 tokenAmount = deNormalizeAmount(tbNormalizedTokenAmount, decimals);
 
     // If an unwrap is desired, unwrap and call recipient with full amount
-    uint totalGasTokenAmount = gasDropoff;
+    uint totalGasTokenAmount = gasDropoffInWei;
     if (address(gasToken) == token && unwrapIntent && gasErc20TokenizationIsExplicit) {
       gasToken.withdraw(tokenAmount);
 
@@ -508,7 +513,7 @@ abstract contract TbrUser is TbrBase {
         reRevert(result);
     }
 
-    return (gasDropoff, retOffset);
+    return (gasDropoffInWei, retOffset);
   }}
 
   /**
