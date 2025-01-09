@@ -40,6 +40,7 @@ pub struct SubmitOwnerTransfer<'info> {
     )]
     program_data: Account<'info, ProgramData>,
 
+    /// CHECK: The BPF loader program.
     #[account(address = bpf_loader_upgradeable::ID)]
     pub bpf_loader_upgradeable: UncheckedAccount<'info>,
 }
@@ -124,6 +125,7 @@ pub struct ConfirmOwnerTransfer<'info> {
     )]
     program_data: Account<'info, ProgramData>,
 
+    /// CHECK: The BPF loader program.
     #[account(address = bpf_loader_upgradeable::ID)]
     pub bpf_loader_upgradeable: UncheckedAccount<'info>,
 
@@ -186,6 +188,7 @@ pub struct CancelOwnerTransfer<'info> {
     )]
     program_data: Account<'info, ProgramData>,
 
+    /// CHECK: The BPF loader program.
     #[account(address = bpf_loader_upgradeable::ID)]
     pub bpf_loader_upgradeable: UncheckedAccount<'info>,
 }

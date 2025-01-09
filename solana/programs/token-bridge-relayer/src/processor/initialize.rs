@@ -16,8 +16,8 @@ pub struct Initialize<'info> {
     #[account(mut)]
     pub deployer: Signer<'info>,
 
-    /// The designated owner of the program.
-    pub owner: AccountInfo<'info>,
+    /// CHECK: The account to be used as the owner of the program.
+    pub owner: UncheckedAccount<'info>,
 
     #[account(
         init,
@@ -61,6 +61,7 @@ pub struct Initialize<'info> {
     )]
     pub wormhole_redeemer: UncheckedAccount<'info>,
 
+    /// CHECK: The BPF loader program.
     #[account(address = bpf_loader_upgradeable::ID)]
     pub bpf_loader_upgradeable: UncheckedAccount<'info>,
 

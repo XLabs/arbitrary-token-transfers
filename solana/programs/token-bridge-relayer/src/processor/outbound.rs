@@ -62,7 +62,7 @@ pub struct OutboundTransfer<'info> {
     #[account(mut)]
     pub temporary_account: UncheckedAccount<'info>,
 
-    /// Fee recipient's account. The fee will be transferred to this account.
+    /// CHECK: Fee recipient's account. The fee will be transferred to this account.
     #[account(mut)]
     pub fee_recipient: UncheckedAccount<'info>,
 
@@ -131,8 +131,9 @@ pub struct OutboundTransfer<'info> {
         ],
         bump,
     )]
-    pub wormhole_message: AccountInfo<'info>,
+    pub wormhole_message: UncheckedAccount<'info>,
 
+    /// CHECK: Wormhole sender.
     pub wormhole_sender: UncheckedAccount<'info>,
 
     /// CHECK: Wormhole fee collector. Mutable.
