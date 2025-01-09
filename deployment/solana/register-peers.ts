@@ -81,10 +81,13 @@ const configureSolanaTbr: SolanaScriptCb = async function (
       log(
         `Updating maxGasDropoff on chain ${tbrDeployment.chainId} to ${desiredChainConfig.maxGasDropoff}`,
       );
+
+      // (!) WARN:  maxGasDropoff is in micro-tokens for the Solana TBR, so 
+      //            we need to do the correct conversion here.
       const ix = await tbr.updateMaxGasDropoff(
         signerKey,
         chainIdToChain(tbrDeployment.chainId),
-        parseInt(desiredChainConfig.maxGasDropoff),
+        Number(desiredChainConfig.maxGasDropoff) * 10**6,
       );
       const tx = await ledgerSignAndSend(connection, [ix], []);
       log(`Update succeeded on tx: ${tx}`);
