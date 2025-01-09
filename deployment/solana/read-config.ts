@@ -4,7 +4,7 @@ import { runOnSolana, getConnection } from '../helpers/solana.js';
 import { SolanaScriptCb } from '../helpers/interfaces.js';
 import { dependencies } from '../helpers/env.js';
 
-const configureSolanaTbr: SolanaScriptCb = async function (
+const readConfigSolanaTbr: SolanaScriptCb = async function (
     chain,
 ) {
     const connection = getConnection(chain);
@@ -20,6 +20,9 @@ const configureSolanaTbr: SolanaScriptCb = async function (
             return {
                 ...config,
                 canonicalPeer: config.canonicalPeer.toString(),
+
+                // we convert back to decimal as it's defined in the configuration file.
+                maxGasDropoffMicroToken: config.maxGasDropoffMicroToken / 1e6,
             };
         }
         return config;
@@ -28,6 +31,6 @@ const configureSolanaTbr: SolanaScriptCb = async function (
     console.log(translatedConfigs);
 }
 
-runOnSolana('read-config', configureSolanaTbr).catch((error) => {
+runOnSolana('read-config', readConfigSolanaTbr).catch((error) => {
     console.error('Error executing script: ', error);
 });
