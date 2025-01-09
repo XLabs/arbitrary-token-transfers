@@ -154,7 +154,7 @@ abstract contract TbrBase is PriceOracleIntegration {
     bool isAlreadyPeer = state.peers[peer];
     if (!isAlreadyPeer)
       _addPeer(targetChain, peer);
-    else if (state.canonicalPeer != peer)
+    if (state.canonicalPeer != peer)
       state.canonicalPeer = peer;
   }
 
