@@ -44,7 +44,7 @@ pub struct CompleteTransfer<'info> {
     /// transaction. This instruction verifies that the recipient key
     /// passed in this context matches the intended recipient in the vaa.
     #[account(mut)]
-    pub recipient: AccountInfo<'info>,
+    pub recipient: UncheckedAccount<'info>,
 
     /// Verified Wormhole message account. Read-only.
     pub vaa: Account<'info, PostedRelayerMessage>,

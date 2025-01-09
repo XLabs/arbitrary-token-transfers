@@ -726,10 +726,7 @@ export type TokenBridgeRelayer = {
           "signer": true
         },
         {
-          "name": "owner",
-          "docs": [
-            "The designated owner of the program."
-          ]
+          "name": "owner"
         },
         {
           "name": "authBadge",
@@ -1432,9 +1429,6 @@ export type TokenBridgeRelayer = {
         },
         {
           "name": "feeRecipient",
-          "docs": [
-            "Fee recipient's account. The fee will be transferred to this account."
-          ],
           "writable": true,
           "relations": [
             "tbrConfig"
