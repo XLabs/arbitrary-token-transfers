@@ -37,7 +37,6 @@ const $ = new TestsHelper();
 const uaToPubkey = (address: UniversalAddress) => toNative('Solana', address).unwrap();
 
 describe('Token Bridge Relayer Program', () => {
-  // @ts-expect-error TODO: @xlabs-xyz/solana-price-oracle-sdk: Update @solana/web3.js library to the latest version
   const oracleClient = new SolanaPriceOracle($.connection, $.pubkey.from(oracleKeypair));
   const clients = Array.from({ length: 6 }).map(() =>
     TbrWrapper.from($.keypair.generate(), oracleClient, DEBUG),
@@ -109,7 +108,6 @@ describe('Token Bridge Relayer Program', () => {
     // Oracle Setup
     // ============
     const oracleAuthorityProvider = await $.keypair.read(authorityKeypair);
-    // @ts-expect-error TODO: @xlabs-xyz/solana-price-oracle-sdk: Update @solana/web3.js library to the latest version
     const oracleAuthorityClient = await SolanaPriceOracle.create($.connection);
     await $.sendAndConfirm(
       new Transaction().add(

@@ -32,7 +32,6 @@ export class TbrWrapper {
 
   static from(signer: Signer, oracleClient: SolanaPriceOracle, debug: boolean) {
     const client = new SolanaTokenBridgeRelayer(
-      // @ts-expect-error TODO: @xlabs-xyz/solana-price-oracle-sdk: Update @solana/web3.js library to the latest version
       oracleClient.connection,
       'Localnet',
       $.pubkey.from(testProgramKeypair),

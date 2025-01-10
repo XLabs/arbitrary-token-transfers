@@ -106,6 +106,7 @@ export class SolanaTokenBridgeRelayer {
   ) {
     const wormholeNetwork = network === 'Localnet' ? 'Testnet' : network;
 
+    // @ts-expect-error TODO: Update @coral-xyz/anchor to fix this type issue
     this.program = new anchor.Program(patchAddress(IDL, programId), { connection });
     this.priceOracleClient = priceOracle;
     this.tokenBridgeProgramId = new PublicKey(contracts.tokenBridge(wormholeNetwork, 'Solana'));
@@ -139,6 +140,7 @@ export class SolanaTokenBridgeRelayer {
   }
 
   get connection(): Connection {
+    // @ts-expect-error TODO: Update @coral-xyz/anchor to fix this type issue
     return this.program.provider.connection;
   }
 
@@ -646,8 +648,7 @@ export class SolanaTokenBridgeRelayer {
       temporaryAccount,
       feeRecipient,
       oracleConfig: this.priceOracleClient.account.config().address,
-      // TODO: Update @wormhole-foundation/sdk in @xlabs-xyz/solana-oracle-prices-sdk to have the latest Chain interface
-      oracleEvmPrices: this.priceOracleClient.account.evmPrices(recipient.chain as any).address,
+      oracleEvmPrices: this.priceOracleClient.account.evmPrices(recipient.chain).address,
       ...tokenBridgeAccounts,
       wormholeMessage: this.account.wormholeMessage(signer, payerSequenceNumber).address,
       payerSequence: this.account.signerSequence(signer).address,
@@ -743,8 +744,7 @@ export class SolanaTokenBridgeRelayer {
     const [tbrConfig, chainConfig, evmPrices, oracleConfig] = await Promise.all([
       this.read.config(),
       this.account.chainConfig(chain).fetch(),
-      // TODO: Update @wormhole-foundation/sdk in @xlabs-xyz/solana-oracle-prices-sdk to have the latest Chain interface
-      this.priceOracleClient.read.evmPrices(chain as any),
+      this.priceOracleClient.read.evmPrices(chain),
       this.priceOracleClient.read.config(),
     ]);
 
@@ -781,8 +781,7 @@ export class SolanaTokenBridgeRelayer {
         tbrConfig: this.account.config().address,
         chainConfig: this.account.chainConfig(chain).address,
         oracleConfig: this.priceOracleClient.account.config().address,
-        // TODO: Update @wormhole-foundation/sdk in @xlabs-xyz/solana-oracle-prices-sdk to have the latest Chain interface
-        oracleEvmPrices: this.priceOracleClient.account.evmPrices(chain as any).address,
+        oracleEvmPrices: this.priceOracleClient.account.evmPrices(chain).address,
       })
       .instruction();
     const txResponse = await simulateTransaction(this.connection, payer, [ix]);
