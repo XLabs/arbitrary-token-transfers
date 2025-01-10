@@ -1267,12 +1267,6 @@ contract UserTest is TbrTestBase {
     address recipient = makeAddr("recipient");
     bool unwrapIntent = true;
 
-    vm.mockCall(
-      address(oracle),
-      abi.encodeWithSelector(IPriceOracle.get1959.selector),
-      abi.encode(abi.encodePacked(uint16(HOME_CHAIN_ID)))
-    );
-
     (bytes memory encodedVaa, uint64 sequence) = craftTbrV3Vaa(
       wormholeCore,
       originTokenBridge,
