@@ -6,6 +6,7 @@ import {CHAIN_ID_SOLANA} from "wormhole-sdk/constants/Chains.sol";
 import {BytesParsing} from "wormhole-sdk/libraries/BytesParsing.sol";
 import {PermitParsing} from "wormhole-sdk/libraries/PermitParsing.sol";
 import {fromUniversalAddress, reRevert} from "wormhole-sdk/Utils.sol";
+import {FREE_MEMORY_PTR} from "wormhole-sdk/constants/Common.sol";
 import {IWETH} from "wormhole-sdk/interfaces/token/IWETH.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
@@ -143,6 +144,31 @@ error InvalidTokenAmount();
  * The calculated fee is too large to be handled.
  */
 error FeeTooLarge(uint256 totalFee, uint commandIndex);
+
+error PayFailure(uint commandIndex, bytes bubbledUpError);
+
+function pay(
+  address payable callee,
+  uint256 value,
+  uint commandIndex
+) {
+  bytes4 selector = PayFailure.selector;
+  /// @solidity memory-safe-assembly
+  assembly {
+    let success := call(gas(), callee, value, 0, 0, 0, 0)
+    switch success
+    case 0 {
+      let freeMemory := mload(FREE_MEMORY_PTR)
+      mstore(freeMemory, selector)
+      mstore(add(freeMemory, 4), commandIndex)
+      let returnedDataSize := returndatasize()
+      mstore(add(freeMemory, 36), returnedDataSize)
+      returndatacopy(add(freeMemory, 68), 0, returnedDataSize)
+      let errorSize := add(returnedDataSize, 68)
+      revert(freeMemory, errorSize)
+    } default {}
+  }
+}
 
 event TransferRequested(address sender, uint64 sequence, uint32 gasDropoff, uint256 fee);
 
@@ -507,10 +533,7 @@ abstract contract TbrUser is TbrBase {
     }
     if (totalGasTokenAmount > 0) {
       // FIXME: we need to put an upper bound on the read bytes to ensure that the contract doesn't run out of gas.
-      // The error should be wrapped in our own error too. It should also indicate the command that failed.
-      (bool success, bytes memory result) = recipient.call{value: totalGasTokenAmount}("");
-      if (!success)
-        reRevert(result);
+      pay(payable(recipient), totalGasTokenAmount, commandIndex);
     }
 
     return (gasDropoffInWei, retOffset);
