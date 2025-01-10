@@ -79,7 +79,6 @@ describe('Token Bridge Relayer Program', () => {
   const ethereumTbrPeer1 = $.universalAddress.generate('ethereum');
   const ethereumTbrPeer2 = $.universalAddress.generate('ethereum');
   const oasisTbrPeer = $.universalAddress.generate('ethereum');
-  // @ts-expect-error TODO: @xlabs-xyz/solana-price-oracle-sdk: Update @solana/web3.js library to the latest version
   const bpfProgram = new BpfLoaderUpgradeableProgram(ownerClient.client.program.programId, $.connection);
 
   before(async () => {

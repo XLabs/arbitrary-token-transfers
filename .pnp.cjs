@@ -2001,24 +2001,6 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "SOFT"\
       }],\
-      ["virtual:0d651797a2843a64f9d24ebdfb5ce5b0c9db186e0bfb087fd6b67500708c972daac5ffe588b86f37cbeeb4bf85347e25cd633d8c0eb04e887e07267bb68096fd#npm:0.4.9", {\
-        "packageLocation": "./.yarn/__virtual__/@solana-spl-token-virtual-f163f75d9a/0/cache/@solana-spl-token-npm-0.4.9-7f1d70ccee-66f22a026f.zip/node_modules/@solana/spl-token/",\
-        "packageDependencies": [\
-          ["@solana/spl-token", "virtual:0d651797a2843a64f9d24ebdfb5ce5b0c9db186e0bfb087fd6b67500708c972daac5ffe588b86f37cbeeb4bf85347e25cd633d8c0eb04e887e07267bb68096fd#npm:0.4.9"],\
-          ["@solana/buffer-layout", "npm:4.0.1"],\
-          ["@solana/buffer-layout-utils", "npm:0.2.0"],\
-          ["@solana/spl-token-group", "virtual:f163f75d9afd7480a70fbfa6f9aba48c297163c8e336036bb9756b57fe5c93298d6e637ec25ec7b6c4bc511c242f886077a0a0f5d0f99509a8e608d4c7a29ba1#npm:0.0.7"],\
-          ["@solana/spl-token-metadata", "virtual:f163f75d9afd7480a70fbfa6f9aba48c297163c8e336036bb9756b57fe5c93298d6e637ec25ec7b6c4bc511c242f886077a0a0f5d0f99509a8e608d4c7a29ba1#npm:0.1.6"],\
-          ["@solana/web3.js", "npm:1.98.0"],\
-          ["@types/solana__web3.js", null],\
-          ["buffer", "npm:6.0.3"]\
-        ],\
-        "packagePeers": [\
-          "@solana/web3.js",\
-          "@types/solana__web3.js"\
-        ],\
-        "linkType": "HARD"\
-      }],\
       ["virtual:1083298bcb0ac2d0c31e8d54e5d8046d04af5b3b1ca39b8404f80e1c4c08f4735785338190f77488c34d544aec8cdd0fb4bb5631f5f8a4e09017b7efc0afa473#npm:0.3.9", {\
         "packageLocation": "./.yarn/__virtual__/@solana-spl-token-virtual-82a788c766/0/cache/@solana-spl-token-npm-0.3.9-b2d855b518-30300dfc34.zip/node_modules/@solana/spl-token/",\
         "packageDependencies": [\
@@ -2043,7 +2025,7 @@ const RAW_RUNTIME_STATE =
           ["@solana/buffer-layout-utils", "npm:0.2.0"],\
           ["@solana/spl-token-group", "virtual:6dce06059e96a61bc47e77aee42ffce484a85dafb0efd58177c2921782bc7e3158cd900a04b74851ab747c250e4a61869272db6220967b7faf43c08a1f514a71#npm:0.0.7"],\
           ["@solana/spl-token-metadata", "virtual:6dce06059e96a61bc47e77aee42ffce484a85dafb0efd58177c2921782bc7e3158cd900a04b74851ab747c250e4a61869272db6220967b7faf43c08a1f514a71#npm:0.1.6"],\
-          ["@solana/web3.js", "npm:1.95.3"],\
+          ["@solana/web3.js", "npm:1.98.0"],\
           ["@types/solana__web3.js", null],\
           ["buffer", "npm:6.0.3"]\
         ],\
@@ -2123,20 +2105,6 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@solana/spl-token-group", "virtual:6dce06059e96a61bc47e77aee42ffce484a85dafb0efd58177c2921782bc7e3158cd900a04b74851ab747c250e4a61869272db6220967b7faf43c08a1f514a71#npm:0.0.7"],\
           ["@solana/codecs", "virtual:08e6812eae64d888bd783d7141de37767bf9148c3813e1fc74bd9c6fc2e88d9d9960d9f9e6262a8f1479581d2f58d1370fa8c5c0a0bf5aa9f4c6839dcb16562a#npm:2.0.0-rc.1"],\
-          ["@solana/web3.js", "npm:1.95.3"],\
-          ["@types/solana__web3.js", null]\
-        ],\
-        "packagePeers": [\
-          "@solana/web3.js",\
-          "@types/solana__web3.js"\
-        ],\
-        "linkType": "HARD"\
-      }],\
-      ["virtual:f163f75d9afd7480a70fbfa6f9aba48c297163c8e336036bb9756b57fe5c93298d6e637ec25ec7b6c4bc511c242f886077a0a0f5d0f99509a8e608d4c7a29ba1#npm:0.0.7", {\
-        "packageLocation": "./.yarn/__virtual__/@solana-spl-token-group-virtual-21a1bcab74/0/cache/@solana-spl-token-group-npm-0.0.7-a93ce99255-e1ebeb30c4.zip/node_modules/@solana/spl-token-group/",\
-        "packageDependencies": [\
-          ["@solana/spl-token-group", "virtual:f163f75d9afd7480a70fbfa6f9aba48c297163c8e336036bb9756b57fe5c93298d6e637ec25ec7b6c4bc511c242f886077a0a0f5d0f99509a8e608d4c7a29ba1#npm:0.0.7"],\
-          ["@solana/codecs", "virtual:08e6812eae64d888bd783d7141de37767bf9148c3813e1fc74bd9c6fc2e88d9d9960d9f9e6262a8f1479581d2f58d1370fa8c5c0a0bf5aa9f4c6839dcb16562a#npm:2.0.0-rc.1"],\
           ["@solana/web3.js", "npm:1.98.0"],\
           ["@types/solana__web3.js", null]\
         ],\
@@ -2181,20 +2149,6 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/__virtual__/@solana-spl-token-metadata-virtual-97017484e4/0/cache/@solana-spl-token-metadata-npm-0.1.6-b685f79ab6-a2ea535ac2.zip/node_modules/@solana/spl-token-metadata/",\
         "packageDependencies": [\
           ["@solana/spl-token-metadata", "virtual:6dce06059e96a61bc47e77aee42ffce484a85dafb0efd58177c2921782bc7e3158cd900a04b74851ab747c250e4a61869272db6220967b7faf43c08a1f514a71#npm:0.1.6"],\
-          ["@solana/codecs", "virtual:08e6812eae64d888bd783d7141de37767bf9148c3813e1fc74bd9c6fc2e88d9d9960d9f9e6262a8f1479581d2f58d1370fa8c5c0a0bf5aa9f4c6839dcb16562a#npm:2.0.0-rc.1"],\
-          ["@solana/web3.js", "npm:1.95.3"],\
-          ["@types/solana__web3.js", null]\
-        ],\
-        "packagePeers": [\
-          "@solana/web3.js",\
-          "@types/solana__web3.js"\
-        ],\
-        "linkType": "HARD"\
-      }],\
-      ["virtual:f163f75d9afd7480a70fbfa6f9aba48c297163c8e336036bb9756b57fe5c93298d6e637ec25ec7b6c4bc511c242f886077a0a0f5d0f99509a8e608d4c7a29ba1#npm:0.1.6", {\
-        "packageLocation": "./.yarn/__virtual__/@solana-spl-token-metadata-virtual-4364697b72/0/cache/@solana-spl-token-metadata-npm-0.1.6-b685f79ab6-a2ea535ac2.zip/node_modules/@solana/spl-token-metadata/",\
-        "packageDependencies": [\
-          ["@solana/spl-token-metadata", "virtual:f163f75d9afd7480a70fbfa6f9aba48c297163c8e336036bb9756b57fe5c93298d6e637ec25ec7b6c4bc511c242f886077a0a0f5d0f99509a8e608d4c7a29ba1#npm:0.1.6"],\
           ["@solana/codecs", "virtual:08e6812eae64d888bd783d7141de37767bf9148c3813e1fc74bd9c6fc2e88d9d9960d9f9e6262a8f1479581d2f58d1370fa8c5c0a0bf5aa9f4c6839dcb16562a#npm:2.0.0-rc.1"],\
           ["@solana/web3.js", "npm:1.98.0"],\
           ["@types/solana__web3.js", null]\
@@ -2895,7 +2849,7 @@ const RAW_RUNTIME_STATE =
           ["@xlabs-xyz/solana-arbitrary-token-transfers", "virtual:1083298bcb0ac2d0c31e8d54e5d8046d04af5b3b1ca39b8404f80e1c4c08f4735785338190f77488c34d544aec8cdd0fb4bb5631f5f8a4e09017b7efc0afa473#workspace:sdk/solana"],\
           ["@coral-xyz/anchor", "npm:0.30.1"],\
           ["@solana/spl-token", "virtual:4baef52035962ca133136492d40dec95183e8207fc44d69d3dda9910201c7f8cdfbe32f418548f345203723358c5a8abbd7d4d91f540905fb6331fb448af68a4#npm:0.4.9"],\
-          ["@solana/web3.js", "npm:1.95.3"],\
+          ["@solana/web3.js", "npm:1.98.0"],\
           ["@types/node", "npm:20.17.5"],\
           ["@types/wormhole-foundation__sdk-base", null],\
           ["@types/wormhole-foundation__sdk-definitions", null],\
@@ -2927,7 +2881,7 @@ const RAW_RUNTIME_STATE =
           ["@xlabs-xyz/solana-arbitrary-token-transfers", "workspace:sdk/solana"],\
           ["@coral-xyz/anchor", "npm:0.30.1"],\
           ["@solana/spl-token", "virtual:4baef52035962ca133136492d40dec95183e8207fc44d69d3dda9910201c7f8cdfbe32f418548f345203723358c5a8abbd7d4d91f540905fb6331fb448af68a4#npm:0.4.9"],\
-          ["@solana/web3.js", "npm:1.95.3"],\
+          ["@solana/web3.js", "npm:1.98.0"],\
           ["@types/node", "npm:20.17.5"],\
           ["@wormhole-foundation/sdk-base", "npm:1.3.0"],\
           ["@wormhole-foundation/sdk-definitions", "npm:1.3.0"],\
@@ -6281,7 +6235,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["solana", "workspace:solana"],\
           ["@coral-xyz/anchor", "npm:0.30.1"],\
-          ["@solana/spl-token", "virtual:0d651797a2843a64f9d24ebdfb5ce5b0c9db186e0bfb087fd6b67500708c972daac5ffe588b86f37cbeeb4bf85347e25cd633d8c0eb04e887e07267bb68096fd#npm:0.4.9"],\
+          ["@solana/spl-token", "virtual:4baef52035962ca133136492d40dec95183e8207fc44d69d3dda9910201c7f8cdfbe32f418548f345203723358c5a8abbd7d4d91f540905fb6331fb448af68a4#npm:0.4.9"],\
           ["@solana/web3.js", "npm:1.98.0"],\
           ["@types/chai", "npm:5.0.0"],\
           ["@types/mocha", "npm:10.0.9"],\
