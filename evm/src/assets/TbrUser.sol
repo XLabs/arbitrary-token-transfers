@@ -258,7 +258,6 @@ abstract contract TbrUser is TbrBase {
     uint256 finalTokenAmount
   ) internal returns (uint) {
     // Acquire tokens
-    // FIXME?: here we assume that the token transfers the entire amount without any tax or reward acquisition.
     uint8 acquireMode;
     (acquireMode, offset) = data.asUint8CdUnchecked(offset);
     if (acquireMode == ACQUIRE_PREAPPROVED)
