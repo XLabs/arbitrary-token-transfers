@@ -1500,6 +1500,7 @@ contract UserTest is TbrTestBase {
     bytes32 tokenAddress,
     uint256 unallocatedBalance
   ) public {
+    vm.assume(address(this) != recipient);
     gasDropoff = uint32(bound(gasDropoff, 1, MAX_GAS_DROPOFF_AMOUNT));
     uint256 gasDropoffInWei = gasDropoff * WEI_PER_MICROETH;
     unallocatedBalance = bound(unallocatedBalance, 0, gasDropoffInWei - 1);
