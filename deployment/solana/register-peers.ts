@@ -59,7 +59,7 @@ const configureSolanaTbr: SolanaScriptCb = async function (
       const tx = await ledgerSignAndSend(connection, [ix], []);
       log(`Register succeeded on tx: ${tx}`);
     } else {
-      const currentPeer =currentChainConfig.canonicalPeer.toUniversalAddress();
+      const currentPeer = currentChainConfig.canonicalPeer.toUniversalAddress();
 
       if (!currentPeer.equals(peerUniversalAddress)) {
         log(
