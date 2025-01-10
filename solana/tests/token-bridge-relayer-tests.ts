@@ -37,6 +37,7 @@ const $ = new TestsHelper();
 const uaToPubkey = (address: UniversalAddress) => toNative('Solana', address).unwrap();
 
 describe('Token Bridge Relayer Program', () => {
+  // @ts-expect-error TODO: @xlabs-xyz/solana-price-oracle-sdk: Update @solana/web3.js library to the latest version
   const oracleClient = new SolanaPriceOracle($.connection, $.pubkey.from(oracleKeypair));
   const clients = Array.from({ length: 6 }).map(() =>
     TbrWrapper.from($.keypair.generate(), oracleClient, DEBUG),
@@ -78,7 +79,7 @@ describe('Token Bridge Relayer Program', () => {
   const ethereumTbrPeer1 = $.universalAddress.generate('ethereum');
   const ethereumTbrPeer2 = $.universalAddress.generate('ethereum');
   const oasisTbrPeer = $.universalAddress.generate('ethereum');
-
+  // @ts-expect-error TODO: @xlabs-xyz/solana-price-oracle-sdk: Update @solana/web3.js library to the latest version
   const bpfProgram = new BpfLoaderUpgradeableProgram(ownerClient.client.program.programId, $.connection);
 
   before(async () => {
@@ -109,6 +110,7 @@ describe('Token Bridge Relayer Program', () => {
     // Oracle Setup
     // ============
     const oracleAuthorityProvider = await $.keypair.read(authorityKeypair);
+    // @ts-expect-error TODO: @xlabs-xyz/solana-price-oracle-sdk: Update @solana/web3.js library to the latest version
     const oracleAuthorityClient = await SolanaPriceOracle.create($.connection);
     await $.sendAndConfirm(
       new Transaction().add(
@@ -466,6 +468,7 @@ describe('Token Bridge Relayer Program', () => {
         gasDropoffAmount,
         maxFeeLamports: 100_000_000n, // 0.1SOL max
         unwrapIntent,
+        mintAddress: barMint.address,
       });
 
       const sequence = 0n;
@@ -507,6 +510,7 @@ describe('Token Bridge Relayer Program', () => {
         gasDropoffAmount,
         maxFeeLamports: 100_000_000n, // 0.1SOL max
         unwrapIntent,
+        mintAddress: barMint.address,
       });
 
       const sequence = 1n;
@@ -674,6 +678,7 @@ describe('Token Bridge Relayer Program', () => {
         gasDropoffAmount,
         maxFeeLamports: 100_000_000n, // 0.1SOL max
         unwrapIntent,
+        mintAddress: barMint.address,
       });
 
       const sequence = 0n;
