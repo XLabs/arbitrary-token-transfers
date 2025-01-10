@@ -1,4 +1,4 @@
-import { Layout, LayoutToType, SwitchLayoutItem } from "@wormhole-foundation/sdk-base";
+import { Layout, LayoutToType } from "@wormhole-foundation/sdk-base";
 import { evmAddressItem, evmAddressLayout, subArrayLayout } from "./common.js";
 
 export const adminsQueryReturnLayout = { 
@@ -25,7 +25,7 @@ export type AccessControlCommand = LayoutToType<typeof accessControlCommandLayou
 export const accessControlCommandMap = [
   [[0x60, "AccessControlCommands"], subArrayLayout("commands", accessControlCommandLayout)],
   [[0x61, "AcquireOwnership"], []],
-] as const satisfies SwitchLayoutItem["layouts"];
+] as const;
 
 export const accessControlQueryLayout = {
   binary: "switch",
@@ -42,4 +42,4 @@ export type AccessControlQuery = LayoutToType<typeof accessControlQueryLayout>;
 
 export const accessControlQueryMap = [
   [[0xe0, "AccessControlQueries"], subArrayLayout("queries", accessControlQueryLayout)],
-] as const satisfies SwitchLayoutItem["layouts"];
+] as const;

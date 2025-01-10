@@ -1,4 +1,4 @@
-import type { Chain, CustomConversion, Layout, LayoutToType, LayoutItem, NamedLayoutItem } from "@wormhole-foundation/sdk-base";
+import type { Chain, CustomConversion, Layout, LayoutToType } from "@wormhole-foundation/sdk-base";
 import { layoutItems, type UniversalAddress } from "@wormhole-foundation/sdk-definitions";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
 import { accessControlCommandMap, accessControlQueryMap } from "./solidity-sdk/access-control.js";
@@ -13,7 +13,7 @@ export type SupportedChain = typeof supportedChains[number];
 
 const peerChainItem = {
   name: "chain", ...layoutItems.chainItem({ allowedChains: supportedChains }) 
-} as const satisfies NamedLayoutItem;
+} as const;
 
 export const peerAddressItem = {
   name: "address",
@@ -48,7 +48,7 @@ export const gasDropoffItem = {
   binary: "uint",
   size: 4,
   custom: decimalDownShift(6, Math.floor),
-} as const satisfies LayoutItem;
+} as const;
 
 /**
  * Specified as usd.
@@ -69,7 +69,7 @@ const feeItem = {
   binary: "uint",
   size: 8,
   custom: bigintDownshift(12),
-} as const satisfies LayoutItem;
+} as const;
 
 export const acquireModeItem = {
   name: "acquireMode",
@@ -97,7 +97,7 @@ export const acquireModeItem = {
       { name: "signature",   binary: "bytes", size: 65 },
     ]],
   ]
-} as const satisfies NamedLayoutItem;
+} as const;
 
 // /**
 //  * Currently Twei in EVM and Klamport in Solana.

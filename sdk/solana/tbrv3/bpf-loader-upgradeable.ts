@@ -1,5 +1,5 @@
 import { Connection, PublicKey, TransactionInstruction } from '@solana/web3.js';
-import { CustomConversion, Layout, layout } from '@wormhole-foundation/sdk-base';
+import { CustomConversion, deserializeLayout, Layout } from '@wormhole-foundation/sdk-base';
 //import { programDataLayout } from '@wormhole-foundation/sdk-solana/utils/utils/';
 import { throwError } from 'common-arbitrary-token-transfer';
 import { BN } from '@xlabs-xyz/solana-price-oracle-sdk';
@@ -28,7 +28,7 @@ export class BpfLoaderUpgradeableProgram {
       throw new Error(`Could not read the deployed program: ${this.programId}`);
     }
 
-    const data = layout.deserializeLayout(programDataLayout_, rawData);
+    const data = deserializeLayout(programDataLayout_, rawData);
     const upgradeAuthority = data.upgradeAuthority.isSome ? data.upgradeAuthority.value : undefined;
 
     return {

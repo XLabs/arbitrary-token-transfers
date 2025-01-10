@@ -50,6 +50,7 @@ const NATIVE_MINT_UNIVERSAL = new SolanaAddress(
 
 const KLAM_PER_SOL = 1_000_000n;
 const MWEI_PER_MICRO_ETH = 1_000_000n;
+const MICROTOKENS_PER_TOKEN = 1_000_000n;
 const MWEI_PER_ETH = 1_000_000_000_000n;
 
 export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaChains>
@@ -91,7 +92,8 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     provider: Connection,
     config: ChainsConfig<N, SolanaPlatformType>,
   ): Promise<AutomaticTokenBridgeV3Solana<N, SolanaChains>> {
-    const [network, chain] = await SolanaPlatform.chainFromRpc(provider);
+    // TODO: Update @solana/web3.js to the latest version
+    const [network, chain] = await SolanaPlatform.chainFromRpc(provider as any);
     const conf = config[chain]!;
 
     if (conf.network !== network)
@@ -165,7 +167,7 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     }
 
     const senderPk = new PublicKey(params.sender.toNative('Solana').toString());
-    const gasDropoffAmount = Number(sdkAmount.display(params.gasDropOff));
+    const gasDropoffAmountMicro = Number(sdkAmount.display(params.gasDropOff)) * Number(MICROTOKENS_PER_TOKEN);
 
     transaction.add(
       await this.client.transferTokens(senderPk, {
@@ -175,9 +177,10 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
         },
         userTokenAccount: ata,
         transferredAmount: BigInt(params.amount.toString()),
-        gasDropoffAmount,
+        gasDropoffAmount: gasDropoffAmountMicro,
         maxFeeLamports: BigInt(params.fee.toString() || 0),
         unwrapIntent: params.unwrapIntent,
+        mintAddress: mint,
       }),
     );
 
@@ -187,7 +190,8 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     // create a versioned transaction to avoid errors down the line due to
     // different Transaction constructors from different @solana/web3.js package versions
     yield new SolanaUnsignedTransaction(
-      { transaction: new VersionedTransaction(transaction.compileMessage()) },
+      // TODO: Update @solana/web3.js to the latest version
+      { transaction: new VersionedTransaction(transaction.compileMessage()) } as any,
       this.network,
       this.chainName,
       'TokenBridgeRelayerV3.transfer',
@@ -223,7 +227,8 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     // create a versioned transaction to avoid errors down the line due to
     // different Transaction constructors from different @solana/web3.js package versions
     yield new SolanaUnsignedTransaction(
-      { transaction: new VersionedTransaction(transaction.compileMessage()) },
+      // TODO: Update @solana/web3.js to the latest version
+      { transaction: new VersionedTransaction(transaction.compileMessage()) } as any,
       this.network,
       this.chainName,
       'TokenBridgeRelayerV3.redeem',
@@ -265,7 +270,7 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     const config = await this.client.account.chainConfig(chain).fetch();
 
     return {
-      maxGasDropoff: config.maxGasDropoffMicroToken,
+      maxGasDropoff: config.maxGasDropoffMicroToken / Number(MICROTOKENS_PER_TOKEN),
       baseFee: config.relayerFeeMicroUsd,
       paused: config.pausedOutboundTransfers,
       canonicalPeer: new UniversalAddress(new Uint8Array(config.canonicalPeer)),

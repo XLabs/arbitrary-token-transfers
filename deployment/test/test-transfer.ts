@@ -320,6 +320,7 @@ async function sendSolanaTestTransaction(
         gasDropoffAmount,
         maxFeeLamports,
         unwrapIntent,
+        mintAddress: mint,
       } satisfies TransferParameters;
 
       transferIx = await tbr.transferTokens(signerKey, params);
