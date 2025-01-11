@@ -93,9 +93,9 @@ export class TbrWrapper {
     );
   }
 
-  async confirmOwnerTransferRequest(owner: Signer): Promise<VersionedTransactionResponse | null> {
+  async confirmOwnerTransferRequest(): Promise<VersionedTransactionResponse | null> {
     return $.getTransaction(
-      $.sendAndConfirm(await this.client.confirmOwnerTransferRequest(), this.signer, owner),
+      $.sendAndConfirm(await this.client.confirmOwnerTransferRequest(), this.signer),
     );
   }
 
@@ -115,13 +115,30 @@ export class TbrWrapper {
     );
   }
 
-  async registerPeer(
+  async registerFirstPeer(
+    chain: Chain,
+    peerAddress: UniversalAddress,
+    config: {
+      maxGasDropoffMicroToken: number;
+      relayerFeeMicroUsd: number;
+      pausedOutboundTransfers: boolean;
+    },
+  ): Promise<VersionedTransactionResponse | null> {
+    return $.getTransaction(
+      $.sendAndConfirm(
+        await this.client.registerFirstPeer(this.publicKey, chain, peerAddress, config),
+        this.signer,
+      ),
+    );
+  }
+
+  async registerAdditionalPeer(
     chain: Chain,
     peerAddress: UniversalAddress,
   ): Promise<VersionedTransactionResponse | null> {
     return $.getTransaction(
       $.sendAndConfirm(
-        await this.client.registerPeer(this.publicKey, chain, peerAddress),
+        await this.client.registerAdditionalPeer(this.publicKey, chain, peerAddress),
         this.signer,
       ),
     );
@@ -166,7 +183,7 @@ export class TbrWrapper {
   ): Promise<VersionedTransactionResponse | null> {
     return $.getTransaction(
       $.sendAndConfirm(
-        await this.client.updateRelayerFee(this.publicKey, chain, relayerFee),
+        await this.client.updateBaseFee(this.publicKey, chain, relayerFee),
         this.signer,
       ),
     );

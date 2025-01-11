@@ -79,7 +79,10 @@ describe('Token Bridge Relayer Program', () => {
   const ethereumTbrPeer2 = $.universalAddress.generate('ethereum');
   const oasisTbrPeer = $.universalAddress.generate('ethereum');
 
-  const bpfProgram = new BpfLoaderUpgradeableProgram(ownerClient.client.program.programId, $.connection);
+  const bpfProgram = new BpfLoaderUpgradeableProgram(
+    ownerClient.client.program.programId,
+    $.connection,
+  );
 
   before(async () => {
     await $.airdrop([
@@ -145,6 +148,9 @@ describe('Token Bridge Relayer Program', () => {
       DEBUG,
     );
 
+    // Let's credit a badge, to verify that we cannot trigger a denial of service:
+    await $.airdrop(upgradeAuthorityClient.account.authBadge(adminClient1.publicKey).address);
+
     await upgradeAuthorityClient.initialize({
       feeRecipient,
       owner: ownerClient.publicKey,
@@ -185,12 +191,12 @@ describe('Token Bridge Relayer Program', () => {
 
     it('Rejects a transfer validation by an unauthorized account', async () => {
       await assert
-        .promise(unauthorizedClient.confirmOwnerTransferRequest(ownerClient.signer))
+        .promise(unauthorizedClient.confirmOwnerTransferRequest())
         .failsWith('Signature verification failed');
     });
 
     it('Accepts a transfer validation by the rightful new owner', async () => {
-      await newOwnerClient.confirmOwnerTransferRequest(ownerClient.signer);
+      await newOwnerClient.confirmOwnerTransferRequest();
 
       // Verify that the authority has been updated to the new owner.
       const { upgradeAuthority } = await bpfProgram.getdata();
@@ -216,7 +222,7 @@ describe('Token Bridge Relayer Program', () => {
 
       // Now the original owner cannot accept the ownership:
       await assert
-        .promise(ownerClient.confirmOwnerTransferRequest(ownerClient.signer))
+        .promise(ownerClient.confirmOwnerTransferRequest())
         .failsWith('No pending owner in the program');
     });
 
@@ -275,13 +281,22 @@ describe('Token Bridge Relayer Program', () => {
 
   describe('Peers', () => {
     it('Registers peers', async () => {
-      await newOwnerClient.registerPeer(ETHEREUM, ethereumTbrPeer1);
+      // First ETH peer:
+
+      await assert
+        .promise(newOwnerClient.registerAdditionalPeer(ETHEREUM, ethereumTbrPeer1))
+        .failsWith('Use registerFirstPeer instead');
+
+      const ethConfig = {
+        maxGasDropoffMicroToken: 1000,
+        pausedOutboundTransfers: false,
+        relayerFeeMicroUsd: 200,
+      };
+      await newOwnerClient.registerFirstPeer(ETHEREUM, ethereumTbrPeer1, ethConfig);
       assert.chainConfig(await unauthorizedClient.account.chainConfig(ETHEREUM).fetch()).equal({
         chainId: ETHEREUM_ID,
         canonicalPeer: uaToArray(ethereumTbrPeer1),
-        maxGasDropoffMicroToken: 0,
-        pausedOutboundTransfers: true,
-        relayerFeeMicroUsd: 0,
+        ...ethConfig,
       });
       expect(
         await unauthorizedClient.account.peer(ETHEREUM, ethereumTbrPeer1).fetch(),
@@ -290,13 +305,17 @@ describe('Token Bridge Relayer Program', () => {
         address: uaToArray(ethereumTbrPeer1),
       });
 
-      await adminClient1.registerPeer(ETHEREUM, ethereumTbrPeer2);
+      // Second ETH peer:
+
+      await assert
+        .promise(newOwnerClient.registerFirstPeer(ETHEREUM, ethereumTbrPeer2, ethConfig))
+        .failsWith('Peers already exist');
+
+      await adminClient1.registerAdditionalPeer(ETHEREUM, ethereumTbrPeer2);
       assert.chainConfig(await unauthorizedClient.account.chainConfig(ETHEREUM).fetch()).equal({
         chainId: ETHEREUM_ID,
         canonicalPeer: uaToArray(ethereumTbrPeer1),
-        maxGasDropoffMicroToken: 0,
-        pausedOutboundTransfers: true,
-        relayerFeeMicroUsd: 0,
+        ...ethConfig,
       });
       expect(
         await unauthorizedClient.account.peer(ETHEREUM, ethereumTbrPeer2).fetch(),
@@ -305,20 +324,23 @@ describe('Token Bridge Relayer Program', () => {
         address: uaToArray(ethereumTbrPeer2),
       });
 
-      await adminClient1.registerPeer(OASIS, oasisTbrPeer);
+      // First OASIS peer:
+
+      const oasisConfig = {
+        maxGasDropoffMicroToken: 650,
+        pausedOutboundTransfers: true,
+        relayerFeeMicroUsd: 430,
+      };
+      await adminClient1.registerFirstPeer(OASIS, oasisTbrPeer, oasisConfig);
       assert.chainConfig(await unauthorizedClient.account.chainConfig(OASIS).fetch()).equal({
         chainId: OASIS_ID,
         canonicalPeer: uaToArray(oasisTbrPeer),
-        maxGasDropoffMicroToken: 0,
-        pausedOutboundTransfers: true,
-        relayerFeeMicroUsd: 0,
+        ...oasisConfig,
       });
       assert.chainConfig(await unauthorizedClient.account.chainConfig(ETHEREUM).fetch()).equal({
         chainId: ETHEREUM_ID,
         canonicalPeer: uaToArray(ethereumTbrPeer1),
-        maxGasDropoffMicroToken: 0,
-        pausedOutboundTransfers: true,
-        relayerFeeMicroUsd: 0,
+        ...ethConfig,
       });
       expect(await unauthorizedClient.account.peer(OASIS, oasisTbrPeer).fetch()).deep.include({
         chainId: OASIS_ID,
@@ -332,9 +354,9 @@ describe('Token Bridge Relayer Program', () => {
       assert.chainConfig(await unauthorizedClient.account.chainConfig(ETHEREUM).fetch()).equal({
         chainId: ETHEREUM_ID,
         canonicalPeer: uaToArray(ethereumTbrPeer2),
-        maxGasDropoffMicroToken: 0,
-        pausedOutboundTransfers: true,
-        relayerFeeMicroUsd: 0,
+        maxGasDropoffMicroToken: 1000,
+        pausedOutboundTransfers: false,
+        relayerFeeMicroUsd: 200,
       });
     });
 
@@ -353,7 +375,7 @@ describe('Token Bridge Relayer Program', () => {
     it('Does not let unauthorized signers register or update a peer', async () => {
       // Unauthorized cannot register a peer:
       await assert
-        .promise(unauthorizedClient.registerPeer(ETHEREUM, $.universalAddress.generate()))
+        .promise(unauthorizedClient.registerAdditionalPeer(ETHEREUM, $.universalAddress.generate()))
         .failsWith('AnchorError caused by account: auth_badge. Error Code: AccountNotInitialized.');
 
       // Admin cannot make another peer canonical:
@@ -459,6 +481,9 @@ describe('Token Bridge Relayer Program', () => {
       const foreignAddress = $.universalAddress.generate();
       const canonicalEthereum = await unauthorizedClient.read.canonicalPeer(ETHEREUM);
 
+      // Let's credit the temporary token account, to verify that we cannot trigger a denial of service:
+      await $.airdrop(unauthorizedClient.account.temporary(spl.NATIVE_MINT).address);
+
       await unauthorizedClient.transferTokens({
         recipient: { address: foreignAddress, chain: ETHEREUM },
         userTokenAccount: tokenAccount.publicKey,
@@ -531,7 +556,7 @@ describe('Token Bridge Relayer Program', () => {
     });
 
     it('Gets wrapped SOL back from another chain', async () => {
-      const [payer, recipient] = await $.airdrop([Keypair.generate(), $.keypair.generate()]);
+      const [payer, recipient] = await $.airdrop($.keypair.several(2));
       // Associated token account already existing (to test if it breaks the transfer completion):
       const recipientTokenAccount = await spl.createAssociatedTokenAccount(
         $.connection,
@@ -698,6 +723,26 @@ describe('Token Bridge Relayer Program', () => {
       });
 
       expect(vaa.payload.payload.recipient).deep.equal(foreignAddress);
+    });
+
+    it('Fails to transfer a token due to dropoff exceeding maximum', async () => {
+      const gasDropoffAmount = 11_000_000; // ETH11
+      const unwrapIntent = false;
+      const transferredAmount = 321654n;
+
+      const tokenAccount = await barMint.mint(1_000_000_000n, unauthorizedClient.signer);
+
+      const foreignAddress = $.universalAddress.generate();
+
+      const transferPromise = unauthorizedClient.transferTokens({
+        recipient: { address: foreignAddress, chain: ETHEREUM },
+        userTokenAccount: tokenAccount.publicKey,
+        transferredAmount,
+        gasDropoffAmount,
+        maxFeeLamports: 100_000_000n, // 0.1SOL max
+        unwrapIntent,
+      });
+      await assert.promise(transferPromise).failsWith('DropoffExceedingMaximum');
     });
 
     after(async () => {

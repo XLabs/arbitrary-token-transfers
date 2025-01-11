@@ -250,7 +250,7 @@ export class SolanaTokenBridgeRelayer {
           chain === undefined
             ? undefined
             : Buffer.from(
-                serializeLayout({ ...layoutItems.chainItem(), endianness: 'big' }, chain),
+                serializeLayout({ ...layoutItems.chainItem(), endianness: 'little' }, chain),
               );
         const states = await this.program.account.peerState
           .all(filter)
@@ -334,7 +334,7 @@ export class SolanaTokenBridgeRelayer {
           ]).address;
 
     const wallet = uaToPubkey(deserializeTbrV3Message(vaa.payload.payload).recipient);
-    const associatedTokenAccount = getAssociatedTokenAccount(wallet, mint);
+    const associatedTokenAccount = spl.getAssociatedTokenAddressSync(mint, wallet);
 
     return { wallet, associatedTokenAccount };
   }
@@ -400,7 +400,6 @@ export class SolanaTokenBridgeRelayer {
       .confirmOwnerTransferRequest()
       .accounts({
         newOwner: config.pendingOwner ?? throwError('No pending owner in the program'),
-        previousOwner: config.owner,
         tbrConfig: this.account.config().address,
       })
       .instruction();
@@ -414,7 +413,7 @@ export class SolanaTokenBridgeRelayer {
 
     return this.program.methods
       .cancelOwnerTransferRequest()
-      .accountsStrict({
+      .accountsPartial({
         owner: config.owner,
         tbrConfig: this.account.config().address,
       })
@@ -458,7 +457,49 @@ export class SolanaTokenBridgeRelayer {
   /**
    * Signer: the Owner or an Admin.
    */
-  async registerPeer(
+  async registerFirstPeer(
+    signer: PublicKey,
+    chain: Chain,
+    peerAddress: UniversalAddress,
+    config: {
+      maxGasDropoffMicroToken: number;
+      relayerFeeMicroUsd: number;
+      pausedOutboundTransfers: boolean;
+    },
+  ): Promise<TransactionInstruction[]> {
+    // Check if there are no existing peers:
+    const existingPeers = await this.read.allPeers(chain);
+    if (existingPeers.length > 0) {
+      throw new Error('Peers already exist. Use registerAdditionalPeer to add more peers.');
+    }
+
+    const ixs = [];
+
+    ixs.push(this.registerPeer(signer, chain, peerAddress));
+    if (config.maxGasDropoffMicroToken !== 0) {
+      ixs.push(this.updateMaxGasDropoff(signer, chain, config.maxGasDropoffMicroToken));
+    }
+    ixs.push(this.updateBaseFee(signer, chain, config.relayerFeeMicroUsd));
+    ixs.push(this.setPauseForOutboundTransfers(signer, chain, config.pausedOutboundTransfers));
+
+    return Promise.all(ixs);
+  }
+
+  async registerAdditionalPeer(
+    signer: PublicKey,
+    chain: Chain,
+    peerAddress: UniversalAddress,
+  ): Promise<TransactionInstruction> {
+    // Check if there are no existing peers:
+    const existingPeers = await this.read.allPeers(chain);
+    if (existingPeers.length === 0) {
+      throw new Error('No peer for this chain. Use registerFirstPeer instead.');
+    }
+
+    return this.registerPeer(signer, chain, peerAddress);
+  }
+
+  private async registerPeer(
     signer: PublicKey,
     chain: Chain,
     peerAddress: UniversalAddress,
@@ -468,7 +509,6 @@ export class SolanaTokenBridgeRelayer {
       .accountsStrict({
         signer,
         authBadge: this.account.authBadge(signer).address,
-        tbrConfig: this.account.config().address,
         peer: this.account.peer(chain, peerAddress).address,
         chainConfig: this.account.chainConfig(chain).address,
         systemProgram: SystemProgram.programId,
@@ -489,7 +529,6 @@ export class SolanaTokenBridgeRelayer {
       .updateCanonicalPeer()
       .accountsStrict({
         owner: config.owner,
-        tbrConfig: this.account.config().address,
         peer: this.account.peer(chain, peerAddress).address,
         chainConfig: this.account.chainConfig(chain).address,
         systemProgram: SystemProgram.programId,
@@ -513,7 +552,6 @@ export class SolanaTokenBridgeRelayer {
         signer,
         authBadge: this.account.authBadge(signer).address,
         chainConfig: this.account.chainConfig(chain).address,
-        tbrConfig: this.account.config().address,
       })
       .instruction();
   }
@@ -532,15 +570,16 @@ export class SolanaTokenBridgeRelayer {
         signer,
         authBadge: this.account.authBadge(signer).address,
         chainConfig: this.account.chainConfig(chain).address,
-        tbrConfig: this.account.config().address,
       })
       .instruction();
   }
 
   /**
+   * Change the fee asked for relaying a transfer.
+   *
    * Signer: the Owner or an Admin.
    */
-  async updateRelayerFee(
+  async updateBaseFee(
     signer: PublicKey,
     chain: Chain,
     relayerFee: number,
@@ -551,7 +590,6 @@ export class SolanaTokenBridgeRelayer {
         signer,
         authBadge: this.account.authBadge(signer).address,
         chainConfig: this.account.chainConfig(chain).address,
-        tbrConfig: this.account.config().address,
       })
       .instruction();
   }
@@ -879,13 +917,6 @@ function findPda(programId: PublicKey, seeds: Array<string | Uint8Array>) {
   };
 }
 
-function getAssociatedTokenAccount(wallet: PublicKey, mint: PublicKey): PublicKey {
-  return PublicKey.findProgramAddressSync(
-    [wallet.toBuffer(), spl.TOKEN_PROGRAM_ID.toBuffer(), mint.toBuffer()],
-    spl.ASSOCIATED_TOKEN_PROGRAM_ID,
-  )[0];
-}
-
 /** Return both the address and an idempotent instruction to create it. */
 async function createAssociatedTokenAccountIdempotent({
   signer,
@@ -896,7 +927,7 @@ async function createAssociatedTokenAccountIdempotent({
   mint: PublicKey;
   wallet: PublicKey;
 }): Promise<TransactionInstruction> {
-  const recipientTokenAccount = getAssociatedTokenAccount(wallet, mint);
+  const recipientTokenAccount = spl.getAssociatedTokenAddressSync(mint, wallet);
 
   const createAtaIdempotentIx = spl.createAssociatedTokenAccountIdempotentInstruction(
     signer,
@@ -998,6 +1029,13 @@ function range(from: bigint, to: bigint): bigint[] {
   return Array.from(generator(from, to));
 }
 
+/**
+ * Simulates the transaction and returns the result. Throws if it failed.
+ * @param connection The connection used to run the simulation.
+ * @param payer The payer. No signature is needed, so no fee will be payed.
+ * @param instructions The instructions to simulate.
+ * @returns
+ */
 async function simulateTransaction(
   connection: Connection,
   payer: PublicKey,

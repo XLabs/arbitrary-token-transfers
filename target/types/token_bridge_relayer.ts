@@ -116,6 +116,116 @@ export type TokenBridgeRelayer = {
             "because we will update roles depending on the operation."
           ],
           "writable": true
+        },
+        {
+          "name": "upgradeLock",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  112,
+                  103,
+                  114,
+                  97,
+                  100,
+                  101,
+                  32,
+                  108,
+                  111,
+                  99,
+                  107
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "programData",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  13,
+                  74,
+                  247,
+                  118,
+                  36,
+                  164,
+                  201,
+                  97,
+                  25,
+                  221,
+                  241,
+                  144,
+                  142,
+                  148,
+                  63,
+                  218,
+                  160,
+                  137,
+                  78,
+                  28,
+                  18,
+                  140,
+                  195,
+                  112,
+                  127,
+                  26,
+                  150,
+                  227,
+                  211,
+                  125,
+                  216,
+                  108
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                2,
+                168,
+                246,
+                145,
+                78,
+                136,
+                161,
+                176,
+                226,
+                16,
+                21,
+                62,
+                247,
+                99,
+                174,
+                43,
+                0,
+                194,
+                185,
+                61,
+                22,
+                193,
+                36,
+                210,
+                192,
+                83,
+                122,
+                16,
+                4,
+                128,
+                0,
+                0
+              ]
+            }
+          }
+        },
+        {
+          "name": "bpfLoaderUpgradeable",
+          "address": "BPFLoaderUpgradeab1e11111111111111111111111"
         }
       ],
       "args": []
@@ -287,7 +397,10 @@ export type TokenBridgeRelayer = {
           "writable": true
         },
         {
-          "name": "peer"
+          "name": "peer",
+          "docs": [
+            "The TBR peer (_i.e._ `data().from_address()`). We do not care about the Token Bridge peer `vaa.meta.emitter_address`."
+          ]
         },
         {
           "name": "tokenBridgeConfig"
@@ -438,10 +551,6 @@ export type TokenBridgeRelayer = {
           }
         },
         {
-          "name": "previousOwner",
-          "signer": true
-        },
-        {
           "name": "authBadgePreviousOwner",
           "writable": true,
           "pda": {
@@ -476,6 +585,30 @@ export type TokenBridgeRelayer = {
             "because we will update roles depending on the operation."
           ],
           "writable": true
+        },
+        {
+          "name": "upgradeLock",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  112,
+                  103,
+                  114,
+                  97,
+                  100,
+                  101,
+                  32,
+                  108,
+                  111,
+                  99,
+                  107
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "programData",
@@ -593,10 +726,7 @@ export type TokenBridgeRelayer = {
           "signer": true
         },
         {
-          "name": "owner",
-          "docs": [
-            "The designated owner of the program."
-          ]
+          "name": "owner"
         },
         {
           "name": "authBadge",
@@ -628,7 +758,7 @@ export type TokenBridgeRelayer = {
           "name": "tbrConfig",
           "docs": [
             "Owner Config account. This program requires that the `owner` specified",
-            "in the context equals the pubkey specified in this account. Mutable."
+            "in the context equals the pubkey specified in this account."
           ],
           "writable": true,
           "pda": {
@@ -822,13 +952,6 @@ export type TokenBridgeRelayer = {
           "name": "authBadge",
           "docs": [
             "Proof that the signer is authorized."
-          ]
-        },
-        {
-          "name": "tbrConfig",
-          "docs": [
-            "Owner Config account. This program requires that the `signer` specified",
-            "in the context equals an authorized pubkey specified in this account."
           ]
         },
         {
@@ -1053,14 +1176,6 @@ export type TokenBridgeRelayer = {
         {
           "name": "chainConfig",
           "writable": true
-        },
-        {
-          "name": "tbrConfig",
-          "docs": [
-            "Program Config account. This program requires that the [`signer`] specified",
-            "in the context equals a pubkey specified in this account. Mutable,",
-            "because we will update roles depending on the operation."
-          ]
         }
       ],
       "args": [
@@ -1073,7 +1188,12 @@ export type TokenBridgeRelayer = {
     {
       "name": "submitOwnerTransferRequest",
       "docs": [
-        "Updates the owner account. This needs to be either cancelled or approved."
+        "Updates the owner account. This needs to be either cancelled or approved.",
+        "",
+        "For safety reasons, transferring ownership is a 2-step process. This first step is to set the",
+        "new owner, and the second step is for the new owner to claim the ownership.",
+        "This is to prevent a situation where the ownership is transferred to an",
+        "address that is not able to claim the ownership (by mistake)."
       ],
       "discriminator": [
         99,
@@ -1116,6 +1236,116 @@ export type TokenBridgeRelayer = {
               }
             ]
           }
+        },
+        {
+          "name": "upgradeLock",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  112,
+                  103,
+                  114,
+                  97,
+                  100,
+                  101,
+                  32,
+                  108,
+                  111,
+                  99,
+                  107
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "programData",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  13,
+                  74,
+                  247,
+                  118,
+                  36,
+                  164,
+                  201,
+                  97,
+                  25,
+                  221,
+                  241,
+                  144,
+                  142,
+                  148,
+                  63,
+                  218,
+                  160,
+                  137,
+                  78,
+                  28,
+                  18,
+                  140,
+                  195,
+                  112,
+                  127,
+                  26,
+                  150,
+                  227,
+                  211,
+                  125,
+                  216,
+                  108
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                2,
+                168,
+                246,
+                145,
+                78,
+                136,
+                161,
+                176,
+                226,
+                16,
+                21,
+                62,
+                247,
+                99,
+                174,
+                43,
+                0,
+                194,
+                185,
+                61,
+                22,
+                193,
+                36,
+                210,
+                192,
+                83,
+                122,
+                16,
+                4,
+                128,
+                0,
+                0
+              ]
+            }
+          }
+        },
+        {
+          "name": "bpfLoaderUpgradeable",
+          "address": "BPFLoaderUpgradeab1e11111111111111111111111"
         }
       ],
       "args": [
@@ -1199,9 +1429,6 @@ export type TokenBridgeRelayer = {
         },
         {
           "name": "feeRecipient",
-          "docs": [
-            "Fee recipient's account. The fee will be transferred to this account."
-          ],
           "writable": true,
           "relations": [
             "tbrConfig"
@@ -1387,18 +1614,7 @@ export type TokenBridgeRelayer = {
           "docs": [
             "Owner of the program as set in the [`TbrConfig`] account."
           ],
-          "writable": true,
-          "signer": true,
-          "relations": [
-            "tbrConfig"
-          ]
-        },
-        {
-          "name": "tbrConfig",
-          "docs": [
-            "Owner Config account. This program requires that the `owner` specified",
-            "in the context equals the `owner` pubkey specified in this account."
-          ]
+          "signer": true
         },
         {
           "name": "peer"
@@ -1555,14 +1771,6 @@ export type TokenBridgeRelayer = {
         {
           "name": "chainConfig",
           "writable": true
-        },
-        {
-          "name": "tbrConfig",
-          "docs": [
-            "Program Config account. This program requires that the [`signer`] specified",
-            "in the context equals a pubkey specified in this account. Mutable,",
-            "because we will update roles depending on the operation."
-          ]
         }
       ],
       "args": [
@@ -1610,14 +1818,6 @@ export type TokenBridgeRelayer = {
         {
           "name": "chainConfig",
           "writable": true
-        },
-        {
-          "name": "tbrConfig",
-          "docs": [
-            "Program Config account. This program requires that the [`signer`] specified",
-            "in the context equals a pubkey specified in this account. Mutable,",
-            "because we will update roles depending on the operation."
-          ]
         }
       ],
       "args": [
@@ -1759,63 +1959,73 @@ export type TokenBridgeRelayer = {
     },
     {
       "code": 6007,
+      "name": "dropoffExceedingMaximum",
+      "msg": "dropoffExceedingMaximum"
+    },
+    {
+      "code": 6008,
       "name": "feeExceedingMaximum",
       "msg": "feeExceedingMaximum"
     },
     {
-      "code": 6008,
+      "code": 6009,
       "name": "wrongFeeRecipient",
       "msg": "wrongFeeRecipient"
     },
     {
-      "code": 6009,
+      "code": 6010,
       "name": "wronglySetOptionalAccounts",
       "msg": "wronglySetOptionalAccounts"
     },
     {
-      "code": 6010,
+      "code": 6011,
       "name": "wrongMintAuthority",
       "msg": "wrongMintAuthority"
     },
     {
-      "code": 6011,
+      "code": 6012,
       "name": "invalidRecipient",
       "msg": "invalidRecipient"
     },
     {
-      "code": 6012,
+      "code": 6013,
       "name": "evmChainPriceNotSet",
       "msg": "evmChainPriceNotSet"
     },
     {
-      "code": 6013,
+      "code": 6014,
       "name": "chainPriceMismatch",
       "msg": "chainPriceMismatch"
     },
     {
-      "code": 6014,
+      "code": 6015,
       "name": "pausedTransfers",
       "msg": "pausedTransfers"
     },
     {
-      "code": 6015,
+      "code": 6016,
       "name": "invalidSendingPeer",
       "msg": "invalidSendingPeer"
     },
     {
-      "code": 6016,
+      "code": 6017,
       "name": "cannotRegisterSolana",
       "msg": "cannotRegisterSolana"
     },
     {
-      "code": 6017,
+      "code": 6018,
       "name": "invalidPeerAddress",
       "msg": "invalidPeerAddress"
     },
     {
-      "code": 6018,
+      "code": 6019,
       "name": "missingAssociatedTokenAccount",
       "msg": "missingAssociatedTokenAccount"
+    },
+    {
+      "code": 6020,
+      "name": "overflow",
+      "msg": "overflow"
     }
   ],
   "types": [
@@ -2059,6 +2269,11 @@ export type TokenBridgeRelayer = {
       "name": "seedPrefixTemporary",
       "type": "bytes",
       "value": "[116, 109, 112]"
+    },
+    {
+      "name": "seedPrefixUpgradeLock",
+      "type": "bytes",
+      "value": "[117, 112, 103, 114, 97, 100, 101, 32, 108, 111, 99, 107]"
     }
   ]
 };
