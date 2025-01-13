@@ -1,6 +1,7 @@
 use crate::{
     error::TokenBridgeRelayerError,
     state::{AuthBadgeState, TbrConfigState},
+    utils::DrainAccount,
 };
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::{bpf_loader_upgradeable, program::invoke};
@@ -15,7 +16,7 @@ pub struct Initialize<'info> {
     #[account(mut)]
     pub deployer: Signer<'info>,
 
-    /// The designated owner of the program.
+    /// CHECK: The account to be used as the owner of the program.
     pub owner: UncheckedAccount<'info>,
 
     #[account(
@@ -28,7 +29,7 @@ pub struct Initialize<'info> {
     pub auth_badge: Account<'info, AuthBadgeState>,
 
     /// Owner Config account. This program requires that the `owner` specified
-    /// in the context equals the pubkey specified in this account. Mutable.
+    /// in the context equals the pubkey specified in this account.
     #[account(
         init,
         payer = deployer,
@@ -46,18 +47,21 @@ pub struct Initialize<'info> {
     )]
     program_data: Account<'info, ProgramData>,
 
+    /// CHECK: An account used by the Token Bridge.
     #[account(
         seeds = [token_bridge::SEED_PREFIX_SENDER],
         bump
     )]
     pub wormhole_sender: UncheckedAccount<'info>,
 
+    /// CHECK: An account used by the Token Bridge.
     #[account(
         seeds = [token_bridge::SEED_PREFIX_REDEEMER],
         bump
     )]
     pub wormhole_redeemer: UncheckedAccount<'info>,
 
+    /// CHECK: The BPF loader program.
     #[account(address = bpf_loader_upgradeable::ID)]
     pub bpf_loader_upgradeable: UncheckedAccount<'info>,
 
@@ -114,11 +118,20 @@ pub fn initialize<'a, 'b, 'c, 'info>(
     );
 
     for (admin, badge_acc_info) in zip(admins, ctx.remaining_accounts) {
-        let bump = Pubkey::find_program_address(
+        let (_pubkey, bump) = Pubkey::find_program_address(
             &[AuthBadgeState::SEED_PREFIX, admin.to_bytes().as_ref()],
             ctx.program_id,
-        )
-        .1;
+        );
+        let badge_seeds = [AuthBadgeState::SEED_PREFIX, &admin.to_bytes(), &[bump]];
+
+        // Before calling `create_account`, we need to verify that the account
+        // has an empty balance, otherwise the instruction would fail:
+        DrainAccount {
+            system_program: ctx.accounts.system_program.to_account_info(),
+            account: badge_acc_info.to_account_info(),
+            recipient: ctx.accounts.deployer.to_account_info(),
+        }
+        .run_with_seeds(&badge_seeds)?;
 
         anchor_lang::system_program::create_account(
             CpiContext::new_with_signer(
@@ -127,11 +140,7 @@ pub fn initialize<'a, 'b, 'c, 'info>(
                     from: ctx.accounts.deployer.to_account_info(),
                     to: badge_acc_info.clone(),
                 },
-                &[&[
-                    AuthBadgeState::SEED_PREFIX,
-                    admin.to_bytes().as_ref(),
-                    &[bump],
-                ]],
+                &[&badge_seeds],
             ),
             Rent::get()?.minimum_balance(8 + AuthBadgeState::INIT_SPACE),
             (8 + AuthBadgeState::INIT_SPACE) as u64,
