@@ -675,7 +675,10 @@ describe('Token Bridge Relayer Program', () => {
         gasDropoffAmount,
         maxFeeLamports: 100_000_000n, // 0.1SOL max
         unwrapIntent,
-        mintAddress: barMint.address,
+        mintAddress: (await tokenBridgeClient.client.getWrappedAsset({
+          address: ethereumTokenAddressFoo,
+          chain: ETHEREUM,
+        })).address,
       });
 
       const sequence = 0n;
