@@ -465,7 +465,7 @@ describe('Token Bridge Relayer Program', () => {
         gasDropoffAmount,
         maxFeeLamports: 100_000_000n, // 0.1SOL max
         unwrapIntent,
-        mintAddress: barMint.address,
+        mintAddress: spl.NATIVE_MINT,
       });
 
       const sequence = 0n;
