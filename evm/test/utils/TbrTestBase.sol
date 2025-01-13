@@ -56,6 +56,8 @@ contract TbrTestBase is Test {
   TbrExposer  tbrExposer;
   Tbr         tbr;
 
+  error TbrInvokeDidNotFail(bytes data, uint256 value);
+
   constructor() {
     owner         = makeAddr("owner");
     admin         = makeAddr("admin");
@@ -122,12 +124,7 @@ contract TbrTestBase is Test {
   }
 
   function invokeTbr(bytes memory encoded) internal returns (bytes memory data) {
-    (bool success, bytes memory result) = address(tbr).call(encoded);
-    if (!success) {
-      reRevert(result);
-    }
-    (uint length,) = result.asUint256Unchecked(32);
-    (data,) = result.sliceUnchecked(64, length);
+    return invokeTbr(encoded, 0);
   }
 
   function invokeTbr(bytes memory encoded, uint value) internal returns (bytes memory data) {
@@ -137,6 +134,14 @@ contract TbrTestBase is Test {
     }
     (uint length,) = result.asUint256Unchecked(32);
     (data,) = result.sliceUnchecked(64, length);
+  }
+
+  function expectRevertInvokeTbr(bytes memory encoded, uint value) internal returns (bytes memory) {
+    (bool success, bytes memory result) = address(tbr).call{value: value}(encoded);
+    if (success) {
+      revert TbrInvokeDidNotFail(encoded, value);
+    }
+    return result;
   }
 
   function setUpOracle() internal {
