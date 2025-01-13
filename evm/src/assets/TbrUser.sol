@@ -24,11 +24,9 @@ uint8 constant ACQUIRE_PERMIT2TRANSFER = 2;
 uint8 constant ACQUIRE_PERMIT2PERMIT = 3;
 
 // How many accounts are created by a relay on Solana.
-// Chosen by fair dice roll.
-// TODO: double check this.
-uint8 constant SOLANA_RELAY_SPAWNED_ACCOUNTS = 3; //signatureSet, PostedVAA, ATA
+// signatureSet, PostedVAA, ATA
+uint8 constant SOLANA_RELAY_SPAWNED_ACCOUNTS = 3;
 // Size of all accounts created during a relay to Solana.
-// TODO: double check this.
 uint32 constant SOLANA_RELAY_TOTAL_SIZE =
   //signatureSet
   // see here: https://github.com/wormhole-foundation/wormhole/blob/91ec4d1dc01f8b690f0492815407505fb4587520/solana/bridge/program/src/accounts/signature_set.rs#L17
@@ -503,8 +501,8 @@ abstract contract TbrUser is TbrBase {
     if (gasDropoffInWei > unallocatedBalance)
       revert InsufficientGasDropoff(commandIndex);
 
-    // TODO: evaluate whether to define the token amount received based on balance difference before and after transferring tokens from the TB.
-    // Some tokens might implement distributed supply expansion / contraction. Doing the above would let us support those.
+    // Some tokens might implement distributed supply expansion / contraction.
+    // We don't treat those specially so they are not supported and may break.
 
     // Perform redeem in TB
     tokenBridge.completeTransferWithPayload(vaa);
