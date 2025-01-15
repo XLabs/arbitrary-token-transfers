@@ -35,11 +35,7 @@ RUN cd evm; \
     fi
 
 # Generate Typechain bindings
-
-# RUN cd evm; \
-#    yarn && \
-#    yarn tsx solc2bindings Tbr.output.json bindings-output
-    
-# # Consolidate all generated output
+  
+# Consolidate all generated output
 FROM scratch AS foundry-export     
 COPY --from=builder /app/evm/*.input.json /app/evm/*.output.json ./

@@ -7,7 +7,7 @@
     "test": "bash -c 'source ../.env.evm-test && forge test --fork-url ${0}'"
   },
   "devDependencies": {
-    "@typechain/ethers-v6": "^0.5.1",
+    "@xlabs-xyz/typechain-ethers-v6": "^0.5.1",
     "@xlabs-xyz/typechain": "^8.3.4",
     "tsx": "^4.19.2"
   }
