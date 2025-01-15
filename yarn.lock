@@ -1970,6 +1970,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@xlabs-xyz/typechain@npm:^8.3.4":
+  version: 8.3.4
+  resolution: "@xlabs-xyz/typechain@npm:8.3.4"
+  dependencies:
+    "@types/prettier": "npm:^2.1.1"
+    debug: "npm:^4.3.1"
+    fs-extra: "npm:^7.0.0"
+    glob: "npm:7.1.7"
+    js-sha3: "npm:^0.8.0"
+    lodash: "npm:^4.17.15"
+    mkdirp: "npm:^1.0.4"
+    prettier: "npm:^2.3.1"
+    ts-command-line-args: "npm:^2.2.0"
+    ts-essentials: "npm:^7.0.1"
+  peerDependencies:
+    typescript: ">=4.3.0"
+  bin:
+    typechain: dist/cli/cli.js
+  checksum: 10c0/2d554a92ea25982c99b6f6f8272628a5f38f386f4116e3cc4b39c17f12bfbefd26b4f937b3fed00131faa2776336994cdc0a73b42d95e430fc4098635a8cc779
+  languageName: node
+  linkType: hard
+
 "@yarnpkg/types@npm:^4.0.0":
   version: 4.0.0
   resolution: "@yarnpkg/types@npm:4.0.0"
@@ -3215,7 +3237,8 @@ __metadata:
   resolution: "evm@workspace:evm"
   dependencies:
     "@typechain/ethers-v6": "npm:^0.5.1"
-    typechain: "npm:^8.3.2"
+    "@xlabs-xyz/typechain": "npm:^8.3.4"
+    tsx: "npm:^4.19.2"
   languageName: unknown
   linkType: soft
 
