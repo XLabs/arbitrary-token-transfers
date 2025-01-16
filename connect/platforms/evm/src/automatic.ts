@@ -10,8 +10,6 @@ import {
   ChainsConfig,
   Contracts,
   isNative,
-  resolveWrappedToken,
-  toNative,
   VAA,
 } from '@wormhole-foundation/sdk-definitions';
 import '@wormhole-foundation/sdk-evm';
