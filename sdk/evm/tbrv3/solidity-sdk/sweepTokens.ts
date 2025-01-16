@@ -1,4 +1,3 @@
-import { SwitchLayoutItem } from "@wormhole-foundation/sdk-base";
 import { layoutItems } from "@wormhole-foundation/sdk-definitions";
 import { evmAddressItem } from "./common.js";
 
@@ -7,4 +6,4 @@ export const sweepTokensCommandLayout = [
       { name: "tokenAddress", ...evmAddressItem },
       { name: "amount", ...layoutItems.amountItem }
   ]],
-] as const satisfies SwitchLayoutItem["layouts"];
+] as const;

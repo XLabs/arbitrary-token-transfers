@@ -2,8 +2,8 @@ import anchor from '@coral-xyz/anchor';
 import { Connection, Keypair, PublicKey, Signer } from '@solana/web3.js';
 import {
   Chain,
+  deserializeLayout,
   encoding,
-  layout,
   Network,
   signAndSendWait,
 } from '@wormhole-foundation/sdk-connect';
@@ -93,7 +93,7 @@ export class TestingWormholeCore<N extends Network> {
       throw new Error(`No message account exists at that address: ${key.toString()}`);
     }
 
-    const message = layout.deserializeLayout(accountDataLayout, info.data);
+    const message = deserializeLayout(accountDataLayout, info.data);
 
     const vaa = createVAA('Uint8Array', {
       guardianSet: 0,

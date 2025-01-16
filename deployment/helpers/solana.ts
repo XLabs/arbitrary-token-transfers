@@ -94,11 +94,13 @@ export async function getSigner(): Promise<SolanaSigner> {
       console.log("Creating wallet signer");
       const pk = Uint8Array.from(JSON.parse(privateKey));
       const keypair = Keypair.fromSecretKey(pk);
+      // @ts-expect-error TODO: Update @coral-xyz/anchor to fix this type issue
       const wallet = new NodeWallet(keypair);
 
       signer = {
         getAddress: () => Promise.resolve(wallet.publicKey.toBuffer()),
         raw: () => wallet,
+        // @ts-expect-error TODO: Update @coral-xyz/anchor to fix this type issue
         signTransaction: async (transaction) => (await wallet.signTransaction(transaction)).compileMessage().serialize(),
         type: "wallet"
       } 
@@ -155,6 +157,7 @@ async function addSignature(tx: Transaction, signer: SolanaSigner, signerPk: Pub
     tx.addSignature(signerPk, signedByPayer);
     return tx;
   } else {
+    // @ts-expect-error TODO: Update @coral-xyz/anchor to fix this type issue
     return await (signer.raw() as NodeWallet).signTransaction(tx);
   }
 }

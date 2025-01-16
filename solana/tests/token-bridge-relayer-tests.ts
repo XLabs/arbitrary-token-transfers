@@ -78,7 +78,6 @@ describe('Token Bridge Relayer Program', () => {
   const ethereumTbrPeer1 = $.universalAddress.generate('ethereum');
   const ethereumTbrPeer2 = $.universalAddress.generate('ethereum');
   const oasisTbrPeer = $.universalAddress.generate('ethereum');
-
   const bpfProgram = new BpfLoaderUpgradeableProgram(ownerClient.client.program.programId, $.connection);
 
   before(async () => {
@@ -466,6 +465,7 @@ describe('Token Bridge Relayer Program', () => {
         gasDropoffAmount,
         maxFeeLamports: 100_000_000n, // 0.1SOL max
         unwrapIntent,
+        mintAddress: spl.NATIVE_MINT,
       });
 
       const sequence = 0n;
@@ -507,6 +507,7 @@ describe('Token Bridge Relayer Program', () => {
         gasDropoffAmount,
         maxFeeLamports: 100_000_000n, // 0.1SOL max
         unwrapIntent,
+        mintAddress: barMint.address,
       });
 
       const sequence = 1n;
@@ -674,6 +675,10 @@ describe('Token Bridge Relayer Program', () => {
         gasDropoffAmount,
         maxFeeLamports: 100_000_000n, // 0.1SOL max
         unwrapIntent,
+        mintAddress: (await tokenBridgeClient.client.getWrappedAsset({
+          address: ethereumTokenAddressFoo,
+          chain: ETHEREUM,
+        })).address,
       });
 
       const sequence = 0n;

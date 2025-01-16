@@ -10,8 +10,6 @@ import {
   ChainsConfig,
   Contracts,
   isNative,
-  resolveWrappedToken,
-  toNative,
   VAA,
 } from '@wormhole-foundation/sdk-definitions';
 import '@wormhole-foundation/sdk-evm';
@@ -132,7 +130,7 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
           address: params.recipient.address.toUniversalAddress(),
           chain: recipientChain,
         },
-        unwrapIntent: true, // TODO: receive as option/param? would require UI work
+        unwrapIntent: params.unwrapIntent,
       },
       feeEstimation: {
         fee,

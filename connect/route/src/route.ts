@@ -22,16 +22,15 @@ import {
 } from '@wormhole-foundation/sdk-connect';
 import {
   isNative,
-  TokenAddress,
   toNative,
-  UniversalAddress,
   UniversalOrNative,
 } from '@wormhole-foundation/sdk-definitions';
 import {
   SupportedChains,
   tokenBridgeRelayerV3Chains,
 } from '@xlabs-xyz/arbitrary-token-transfers-definitions';
-import '@xlabs-xyz/arbitrary-token-transfers-definitions';
+import '@xlabs-xyz/arbitrary-token-transfer-evm-route';
+import '@xlabs-xyz/arbitrary-token-transfer-solana-route';
 
 interface TransferOptions {
   nativeGas: number; // this is a percentage
@@ -47,6 +46,10 @@ interface QuotedTransferOptions extends ValidatedTransferOptions {
 }
 
 type Receipt = TransferReceipt<AttestationReceipt<'AutomaticTokenBridgeV3'>>;
+
+export interface AutomaticTokenBridgeRouteV3Config {
+  allowedTokenAddresses?: TokenId<Chain>[];
+}
 
 export class AutomaticTokenBridgeRouteV3<N extends Network>
   extends routes.AutomaticRoute<N, any, any, any>
@@ -68,10 +71,18 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
     return [...(chains || [])];
   }
 
+  static config: AutomaticTokenBridgeRouteV3Config | undefined = undefined;
+
   static async supportedSourceTokens(fromChain: ChainContext<Network>): Promise<TokenId[]> {
+    const allowedTokenAddresses = this.config?.allowedTokenAddresses || [];
+    const isWhitelistConfigAvailable = this.config && allowedTokenAddresses.length > 0;
     return Object.values(fromChain.config.tokenMap!).map((td) =>
       Wormhole.tokenId(td.chain, td.address),
-    );
+    ).filter((token) => !(isWhitelistConfigAvailable && !allowedTokenAddresses.some(
+      (whitelistedToken) =>
+        whitelistedToken.chain === token.chain &&
+        whitelistedToken.address.toString() === token.address.toString()
+    )))
   }
 
   static async supportedDestinationTokens<N extends Network>(

@@ -7,7 +7,7 @@ import {
   SystemProgram,
   SYSVAR_RENT_PUBKEY,
 } from '@solana/web3.js';
-import { Chain, layout, Network } from '@wormhole-foundation/sdk-base';
+import { Chain, Network, serializeLayout } from '@wormhole-foundation/sdk-base';
 import { Contracts, UniversalAddress, createVAA } from '@wormhole-foundation/sdk-definitions';
 import { mocks } from '@wormhole-foundation/sdk-definitions/testing';
 import { utils as coreUtils } from '@wormhole-foundation/sdk-solana-core';
@@ -55,7 +55,7 @@ export class TestingTokenBridge<N extends Network> {
 
       endpoint: (chain: Chain, address: UniversalAddress) => {
         return this.findPda(
-          layout.serializeLayout({ ...layoutItems.chainItem(), endianness: 'big' }, chain),
+          serializeLayout({ ...layoutItems.chainItem(), endianness: 'big' }, chain),
           address.toUint8Array(),
         );
       },
