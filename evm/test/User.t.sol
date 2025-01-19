@@ -1295,6 +1295,7 @@ contract UserTest is TbrTestBase {
     uint initialRecipientGasTokenBalance = recipient.balance;
     uint initialCallerBalance = address(this).balance;
 
+    uint64 sequence = 0;
     vm.expectEmit(address(tokenBridge));
     emit ITokenBridge.TransferRedeemed(peerChain, originTokenBridge, sequence);
 
@@ -1368,6 +1369,7 @@ contract UserTest is TbrTestBase {
     uint initialCallerBalance = address(this).balance;
     uint initialRecipientTransferredTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
 
+    uint64 sequence = 0;
     vm.expectEmit(address(tokenBridge));
     emit ITokenBridge.TransferRedeemed(peerChain, originTokenBridge, sequence);
 

@@ -41,7 +41,7 @@ contract Tbr is TbrDispatcher {
       (admins[i],  offset) = args.asAddressCdUnchecked(offset);
     }
 
-    args.checkLengthCd(offset);
+    BytesParsing.checkLength(offset, args.length);
 
     _accessControlConstruction(owner, admins);
     _configConstruction(payable(feeRecipient));

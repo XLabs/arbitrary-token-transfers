@@ -4,15 +4,12 @@
 [submodule "evm/lib/openzeppelin-contracts"]
 	path = evm/lib/openzeppelin-contracts
 	url = https://github.com/openzeppelin/openzeppelin-contracts
-[submodule "evm/lib/relayer-infra-contracts"]
-	path = lib/relayer-infra-contracts
-	url = https://github.com/XLabs/relayer-infra-contracts
 [submodule "evm/lib/permit2"]
 	path = evm/lib/permit2
 	url = https://github.com/Uniswap/permit2
-[submodule "evm/lib/wormhole-solidity-sdk"]
-	path = evm/lib/wormhole-solidity-sdk
-	url = https://github.com/wormhole-foundation/wormhole-solidity-sdk
 [submodule "wormhole-foundation-solidity-sdk"]
 	path = evm/lib/wormhole-solidity-sdk
 	url = https://github.com/wormhole-foundation/wormhole-solidity-sdk
+[submodule "lib/relayer-infra-contracts"]
+	path = lib/relayer-infra-contracts
+	url = https://github.com/XLabs/relayer-infra-contracts
