@@ -62,10 +62,6 @@ contract TbrExposer is Tbr {
     return _isPaused(targetChain);
   }
 
-  function exposedTransferEth(address to, uint256 amount) public {
-    _transferEth(to, amount);
-  }
-
   function exposedQuoteRelay(
     uint16 chainId,
     uint32 gasDropoff,

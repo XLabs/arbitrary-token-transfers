@@ -41,8 +41,7 @@ contract TokenBridgeVAAParserTest is TbrTestBase {
     uint16 recipientChain,
     address recipient,
     uint32 gasDropoff,
-    bool unwrapIntent,
-    uint64 sequence
+    bool unwrapIntent
   ) public {
     vm.assume(recipient != address(0));
     bytes32 tokenAddress = toUniversalAddress(address(usdt));
@@ -58,8 +57,7 @@ contract TokenBridgeVAAParserTest is TbrTestBase {
       recipientChain,
       recipient,
       gasDropoff,
-      unwrapIntent,
-      sequence
+      unwrapIntent
     );
 
     uint commandIndex = 0;

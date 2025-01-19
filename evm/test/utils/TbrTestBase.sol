@@ -4,6 +4,7 @@ pragma solidity ^0.8.25;
 
 import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import { SolanaFeeParams } from "price-oracle/assets/types/SolanaFeeParams.sol";
+import { WormholeOverride } from "wormhole-sdk/testing/WormholeOverride.sol";
 import { EvmFeeParams } from "price-oracle/assets/types/EvmFeeParams.sol";
 import { ITokenBridge } from "wormhole-sdk/interfaces/ITokenBridge.sol";
 import { BytesParsing } from "wormhole-sdk/libraries/BytesParsing.sol";
@@ -74,7 +75,7 @@ contract TbrTestBase is Test {
   function _setUp1() internal virtual { }
 
   function setUp() public {
-    uint8 adminCount = 1;
+    WormholeOverride.setUpOverride(wormholeCore);
 
     vm.mockCall(
       address(oracle),
@@ -90,6 +91,7 @@ contract TbrTestBase is Test {
       gasErc20TokenizationIsExplicit
     ));
 
+    uint8 adminCount = 1;
     tbr = Tbr(payable(new Proxy(
       tbrImplementation,
       abi.encodePacked(

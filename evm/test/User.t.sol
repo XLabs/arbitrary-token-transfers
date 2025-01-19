@@ -1248,7 +1248,6 @@ contract UserTest is TbrTestBase {
   function testCompleteTransfer_gasToken(
     uint256 amount,
     uint32 gasDropoff,
-    uint64 sequence,
     uint256 unallocatedBalance,
     uint8 transferReturn
   ) public {
@@ -1285,8 +1284,7 @@ contract UserTest is TbrTestBase {
       recipientChain,
       recipient,
       gasDropoff,
-      unwrapIntent,
-      sequence
+      unwrapIntent
     );
 
     uint decimals = IERC20Metadata(address(gasToken)).decimals();
@@ -1294,6 +1292,7 @@ contract UserTest is TbrTestBase {
     uint initialRecipienGasTokenBalance = recipient.balance;
     uint initialCallerBalance = address(this).balance;
 
+    uint64 sequence = 0;
     vm.expectEmit(address(tokenBridge));
     emit ITokenBridge.TransferRedeemed(peerChain, originTokenBridge, sequence);
 
@@ -1321,7 +1320,6 @@ contract UserTest is TbrTestBase {
   function testCompleteTransfer_nonGasToken(
     uint256 amount,
     uint32 gasDropoff,
-    uint64 sequence,
     uint256 unallocatedBalance,
     uint8 transferReturn
   ) public {
@@ -1352,8 +1350,7 @@ contract UserTest is TbrTestBase {
       recipientChain,
       recipient,
       gasDropoff,
-      unwrapIntent,
-      sequence
+      unwrapIntent
     );
 
     address tokenToTransfer = tokenBridge.wrappedAsset(tokenChain, tokenAddress);
@@ -1363,6 +1360,7 @@ contract UserTest is TbrTestBase {
     uint initialRecipienTransferedTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
     uint initialCallerBalance = address(this).balance;
 
+    uint64 sequence = 0;
     vm.expectEmit(address(tokenBridge));
     emit ITokenBridge.TransferRedeemed(peerChain, originTokenBridge, sequence);
 
@@ -1400,8 +1398,7 @@ contract UserTest is TbrTestBase {
     bytes32 targetTBR,
     uint16 tokenChain,
     uint16 recipientChain,
-    bytes32 tokenAddress,
-    uint64 sequence
+    bytes32 tokenAddress
   ) public {
     bytes32 originTBR = makeBytes32("FakePeer");
     uint commandIndex = 0;
@@ -1418,8 +1415,7 @@ contract UserTest is TbrTestBase {
       recipientChain,
       recipient,
       gasDropoff,
-      unwrapIntent,
-      sequence
+      unwrapIntent
     );
 
     vm.expectRevert(
@@ -1451,7 +1447,6 @@ contract UserTest is TbrTestBase {
     uint16 tokenChain,
     uint16 recipientChain,
     bytes32 tokenAddress,
-    uint64 sequence,
     uint256 unallocatedBalance
   ) public {
     gasDropoff = uint32(bound(gasDropoff, 1, MAX_GAS_DROPOFF_AMOUNT));
@@ -1474,8 +1469,7 @@ contract UserTest is TbrTestBase {
       recipientChain,
       recipient,
       gasDropoff,
-      unwrapIntent,
-      sequence
+      unwrapIntent
     );
 
     vm.expectRevert(
