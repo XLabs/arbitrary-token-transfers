@@ -1518,7 +1518,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@solana/web3.js@npm:^1.95.8, @solana/web3.js@npm:^1.98.0":
+"@solana/web3.js@npm:^1.95.3, @solana/web3.js@npm:^1.95.8":
   version: 1.98.0
   resolution: "@solana/web3.js@npm:1.98.0"
   dependencies:
@@ -1861,7 +1861,7 @@ __metadata:
   dependencies:
     "@coral-xyz/anchor": "npm:^0.30.1"
     "@solana/spl-token": "npm:0.4.9"
-    "@solana/web3.js": "npm:^1.98.0"
+    "@solana/web3.js": "npm:^1.95.3"
     "@types/node": "npm:20.17.5"
     "@wormhole-foundation/sdk-base": "npm:^1.4.5"
     "@wormhole-foundation/sdk-definitions": "npm:^1.4.5"
@@ -1961,7 +1961,7 @@ __metadata:
   dependencies:
     "@coral-xyz/anchor": "npm:^0.30.1"
     "@solana/spl-token": "npm:^0.4.9"
-    "@solana/web3.js": "npm:^1.98.0"
+    "@solana/web3.js": "npm:^1.95.3"
     "@types/node": "npm:20.17.5"
     "@wormhole-foundation/sdk-base": "npm:^1.4.5"
     "@wormhole-foundation/sdk-definitions": "npm:^1.4.5"
@@ -2788,7 +2788,7 @@ __metadata:
   dependencies:
     "@coral-xyz/anchor": "npm:^0.30.1"
     "@solana/spl-token": "npm:^0.4.9"
-    "@solana/web3.js": "npm:^1.98.0"
+    "@solana/web3.js": "npm:^1.95.3"
     "@typechain/ethers-v6": "npm:^0.5.1"
     "@types/node": "npm:20.17.5"
     "@wormhole-foundation/sdk-base": "npm:^1.4.5"
@@ -5039,7 +5039,7 @@ __metadata:
   dependencies:
     "@coral-xyz/anchor": "npm:^0.30.1"
     "@solana/spl-token": "npm:^0.4.9"
-    "@solana/web3.js": "npm:^1.98.0"
+    "@solana/web3.js": "npm:^1.95.3"
     "@types/chai": "npm:^5"
     "@types/mocha": "npm:10.*"
     "@wormhole-foundation/sdk-base": "npm:^1.4.5"
