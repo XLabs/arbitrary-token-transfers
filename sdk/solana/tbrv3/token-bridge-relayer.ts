@@ -51,6 +51,13 @@ export interface WormholeAddress {
   address: UniversalAddress;
 }
 
+interface BaseRelayingParams {
+  canonicalPeer: UniversalAddress;
+  paused: boolean;
+  maxGasDropoff: number;
+  baseFee: number;
+}
+
 /**
  * @param recipient The address on another chain to transfer the tokens to.
  * @param userTokenAccount The end user's account with the token to be transferred.
@@ -76,6 +83,8 @@ export type SignerSequenceAccount = anchor.IdlAccounts<IdlType>['signerSequenceS
 export type AuthBadgeAccount = anchor.IdlAccounts<IdlType>['authBadgeState'];
 
 export type TbrNetwork = Exclude<Network, 'Devnet'> | 'Localnet';
+
+const MICROTOKENS_PER_TOKEN = 1_000_000n;
 
 /**
  * Transforms a `UniversalAddress` into an array of numbers `number[]`.
@@ -637,6 +646,7 @@ export class SolanaTokenBridgeRelayer {
     const { address: temporaryAccount, bump: temporaryAccountBump } = this.account.temporary(
       tokenBridgeAccounts.mint,
     );
+    const gasDropoffAmountMicro = gasDropoffAmount * Number(MICROTOKENS_PER_TOKEN);
 
     const accounts = {
       payer: signer,
@@ -667,11 +677,22 @@ export class SolanaTokenBridgeRelayer {
         uaToArray(recipient.address),
         bigintToBn(transferredAmount),
         unwrapIntent ?? false,
-        gasDropoffAmount,
+        gasDropoffAmountMicro,
         bigintToBn(maxFeeLamports),
       )
       .accountsStrict(accounts)
       .instruction();
+  }
+
+  async baseRelayingParams(chain: Chain): Promise<BaseRelayingParams> {
+    const config = await this.account.chainConfig(chain).fetch();
+
+    return {
+      maxGasDropoff: config.maxGasDropoffMicroToken / Number(MICROTOKENS_PER_TOKEN),
+      baseFee: config.relayerFeeMicroUsd,
+      paused: config.pausedOutboundTransfers,
+      canonicalPeer: new UniversalAddress(new Uint8Array(config.canonicalPeer)),
+    };
   }
 
   /**
