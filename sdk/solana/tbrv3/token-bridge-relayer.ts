@@ -106,7 +106,6 @@ export class SolanaTokenBridgeRelayer {
   ) {
     const wormholeNetwork = network === 'Localnet' ? 'Testnet' : network;
 
-    // @ts-expect-error TODO: Update @coral-xyz/anchor to fix this type issue
     this.program = new anchor.Program(patchAddress(IDL, programId), { connection });
     this.priceOracleClient = priceOracle;
     this.tokenBridgeProgramId = new PublicKey(contracts.tokenBridge(wormholeNetwork, 'Solana'));
@@ -140,7 +139,6 @@ export class SolanaTokenBridgeRelayer {
   }
 
   get connection(): Connection {
-    // @ts-expect-error TODO: Update @coral-xyz/anchor to fix this type issue
     return this.program.provider.connection;
   }
 

@@ -1451,7 +1451,7 @@ __metadata:
   dependencies:
     "@solana/codecs": "npm:2.0.0-rc.1"
   peerDependencies:
-    "@solana/web3.js": ^1.95.3
+    "@solana/web3.js": "*"
   checksum: 10c0/e1ebeb30c4dd3c179ee9d4bf02635c0ca3daea18526a25c824eb4db8882db768563f20813ac600a41fe153892ce66c0c7538e2639f530945940477edddfa731f
   languageName: node
   linkType: hard
@@ -1462,7 +1462,7 @@ __metadata:
   dependencies:
     "@solana/codecs": "npm:2.0.0-rc.1"
   peerDependencies:
-    "@solana/web3.js": ^1.95.3
+    "@solana/web3.js": "*"
   checksum: 10c0/a2ea535ac28cf9b8f499c2e2aced7ce9134b0728a0c1d4c8f2dfce8fe01ae66d94ccaca8f1f677c9613d3dbc913845c29df785efeafc25d9398e830fba4a626f
   languageName: node
   linkType: hard
@@ -1490,35 +1490,12 @@ __metadata:
     "@solana/spl-token-metadata": "npm:^0.1.6"
     buffer: "npm:^6.0.3"
   peerDependencies:
-    "@solana/web3.js": ^1.95.3
+    "@solana/web3.js": "*"
   checksum: 10c0/66f22a026fbc34a5e28391fc75c9a902e852fadf6538d18464b4f036d95d75ecccb2d96f07cbebdc6cb530558566c4296e613761969431fef549ec10e8d4024f
   languageName: node
   linkType: hard
 
-"@solana/web3.js@npm:^1.32.0, @solana/web3.js@npm:^1.68.0":
-  version: 1.95.3
-  resolution: "@solana/web3.js@npm:1.95.3"
-  dependencies:
-    "@babel/runtime": "npm:^7.25.0"
-    "@noble/curves": "npm:^1.4.2"
-    "@noble/hashes": "npm:^1.4.0"
-    "@solana/buffer-layout": "npm:^4.0.1"
-    agentkeepalive: "npm:^4.5.0"
-    bigint-buffer: "npm:^1.1.5"
-    bn.js: "npm:^5.2.1"
-    borsh: "npm:^0.7.0"
-    bs58: "npm:^4.0.1"
-    buffer: "npm:6.0.3"
-    fast-stable-stringify: "npm:^1.0.0"
-    jayson: "npm:^4.1.1"
-    node-fetch: "npm:^2.7.0"
-    rpc-websockets: "npm:^9.0.2"
-    superstruct: "npm:^2.0.2"
-  checksum: 10c0/6c3847029924bb0980ce6c1a3ea5cca87e8fc2b694ceb7c897319bf30d9643d57417fc1859aff09b9045adb3905134bd8f063a936b39a551304ee08a7a1f53c9
-  languageName: node
-  linkType: hard
-
-"@solana/web3.js@npm:^1.95.3, @solana/web3.js@npm:^1.95.8":
+"@solana/web3.js@npm:^1.32.0, @solana/web3.js@npm:^1.68.0, @solana/web3.js@npm:^1.95.8, @solana/web3.js@npm:^1.98.0":
   version: 1.98.0
   resolution: "@solana/web3.js@npm:1.98.0"
   dependencies:
@@ -1861,7 +1838,7 @@ __metadata:
   dependencies:
     "@coral-xyz/anchor": "npm:^0.30.1"
     "@solana/spl-token": "npm:0.4.9"
-    "@solana/web3.js": "npm:^1.95.3"
+    "@solana/web3.js": "npm:^1.98.0"
     "@types/node": "npm:20.17.5"
     "@wormhole-foundation/sdk-base": "npm:^1.4.5"
     "@wormhole-foundation/sdk-definitions": "npm:^1.4.5"
@@ -1961,7 +1938,7 @@ __metadata:
   dependencies:
     "@coral-xyz/anchor": "npm:^0.30.1"
     "@solana/spl-token": "npm:^0.4.9"
-    "@solana/web3.js": "npm:^1.95.3"
+    "@solana/web3.js": "npm:^1.98.0"
     "@types/node": "npm:20.17.5"
     "@wormhole-foundation/sdk-base": "npm:^1.4.5"
     "@wormhole-foundation/sdk-definitions": "npm:^1.4.5"
@@ -2788,7 +2765,7 @@ __metadata:
   dependencies:
     "@coral-xyz/anchor": "npm:^0.30.1"
     "@solana/spl-token": "npm:^0.4.9"
-    "@solana/web3.js": "npm:^1.95.3"
+    "@solana/web3.js": "npm:^1.98.0"
     "@typechain/ethers-v6": "npm:^0.5.1"
     "@types/node": "npm:20.17.5"
     "@wormhole-foundation/sdk-base": "npm:^1.4.5"
@@ -5039,7 +5016,7 @@ __metadata:
   dependencies:
     "@coral-xyz/anchor": "npm:^0.30.1"
     "@solana/spl-token": "npm:^0.4.9"
-    "@solana/web3.js": "npm:^1.95.3"
+    "@solana/web3.js": "npm:^1.98.0"
     "@types/chai": "npm:^5"
     "@types/mocha": "npm:10.*"
     "@wormhole-foundation/sdk-base": "npm:^1.4.5"
