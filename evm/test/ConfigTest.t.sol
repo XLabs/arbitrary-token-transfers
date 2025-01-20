@@ -16,9 +16,8 @@ import "tbr/assets/TbrIds.sol";
 contract ConfigTest is TbrTestBase {
   using BytesParsing for bytes;
 
-  function addCanonicalPeer(uint16 peerChain) internal {
+  function addCanonicalPeer(uint16 peerChain, bytes32 peer) internal {
     uint8 commandCount = 1;
-    vm.prank(owner);
     invokeTbr(
       abi.encodePacked(
         tbr.exec768.selector, 
@@ -27,7 +26,7 @@ contract ConfigTest is TbrTestBase {
         commandCount, 
         UPDATE_CANONICAL_PEER_ID,
         peerChain,
-        makeBytes32('peer')
+        peer
       )
     );
   }
@@ -126,6 +125,7 @@ contract ConfigTest is TbrTestBase {
   }
 
   function testOwnershipTransfer(address newOwner) public {
+    vm.assume(newOwner != owner);
     uint8 commandCount = 1;
 
     vm.expectRevert(NotAuthorized.selector);
@@ -260,6 +260,7 @@ contract ConfigTest is TbrTestBase {
   }
 
   function testExternalReceiveOwnership(address newOwner) public {
+    vm.assume(newOwner != owner);
     vm.prank(owner);
     tbr.transferOwnership(newOwner);
 
@@ -538,6 +539,75 @@ contract ConfigTest is TbrTestBase {
     assertEq(isPeer, true);
   }
 
+  function testAddCanonicalPeer() public {
+    uint16 peerChain = 1;
+    bytes32 newPeer = makeBytes32("peer");
+    uint8 commandCount = 1;
+
+    vm.expectRevert(NotAuthorized.selector);
+    addCanonicalPeer(peerChain, newPeer);
+
+    vm.startPrank(owner);
+    addCanonicalPeer(peerChain, newPeer);
+
+    (bool isPeer, ) = invokeStaticTbr(
+      abi.encodePacked(
+        tbr.get1959.selector, 
+        DISPATCHER_PROTOCOL_VERSION0, 
+        CONFIG_QUERIES_ID,
+        commandCount, 
+        IS_PEER_ID,
+        peerChain,
+        newPeer
+      )
+    ).asBoolUnchecked(0);
+
+    assertEq(isPeer, true);
+
+    (bytes32 canonicalPeer, ) = invokeStaticTbr(
+      abi.encodePacked(
+        tbr.get1959.selector, 
+        DISPATCHER_PROTOCOL_VERSION0, 
+        CONFIG_QUERIES_ID,
+        commandCount, 
+        CANONICAL_PEER_ID,
+        peerChain
+      )
+    ).asBytes32Unchecked(0);
+    
+    assertEq(canonicalPeer, newPeer);
+
+    bytes32 anotherPeer = makeBytes32("anotherPeer");
+    addCanonicalPeer(peerChain, anotherPeer);
+
+    (isPeer, ) = invokeStaticTbr(
+      abi.encodePacked(
+        tbr.get1959.selector, 
+        DISPATCHER_PROTOCOL_VERSION0, 
+        CONFIG_QUERIES_ID,
+        commandCount, 
+        IS_PEER_ID,
+        peerChain,
+        anotherPeer
+      )
+    ).asBoolUnchecked(0);
+
+    assertEq(isPeer, true);
+
+    (canonicalPeer, ) = invokeStaticTbr(
+      abi.encodePacked(
+        tbr.get1959.selector, 
+        DISPATCHER_PROTOCOL_VERSION0, 
+        CONFIG_QUERIES_ID,
+        commandCount, 
+        CANONICAL_PEER_ID,
+        peerChain
+      )
+    ).asBytes32Unchecked(0);
+
+    assertEq(canonicalPeer, anotherPeer);
+  }
+
   function testUpdateMaxGasDropoff() public {
     uint16 chainId = 1;
     uint32 maxGasDropoff = 1e6;
@@ -572,7 +642,9 @@ contract ConfigTest is TbrTestBase {
       )
     );
 
-    addCanonicalPeer(chainId);
+    vm.prank(owner);
+    addCanonicalPeer(chainId, makeBytes32("peer"));
+
     vm.prank(admin);
     invokeTbr(
       abi.encodePacked(
@@ -675,7 +747,9 @@ contract ConfigTest is TbrTestBase {
       )
     );
 
-    addCanonicalPeer(chainId);
+    vm.prank(owner);
+    addCanonicalPeer(chainId, makeBytes32("peer"));
+
     vm.prank(admin);
     invokeTbr(
       abi.encodePacked(
@@ -737,7 +811,9 @@ contract ConfigTest is TbrTestBase {
       )
     );
 
-    addCanonicalPeer(chainId);
+    vm.prank(owner);
+    addCanonicalPeer(chainId, makeBytes32("peer"));
+
     vm.prank(admin);
     invokeTbr(
       abi.encodePacked(
@@ -763,51 +839,6 @@ contract ConfigTest is TbrTestBase {
     ).asBoolUnchecked(0);
 
     assertEq(paused_, paused);
-  }
-
-  function testUpdateCanonicalPeer() public {
-    bytes32 newCanonicalPeer = makeBytes32("canonicalPeer");
-    uint16 peerChain = 1;
-    uint8 commandCount = 1;
-
-    vm.expectRevert(NotAuthorized.selector);
-    invokeTbr(
-      abi.encodePacked(
-        tbr.exec768.selector, 
-        DISPATCHER_PROTOCOL_VERSION0, 
-        CONFIG_ID,
-        commandCount, 
-        UPDATE_CANONICAL_PEER_ID,
-        peerChain,
-        newCanonicalPeer
-      )
-    );
-
-    vm.prank(owner);
-    invokeTbr(
-      abi.encodePacked(
-        tbr.exec768.selector, 
-        DISPATCHER_PROTOCOL_VERSION0, 
-        CONFIG_ID,
-        commandCount, 
-        UPDATE_CANONICAL_PEER_ID,
-        peerChain,
-        newCanonicalPeer
-      )
-    );
-
-    (bytes32 newCanonicalPeer_, ) = invokeStaticTbr(
-      abi.encodePacked(
-        tbr.get1959.selector, 
-        DISPATCHER_PROTOCOL_VERSION0, 
-        CONFIG_QUERIES_ID,
-        commandCount, 
-        CANONICAL_PEER_ID,
-        peerChain
-      )
-    ).asBytes32Unchecked(0);
-
-    assertEq(newCanonicalPeer_, newCanonicalPeer);
   }
 
   function testSweepTokens() public {
@@ -837,7 +868,6 @@ contract ConfigTest is TbrTestBase {
   function testIsChainSupported() public {
     uint16 chainId = 1;
     uint8 commandCount = 1;
-    bytes32 fakePeer = makeBytes32("peer");
 
     (bool isSupported, ) = invokeStaticTbr(
       abi.encodePacked(
@@ -852,17 +882,7 @@ contract ConfigTest is TbrTestBase {
     assertEq(isSupported, false);
 
     vm.prank(owner);
-    invokeTbr(
-      abi.encodePacked(
-        tbr.exec768.selector, 
-        DISPATCHER_PROTOCOL_VERSION0, 
-        CONFIG_ID,
-        commandCount, 
-        UPDATE_CANONICAL_PEER_ID,
-        chainId, 
-        fakePeer
-      )
-    );
+    addCanonicalPeer(chainId, makeBytes32("peer"));
 
     (isSupported, ) = invokeStaticTbr(
       abi.encodePacked(

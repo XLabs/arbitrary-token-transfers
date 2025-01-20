@@ -11,6 +11,7 @@ import { BytesParsing } from "wormhole-sdk/libraries/BytesParsing.sol";
 import { IWETH } from "wormhole-sdk/interfaces/token/IWETH.sol";
 import { IPriceOracle } from "price-oracle/IPriceOracle.sol";
 import { toUniversalAddress } from "wormhole-sdk/Utils.sol";
+import { CHAIN_ID_ETHEREUM } from "wormhole-sdk/constants/Chains.sol";
 import { TbrTestBase } from "./utils/TbrTestBase.sol";
 import { craftTbrV3Vaa } from "./utils/utils.sol";
 
@@ -26,6 +27,8 @@ contract UserTest is TbrTestBase {
   bytes32 EVM_L2_CANONICAL_PEER  = makeBytes32("EVM_L2_CANONICAL_PEER");
   uint32  MAX_GAS_DROPOFF_AMOUNT = 10000;
   uint32  RELAY_FEE_AMOUNT       = 1000;
+
+  error TestErrorForRecipient(uint256 id);
 
   receive() external payable {}
 
@@ -1252,25 +1255,23 @@ contract UserTest is TbrTestBase {
     uint8 transferReturn
   ) public {
     gasDropoff = uint32(bound(gasDropoff, 0, MAX_GAS_DROPOFF_AMOUNT));
+    uint256 gasDropoffInWei = gasDropoff * WEI_PER_MICROETH;
     amount = bound(amount, 1, 1e10); // avoid overflow
-    unallocatedBalance = bound(unallocatedBalance, gasDropoff + transferReturn + amount, (gasDropoff + transferReturn + amount) * 10);
-    deal(address(this), unallocatedBalance);
+    uint256 unallocatedBalanceMinimum = gasDropoffInWei + transferReturn + amount;
+    unallocatedBalance = bound(unallocatedBalance, unallocatedBalanceMinimum, unallocatedBalanceMinimum * 10);
 
-    uint16 peerChain = EVM_L2_CHAIN_ID;
     bytes32 originTokenBridge = toUniversalAddress(EVM_L2_TOKEN_BRIDGE_ADDRESS);
+    uint16 peerChain = EVM_L2_CHAIN_ID;
     bytes32 originTBR = EVM_L2_CANONICAL_PEER;
     bytes32 targetTBR = toUniversalAddress(address(tbr));
-    uint16 tokenChain = 2;
     uint16 recipientChain = tokenBridge.chainId();
-    bytes32 canonicalTokenAddress = WETH_CANONICAL_ADDRESS;
     address recipient = makeAddr("recipient");
     bool unwrapIntent = true;
 
-    vm.mockCall(
-      address(oracle),
-      abi.encodeWithSelector(IPriceOracle.get1959.selector),
-      abi.encode(abi.encodePacked(uint16(HOME_CHAIN_ID)))
-    );
+    uint16 tokenChain = CHAIN_ID_ETHEREUM;
+    bytes32 tokenAddress = WETH_CANONICAL_ADDRESS;
+
+    deal(address(this), unallocatedBalance);
 
     (bytes memory encodedVaa, uint64 sequence) = craftTbrV3Vaa(
       wormholeCore,
@@ -1279,7 +1280,7 @@ contract UserTest is TbrTestBase {
       targetTBR,
       peerChain,
       tokenChain,
-      canonicalTokenAddress,
+      tokenAddress,
       amount,
       recipientChain,
       recipient,
@@ -1287,18 +1288,20 @@ contract UserTest is TbrTestBase {
       unwrapIntent
     );
 
-    uint decimals = IERC20Metadata(address(gasToken)).decimals();
+    address tokenToTransfer = address(gasToken);
+
+    uint decimals = IERC20Metadata(tokenToTransfer).decimals();
     uint256 denormalizedAmount = deNormalizeAmount(amount, uint8(decimals));
-    uint initialRecipienGasTokenBalance = recipient.balance;
+    uint initialRecipientGasTokenBalance = recipient.balance;
     uint initialCallerBalance = address(this).balance;
 
     vm.expectEmit(address(tokenBridge));
     emit ITokenBridge.TransferRedeemed(peerChain, originTokenBridge, sequence);
 
-    vm.expectEmit(address(gasToken));
+    vm.expectEmit(address(tokenToTransfer));
     emit IERC20.Transfer(address(tokenBridge), address(tbr), denormalizedAmount);
 
-    vm.expectEmit(address(gasToken));
+    vm.expectEmit(address(tokenToTransfer));
     emit IWETH.Withdrawal(address(tbr), denormalizedAmount);
 
     invokeTbr(
@@ -1312,8 +1315,9 @@ contract UserTest is TbrTestBase {
     );
 
     uint finalCallerBalance = address(this).balance;
-    assertEq(recipient.balance, initialRecipienGasTokenBalance + gasDropoff + denormalizedAmount);
-    assertEq(finalCallerBalance, initialCallerBalance - gasDropoff);
+    uint finalRecipientGasTokenBalance = recipient.balance;
+    assertEq(finalRecipientGasTokenBalance, initialRecipientGasTokenBalance + gasDropoffInWei + denormalizedAmount);
+    assertEq(finalCallerBalance, initialCallerBalance - gasDropoffInWei);
   }
 
   function testCompleteTransfer_nonGasToken(
@@ -1323,19 +1327,23 @@ contract UserTest is TbrTestBase {
     uint8 transferReturn
   ) public {
     gasDropoff = uint32(bound(gasDropoff, 0, MAX_GAS_DROPOFF_AMOUNT));
+    uint256 gasDropoffInWei = gasDropoff * WEI_PER_MICROETH;
     amount = bound(amount, 1, 1e10); // avoid overflow
-    unallocatedBalance = bound(unallocatedBalance, gasDropoff + transferReturn, (gasDropoff + transferReturn) * 10);
-    deal(address(this), unallocatedBalance);
+    uint256 unallocatedBalanceMinimum = gasDropoffInWei + transferReturn;
+    unallocatedBalance = bound(unallocatedBalance, unallocatedBalanceMinimum, unallocatedBalanceMinimum * 10);
 
-    uint16 peerChain = EVM_L2_CHAIN_ID;
     bytes32 originTokenBridge = toUniversalAddress(EVM_L2_TOKEN_BRIDGE_ADDRESS);
+    uint16 peerChain = EVM_L2_CHAIN_ID;
     bytes32 originTBR = EVM_L2_CANONICAL_PEER;
     bytes32 targetTBR = toUniversalAddress(address(tbr));
-    uint16 tokenChain = EVM_L2_CHAIN_ID;
     uint16 recipientChain = tokenBridge.chainId();
-    bytes32 tokenAddress = toUniversalAddress(EVM_L2_TOKEN_WETH_TOKEN);
     address recipient = makeAddr("recipient");
     bool unwrapIntent = true;
+
+    uint16 tokenChain = EVM_L2_CHAIN_ID;
+    bytes32 tokenAddress = toUniversalAddress(EVM_L2_TOKEN_WETH_TOKEN);
+
+    deal(address(this), unallocatedBalance);
 
     (bytes memory encodedVaa, uint64 sequence) = craftTbrV3Vaa(
       wormholeCore,
@@ -1353,11 +1361,12 @@ contract UserTest is TbrTestBase {
     );
 
     address tokenToTransfer = tokenBridge.wrappedAsset(tokenChain, tokenAddress);
+
     uint decimals = IERC20Metadata(tokenToTransfer).decimals();
     uint256 denormalizedAmount = deNormalizeAmount(amount, uint8(decimals));
-    uint initialRecipienGasTokenBalance = recipient.balance;
-    uint initialRecipienTransferredTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
+    uint initialRecipientGasTokenBalance = recipient.balance;
     uint initialCallerBalance = address(this).balance;
+    uint initialRecipientTransferredTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
 
     vm.expectEmit(address(tokenBridge));
     emit ITokenBridge.TransferRedeemed(peerChain, originTokenBridge, sequence);
@@ -1378,12 +1387,13 @@ contract UserTest is TbrTestBase {
       unallocatedBalance
     );
 
-    uint finalRecipienTransferredTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
+    uint finalRecipientTransferredTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
     uint finalCallerBalance = address(this).balance;
+    uint finalRecipientGasTokenBalance = recipient.balance;
 
-    assertEq(recipient.balance, initialRecipienGasTokenBalance + gasDropoff);
-    assertEq(finalRecipienTransferredTokenBalance, initialRecipienTransferredTokenBalance + denormalizedAmount);
-    assertEq(finalCallerBalance, initialCallerBalance - gasDropoff);
+    assertEq(finalRecipientGasTokenBalance, initialRecipientGasTokenBalance + gasDropoffInWei);
+    assertEq(finalRecipientTransferredTokenBalance, initialRecipientTransferredTokenBalance + denormalizedAmount);
+    assertEq(finalCallerBalance, initialCallerBalance - gasDropoffInWei);
   }
 
   function testCompleteTransfer_UnrecognizedPeer(
@@ -1498,8 +1508,10 @@ contract UserTest is TbrTestBase {
     bytes32 tokenAddress,
     uint256 unallocatedBalance
   ) public {
+    vm.assume(address(this) != recipient);
     gasDropoff = uint32(bound(gasDropoff, 1, MAX_GAS_DROPOFF_AMOUNT));
-    unallocatedBalance = bound(unallocatedBalance, 0, gasDropoff - 1);
+    uint256 gasDropoffInWei = gasDropoff * WEI_PER_MICROETH;
+    unallocatedBalance = bound(unallocatedBalance, 0, gasDropoffInWei - 1);
     deal(address(this), unallocatedBalance);
 
     uint16 peerChain = EVM_L2_CHAIN_ID;
@@ -1574,8 +1586,8 @@ function testCompleteTransfer_GasDropoffNotNecessaryInRecipientCall(
     address tokenToTransfer = tokenBridge.wrappedAsset(tokenChain, tokenAddress);
     uint decimals = IERC20Metadata(tokenToTransfer).decimals();
     uint256 denormalizedAmount = deNormalizeAmount(amount, uint8(decimals));
-    uint initialRecipienGasTokenBalance = recipient.balance;
-    uint initialRecipienTransferredTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
+    uint initialRecipientGasTokenBalance = recipient.balance;
+    uint initialRecipientTransferredTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
 
     vm.prank(recipient);
 
@@ -1598,9 +1610,100 @@ function testCompleteTransfer_GasDropoffNotNecessaryInRecipientCall(
       0
     );
 
-    uint finalRecipienTransferredTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
+    uint finalRecipientTransferredTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
 
-    assertEq(recipient.balance, initialRecipienGasTokenBalance);
-    assertEq(finalRecipienTransferredTokenBalance, initialRecipienTransferredTokenBalance + denormalizedAmount);
+    assertEq(recipient.balance, initialRecipientGasTokenBalance);
+    assertEq(finalRecipientTransferredTokenBalance, initialRecipientTransferredTokenBalance + denormalizedAmount);
+  }
+
+  function testCompleteTransfer_wrapNestedError(
+    uint256 amount,
+    uint32 gasDropoff,
+    uint256 unallocatedBalance,
+    uint8 transferReturn,
+    uint256 errorId
+  ) public {
+    gasDropoff = uint32(bound(gasDropoff, 0, MAX_GAS_DROPOFF_AMOUNT));
+    uint256 gasDropoffInWei = gasDropoff * WEI_PER_MICROETH;
+    amount = bound(amount, 1, 1e10); // avoid overflow
+    uint256 unallocatedBalanceMinimum = gasDropoffInWei + transferReturn + amount;
+    unallocatedBalance = bound(unallocatedBalance, unallocatedBalanceMinimum, unallocatedBalanceMinimum * 10);
+
+    bytes32 originTokenBridge = toUniversalAddress(EVM_L2_TOKEN_BRIDGE_ADDRESS);
+    uint16 peerChain = EVM_L2_CHAIN_ID;
+    bytes32 originTBR = EVM_L2_CANONICAL_PEER;
+    bytes32 targetTBR = toUniversalAddress(address(tbr));
+    uint16 recipientChain = tokenBridge.chainId();
+    address recipient = makeAddr("recipient");
+    bool unwrapIntent = true;
+
+    uint16 tokenChain = CHAIN_ID_ETHEREUM;
+    bytes32 tokenAddress = WETH_CANONICAL_ADDRESS;
+
+    deal(address(this), unallocatedBalance);
+
+    (bytes memory encodedVaa, uint64 sequence) = craftTbrV3Vaa(
+      wormholeCore,
+      originTokenBridge,
+      originTBR,
+      targetTBR,
+      peerChain,
+      tokenChain,
+      tokenAddress,
+      amount,
+      recipientChain,
+      recipient,
+      gasDropoff,
+      unwrapIntent
+    );
+
+    address tokenToTransfer = address(gasToken);
+
+    uint decimals = IERC20Metadata(tokenToTransfer).decimals();
+    uint256 denormalizedAmount = deNormalizeAmount(amount, uint8(decimals));
+
+    vm.expectEmit(address(tokenBridge));
+    emit ITokenBridge.TransferRedeemed(peerChain, originTokenBridge, sequence);
+
+    vm.expectEmit(address(tokenToTransfer));
+    emit IERC20.Transfer(address(tokenBridge), address(tbr), denormalizedAmount);
+
+    vm.expectEmit(address(tokenToTransfer));
+    emit IWETH.Withdrawal(address(tbr), denormalizedAmount);
+
+    vm.mockCallRevert(recipient, new bytes(0), abi.encodePacked(
+      TestErrorForRecipient.selector,
+      errorId
+    ));
+
+    bytes memory result = expectRevertInvokeTbr(
+      abi.encodePacked(
+        tbr.exec768.selector,
+        DISPATCHER_PROTOCOL_VERSION0,
+        COMPLETE_TRANSFER_ID,
+        encodedVaa
+      ),
+      unallocatedBalance
+    );
+
+    uint commandIndex;
+    uint errorSize;
+    bytes4 nestedErrorSelector;
+    uint256 thrownErrorId;
+
+    (bytes4 errorSelector, uint256 offset) = result.asBytes4Unchecked(0);
+    (commandIndex, offset) = result.asUint256Unchecked(offset);
+    (errorSize, offset) = result.asUint256Unchecked(offset);
+    uint errorOverheadSize = offset;
+    (nestedErrorSelector, offset) = result.asBytes4Unchecked(offset);
+    (thrownErrorId, offset) = result.asUint256Unchecked(offset);
+
+    assertEq(errorSelector, PayFailure.selector);
+    assertEq(commandIndex, 0);
+    assertEq(errorSize, 36);
+    assertEq(nestedErrorSelector, TestErrorForRecipient.selector);
+    assertEq(thrownErrorId, errorId);
+    assertEq(result.length, errorOverheadSize + errorSize);
+    assertEq(result.length, offset);
   }
 }

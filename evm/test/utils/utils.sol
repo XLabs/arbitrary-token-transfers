@@ -68,12 +68,11 @@ function craftTbrV3Vaa(
     targetTBR,
     recipientChain,
     originTBR,
-    abi.encodePacked(
-      TBR_V3_MESSAGE_VERSION,
-      universalRecipient,
-      gasDropoff,
-      unwrapIntent
-    )
+
+    TBR_V3_MESSAGE_VERSION,
+    universalRecipient,
+    gasDropoff,
+    unwrapIntent
   );
 
   WormholeOverride.setUpOverride(wormhole);
