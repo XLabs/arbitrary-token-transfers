@@ -451,7 +451,7 @@ describe('Token Bridge Relayer Program', () => {
 
     it('Transfers SOL to another chain', async () => {
       const tokenAccount = await $.wrapSol(unauthorizedClient.signer, 1_000_000);
-      const gasDropoffAmount = 5;
+      const gasDropoffAmount = 0.000005;
       const unwrapIntent = false; // Does not matter anyway
       const transferredAmount = 123789n;
 
@@ -486,7 +486,7 @@ describe('Token Bridge Relayer Program', () => {
 
       expect(vaa.payload.payload.recipient).deep.equal(foreignAddress);
       // We need to divide by 1 million because it's deserialized as the token, not µToken:
-      expect(vaa.payload.payload.gasDropoff).equal(gasDropoffAmount / 1_000_000);
+      expect(vaa.payload.payload.gasDropoff).equal(gasDropoffAmount);
       expect(vaa.payload.payload.unwrapIntent).equal(unwrapIntent);
     });
 
