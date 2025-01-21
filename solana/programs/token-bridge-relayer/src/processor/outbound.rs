@@ -36,7 +36,7 @@ pub struct OutboundTransfer<'info> {
     pub chain_config: Box<Account<'info, ChainConfigState>>,
 
     /// Mint info. This is the SPL token that will be bridged over to the
-    /// canonical peer. Mutable.
+    /// canonical peer.
     ///
     /// In the case of a native transfer, it's the native mint; in the case of a
     /// wrapped transfer, it's the token wrapped by Wormhole.
@@ -80,7 +80,7 @@ pub struct OutboundTransfer<'info> {
     /// CHECK: Token Bridge custody. This is the Token Bridge program's token
     /// account that holds this mint's balance. This account needs to be
     /// unchecked because a token account may not have been created for this
-    /// mint yet. Mutable.
+    /// mint yet.
     ///
     /// # Exclusive
     ///

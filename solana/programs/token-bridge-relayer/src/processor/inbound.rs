@@ -23,7 +23,7 @@ pub struct CompleteTransfer<'info> {
     pub tbr_config: Box<Account<'info, TbrConfigState>>,
 
     /// Mint info. This is the SPL token that will be bridged over to the
-    /// foreign contract. Mutable.
+    /// foreign contract.
     ///
     /// In the case of a native transfer, it's the mint for the token wrapped by Wormhole;
     /// in the case of a wrapped transfer, it's the native SPL token mint.
@@ -32,7 +32,7 @@ pub struct CompleteTransfer<'info> {
 
     /// Recipient associated token account. The recipient authority check
     /// is necessary to ensure that the recipient is the intended recipient
-    /// of the bridged tokens. Mutable.
+    /// of the bridged tokens.
     #[account(
         mut,
         associated_token::mint = mint,
@@ -89,7 +89,7 @@ pub struct CompleteTransfer<'info> {
     /// CHECK: Token Bridge custody. This is the Token Bridge program's token
     /// account that holds this mint's balance. This account needs to be
     /// unchecked because a token account may not have been created for this
-    /// mint yet. Mutable.
+    /// mint yet.
     ///
     /// # Exclusive
     ///
@@ -143,8 +143,6 @@ pub fn complete_transfer(
         unwrap_intent,
     } = *ctx.accounts.vaa.message().data();
     let gas_dropoff_amount = denormalize_dropoff_to_lamports(gas_dropoff_amount);
-
-    let _x = ctx.accounts.vaa.message();
 
     let redeemer_seeds = &[
         token_bridge::SEED_PREFIX_REDEEMER.as_ref(),

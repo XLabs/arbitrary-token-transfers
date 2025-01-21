@@ -1,6 +1,12 @@
 import { chainToChainId } from '@wormhole-foundation/sdk-base';
 import { toNative, UniversalAddress } from '@wormhole-foundation/sdk-definitions';
-import { Keypair, PublicKey, SendTransactionError, Transaction } from '@solana/web3.js';
+import {
+  Keypair,
+  LAMPORTS_PER_SOL,
+  PublicKey,
+  SendTransactionError,
+  Transaction,
+} from '@solana/web3.js';
 import * as spl from '@solana/spl-token';
 import {
   assert,
@@ -34,6 +40,9 @@ const authorityKeypair = './target/deploy/token_bridge_relayer-keypair.json';
 
 const $ = new TestsHelper();
 
+/** SOL amount in lamports */ const sol = (n: number) => BigInt(LAMPORTS_PER_SOL * n);
+/** ETH amount in micro-ETH */ const eth = (n: number) => 1_000_000 * n;
+/** USD amount in micro-USD */ const usd = (n: number) => 1_000_000 * n;
 const uaToPubkey = (address: UniversalAddress) => toNative('Solana', address).unwrap();
 
 describe('Token Bridge Relayer Program', () => {
@@ -387,8 +396,8 @@ describe('Token Bridge Relayer Program', () => {
 
   describe('Chain Config', () => {
     it('Values are updated', async () => {
-      const maxGasDropoffMicroToken = 10_000_000; // ETH10 maximum
-      const relayerFeeMicroUsd = 900_000; // $0.9
+      const maxGasDropoffMicroToken = eth(10);
+      const relayerFeeMicroUsd = usd(0.9);
       await Promise.all([
         adminClient1.setPauseForOutboundTransfers(ETHEREUM, false),
         adminClient1.updateMaxGasDropoff(ETHEREUM, maxGasDropoffMicroToken),
@@ -443,7 +452,7 @@ describe('Token Bridge Relayer Program', () => {
 
   describe('Querying the relaying fee', () => {
     it('No discrepancy between SDK and program calculation', async () => {
-      const dropoff = 50000; // ETH0.05
+      const dropoff = eth(0.05);
 
       const simulatedResult = await unauthorizedClient.relayingFeeSimulated(ETHEREUM, dropoff);
       const offChainResult = await unauthorizedClient.relayingFee(ETHEREUM, dropoff);
@@ -489,7 +498,7 @@ describe('Token Bridge Relayer Program', () => {
         userTokenAccount: tokenAccount.publicKey,
         transferredAmount,
         gasDropoffAmount,
-        maxFeeLamports: 100_000_000n, // 0.1SOL max
+        maxFeeLamports: sol(0.1),
         unwrapIntent,
         mintAddress: spl.NATIVE_MINT,
       });
@@ -521,7 +530,7 @@ describe('Token Bridge Relayer Program', () => {
       const unwrapIntent = false; // Does not matter anyway
       const transferredAmount = 321654n;
 
-      const tokenAccount = await barMint.mint(1_000_000_000n, unauthorizedClient.signer); //
+      const tokenAccount = await barMint.mint(1_000_000_000n, unauthorizedClient.signer);
 
       const foreignAddress = $.universalAddress.generate();
       const canonicalEthereum = await unauthorizedClient.read.canonicalPeer(ETHEREUM);
@@ -531,7 +540,7 @@ describe('Token Bridge Relayer Program', () => {
         userTokenAccount: tokenAccount.publicKey,
         transferredAmount,
         gasDropoffAmount,
-        maxFeeLamports: 100_000_000n, // 0.1SOL max
+        maxFeeLamports: sol(0.1),
         unwrapIntent,
         mintAddress: barMint.address,
       });
@@ -635,7 +644,7 @@ describe('Token Bridge Relayer Program', () => {
         { chain: ETHEREUM, tokenBridge: ethereumTokenBridge, tbrPeer: ethereumTbrPeer1 },
         {
           recipient: new UniversalAddress(recipient.publicKey.toBuffer()),
-          gasDropoff: 0.1, // We want 0.1 SOL
+          gasDropoff: 0.1, // SOL
           unwrapIntent: false,
         },
       );
@@ -699,7 +708,7 @@ describe('Token Bridge Relayer Program', () => {
         userTokenAccount: recipientTokenAccountForeignToken,
         transferredAmount,
         gasDropoffAmount,
-        maxFeeLamports: 100_000_000n, // 0.1SOL max
+        maxFeeLamports: sol(0.1),
         unwrapIntent,
         mintAddress: (await tokenBridgeClient.client.getWrappedAsset({
           address: ethereumTokenAddressFoo,
@@ -732,7 +741,7 @@ describe('Token Bridge Relayer Program', () => {
     });
 
     it('Fails to transfer a token due to dropoff exceeding maximum', async () => {
-      const gasDropoffAmount = 11_000_000; // ETH11
+      const gasDropoffAmount = eth(11);
       const unwrapIntent = false;
       const transferredAmount = 321654n;
 
@@ -745,7 +754,7 @@ describe('Token Bridge Relayer Program', () => {
         userTokenAccount: tokenAccount.publicKey,
         transferredAmount,
         gasDropoffAmount,
-        maxFeeLamports: 100_000_000n, // 0.1SOL max
+        maxFeeLamports: sol(0.1),
         unwrapIntent,
       });
       await assert.promise(transferPromise).failsWith('DropoffExceedingMaximum');

@@ -483,16 +483,17 @@ export class SolanaTokenBridgeRelayer {
       throw new Error('Peers already exist. Use registerAdditionalPeer to add more peers.');
     }
 
-    const ixs = [];
+    const updateMaxGasDropoffIx =
+      config.maxGasDropoffMicroToken !== 0
+        ? [this.updateMaxGasDropoff(signer, chain, config.maxGasDropoffMicroToken)]
+        : [];
 
-    ixs.push(this.registerPeer(signer, chain, peerAddress));
-    if (config.maxGasDropoffMicroToken !== 0) {
-      ixs.push(this.updateMaxGasDropoff(signer, chain, config.maxGasDropoffMicroToken));
-    }
-    ixs.push(this.updateBaseFee(signer, chain, config.relayerFeeMicroUsd));
-    ixs.push(this.setPauseForOutboundTransfers(signer, chain, config.pausedOutboundTransfers));
-
-    return Promise.all(ixs);
+    return Promise.all([
+      this.registerPeer(signer, chain, peerAddress),
+      this.updateBaseFee(signer, chain, config.relayerFeeMicroUsd),
+      this.setPauseForOutboundTransfers(signer, chain, config.pausedOutboundTransfers),
+      ...updateMaxGasDropoffIx,
+    ]);
   }
 
   async registerAdditionalPeer(

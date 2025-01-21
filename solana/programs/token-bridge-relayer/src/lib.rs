@@ -20,7 +20,7 @@ pub mod constant {
     pub const SEED_PREFIX_TEMPORARY: &[u8] = b"tmp";
 
     #[constant]
-    pub const SEED_PREFIX_UPGRADE_LOCK: &[u8] = b"upgrade lock";
+    pub const SEED_PREFIX_UPGRADE_LOCK: &[u8] = b"upgrade_lock";
 }
 
 #[program]
