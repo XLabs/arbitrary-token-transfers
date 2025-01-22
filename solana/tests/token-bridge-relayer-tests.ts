@@ -1,6 +1,12 @@
 import { chainToChainId } from '@wormhole-foundation/sdk-base';
 import { toNative, UniversalAddress } from '@wormhole-foundation/sdk-definitions';
-import { Keypair, PublicKey, SendTransactionError, Transaction } from '@solana/web3.js';
+import {
+  Keypair,
+  LAMPORTS_PER_SOL,
+  PublicKey,
+  SendTransactionError,
+  Transaction,
+} from '@solana/web3.js';
 import * as spl from '@solana/spl-token';
 import {
   assert,
@@ -34,6 +40,9 @@ const authorityKeypair = './target/deploy/token_bridge_relayer-keypair.json';
 
 const $ = new TestsHelper();
 
+/** SOL amount in lamports */ const sol = (n: number) => BigInt(LAMPORTS_PER_SOL * n);
+/** ETH amount in micro-ETH */ const eth = (n: number) => 1_000_000 * n;
+/** USD amount in micro-USD */ const usd = (n: number) => 1_000_000 * n;
 const uaToPubkey = (address: UniversalAddress) => toNative('Solana', address).unwrap();
 
 describe('Token Bridge Relayer Program', () => {
@@ -78,7 +87,11 @@ describe('Token Bridge Relayer Program', () => {
   const ethereumTbrPeer1 = $.universalAddress.generate('ethereum');
   const ethereumTbrPeer2 = $.universalAddress.generate('ethereum');
   const oasisTbrPeer = $.universalAddress.generate('ethereum');
-  const bpfProgram = new BpfLoaderUpgradeableProgram(ownerClient.client.program.programId, $.connection);
+
+  const bpfProgram = new BpfLoaderUpgradeableProgram(
+    ownerClient.client.program.programId,
+    $.connection,
+  );
 
   before(async () => {
     await $.airdrop([
@@ -144,6 +157,9 @@ describe('Token Bridge Relayer Program', () => {
       DEBUG,
     );
 
+    // Let's credit a badge, to verify that we cannot trigger a denial of service:
+    await $.airdrop(upgradeAuthorityClient.account.authBadge(adminClient1.publicKey).address);
+
     await upgradeAuthorityClient.initialize({
       feeRecipient,
       owner: ownerClient.publicKey,
@@ -184,12 +200,12 @@ describe('Token Bridge Relayer Program', () => {
 
     it('Rejects a transfer validation by an unauthorized account', async () => {
       await assert
-        .promise(unauthorizedClient.confirmOwnerTransferRequest(ownerClient.signer))
+        .promise(unauthorizedClient.confirmOwnerTransferRequest())
         .failsWith('Signature verification failed');
     });
 
     it('Accepts a transfer validation by the rightful new owner', async () => {
-      await newOwnerClient.confirmOwnerTransferRequest(ownerClient.signer);
+      await newOwnerClient.confirmOwnerTransferRequest();
 
       // Verify that the authority has been updated to the new owner.
       const { upgradeAuthority } = await bpfProgram.getdata();
@@ -215,7 +231,7 @@ describe('Token Bridge Relayer Program', () => {
 
       // Now the original owner cannot accept the ownership:
       await assert
-        .promise(ownerClient.confirmOwnerTransferRequest(ownerClient.signer))
+        .promise(ownerClient.confirmOwnerTransferRequest())
         .failsWith('No pending owner in the program');
     });
 
@@ -274,13 +290,22 @@ describe('Token Bridge Relayer Program', () => {
 
   describe('Peers', () => {
     it('Registers peers', async () => {
-      await newOwnerClient.registerPeer(ETHEREUM, ethereumTbrPeer1);
+      // First ETH peer:
+
+      await assert
+        .promise(newOwnerClient.registerAdditionalPeer(ETHEREUM, ethereumTbrPeer1))
+        .failsWith('Use registerFirstPeer instead');
+
+      const ethConfig = {
+        maxGasDropoffMicroToken: 1000,
+        pausedOutboundTransfers: false,
+        relayerFeeMicroUsd: 200,
+      };
+      await newOwnerClient.registerFirstPeer(ETHEREUM, ethereumTbrPeer1, ethConfig);
       assert.chainConfig(await unauthorizedClient.account.chainConfig(ETHEREUM).fetch()).equal({
         chainId: ETHEREUM_ID,
         canonicalPeer: uaToArray(ethereumTbrPeer1),
-        maxGasDropoffMicroToken: 0,
-        pausedOutboundTransfers: true,
-        relayerFeeMicroUsd: 0,
+        ...ethConfig,
       });
       expect(
         await unauthorizedClient.account.peer(ETHEREUM, ethereumTbrPeer1).fetch(),
@@ -289,13 +314,17 @@ describe('Token Bridge Relayer Program', () => {
         address: uaToArray(ethereumTbrPeer1),
       });
 
-      await adminClient1.registerPeer(ETHEREUM, ethereumTbrPeer2);
+      // Second ETH peer:
+
+      await assert
+        .promise(newOwnerClient.registerFirstPeer(ETHEREUM, ethereumTbrPeer2, ethConfig))
+        .failsWith('Peers already exist');
+
+      await adminClient1.registerAdditionalPeer(ETHEREUM, ethereumTbrPeer2);
       assert.chainConfig(await unauthorizedClient.account.chainConfig(ETHEREUM).fetch()).equal({
         chainId: ETHEREUM_ID,
         canonicalPeer: uaToArray(ethereumTbrPeer1),
-        maxGasDropoffMicroToken: 0,
-        pausedOutboundTransfers: true,
-        relayerFeeMicroUsd: 0,
+        ...ethConfig,
       });
       expect(
         await unauthorizedClient.account.peer(ETHEREUM, ethereumTbrPeer2).fetch(),
@@ -304,20 +333,23 @@ describe('Token Bridge Relayer Program', () => {
         address: uaToArray(ethereumTbrPeer2),
       });
 
-      await adminClient1.registerPeer(OASIS, oasisTbrPeer);
+      // First OASIS peer:
+
+      const oasisConfig = {
+        maxGasDropoffMicroToken: 650,
+        pausedOutboundTransfers: true,
+        relayerFeeMicroUsd: 430,
+      };
+      await adminClient1.registerFirstPeer(OASIS, oasisTbrPeer, oasisConfig);
       assert.chainConfig(await unauthorizedClient.account.chainConfig(OASIS).fetch()).equal({
         chainId: OASIS_ID,
         canonicalPeer: uaToArray(oasisTbrPeer),
-        maxGasDropoffMicroToken: 0,
-        pausedOutboundTransfers: true,
-        relayerFeeMicroUsd: 0,
+        ...oasisConfig,
       });
       assert.chainConfig(await unauthorizedClient.account.chainConfig(ETHEREUM).fetch()).equal({
         chainId: ETHEREUM_ID,
         canonicalPeer: uaToArray(ethereumTbrPeer1),
-        maxGasDropoffMicroToken: 0,
-        pausedOutboundTransfers: true,
-        relayerFeeMicroUsd: 0,
+        ...ethConfig,
       });
       expect(await unauthorizedClient.account.peer(OASIS, oasisTbrPeer).fetch()).deep.include({
         chainId: OASIS_ID,
@@ -331,9 +363,9 @@ describe('Token Bridge Relayer Program', () => {
       assert.chainConfig(await unauthorizedClient.account.chainConfig(ETHEREUM).fetch()).equal({
         chainId: ETHEREUM_ID,
         canonicalPeer: uaToArray(ethereumTbrPeer2),
-        maxGasDropoffMicroToken: 0,
-        pausedOutboundTransfers: true,
-        relayerFeeMicroUsd: 0,
+        maxGasDropoffMicroToken: 1000,
+        pausedOutboundTransfers: false,
+        relayerFeeMicroUsd: 200,
       });
     });
 
@@ -352,7 +384,7 @@ describe('Token Bridge Relayer Program', () => {
     it('Does not let unauthorized signers register or update a peer', async () => {
       // Unauthorized cannot register a peer:
       await assert
-        .promise(unauthorizedClient.registerPeer(ETHEREUM, $.universalAddress.generate()))
+        .promise(unauthorizedClient.registerAdditionalPeer(ETHEREUM, $.universalAddress.generate()))
         .failsWith('AnchorError caused by account: auth_badge. Error Code: AccountNotInitialized.');
 
       // Admin cannot make another peer canonical:
@@ -364,8 +396,8 @@ describe('Token Bridge Relayer Program', () => {
 
   describe('Chain Config', () => {
     it('Values are updated', async () => {
-      const maxGasDropoffMicroToken = 10_000_000; // ETH10 maximum
-      const relayerFeeMicroUsd = 900_000; // $0.9
+      const maxGasDropoffMicroToken = eth(10);
+      const relayerFeeMicroUsd = usd(0.9);
       await Promise.all([
         adminClient1.setPauseForOutboundTransfers(ETHEREUM, false),
         adminClient1.updateMaxGasDropoff(ETHEREUM, maxGasDropoffMicroToken),
@@ -420,7 +452,7 @@ describe('Token Bridge Relayer Program', () => {
 
   describe('Querying the relaying fee', () => {
     it('No discrepancy between SDK and program calculation', async () => {
-      const dropoff = 50000; // ETH0.05
+      const dropoff = eth(0.05);
 
       const simulatedResult = await unauthorizedClient.relayingFeeSimulated(ETHEREUM, dropoff);
       const offChainResult = await unauthorizedClient.relayingFee(ETHEREUM, dropoff);
@@ -458,12 +490,15 @@ describe('Token Bridge Relayer Program', () => {
       const foreignAddress = $.universalAddress.generate();
       const canonicalEthereum = await unauthorizedClient.read.canonicalPeer(ETHEREUM);
 
+      // Let's credit the temporary token account, to verify that we cannot trigger a denial of service:
+      await $.airdrop(unauthorizedClient.account.temporary(spl.NATIVE_MINT).address);
+
       await unauthorizedClient.transferTokens({
         recipient: { address: foreignAddress, chain: ETHEREUM },
         userTokenAccount: tokenAccount.publicKey,
         transferredAmount,
         gasDropoffAmount,
-        maxFeeLamports: 100_000_000n, // 0.1SOL max
+        maxFeeLamports: sol(0.1),
         unwrapIntent,
         mintAddress: spl.NATIVE_MINT,
       });
@@ -485,7 +520,6 @@ describe('Token Bridge Relayer Program', () => {
       expect(vaa.payload.token.amount).equal(transferredAmount / 10n);
 
       expect(vaa.payload.payload.recipient).deep.equal(foreignAddress);
-      // We need to divide by 1 million because it's deserialized as the token, not µToken:
       expect(vaa.payload.payload.gasDropoff).equal(gasDropoffAmount);
       expect(vaa.payload.payload.unwrapIntent).equal(unwrapIntent);
     });
@@ -495,7 +529,7 @@ describe('Token Bridge Relayer Program', () => {
       const unwrapIntent = false; // Does not matter anyway
       const transferredAmount = 321654n;
 
-      const tokenAccount = await barMint.mint(1_000_000_000n, unauthorizedClient.signer); //
+      const tokenAccount = await barMint.mint(1_000_000_000n, unauthorizedClient.signer);
 
       const foreignAddress = $.universalAddress.generate();
       const canonicalEthereum = await unauthorizedClient.read.canonicalPeer(ETHEREUM);
@@ -505,7 +539,7 @@ describe('Token Bridge Relayer Program', () => {
         userTokenAccount: tokenAccount.publicKey,
         transferredAmount,
         gasDropoffAmount,
-        maxFeeLamports: 100_000_000n, // 0.1SOL max
+        maxFeeLamports: sol(0.1),
         unwrapIntent,
         mintAddress: barMint.address,
       });
@@ -526,13 +560,12 @@ describe('Token Bridge Relayer Program', () => {
       expect(vaa.payload.token.amount).equal(transferredAmount / 100n);
 
       expect(vaa.payload.payload.recipient).deep.equal(foreignAddress);
-      // We need to divide by 1 million because it's deserialize as the token, not µToken:
-      expect(vaa.payload.payload.gasDropoff).equal(gasDropoffAmount / 1_000_000);
+      expect(vaa.payload.payload.gasDropoff).equal(gasDropoffAmount);
       expect(vaa.payload.payload.unwrapIntent).equal(unwrapIntent);
     });
 
     it('Gets wrapped SOL back from another chain', async () => {
-      const [payer, recipient] = await $.airdrop([Keypair.generate(), $.keypair.generate()]);
+      const [payer, recipient] = await $.airdrop($.keypair.several(2));
       // Associated token account already existing (to test if it breaks the transfer completion):
       const recipientTokenAccount = await spl.createAssociatedTokenAccount(
         $.connection,
@@ -609,7 +642,7 @@ describe('Token Bridge Relayer Program', () => {
         { chain: ETHEREUM, tokenBridge: ethereumTokenBridge, tbrPeer: ethereumTbrPeer1 },
         {
           recipient: new UniversalAddress(recipient.publicKey.toBuffer()),
-          gasDropoff: 0.1, // We want 0.1 SOL
+          gasDropoff: 0.1, // SOL
           unwrapIntent: false,
         },
       );
@@ -673,7 +706,7 @@ describe('Token Bridge Relayer Program', () => {
         userTokenAccount: recipientTokenAccountForeignToken,
         transferredAmount,
         gasDropoffAmount,
-        maxFeeLamports: 100_000_000n, // 0.1SOL max
+        maxFeeLamports: sol(0.1),
         unwrapIntent,
         mintAddress: (await tokenBridgeClient.client.getWrappedAsset({
           address: ethereumTokenAddressFoo,
@@ -703,6 +736,27 @@ describe('Token Bridge Relayer Program', () => {
       });
 
       expect(vaa.payload.payload.recipient).deep.equal(foreignAddress);
+    });
+
+    it('Fails to transfer a token due to dropoff exceeding maximum', async () => {
+      const gasDropoffAmount = 11;
+      const unwrapIntent = false;
+      const transferredAmount = 321654n;
+
+      const tokenAccount = await barMint.mint(1_000_000_000n, unauthorizedClient.signer);
+
+      const foreignAddress = $.universalAddress.generate();
+
+      const transferPromise = unauthorizedClient.transferTokens({
+        recipient: { address: foreignAddress, chain: ETHEREUM },
+        userTokenAccount: tokenAccount.publicKey,
+        transferredAmount,
+        gasDropoffAmount,
+        maxFeeLamports: sol(0.1),
+        unwrapIntent,
+        mintAddress: barMint.address,
+      });
+      await assert.promise(transferPromise).failsWith('DropoffExceedingMaximum');
     });
 
     after(async () => {

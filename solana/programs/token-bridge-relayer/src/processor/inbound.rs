@@ -23,7 +23,7 @@ pub struct CompleteTransfer<'info> {
     pub tbr_config: Box<Account<'info, TbrConfigState>>,
 
     /// Mint info. This is the SPL token that will be bridged over to the
-    /// foreign contract. Mutable.
+    /// foreign contract.
     ///
     /// In the case of a native transfer, it's the mint for the token wrapped by Wormhole;
     /// in the case of a wrapped transfer, it's the native SPL token mint.
@@ -32,7 +32,7 @@ pub struct CompleteTransfer<'info> {
 
     /// Recipient associated token account. The recipient authority check
     /// is necessary to ensure that the recipient is the intended recipient
-    /// of the bridged tokens. Mutable.
+    /// of the bridged tokens.
     #[account(
         mut,
         associated_token::mint = mint,
@@ -44,7 +44,7 @@ pub struct CompleteTransfer<'info> {
     /// transaction. This instruction verifies that the recipient key
     /// passed in this context matches the intended recipient in the vaa.
     #[account(mut)]
-    pub recipient: AccountInfo<'info>,
+    pub recipient: UncheckedAccount<'info>,
 
     /// Verified Wormhole message account. Read-only.
     pub vaa: Account<'info, PostedRelayerMessage>,
@@ -61,10 +61,10 @@ pub struct CompleteTransfer<'info> {
     #[account(mut)]
     pub temporary_account: UncheckedAccount<'info>,
 
+    /// The TBR peer (_i.e._ `data().from_address()`). We do not care about the Token Bridge peer `vaa.meta.emitter_address`.
     #[account(
-        constraint = {
-            peer.address == *vaa.data().from_address()
-        } @ TokenBridgeRelayerError::InvalidSendingPeer
+        constraint = peer.address == *vaa.data().from_address() && peer.chain_id == vaa.meta.emitter_chain
+            @ TokenBridgeRelayerError::InvalidSendingPeer
     )]
     pub peer: Account<'info, PeerState>,
 
@@ -89,7 +89,7 @@ pub struct CompleteTransfer<'info> {
     /// CHECK: Token Bridge custody. This is the Token Bridge program's token
     /// account that holds this mint's balance. This account needs to be
     /// unchecked because a token account may not have been created for this
-    /// mint yet. Mutable.
+    /// mint yet.
     ///
     /// # Exclusive
     ///

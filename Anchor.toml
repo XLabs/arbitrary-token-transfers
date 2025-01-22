@@ -6,7 +6,6 @@ types = "sdk/solana/tbrv3/idl"
 
 [features]
 resolution = true
-skip-lint = true
 
 [programs.localnet]
 #token_bridge_relayer = "7TLiBkpDGshV4o3jmacTCx93CLkmo3VjZ111AsijN9f8"

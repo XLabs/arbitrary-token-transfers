@@ -27,8 +27,6 @@ import { isTypedArray } from 'util/types';
 
 const execAsync = promisify(exec);
 
-const LOCALHOST = 'http://localhost:8899';
-
 export interface ErrorConstructor {
   new (...args: any[]): Error;
 }
@@ -105,6 +103,10 @@ function extractPubkey(from: HasPublicKey): PublicKey {
   }
 }
 
+type Tuple<T, N extends number, R extends T[] = []> = R['length'] extends N
+  ? R
+  : Tuple<T, N, [T, ...R]>;
+
 export class TestsHelper {
   static readonly LOCALHOST = 'http://localhost:8899';
   readonly connection: Connection;
@@ -115,7 +117,7 @@ export class TestsHelper {
 
   constructor(finality: Finality = 'confirmed') {
     if (TestsHelper.connections[finality] === undefined) {
-      TestsHelper.connections[finality] = new Connection(LOCALHOST, finality);
+      TestsHelper.connections[finality] = new Connection(TestsHelper.LOCALHOST, finality);
     }
     this.connection = TestsHelper.connections[finality];
     this.finality = finality;
@@ -126,7 +128,8 @@ export class TestsHelper {
     read: async (path: string): Promise<PublicKey> =>
       this.keypair.read(path).then((kp) => kp.publicKey),
     from: (hasPublicKey: HasPublicKey): PublicKey => extractPubkey(hasPublicKey),
-    several: (amount: number): PublicKey[] => Array.from({ length: amount }).map(PublicKey.unique),
+    several: <N extends number>(amount: number): Tuple<PublicKey, N> =>
+      Array.from({ length: amount }).map(PublicKey.unique) as Tuple<PublicKey, N>,
   };
 
   keypair = {
@@ -134,7 +137,8 @@ export class TestsHelper {
     read: async (path: string): Promise<Keypair> =>
       this.keypair.from(JSON.parse(await fs.readFile(path, { encoding: 'utf8' }))),
     from: (bytes: number[]): Keypair => Keypair.fromSecretKey(Uint8Array.from(bytes)),
-    several: (amount: number): Keypair[] => Array.from({ length: amount }).map(Keypair.generate),
+    several: <N extends number>(amount: N): Tuple<Keypair, N> =>
+      Array.from({ length: amount }).map(Keypair.generate) as Tuple<Keypair, N>,
   };
 
   universalAddress = {
@@ -144,8 +148,14 @@ export class TestsHelper {
             Buffer.concat([Buffer.alloc(12), PublicKey.unique().toBuffer().subarray(12)]),
           )
         : new UniversalAddress(PublicKey.unique().toBuffer()),
-    several: (amount: number, ethereum?: 'ethereum'): UniversalAddress[] =>
-      Array.from({ length: amount }).map(() => this.universalAddress.generate(ethereum)),
+    several: <N extends number>(
+      amount: number,
+      ethereum?: 'ethereum',
+    ): Tuple<UniversalAddress, N> =>
+      Array.from({ length: amount }).map(() => this.universalAddress.generate(ethereum)) as Tuple<
+        UniversalAddress,
+        N
+      >,
   };
 
   /** Waits that a transaction is confirmed. */
@@ -231,7 +241,7 @@ export class TestsHelper {
 
     // Deploy:
     await execAsync(
-      `solana --url ${LOCALHOST} -k ${authorityKeypair} program deploy ${binary} --program-id ${programKeypair}`,
+      `solana --url ${TestsHelper.LOCALHOST} -k ${authorityKeypair} program deploy ${binary} --program-id ${programKeypair}`,
     );
 
     // Wait for deploy to be finalized. Don't remove.

@@ -1,5 +1,5 @@
 {
-  "address": "HrZSAEW9QVbC4kQu51C7oFMHaam18AvAhpbBYeY9mKht",
+  "address": "ttbrcA1ckR3D3Ff4VR1MJNCvA7t4d4XV9TcvrVp4AoM",
   "metadata": {
     "name": "token_bridge_relayer",
     "version": "3.0.0",
@@ -110,6 +110,116 @@
             "because we will update roles depending on the operation."
           ],
           "writable": true
+        },
+        {
+          "name": "upgrade_lock",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  112,
+                  103,
+                  114,
+                  97,
+                  100,
+                  101,
+                  32,
+                  108,
+                  111,
+                  99,
+                  107
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "program_data",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  13,
+                  74,
+                  247,
+                  118,
+                  36,
+                  164,
+                  201,
+                  97,
+                  25,
+                  221,
+                  241,
+                  144,
+                  142,
+                  148,
+                  63,
+                  218,
+                  160,
+                  137,
+                  78,
+                  28,
+                  18,
+                  140,
+                  195,
+                  112,
+                  127,
+                  26,
+                  150,
+                  227,
+                  211,
+                  125,
+                  216,
+                  108
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                2,
+                168,
+                246,
+                145,
+                78,
+                136,
+                161,
+                176,
+                226,
+                16,
+                21,
+                62,
+                247,
+                99,
+                174,
+                43,
+                0,
+                194,
+                185,
+                61,
+                22,
+                193,
+                36,
+                210,
+                192,
+                83,
+                122,
+                16,
+                4,
+                128,
+                0,
+                0
+              ]
+            }
+          }
+        },
+        {
+          "name": "bpf_loader_upgradeable",
+          "address": "BPFLoaderUpgradeab1e11111111111111111111111"
         }
       ],
       "args": []
@@ -281,7 +391,10 @@
           "writable": true
         },
         {
-          "name": "peer"
+          "name": "peer",
+          "docs": [
+            "The TBR peer (_i.e._ `data().from_address()`). We do not care about the Token Bridge peer `vaa.meta.emitter_address`."
+          ]
         },
         {
           "name": "token_bridge_config"
@@ -432,10 +545,6 @@
           }
         },
         {
-          "name": "previous_owner",
-          "signer": true
-        },
-        {
           "name": "auth_badge_previous_owner",
           "writable": true,
           "pda": {
@@ -470,6 +579,30 @@
             "because we will update roles depending on the operation."
           ],
           "writable": true
+        },
+        {
+          "name": "upgrade_lock",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  112,
+                  103,
+                  114,
+                  97,
+                  100,
+                  101,
+                  32,
+                  108,
+                  111,
+                  99,
+                  107
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "program_data",
@@ -587,10 +720,7 @@
           "signer": true
         },
         {
-          "name": "owner",
-          "docs": [
-            "The designated owner of the program."
-          ]
+          "name": "owner"
         },
         {
           "name": "auth_badge",
@@ -622,7 +752,7 @@
           "name": "tbr_config",
           "docs": [
             "Owner Config account. This program requires that the `owner` specified",
-            "in the context equals the pubkey specified in this account. Mutable."
+            "in the context equals the pubkey specified in this account."
           ],
           "writable": true,
           "pda": {
@@ -816,13 +946,6 @@
           "name": "auth_badge",
           "docs": [
             "Proof that the signer is authorized."
-          ]
-        },
-        {
-          "name": "tbr_config",
-          "docs": [
-            "Owner Config account. This program requires that the `signer` specified",
-            "in the context equals an authorized pubkey specified in this account."
           ]
         },
         {
@@ -1047,14 +1170,6 @@
         {
           "name": "chain_config",
           "writable": true
-        },
-        {
-          "name": "tbr_config",
-          "docs": [
-            "Program Config account. This program requires that the [`signer`] specified",
-            "in the context equals a pubkey specified in this account. Mutable,",
-            "because we will update roles depending on the operation."
-          ]
         }
       ],
       "args": [
@@ -1067,7 +1182,12 @@
     {
       "name": "submit_owner_transfer_request",
       "docs": [
-        "Updates the owner account. This needs to be either cancelled or approved."
+        "Updates the owner account. This needs to be either cancelled or approved.",
+        "",
+        "For safety reasons, transferring ownership is a 2-step process. This first step is to set the",
+        "new owner, and the second step is for the new owner to claim the ownership.",
+        "This is to prevent a situation where the ownership is transferred to an",
+        "address that is not able to claim the ownership (by mistake)."
       ],
       "discriminator": [
         99,
@@ -1110,6 +1230,116 @@
               }
             ]
           }
+        },
+        {
+          "name": "upgrade_lock",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  112,
+                  103,
+                  114,
+                  97,
+                  100,
+                  101,
+                  32,
+                  108,
+                  111,
+                  99,
+                  107
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "program_data",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  13,
+                  74,
+                  247,
+                  118,
+                  36,
+                  164,
+                  201,
+                  97,
+                  25,
+                  221,
+                  241,
+                  144,
+                  142,
+                  148,
+                  63,
+                  218,
+                  160,
+                  137,
+                  78,
+                  28,
+                  18,
+                  140,
+                  195,
+                  112,
+                  127,
+                  26,
+                  150,
+                  227,
+                  211,
+                  125,
+                  216,
+                  108
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                2,
+                168,
+                246,
+                145,
+                78,
+                136,
+                161,
+                176,
+                226,
+                16,
+                21,
+                62,
+                247,
+                99,
+                174,
+                43,
+                0,
+                194,
+                185,
+                61,
+                22,
+                193,
+                36,
+                210,
+                192,
+                83,
+                122,
+                16,
+                4,
+                128,
+                0,
+                0
+              ]
+            }
+          }
+        },
+        {
+          "name": "bpf_loader_upgradeable",
+          "address": "BPFLoaderUpgradeab1e11111111111111111111111"
         }
       ],
       "args": [
@@ -1193,9 +1423,6 @@
         },
         {
           "name": "fee_recipient",
-          "docs": [
-            "Fee recipient's account. The fee will be transferred to this account."
-          ],
           "writable": true,
           "relations": [
             "tbr_config"
@@ -1381,18 +1608,7 @@
           "docs": [
             "Owner of the program as set in the [`TbrConfig`] account."
           ],
-          "writable": true,
-          "signer": true,
-          "relations": [
-            "tbr_config"
-          ]
-        },
-        {
-          "name": "tbr_config",
-          "docs": [
-            "Owner Config account. This program requires that the `owner` specified",
-            "in the context equals the `owner` pubkey specified in this account."
-          ]
+          "signer": true
         },
         {
           "name": "peer"
@@ -1549,14 +1765,6 @@
         {
           "name": "chain_config",
           "writable": true
-        },
-        {
-          "name": "tbr_config",
-          "docs": [
-            "Program Config account. This program requires that the [`signer`] specified",
-            "in the context equals a pubkey specified in this account. Mutable,",
-            "because we will update roles depending on the operation."
-          ]
         }
       ],
       "args": [
@@ -1604,14 +1812,6 @@
         {
           "name": "chain_config",
           "writable": true
-        },
-        {
-          "name": "tbr_config",
-          "docs": [
-            "Program Config account. This program requires that the [`signer`] specified",
-            "in the context equals a pubkey specified in this account. Mutable,",
-            "because we will update roles depending on the operation."
-          ]
         }
       ],
       "args": [
@@ -1753,63 +1953,73 @@
     },
     {
       "code": 6007,
+      "name": "DropoffExceedingMaximum",
+      "msg": "DropoffExceedingMaximum"
+    },
+    {
+      "code": 6008,
       "name": "FeeExceedingMaximum",
       "msg": "FeeExceedingMaximum"
     },
     {
-      "code": 6008,
+      "code": 6009,
       "name": "WrongFeeRecipient",
       "msg": "WrongFeeRecipient"
     },
     {
-      "code": 6009,
+      "code": 6010,
       "name": "WronglySetOptionalAccounts",
       "msg": "WronglySetOptionalAccounts"
     },
     {
-      "code": 6010,
+      "code": 6011,
       "name": "WrongMintAuthority",
       "msg": "WrongMintAuthority"
     },
     {
-      "code": 6011,
+      "code": 6012,
       "name": "InvalidRecipient",
       "msg": "InvalidRecipient"
     },
     {
-      "code": 6012,
+      "code": 6013,
       "name": "EvmChainPriceNotSet",
       "msg": "EvmChainPriceNotSet"
     },
     {
-      "code": 6013,
+      "code": 6014,
       "name": "ChainPriceMismatch",
       "msg": "ChainPriceMismatch"
     },
     {
-      "code": 6014,
+      "code": 6015,
       "name": "PausedTransfers",
       "msg": "PausedTransfers"
     },
     {
-      "code": 6015,
+      "code": 6016,
       "name": "InvalidSendingPeer",
       "msg": "InvalidSendingPeer"
     },
     {
-      "code": 6016,
+      "code": 6017,
       "name": "CannotRegisterSolana",
       "msg": "CannotRegisterSolana"
     },
     {
-      "code": 6017,
+      "code": 6018,
       "name": "InvalidPeerAddress",
       "msg": "InvalidPeerAddress"
     },
     {
-      "code": 6018,
+      "code": 6019,
       "name": "MissingAssociatedTokenAccount",
       "msg": "MissingAssociatedTokenAccount"
+    },
+    {
+      "code": 6020,
+      "name": "Overflow",
+      "msg": "Overflow"
     }
   ],
   "types": [
@@ -2053,6 +2263,11 @@
       "name": "SEED_PREFIX_TEMPORARY",
       "type": "bytes",
       "value": "[116, 109, 112]"
+    },
+    {
+      "name": "SEED_PREFIX_UPGRADE_LOCK",
+      "type": "bytes",
+      "value": "[117, 112, 103, 114, 97, 100, 101, 32, 108, 111, 99, 107]"
     }
   ]
 }

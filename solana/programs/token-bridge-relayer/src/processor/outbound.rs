@@ -36,7 +36,7 @@ pub struct OutboundTransfer<'info> {
     pub chain_config: Box<Account<'info, ChainConfigState>>,
 
     /// Mint info. This is the SPL token that will be bridged over to the
-    /// canonical peer. Mutable.
+    /// canonical peer.
     ///
     /// In the case of a native transfer, it's the native mint; in the case of a
     /// wrapped transfer, it's the token wrapped by Wormhole.
@@ -62,7 +62,7 @@ pub struct OutboundTransfer<'info> {
     #[account(mut)]
     pub temporary_account: UncheckedAccount<'info>,
 
-    /// Fee recipient's account. The fee will be transferred to this account.
+    /// CHECK: Fee recipient's account. The fee will be transferred to this account.
     #[account(mut)]
     pub fee_recipient: UncheckedAccount<'info>,
 
@@ -80,7 +80,7 @@ pub struct OutboundTransfer<'info> {
     /// CHECK: Token Bridge custody. This is the Token Bridge program's token
     /// account that holds this mint's balance. This account needs to be
     /// unchecked because a token account may not have been created for this
-    /// mint yet. Mutable.
+    /// mint yet.
     ///
     /// # Exclusive
     ///
@@ -116,7 +116,7 @@ pub struct OutboundTransfer<'info> {
     /// CHECK: Token Bridge emitter.
     pub token_bridge_emitter: UncheckedAccount<'info>,
 
-    /// CHECK: Token Bridge sequence.
+    /// CHECK: Token Bridge sequence. Mutable.
     #[account(mut)]
     pub token_bridge_sequence: UncheckedAccount<'info>,
 
@@ -131,8 +131,9 @@ pub struct OutboundTransfer<'info> {
         ],
         bump,
     )]
-    pub wormhole_message: AccountInfo<'info>,
+    pub wormhole_message: UncheckedAccount<'info>,
 
+    /// CHECK: Wormhole sender.
     pub wormhole_sender: UncheckedAccount<'info>,
 
     /// CHECK: Wormhole fee collector. Mutable.
@@ -183,6 +184,11 @@ pub fn transfer_tokens(
         token_bridge::SEED_PREFIX_SENDER.as_ref(),
         &[ctx.accounts.tbr_config.sender_bump],
     ];
+
+    require!(
+        dropoff_amount_micro <= ctx.accounts.chain_config.max_gas_dropoff_micro_token,
+        TokenBridgeRelayerError::DropoffExceedingMaximum
+    );
 
     let transferred_amount = normalize_token_amount(transferred_amount, &ctx.accounts.mint);
     let total_fees_lamports = calculate_total_fee(
