@@ -165,7 +165,7 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     }
 
     const senderPk = new PublicKey(params.sender.toNative('Solana').toString());
-    const gasDropoffAmount = Number(sdkAmount.display(params.gasDropOff))
+    const gasDropoffAmount = Number(sdkAmount.display(params.gasDropOff));
 
     transaction.add(
       await this.client.transferTokens(senderPk, {
