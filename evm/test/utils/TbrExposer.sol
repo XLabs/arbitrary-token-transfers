@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.25;
 
-import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import { IERC20Metadata } from "wormhole-sdk/interfaces/token/IERC20Metadata.sol";
 import { ITokenBridge } from "wormhole-sdk/interfaces/ITokenBridge.sol";
 import { IWETH } from "wormhole-sdk/interfaces/token/IWETH.sol";
 import { IPermit2 } from "permit2/IPermit2.sol";
@@ -60,10 +60,6 @@ contract TbrExposer is Tbr {
   
   function exposedIsPaused(uint16 targetChain) public view returns (bool) {
     return _isPaused(targetChain);
-  }
-
-  function exposedTransferEth(address to, uint256 amount) public {
-    _transferEth(to, amount);
   }
 
   function exposedQuoteRelay(

@@ -203,11 +203,4 @@ abstract contract TbrBase is PriceOracleIntegration {
     }
     state.paused = paused;
   }
-
-  function _transferEth(address to, uint256 amount) internal {
-    if (amount == 0) return;
-
-    (bool success, ) = to.call{value: amount}(new bytes(0));
-    if (!success) revert PaymentFailure(to);
-  }
 }

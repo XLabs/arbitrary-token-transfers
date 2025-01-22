@@ -75,7 +75,6 @@ function craftTbrV3Vaa(
     unwrapIntent
   );
 
-  WormholeOverride.setUpOverride(wormhole);
   uint64 sequence = AdvancedWormholeOverride.getSequence(wormhole);
   bytes memory encoded = WormholeOverride.craftVaa(
     wormhole,

@@ -3,13 +3,14 @@
 pragma solidity ^0.8.25;
 
 import { BytesParsing } from "wormhole-sdk/libraries/BytesParsing.sol";
-import { SweepTokens } from "./sharedComponents/SweepTokens.sol";
+import { SweepTokens } from "wormhole-sdk/components/dispatcher/SweepTokens.sol";
+import { tokenOrNativeTransfer } from "wormhole-sdk/utils/Transfer.sol";
 import { RawDispatcher } from "wormhole-sdk/RawDispatcher.sol";
-import { Upgrade } from "./sharedComponents/Upgrade.sol";
+import { Upgrade } from "wormhole-sdk/components/dispatcher/Upgrade.sol";
 import { InvalidCommand } from "./TbrBase.sol";
 import { TbrConfig } from "./TbrConfig.sol";
 import { TbrUser } from "./TbrUser.sol";
-import "./sharedComponents/ids.sol";
+import "wormhole-sdk/components/dispatcher/Ids.sol";
 import "./TbrIds.sol";
 
 /**
@@ -71,10 +72,10 @@ abstract contract TbrDispatcher is RawDispatcher, TbrConfig, TbrUser, SweepToken
       ++commandIndex;
     }
 
-    data.checkLengthCd(offset);
+    BytesParsing.checkLength(offset, data.length);
 
-    _transferEth(_getFeeRecipient(), fees);
-    _transferEth(msg.sender, senderRefund);
+    tokenOrNativeTransfer(address(0), _getFeeRecipient(), fees);
+    tokenOrNativeTransfer(address(0), msg.sender, senderRefund);
     return new bytes(0);
   }}
 
@@ -113,7 +114,7 @@ abstract contract TbrDispatcher is RawDispatcher, TbrConfig, TbrUser, SweepToken
       ret = abi.encodePacked(ret, result);
       ++queryIndex;
     }
-    data.checkLengthCd(offset);
+    BytesParsing.checkLength(offset, data.length);
     return ret;
   }}
 }
