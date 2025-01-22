@@ -10,7 +10,7 @@ import { Upgrade } from "wormhole-sdk/components/dispatcher/Upgrade.sol";
 import { InvalidCommand } from "./TbrBase.sol";
 import { TbrConfig } from "./TbrConfig.sol";
 import { TbrUser } from "./TbrUser.sol";
-import "wormhole-sdk/components/dispatcher/ids.sol";
+import "wormhole-sdk/components/dispatcher/Ids.sol";
 import "./TbrIds.sol";
 
 /**

@@ -2,22 +2,21 @@
 
 pragma solidity ^0.8.25;
 
-import { makeBytes32, ERC20Mock, discardInsignificantBits, deNormalizeAmount } from "./utils/utils.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { ISignatureTransfer, IAllowanceTransfer } from "permit2/IPermit2.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { ITokenBridge } from "wormhole-sdk/interfaces/ITokenBridge.sol";
-import { BytesParsing } from "wormhole-sdk/libraries/BytesParsing.sol";
-import { IWETH } from "wormhole-sdk/interfaces/token/IWETH.sol";
-import { IPriceOracle } from "price-oracle/IPriceOracle.sol";
-import { toUniversalAddress } from "wormhole-sdk/Utils.sol";
-import { CHAIN_ID_ETHEREUM } from "wormhole-sdk/constants/Chains.sol";
-import { TbrTestBase } from "./utils/TbrTestBase.sol";
-import { craftTbrV3Vaa } from "./utils/utils.sol";
-
 import "tbr/assets/TbrDispatcher.sol";
 import "tbr/assets/TbrUser.sol";
 import "tbr/assets/TbrIds.sol";
+import { ITokenBridge } from "wormhole-sdk/interfaces/ITokenBridge.sol";
+import { IERC20 } from "wormhole-sdk/interfaces/token/IERC20.sol";
+import { IWETH } from "wormhole-sdk/interfaces/token/IWETH.sol";
+import { BytesParsing } from "wormhole-sdk/libraries/BytesParsing.sol";
+import { SafeERC20 } from "wormhole-sdk/libraries/SafeERC20.sol";
+import { IPriceOracle } from "price-oracle/IPriceOracle.sol";
+import { toUniversalAddress } from "wormhole-sdk/Utils.sol";
+import { CHAIN_ID_ETHEREUM } from "wormhole-sdk/constants/Chains.sol";
+
+import { TbrTestBase } from "./utils/TbrTestBase.sol";
+import { craftTbrV3Vaa, deNormalizeAmount, discardInsignificantBits, ERC20Mock, makeBytes32 } from "./utils/utils.sol";
 
 contract UserTest is TbrTestBase {
   using BytesParsing for bytes;
@@ -100,7 +99,7 @@ contract UserTest is TbrTestBase {
     unallocatedBalance = bound(unallocatedBalance, feeQuote + wormholeFee, (feeQuote + wormholeFee) * 10);
     deal(address(this), unallocatedBalance);
     deal(address(usdt), address(this), tokenAmount);
-    SafeERC20.safeApprove(usdt, address(tbr), tokenAmount);
+    SafeERC20.forceApprove(usdt, address(tbr), tokenAmount);
 
     uint16 targetChain = SOLANA_CHAIN_ID;
     bool unwrapIntent = false;
@@ -201,7 +200,7 @@ contract UserTest is TbrTestBase {
     unallocatedBalance = bound(unallocatedBalance, feeQuote + wormholeFee, (feeQuote + wormholeFee) * 10);
     deal(address(this), unallocatedBalance);
     deal(address(usdt), address(this), tokenAmount);
-    SafeERC20.safeApprove(usdt, address(tbr), tokenAmount);
+    SafeERC20.forceApprove(usdt, address(tbr), tokenAmount);
 
     uint16 targetChain = SOLANA_CHAIN_ID;
     bool unwrapIntent = false;
@@ -292,7 +291,7 @@ contract UserTest is TbrTestBase {
 
     ERC20Mock token = new ERC20Mock("test token", "TST", decimals);
     deal(address(token), address(this), firstTokenAmount + secondTokenAmount);
-    SafeERC20.safeApprove(IERC20Metadata(address(token)), address(tbr), firstTokenAmount + secondTokenAmount);
+    SafeERC20.forceApprove(IERC20Metadata(address(token)), address(tbr), firstTokenAmount + secondTokenAmount);
 
     uint16 targetChain = SOLANA_CHAIN_ID;
     bool unwrapIntent = false;
@@ -410,7 +409,7 @@ contract UserTest is TbrTestBase {
     unallocatedBalance = bound(unallocatedBalance, 0, feeQuote + wormholeFee - 1);
     deal(address(this), unallocatedBalance);
     deal(address(usdt), address(this), tokenAmount);
-    SafeERC20.safeApprove(usdt, address(tbr), tokenAmount);
+    SafeERC20.forceApprove(usdt, address(tbr), tokenAmount);
 
     uint16 targetChain = SOLANA_CHAIN_ID;
     bool unwrapIntent = false;
@@ -684,7 +683,7 @@ contract UserTest is TbrTestBase {
     bytes memory data = abi.encodePacked(ACQUIRE_PREAPPROVED);
 
     deal(address(usdt), address(this), tokenAmount);
-    SafeERC20.safeApprove(usdt, address(tbrExposer), tokenAmount);
+    SafeERC20.forceApprove(usdt, address(tbrExposer), tokenAmount);
 
     vm.mockCall(
       address(usdt),
@@ -1295,7 +1294,6 @@ contract UserTest is TbrTestBase {
     uint initialRecipientGasTokenBalance = recipient.balance;
     uint initialCallerBalance = address(this).balance;
 
-    uint64 sequence = 0;
     vm.expectEmit(address(tokenBridge));
     emit ITokenBridge.TransferRedeemed(peerChain, originTokenBridge, sequence);
 
@@ -1369,7 +1367,6 @@ contract UserTest is TbrTestBase {
     uint initialCallerBalance = address(this).balance;
     uint initialRecipientTransferredTokenBalance = IERC20(tokenToTransfer).balanceOf(recipient);
 
-    uint64 sequence = 0;
     vm.expectEmit(address(tokenBridge));
     emit ITokenBridge.TransferRedeemed(peerChain, originTokenBridge, sequence);
 

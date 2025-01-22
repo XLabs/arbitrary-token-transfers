@@ -7,7 +7,7 @@ import { BytesParsing } from "wormhole-sdk/libraries/BytesParsing.sol";
 import { IdempotentUpgrade } from "wormhole-sdk/proxy/ProxyBase.sol";
 import { UpgradeTester } from "./utils/UpgradeTester.sol";
 import { TbrTestBase } from "./utils/TbrTestBase.sol";
-import "wormhole-sdk/components/dispatcher/ids.sol";
+import "wormhole-sdk/components/dispatcher/Ids.sol";
 import "tbr/assets/TbrIds.sol";
 
 contract ConfigTest is TbrTestBase {
