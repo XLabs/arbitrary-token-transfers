@@ -520,7 +520,6 @@ describe('Token Bridge Relayer Program', () => {
       expect(vaa.payload.token.amount).equal(transferredAmount / 10n);
 
       expect(vaa.payload.payload.recipient).deep.equal(foreignAddress);
-      // We need to divide by 1 million because it's deserialized as the token, not µToken:
       expect(vaa.payload.payload.gasDropoff).equal(gasDropoffAmount);
       expect(vaa.payload.payload.unwrapIntent).equal(unwrapIntent);
     });
@@ -561,8 +560,7 @@ describe('Token Bridge Relayer Program', () => {
       expect(vaa.payload.token.amount).equal(transferredAmount / 100n);
 
       expect(vaa.payload.payload.recipient).deep.equal(foreignAddress);
-      // We need to divide by 1 million because it's deserialize as the token, not µToken:
-      expect(vaa.payload.payload.gasDropoff).equal(gasDropoffAmount / 1_000_000);
+      expect(vaa.payload.payload.gasDropoff).equal(gasDropoffAmount);
       expect(vaa.payload.payload.unwrapIntent).equal(unwrapIntent);
     });
 
@@ -741,7 +739,7 @@ describe('Token Bridge Relayer Program', () => {
     });
 
     it('Fails to transfer a token due to dropoff exceeding maximum', async () => {
-      const gasDropoffAmount = eth(11);
+      const gasDropoffAmount = 11;
       const unwrapIntent = false;
       const transferredAmount = 321654n;
 
