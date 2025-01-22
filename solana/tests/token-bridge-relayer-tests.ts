@@ -756,6 +756,7 @@ describe('Token Bridge Relayer Program', () => {
         gasDropoffAmount,
         maxFeeLamports: sol(0.1),
         unwrapIntent,
+        mintAddress: barMint.address,
       });
       await assert.promise(transferPromise).failsWith('DropoffExceedingMaximum');
     });
