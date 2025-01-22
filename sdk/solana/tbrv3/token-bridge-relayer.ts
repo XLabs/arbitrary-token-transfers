@@ -51,6 +51,13 @@ export interface WormholeAddress {
   address: UniversalAddress;
 }
 
+interface BaseRelayingParams {
+  canonicalPeer: UniversalAddress;
+  paused: boolean;
+  maxGasDropoff: number;
+  baseFee: number;
+}
+
 /**
  * @param recipient The address on another chain to transfer the tokens to.
  * @param userTokenAccount The end user's account with the token to be transferred.
@@ -66,6 +73,7 @@ export interface TransferParameters {
   gasDropoffAmount: number;
   maxFeeLamports: bigint;
   unwrapIntent?: boolean;
+  mintAddress: PublicKey;
 }
 
 export type TbrConfigAccount = anchor.IdlAccounts<IdlType>['tbrConfigState'];
@@ -75,6 +83,8 @@ export type SignerSequenceAccount = anchor.IdlAccounts<IdlType>['signerSequenceS
 export type AuthBadgeAccount = anchor.IdlAccounts<IdlType>['authBadgeState'];
 
 export type TbrNetwork = Exclude<Network, 'Devnet'> | 'Localnet';
+
+const MICROTOKENS_PER_TOKEN = 1_000_000n;
 
 /**
  * Transforms a `UniversalAddress` into an array of numbers `number[]`.
@@ -609,14 +619,13 @@ export class SolanaTokenBridgeRelayer {
       gasDropoffAmount,
       maxFeeLamports,
       unwrapIntent,
+      mintAddress,
     } = params;
 
     let transferType = '?';
 
     const getTokenBridgeAccounts = async () => {
-      const mint = await spl
-        .getAccount(this.connection, userTokenAccount)
-        .then(({ mint }) => spl.getMint(this.connection, mint));
+      const mint = await spl.getMint(this.connection, mintAddress);
       if (mint.mintAuthority?.equals(this.tokenBridgeMintAuthority)) {
         transferType = 'Wrapped';
         return this.tbAccBuilder.transferWrapped(
@@ -637,6 +646,7 @@ export class SolanaTokenBridgeRelayer {
     const { address: temporaryAccount, bump: temporaryAccountBump } = this.account.temporary(
       tokenBridgeAccounts.mint,
     );
+    const gasDropoffAmountMicro = gasDropoffAmount * Number(MICROTOKENS_PER_TOKEN);
 
     const accounts = {
       payer: signer,
@@ -667,11 +677,22 @@ export class SolanaTokenBridgeRelayer {
         uaToArray(recipient.address),
         bigintToBn(transferredAmount),
         unwrapIntent ?? false,
-        gasDropoffAmount,
+        gasDropoffAmountMicro,
         bigintToBn(maxFeeLamports),
       )
       .accountsStrict(accounts)
       .instruction();
+  }
+
+  async baseRelayingParams(chain: Chain): Promise<BaseRelayingParams> {
+    const config = await this.account.chainConfig(chain).fetch();
+
+    return {
+      maxGasDropoff: config.maxGasDropoffMicroToken / Number(MICROTOKENS_PER_TOKEN),
+      baseFee: config.relayerFeeMicroUsd,
+      paused: config.pausedOutboundTransfers,
+      canonicalPeer: new UniversalAddress(new Uint8Array(config.canonicalPeer)),
+    };
   }
 
   /**
@@ -833,14 +854,13 @@ export class SolanaTokenBridgeRelayer {
         'Cannot find the meta info\nThe mint authority indicates that the token is a Wormhole one, but no meta information is associated with it.',
       );
 
-    const { chain, address } = deserializeLayout(
-      [
-        { name: 'chain', ...layoutItems.chainItem(), endianness: 'little' },
-        { name: 'address', ...layoutItems.universalAddressItem },
-        { name: 'decimals', binary: 'uint', size: 1 },
-      ],
-      data,
-    );
+    const wrapMetaLayout = [
+      { name: 'chain', ...layoutItems.chainItem(), endianness: 'little' },
+      { name: 'address', ...layoutItems.universalAddressItem },
+      { name: 'decimals', binary: 'uint', size: 1 },
+    ] as const;
+
+    const { chain, address } = deserializeLayout(wrapMetaLayout, data);
 
     return { chain, address };
   }
@@ -930,7 +950,7 @@ export function returnedDataFromTransaction<L extends Layout>(
   // The line looks like 'Program return: <Public Key> <base64 encoded value>':
   const [, data] = log.slice(prefix.length).split(' ', 2);
 
-  return deserializeLayout<L>(typeLayout, Buffer.from(data, 'base64'), { consumeAll: true });
+  return deserializeLayout<L>(typeLayout, Buffer.from(data, 'base64'), true);
 }
 
 /**

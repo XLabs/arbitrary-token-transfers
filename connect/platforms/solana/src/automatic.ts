@@ -178,6 +178,7 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
         gasDropoffAmount,
         maxFeeLamports: BigInt(params.fee.toString() || 0),
         unwrapIntent: params.unwrapIntent,
+        mintAddress: mint,
       }),
     );
 
@@ -262,14 +263,7 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
   }
 
   async baseRelayingParams(chain: SupportedChains): Promise<BaseRelayingParams> {
-    const config = await this.client.account.chainConfig(chain).fetch();
-
-    return {
-      maxGasDropoff: config.maxGasDropoffMicroToken,
-      baseFee: config.relayerFeeMicroUsd,
-      paused: config.pausedOutboundTransfers,
-      canonicalPeer: new UniversalAddress(new Uint8Array(config.canonicalPeer)),
-    };
+    return this.client.baseRelayingParams(chain);
   }
 
   private mintAddress(token: TokenAddress<Chain>): PublicKey {

@@ -78,7 +78,6 @@ describe('Token Bridge Relayer Program', () => {
   const ethereumTbrPeer1 = $.universalAddress.generate('ethereum');
   const ethereumTbrPeer2 = $.universalAddress.generate('ethereum');
   const oasisTbrPeer = $.universalAddress.generate('ethereum');
-
   const bpfProgram = new BpfLoaderUpgradeableProgram(ownerClient.client.program.programId, $.connection);
 
   before(async () => {
@@ -452,7 +451,7 @@ describe('Token Bridge Relayer Program', () => {
 
     it('Transfers SOL to another chain', async () => {
       const tokenAccount = await $.wrapSol(unauthorizedClient.signer, 1_000_000);
-      const gasDropoffAmount = 5;
+      const gasDropoffAmount = 0.000005;
       const unwrapIntent = false; // Does not matter anyway
       const transferredAmount = 123789n;
 
@@ -466,6 +465,7 @@ describe('Token Bridge Relayer Program', () => {
         gasDropoffAmount,
         maxFeeLamports: 100_000_000n, // 0.1SOL max
         unwrapIntent,
+        mintAddress: spl.NATIVE_MINT,
       });
 
       const sequence = 0n;
@@ -486,7 +486,7 @@ describe('Token Bridge Relayer Program', () => {
 
       expect(vaa.payload.payload.recipient).deep.equal(foreignAddress);
       // We need to divide by 1 million because it's deserialized as the token, not µToken:
-      expect(vaa.payload.payload.gasDropoff).equal(gasDropoffAmount / 1_000_000);
+      expect(vaa.payload.payload.gasDropoff).equal(gasDropoffAmount);
       expect(vaa.payload.payload.unwrapIntent).equal(unwrapIntent);
     });
 
@@ -507,6 +507,7 @@ describe('Token Bridge Relayer Program', () => {
         gasDropoffAmount,
         maxFeeLamports: 100_000_000n, // 0.1SOL max
         unwrapIntent,
+        mintAddress: barMint.address,
       });
 
       const sequence = 1n;
@@ -674,6 +675,10 @@ describe('Token Bridge Relayer Program', () => {
         gasDropoffAmount,
         maxFeeLamports: 100_000_000n, // 0.1SOL max
         unwrapIntent,
+        mintAddress: (await tokenBridgeClient.client.getWrappedAsset({
+          address: ethereumTokenAddressFoo,
+          chain: ETHEREUM,
+        })).address,
       });
 
       const sequence = 0n;

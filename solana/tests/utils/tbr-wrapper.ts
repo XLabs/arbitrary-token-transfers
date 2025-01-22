@@ -1,4 +1,3 @@
-import anchor from '@coral-xyz/anchor';
 import { Connection, PublicKey, Signer, VersionedTransactionResponse } from '@solana/web3.js';
 import { Chain } from '@wormhole-foundation/sdk-base';
 import { UniversalAddress } from '@wormhole-foundation/sdk-definitions';
