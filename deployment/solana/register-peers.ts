@@ -51,12 +51,18 @@ const configureSolanaTbr: SolanaScriptCb = async function (
 
     if (!currentChainConfig) {
       log('Registering peer on chain', tbrDeployment.chainId);
-      const ix = await tbr.registerPeer(
+      const ixs = await tbr.registerFirstPeer(
         signerKey,
         chainIdToChain(tbrDeployment.chainId),
         peerUniversalAddress,
+        {
+          maxGasDropoffMicroToken: Number(desiredChainConfig.maxGasDropoff) * 10 ** 6,
+          relayerFeeMicroUsd: desiredChainConfig.relayFee,
+          // TODO: have this be configurable?
+          pausedOutboundTransfers: false,
+        }
       );
-      const tx = await ledgerSignAndSend(connection, [ix], []);
+      const tx = await ledgerSignAndSend(connection, ixs, []);
       log(`Register succeeded on tx: ${tx}`);
     } else {
       const currentPeer = currentChainConfig.canonicalPeer.toUniversalAddress();
@@ -100,7 +106,7 @@ const configureSolanaTbr: SolanaScriptCb = async function (
       log(
         `Updating relayerFee on chain ${tbrDeployment.chainId} to ${desiredChainConfig.relayFee}`,
       );
-      const ix = await tbr.updateRelayerFee(
+      const ix = await tbr.updateBaseFee(
         signerKey,
         chainIdToChain(tbrDeployment.chainId),
         desiredChainConfig.relayFee,
