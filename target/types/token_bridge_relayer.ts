@@ -131,7 +131,7 @@ export type TokenBridgeRelayer = {
                   97,
                   100,
                   101,
-                  32,
+                  95,
                   108,
                   111,
                   99,
@@ -265,7 +265,7 @@ export type TokenBridgeRelayer = {
           "name": "mint",
           "docs": [
             "Mint info. This is the SPL token that will be bridged over to the",
-            "foreign contract. Mutable.",
+            "foreign contract.",
             "",
             "In the case of a native transfer, it's the mint for the token wrapped by Wormhole;",
             "in the case of a wrapped transfer, it's the native SPL token mint."
@@ -277,7 +277,7 @@ export type TokenBridgeRelayer = {
           "docs": [
             "Recipient associated token account. The recipient authority check",
             "is necessary to ensure that the recipient is the intended recipient",
-            "of the bridged tokens. Mutable."
+            "of the bridged tokens."
           ],
           "writable": true,
           "optional": true,
@@ -429,7 +429,7 @@ export type TokenBridgeRelayer = {
           "docs": [
             "account that holds this mint's balance. This account needs to be",
             "unchecked because a token account may not have been created for this",
-            "mint yet. Mutable.",
+            "mint yet.",
             "",
             "# Exclusive",
             "",
@@ -600,7 +600,7 @@ export type TokenBridgeRelayer = {
                   97,
                   100,
                   101,
-                  32,
+                  95,
                   108,
                   111,
                   99,
@@ -1251,7 +1251,7 @@ export type TokenBridgeRelayer = {
                   97,
                   100,
                   101,
-                  32,
+                  95,
                   108,
                   111,
                   99,
@@ -1400,7 +1400,7 @@ export type TokenBridgeRelayer = {
           "name": "mint",
           "docs": [
             "Mint info. This is the SPL token that will be bridged over to the",
-            "canonical peer. Mutable.",
+            "canonical peer.",
             "",
             "In the case of a native transfer, it's the native mint; in the case of a",
             "wrapped transfer, it's the token wrapped by Wormhole."
@@ -1448,7 +1448,7 @@ export type TokenBridgeRelayer = {
           "docs": [
             "account that holds this mint's balance. This account needs to be",
             "unchecked because a token account may not have been created for this",
-            "mint yet. Mutable.",
+            "mint yet.",
             "",
             "# Exclusive",
             "",
@@ -2273,7 +2273,7 @@ export type TokenBridgeRelayer = {
     {
       "name": "seedPrefixUpgradeLock",
       "type": "bytes",
-      "value": "[117, 112, 103, 114, 97, 100, 101, 32, 108, 111, 99, 107]"
+      "value": "[117, 112, 103, 114, 97, 100, 101, 95, 108, 111, 99, 107]"
     }
   ]
 };
