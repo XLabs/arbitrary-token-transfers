@@ -2,9 +2,10 @@
   "name": "deployment",
   "version": "0.0.1",
   "scripts": {
-    "build:evm:typechain": "typechain --target=ethers-v6 --out-dir=./ethers-contracts ../evm/build-forge/*.sol/!(*.dbg).json --show-stack-traces",
-    "build:evm": "forge build --root=../evm && yarn build:evm:typechain",
-    "clean": "rm -rf ./ts-build && git clean --force -- ./ethers-contracts && git checkout -- ./ethers-contracts",
+    "build:evm:typechain": "mkdir -p evm-build/bindings && yarn tsx ../evm/solc2bindings.ts evm-build/Tbr.output.json evm-build/bindings",
+    "build:evm:contract": "mkdir -p evm-build && docker build  --file ../evm/Dockerfile .. --tag tbrv3-evm-rebuild --output type=local,dest=evm-build",
+    "build:evm": "yarn build:evm:contract && yarn build:evm:typechain",
+    "clean": "rm -rf evm-build",
     "deploy:evm:localnet": "ENV=localnet tsx evm/deploy.ts",
     "deploy:evm:testnet": "ENV=testnet tsx evm/deploy.ts",
     "deploy:evm:mainnet": "ENV=mainnet tsx evm/deploy.ts",
@@ -22,7 +23,6 @@
     "@coral-xyz/anchor": "^0.30.1",
     "@solana/spl-token": "^0.4.9",
     "@solana/web3.js": "^1.98.0",
-    "@typechain/ethers-v6": "^0.5.1",
     "@wormhole-foundation/sdk-base": "^1.4.5",
     "@wormhole-foundation/sdk-definitions": "^1.4.5",
     "@wormhole-foundation/sdk-evm": "^1.4.5",
@@ -34,9 +34,10 @@
     "@xlabs-xyz/ledger-signer-ethers-v6": "^0.0.1",
     "@xlabs-xyz/ledger-signer-solana": "^0.0.1",
     "@xlabs-xyz/solana-arbitrary-token-transfers": "workspace:*",
+    "@xlabs-xyz/typechain": "^8.3.7",
+    "@xlabs-xyz/typechain-ethers-v6": "^0.5.1",
     "chalk": "^5.3.0",
     "dotenv": "^16.4.5",
-    "ethers": "^6.13.5",
-    "typechain": "^8.3.2"
+    "ethers": "^6.13.5"
   }
 }
