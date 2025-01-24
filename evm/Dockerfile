@@ -27,7 +27,7 @@ RUN cd evm; \
     cat Tbr.input.json | jq > Tbr.input.tmp.json; \
     mv Tbr.input.tmp.json Tbr.input.json; \
     ./solc --standard-json Tbr.input.json > Tbr.output.json && \
-    SOLC_ERR=$(jq '.errors[] | select(.severity == "error")' Tbr.output.json) && \
+    SOLC_ERR=$(jq '.errors[]? | select(.severity == "error")' Tbr.output.json) && \
     if [ ! -z "$SOLC_ERR" ]; then \
         echo "Error detected during solc execution."; \
         echo $SOLC_ERR; \
