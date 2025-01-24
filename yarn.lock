@@ -1970,9 +1970,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xlabs-xyz/typechain@npm:^8.3.4":
-  version: 8.3.4
-  resolution: "@xlabs-xyz/typechain@npm:8.3.4"
+"@xlabs-xyz/typechain@npm:^8.3.7":
+  version: 8.3.7
+  resolution: "@xlabs-xyz/typechain@npm:8.3.7"
   dependencies:
     "@types/prettier": "npm:^2.1.1"
     debug: "npm:^4.3.1"
@@ -1988,7 +1988,7 @@ __metadata:
     typescript: ">=4.3.0"
   bin:
     typechain: dist/cli/cli.js
-  checksum: 10c0/2d554a92ea25982c99b6f6f8272628a5f38f386f4116e3cc4b39c17f12bfbefd26b4f937b3fed00131faa2776336994cdc0a73b42d95e430fc4098635a8cc779
+  checksum: 10c0/bd76e7a0e343270de8f0d5b488ed528ddcb882798d186b7e0cc5060416752858a6dfc8e7918558fb77cdbf6c5d056502582291b3c0e2065a56db2e73ae44a89b
   languageName: node
   linkType: hard
 
@@ -2800,7 +2800,7 @@ __metadata:
     "@xlabs-xyz/ledger-signer-ethers-v6": "npm:^0.0.1"
     "@xlabs-xyz/ledger-signer-solana": "npm:^0.0.1"
     "@xlabs-xyz/solana-arbitrary-token-transfers": "workspace:*"
-    "@xlabs-xyz/typechain": "npm:^8.3.4"
+    "@xlabs-xyz/typechain": "npm:^8.3.7"
     "@xlabs-xyz/typechain-ethers-v6": "npm:^0.5.1"
     chalk: "npm:^5.3.0"
     dotenv: "npm:^16.4.5"
@@ -3236,7 +3236,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "evm@workspace:evm"
   dependencies:
-    "@xlabs-xyz/typechain": "npm:^8.3.4"
+    "@xlabs-xyz/typechain": "npm:^8.3.7"
     "@xlabs-xyz/typechain-ethers-v6": "npm:^0.5.1"
     tsx: "npm:^4.19.2"
   languageName: unknown

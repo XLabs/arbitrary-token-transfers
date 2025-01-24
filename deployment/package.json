@@ -34,7 +34,7 @@
     "@xlabs-xyz/ledger-signer-ethers-v6": "^0.0.1",
     "@xlabs-xyz/ledger-signer-solana": "^0.0.1",
     "@xlabs-xyz/solana-arbitrary-token-transfers": "workspace:*",
-    "@xlabs-xyz/typechain": "^8.3.4",
+    "@xlabs-xyz/typechain": "^8.3.7",
     "@xlabs-xyz/typechain-ethers-v6": "^0.5.1",
     "chalk": "^5.3.0",
     "dotenv": "^16.4.5",

@@ -2538,17 +2538,17 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@xlabs-xyz/typechain", [\
-      ["npm:8.3.4", {\
-        "packageLocation": "./.yarn/cache/@xlabs-xyz-typechain-npm-8.3.4-95c0e11106-2d554a92ea.zip/node_modules/@xlabs-xyz/typechain/",\
+      ["npm:8.3.7", {\
+        "packageLocation": "./.yarn/cache/@xlabs-xyz-typechain-npm-8.3.7-55d6aab533-bd76e7a0e3.zip/node_modules/@xlabs-xyz/typechain/",\
         "packageDependencies": [\
-          ["@xlabs-xyz/typechain", "npm:8.3.4"]\
+          ["@xlabs-xyz/typechain", "npm:8.3.7"]\
         ],\
         "linkType": "SOFT"\
       }],\
-      ["virtual:5449dbfbc8f715fdbd2c737c0a09a82e4cd2ffe644d99dd1bc0581b0889f04b69068ed991ce11b47be2adc46d31415f8c245c393d61c33529fcc22e453281945#npm:8.3.4", {\
-        "packageLocation": "./.yarn/__virtual__/@xlabs-xyz-typechain-virtual-738a57b108/0/cache/@xlabs-xyz-typechain-npm-8.3.4-95c0e11106-2d554a92ea.zip/node_modules/@xlabs-xyz/typechain/",\
+      ["virtual:5449dbfbc8f715fdbd2c737c0a09a82e4cd2ffe644d99dd1bc0581b0889f04b69068ed991ce11b47be2adc46d31415f8c245c393d61c33529fcc22e453281945#npm:8.3.7", {\
+        "packageLocation": "./.yarn/__virtual__/@xlabs-xyz-typechain-virtual-a33ef221d9/0/cache/@xlabs-xyz-typechain-npm-8.3.7-55d6aab533-bd76e7a0e3.zip/node_modules/@xlabs-xyz/typechain/",\
         "packageDependencies": [\
-          ["@xlabs-xyz/typechain", "virtual:5449dbfbc8f715fdbd2c737c0a09a82e4cd2ffe644d99dd1bc0581b0889f04b69068ed991ce11b47be2adc46d31415f8c245c393d61c33529fcc22e453281945#npm:8.3.4"],\
+          ["@xlabs-xyz/typechain", "virtual:5449dbfbc8f715fdbd2c737c0a09a82e4cd2ffe644d99dd1bc0581b0889f04b69068ed991ce11b47be2adc46d31415f8c245c393d61c33529fcc22e453281945#npm:8.3.7"],\
           ["@types/prettier", "npm:2.7.3"],\
           ["@types/typescript", null],\
           ["debug", "virtual:c9e1a4b59e37cb479517edede3bf2093b28c0ca1a9d0e517f3c345075bd1e468980b94b4957e389116607ee7155441dfd7d09e19a4229d5d09bcf06244401590#npm:4.3.7"],\
@@ -2568,10 +2568,10 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "HARD"\
       }],\
-      ["virtual:bc7555349d25a577323e2ff8ce48f83f7b2f78c2c15b4d3ed865dda59d3d61a9a44ea1fc7ee82f6c30b9b2feecb24c1fb93ed3466a82de84f404a2f01e7ef122#npm:8.3.4", {\
-        "packageLocation": "./.yarn/__virtual__/@xlabs-xyz-typechain-virtual-38b025774c/0/cache/@xlabs-xyz-typechain-npm-8.3.4-95c0e11106-2d554a92ea.zip/node_modules/@xlabs-xyz/typechain/",\
+      ["virtual:bc7555349d25a577323e2ff8ce48f83f7b2f78c2c15b4d3ed865dda59d3d61a9a44ea1fc7ee82f6c30b9b2feecb24c1fb93ed3466a82de84f404a2f01e7ef122#npm:8.3.7", {\
+        "packageLocation": "./.yarn/__virtual__/@xlabs-xyz-typechain-virtual-f0e4a78c14/0/cache/@xlabs-xyz-typechain-npm-8.3.7-55d6aab533-bd76e7a0e3.zip/node_modules/@xlabs-xyz/typechain/",\
         "packageDependencies": [\
-          ["@xlabs-xyz/typechain", "virtual:bc7555349d25a577323e2ff8ce48f83f7b2f78c2c15b4d3ed865dda59d3d61a9a44ea1fc7ee82f6c30b9b2feecb24c1fb93ed3466a82de84f404a2f01e7ef122#npm:8.3.4"],\
+          ["@xlabs-xyz/typechain", "virtual:bc7555349d25a577323e2ff8ce48f83f7b2f78c2c15b4d3ed865dda59d3d61a9a44ea1fc7ee82f6c30b9b2feecb24c1fb93ed3466a82de84f404a2f01e7ef122#npm:8.3.7"],\
           ["@types/prettier", "npm:2.7.3"],\
           ["@types/typescript", null],\
           ["debug", "virtual:c9e1a4b59e37cb479517edede3bf2093b28c0ca1a9d0e517f3c345075bd1e468980b94b4957e389116607ee7155441dfd7d09e19a4229d5d09bcf06244401590#npm:4.3.7"],\
@@ -2607,7 +2607,7 @@ const RAW_RUNTIME_STATE =
           ["@types/ethers", null],\
           ["@types/typescript", null],\
           ["@types/xlabs-xyz__typechain", null],\
-          ["@xlabs-xyz/typechain", "virtual:5449dbfbc8f715fdbd2c737c0a09a82e4cd2ffe644d99dd1bc0581b0889f04b69068ed991ce11b47be2adc46d31415f8c245c393d61c33529fcc22e453281945#npm:8.3.4"],\
+          ["@xlabs-xyz/typechain", "virtual:5449dbfbc8f715fdbd2c737c0a09a82e4cd2ffe644d99dd1bc0581b0889f04b69068ed991ce11b47be2adc46d31415f8c245c393d61c33529fcc22e453281945#npm:8.3.7"],\
           ["ethers", "npm:6.13.5"],\
           ["lodash", "npm:4.17.21"],\
           ["ts-essentials", "virtual:69041e1aca6387d7f05022e99bcb3e2751b2b011c0cd9cd9a0cf8ef96b97e39bd4c3b6473bc21a418f781380cc895cc1e06f491fa7369cf8891f12322b7284b8#npm:7.0.3"],\
@@ -2630,7 +2630,7 @@ const RAW_RUNTIME_STATE =
           ["@types/ethers", null],\
           ["@types/typescript", null],\
           ["@types/xlabs-xyz__typechain", null],\
-          ["@xlabs-xyz/typechain", "virtual:bc7555349d25a577323e2ff8ce48f83f7b2f78c2c15b4d3ed865dda59d3d61a9a44ea1fc7ee82f6c30b9b2feecb24c1fb93ed3466a82de84f404a2f01e7ef122#npm:8.3.4"],\
+          ["@xlabs-xyz/typechain", "virtual:bc7555349d25a577323e2ff8ce48f83f7b2f78c2c15b4d3ed865dda59d3d61a9a44ea1fc7ee82f6c30b9b2feecb24c1fb93ed3466a82de84f404a2f01e7ef122#npm:8.3.7"],\
           ["ethers", null],\
           ["lodash", "npm:4.17.21"],\
           ["ts-essentials", "virtual:50f6c3adfea57d961b611b3a33b39434513e2c6ea6a46c3b4c28cd954cc1ec71f31b3f1ea1fc3bc67ff8380390385ceeb9ab940a5f2275a2e9bb5f79d81621f9#npm:7.0.3"],\
@@ -3613,7 +3613,7 @@ const RAW_RUNTIME_STATE =
           ["@xlabs-xyz/ledger-signer-ethers-v6", "npm:0.0.1"],\
           ["@xlabs-xyz/ledger-signer-solana", "npm:0.0.1"],\
           ["@xlabs-xyz/solana-arbitrary-token-transfers", "virtual:1083298bcb0ac2d0c31e8d54e5d8046d04af5b3b1ca39b8404f80e1c4c08f4735785338190f77488c34d544aec8cdd0fb4bb5631f5f8a4e09017b7efc0afa473#workspace:sdk/solana"],\
-          ["@xlabs-xyz/typechain", "virtual:5449dbfbc8f715fdbd2c737c0a09a82e4cd2ffe644d99dd1bc0581b0889f04b69068ed991ce11b47be2adc46d31415f8c245c393d61c33529fcc22e453281945#npm:8.3.4"],\
+          ["@xlabs-xyz/typechain", "virtual:5449dbfbc8f715fdbd2c737c0a09a82e4cd2ffe644d99dd1bc0581b0889f04b69068ed991ce11b47be2adc46d31415f8c245c393d61c33529fcc22e453281945#npm:8.3.7"],\
           ["@xlabs-xyz/typechain-ethers-v6", "virtual:5449dbfbc8f715fdbd2c737c0a09a82e4cd2ffe644d99dd1bc0581b0889f04b69068ed991ce11b47be2adc46d31415f8c245c393d61c33529fcc22e453281945#npm:0.5.1"],\
           ["chalk", "npm:5.3.0"],\
           ["dotenv", "npm:16.4.5"],\
@@ -3977,7 +3977,7 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./evm/",\
         "packageDependencies": [\
           ["evm", "workspace:evm"],\
-          ["@xlabs-xyz/typechain", "virtual:bc7555349d25a577323e2ff8ce48f83f7b2f78c2c15b4d3ed865dda59d3d61a9a44ea1fc7ee82f6c30b9b2feecb24c1fb93ed3466a82de84f404a2f01e7ef122#npm:8.3.4"],\
+          ["@xlabs-xyz/typechain", "virtual:bc7555349d25a577323e2ff8ce48f83f7b2f78c2c15b4d3ed865dda59d3d61a9a44ea1fc7ee82f6c30b9b2feecb24c1fb93ed3466a82de84f404a2f01e7ef122#npm:8.3.7"],\
           ["@xlabs-xyz/typechain-ethers-v6", "virtual:bc7555349d25a577323e2ff8ce48f83f7b2f78c2c15b4d3ed865dda59d3d61a9a44ea1fc7ee82f6c30b9b2feecb24c1fb93ed3466a82de84f404a2f01e7ef122#npm:0.5.1"],\
           ["tsx", "npm:4.19.2"]\
         ],\
