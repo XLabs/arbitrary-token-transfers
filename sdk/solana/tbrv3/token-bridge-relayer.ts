@@ -354,34 +354,57 @@ export class SolanaTokenBridgeRelayer {
   /**
    * Signer: the Program Authority.
    */
-  async initialize({
-    owner,
-    feeRecipient,
-    admins,
-  }: {
-    owner: PublicKey;
-    feeRecipient: PublicKey;
-    admins: PublicKey[];
-  }): Promise<TransactionInstruction> {
+  async initialize(
+    signer: PublicKey,
+    {
+      owner,
+      feeRecipient,
+      admins,
+    }: {
+      owner: PublicKey;
+      feeRecipient: PublicKey;
+      admins: PublicKey[];
+    },
+    evmTransactionGas: bigint,
+    evmTransactionSize: bigint,
+  ): Promise<TransactionInstruction[]> {
+
+    const program = new BpfLoaderUpgradeableProgram(this.programId, this.connection);
+    const upgradeAuthority = (await program.getdata()).upgradeAuthority;
+    if (upgradeAuthority === undefined) throwError('The program must be upgradeable');
+    if (upgradeAuthority !== signer)
+      throwError(`The signer (${signer}) must be the upgrade authority.
+Current authority: ${upgradeAuthority}`);
+
+    if (!signer.equals(owner) && !admins.some((key) => signer.equals(key)))
+      throwError(`The signer must be set as either the owner or an admin`);
+
     const authBadges = admins.map((key) => ({
       pubkey: this.account.authBadge(key).address,
       isSigner: false,
       isWritable: true,
     }));
 
-    const program = new BpfLoaderUpgradeableProgram(this.programId, this.connection);
-    const deployer =
-      (await program.getdata()).upgradeAuthority ?? throwError('The program must be upgradeable');
-
-    return await this.program.methods
-      .initialize(feeRecipient, admins)
-      .accountsPartial({
-        deployer,
-        programData: program.dataAddress,
-        owner,
-      })
-      .remainingAccounts(authBadges)
-      .instruction();
+    return Promise.all([
+      this.program.methods
+        .initialize(feeRecipient, admins)
+        .accountsPartial({
+          deployer: upgradeAuthority,
+          programData: program.dataAddress,
+          owner,
+        })
+        .remainingAccounts(authBadges)
+        .instruction(),
+      // TODO: assuming the owner will initialize the contract is inflexible
+      this.program.methods
+        .updateEvmTransactionConfig(bigintToBn(evmTransactionGas), bigintToBn(evmTransactionSize))
+        .accounts({
+          signer: owner,
+          authBadge: this.account.authBadge(owner).address,
+          tbrConfig: this.account.config().address,
+        })
+        .instruction()
+    ]);
   }
 
   /* Roles */

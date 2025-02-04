@@ -53,6 +53,8 @@ export type SolanaTbrInitParams = {
   owner: string;
   feeRecipient: string;
   admins: string[];
+  evmRelayGas: string;
+  evmRelayTxSize: string;
 }
 
 export type ContractsJson = Record<string, Deployment[]>;

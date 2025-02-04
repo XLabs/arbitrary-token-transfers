@@ -6,7 +6,7 @@ import { loadSolanaTbrInitParams } from '../helpers/env.js';
 
 const initializeSolanaTbr: SolanaScriptCb = async function (
   chain,
-  // signer,
+  signer,
   // log,
 ) {
   const connection = getConnection(chain);
@@ -15,20 +15,27 @@ const initializeSolanaTbr: SolanaScriptCb = async function (
   const tbrInitParams = loadSolanaTbrInitParams();
 
   if (!tbrInitParams.owner) {
-    throw new Error ("initialization parameters: owner address is required.")
+    throw new Error ("initialization parameters: owner address is required.");
   }
 
   if (!tbrInitParams.feeRecipient) {
-    throw new Error ("initialization parameters: feeRecipient address is required.")
+    throw new Error ("initialization parameters: feeRecipient address is required.");
   }
 
-  const initializeIx = await tbr.initialize({
-    owner: new PublicKey(tbrInitParams.owner),
-    feeRecipient: new PublicKey(tbrInitParams.feeRecipient),
-    admins: tbrInitParams.admins.map((adminKey) => new PublicKey(adminKey)),
-  });
+  const deployerPubkey = new PublicKey(await signer.getAddress());
 
-  await ledgerSignAndSend(connection, [initializeIx], []);
+  const initializeIxs = await tbr.initialize(
+    deployerPubkey,
+    {
+      owner: new PublicKey(tbrInitParams.owner),
+      feeRecipient: new PublicKey(tbrInitParams.feeRecipient),
+      admins: tbrInitParams.admins.map((adminKey) => new PublicKey(adminKey)),
+    },
+    BigInt(tbrInitParams.evmRelayGas),
+    BigInt(tbrInitParams.evmRelayTxSize)
+  );
+
+  await ledgerSignAndSend(connection, initializeIxs, []);
 }
 
 runOnSolana('initialize-tbr', initializeSolanaTbr).catch((e) => {

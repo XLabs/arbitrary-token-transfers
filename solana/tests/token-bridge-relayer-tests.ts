@@ -160,11 +160,15 @@ describe('Token Bridge Relayer Program', () => {
     // Let's credit a badge, to verify that we cannot trigger a denial of service:
     await $.airdrop(upgradeAuthorityClient.account.authBadge(adminClient1.publicKey).address);
 
-    await upgradeAuthorityClient.initialize({
-      feeRecipient,
-      owner: ownerClient.publicKey,
-      admins: [adminClient1.publicKey, adminClient2.publicKey],
-    });
+    await upgradeAuthorityClient.initialize(
+      {
+        feeRecipient,
+        owner: ownerClient.publicKey,
+        admins: [adminClient1.publicKey, adminClient2.publicKey],
+      },
+      evmTransactionGas + 1n,
+      evmTransactionSize + 1n
+    );
 
     // Verify that the authority has been updated to the new owner.
     const { upgradeAuthority } = await bpfProgram.getdata();
