@@ -77,8 +77,7 @@ uint32 constant SOLANA_RELAY_TOTAL_SIZE =
 // TODO: measure this.
 uint32 constant EVM_RELAY_GAS_COST = 400_000;
 // Size of the transaction in bytes.
-// TODO: measure this.
-uint32 constant EVM_RELAY_TX_SIZE = 1000;
+uint32 constant EVM_RELAY_TX_SIZE = 1211;
 // Amount of WEI in a microeth
 uint256 constant WEI_PER_MICROETH = 1E12;
 
