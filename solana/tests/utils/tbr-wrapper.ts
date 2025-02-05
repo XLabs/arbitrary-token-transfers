@@ -13,7 +13,7 @@ import testProgramKeypair from '../../programs/token-bridge-relayer/test-program
 
 const $ = new TestsHelper();
 
-type Tail<T extends RoTuple> = T extends [any, ...infer T2] ? T2 : never;
+type Tail<T extends RoTuple> = T extends readonly [unknown, ...infer T2] ? T2 : never;
 
 export class TbrWrapper {
   readonly client: SolanaTokenBridgeRelayer;
