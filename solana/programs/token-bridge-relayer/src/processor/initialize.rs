@@ -11,7 +11,7 @@ use wormhole_anchor_sdk::token_bridge;
 #[derive(Accounts)]
 #[instruction(admin: Pubkey)]
 pub struct Initialize<'info> {
-    /// Since we are passing on the upgarde authority, the original deployer is the only one
+    /// Since we are passing on the upgrade authority, the original deployer is the only one
     /// who can initialize the program.
     #[account(mut)]
     pub deployer: Signer<'info>,

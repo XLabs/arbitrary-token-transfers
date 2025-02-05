@@ -1,5 +1,5 @@
 import { Connection, PublicKey, Signer, VersionedTransactionResponse } from '@solana/web3.js';
-import { Chain } from '@wormhole-foundation/sdk-base';
+import { Chain, RoTuple } from '@wormhole-foundation/sdk-base';
 import { UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import {
   SolanaPriceOracle,
@@ -12,6 +12,8 @@ import { TestsHelper } from './helpers.js';
 import testProgramKeypair from '../../programs/token-bridge-relayer/test-program-keypair.json' with { type: 'json' };
 
 const $ = new TestsHelper();
+
+type Tail<T extends RoTuple> = T extends readonly [unknown, ...infer T2] ? T2 : never;
 
 export class TbrWrapper {
   readonly client: SolanaTokenBridgeRelayer;
@@ -76,12 +78,10 @@ export class TbrWrapper {
     }
   }
 
-  async initialize(args: {
-    owner: PublicKey;
-    feeRecipient: PublicKey;
-    admins: PublicKey[];
-  }): Promise<VersionedTransactionResponse | null> {
-    return $.getTransaction($.sendAndConfirm(await this.client.initialize(args), this.signer));
+  async initialize(
+    ...args: Tail<Parameters<SolanaTokenBridgeRelayer["initialize"]>>
+  ): Promise<VersionedTransactionResponse | null> {
+    return $.getTransaction($.sendAndConfirm(await this.client.initialize(this.signer.publicKey, ...args), this.signer));
   }
 
   async submitOwnerTransferRequest(

@@ -157,40 +157,49 @@ describe('Token Bridge Relayer Program', () => {
       DEBUG,
     );
 
-    // Let's credit a badge, to verify that we cannot trigger a denial of service:
-    await $.airdrop(upgradeAuthorityClient.account.authBadge(adminClient1.publicKey).address);
+    try {
+      // Let's credit a badge, to verify that we cannot trigger a denial of service:
+      await $.airdrop(upgradeAuthorityClient.account.authBadge(adminClient1.publicKey).address);
 
-    await upgradeAuthorityClient.initialize({
-      feeRecipient,
-      owner: ownerClient.publicKey,
-      admins: [adminClient1.publicKey, adminClient2.publicKey],
-    });
+      await upgradeAuthorityClient.initialize(
+        {
+          feeRecipient,
+          owner: ownerClient.publicKey,
+          admins: [adminClient1.publicKey, adminClient2.publicKey, upgradeAuthorityClient.publicKey],
+        },
+        evmTransactionGas + 1n,
+        evmTransactionSize + 1n
+      );
 
-    // Verify that the authority has been updated to the new owner.
-    const { upgradeAuthority } = await bpfProgram.getdata();
-    expect(upgradeAuthority).deep.equal(ownerClient.publicKey);
+      // Verify that the authority has been updated to the new owner.
+      const { upgradeAuthority } = await bpfProgram.getdata();
+      expect(upgradeAuthority).deep.equal(ownerClient.publicKey);
 
-    const config = await unauthorizedClient.read.config();
-    expect(config.owner).deep.equal(ownerClient.publicKey);
+      const config = await unauthorizedClient.read.config();
+      expect(config.owner).deep.equal(ownerClient.publicKey);
 
-    // The owner has an auth badge:
-    expect(await unauthorizedClient.account.authBadge(ownerClient.publicKey).fetch()).deep.equal({
-      address: ownerClient.publicKey,
-    });
+      // The owner has an auth badge:
+      expect(await unauthorizedClient.account.authBadge(ownerClient.publicKey).fetch()).deep.equal({
+        address: ownerClient.publicKey,
+      });
 
-    // The admins have an auth badge:
-    expect(await unauthorizedClient.account.authBadge(adminClient1.publicKey).fetch()).deep.equal({
-      address: adminClient1.publicKey,
-    });
-    expect(await unauthorizedClient.account.authBadge(adminClient2.publicKey).fetch()).deep.equal({
-      address: adminClient2.publicKey,
-    });
+      // The admins have an auth badge:
+      expect(await unauthorizedClient.account.authBadge(adminClient1.publicKey).fetch()).deep.equal({
+        address: adminClient1.publicKey,
+      });
+      expect(await unauthorizedClient.account.authBadge(adminClient2.publicKey).fetch()).deep.equal({
+        address: adminClient2.publicKey,
+      });
 
-    // Verify that the accounts reader works:
-    const adminAccounts = await unauthorizedClient.client.read.allAdminAccounts();
-    assert.array(adminAccounts).equal([adminClient1.publicKey, adminClient2.publicKey]);
+      // Verify that the accounts reader works:
+      const adminAccounts = await unauthorizedClient.client.read.allAdminAccounts();
+      assert.array(adminAccounts).equal([adminClient1.publicKey, adminClient2.publicKey, upgradeAuthorityClient.publicKey]);
+    } catch (error) {
+      throw error;
+    } finally {
+      await upgradeAuthorityClient.close();
+    }
 
-    await upgradeAuthorityClient.close();
   });
 
   describe('Roles', () => {

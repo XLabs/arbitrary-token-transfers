@@ -128,6 +128,9 @@ export function getConnection(chain: SolanaChainInfo) {
   return connection;
 }
 
+/**
+ * @todo Add priority fee instruction when configured to do so.
+ */
 export async function ledgerSignAndSend(connection: Connection, instructions: TransactionInstruction[], signers: Keypair[]) {
   const deployerSigner = await getSigner();
 

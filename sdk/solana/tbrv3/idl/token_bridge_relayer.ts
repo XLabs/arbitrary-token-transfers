@@ -719,7 +719,7 @@ export type TokenBridgeRelayer = {
         {
           "name": "deployer",
           "docs": [
-            "Since we are passing on the upgarde authority, the original deployer is the only one",
+            "Since we are passing on the upgrade authority, the original deployer is the only one",
             "who can initialize the program."
           ],
           "writable": true,
