@@ -193,7 +193,7 @@ describe('Token Bridge Relayer Program', () => {
 
       // Verify that the accounts reader works:
       const adminAccounts = await unauthorizedClient.client.read.allAdminAccounts();
-      assert.array(adminAccounts).equal([adminClient1.publicKey, adminClient2.publicKey]);
+      assert.array(adminAccounts).equal([adminClient1.publicKey, adminClient2.publicKey, upgradeAuthorityClient.publicKey]);
     } catch (error) {
       throw error;
     } finally {

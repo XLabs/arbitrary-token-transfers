@@ -389,18 +389,17 @@ Current authority: ${upgradeAuthority}`);
       this.program.methods
         .initialize(feeRecipient, admins)
         .accountsPartial({
-          deployer: upgradeAuthority,
+          deployer: signer,
           programData: program.dataAddress,
           owner,
         })
         .remainingAccounts(authBadges)
         .instruction(),
-      // TODO: assuming the owner will initialize the contract is inflexible
       this.program.methods
         .updateEvmTransactionConfig(bigintToBn(evmTransactionGas), bigintToBn(evmTransactionSize))
         .accounts({
-          signer: owner,
-          authBadge: this.account.authBadge(owner).address,
+          signer,
+          authBadge: this.account.authBadge(signer).address,
           tbrConfig: this.account.config().address,
         })
         .instruction()
