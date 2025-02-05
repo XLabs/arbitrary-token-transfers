@@ -372,7 +372,7 @@ export class SolanaTokenBridgeRelayer {
     const program = new BpfLoaderUpgradeableProgram(this.programId, this.connection);
     const upgradeAuthority = (await program.getdata()).upgradeAuthority;
     if (upgradeAuthority === undefined) throwError('The program must be upgradeable');
-    if (upgradeAuthority !== signer)
+    if (!upgradeAuthority.equals(signer))
       throwError(`The signer (${signer}) must be the upgrade authority.
 Current authority: ${upgradeAuthority}`);
 
