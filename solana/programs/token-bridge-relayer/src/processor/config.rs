@@ -10,7 +10,7 @@ pub struct UpdateTbrConfig<'info> {
     pub signer: Signer<'info>,
 
     /// Proof that the signer is authorized.
-    #[account(constraint = &auth_badge.address == signer.key @ TokenBridgeRelayerError::OwnerOrAdminOnly)]
+    #[account(constraint = &auth_badge.address == signer.key @ TokenBridgeRelayerError::RequiresAuthBadge)]
     pub auth_badge: Account<'info, AuthBadgeState>,
 
     /// Program Config account. This program requires that the [`signer`] specified

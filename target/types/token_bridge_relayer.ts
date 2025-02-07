@@ -1162,7 +1162,7 @@ export type TokenBridgeRelayer = {
         {
           "name": "signer",
           "docs": [
-            "Owner as set in the [`TbrConfig`] account, or an admin."
+            "Owner as set in the [`TbrConfigState`] account, or an admin."
           ],
           "writable": true,
           "signer": true
@@ -1757,7 +1757,7 @@ export type TokenBridgeRelayer = {
         {
           "name": "signer",
           "docs": [
-            "Owner as set in the [`TbrConfig`] account, or an admin."
+            "Owner as set in the [`TbrConfigState`] account, or an admin."
           ],
           "writable": true,
           "signer": true
@@ -1804,7 +1804,7 @@ export type TokenBridgeRelayer = {
         {
           "name": "signer",
           "docs": [
-            "Owner as set in the [`TbrConfig`] account, or an admin."
+            "Owner as set in the [`TbrConfigState`] account, or an admin."
           ],
           "writable": true,
           "signer": true
@@ -1939,8 +1939,8 @@ export type TokenBridgeRelayer = {
     },
     {
       "code": 6003,
-      "name": "ownerOrAdminOnly",
-      "msg": "ownerOrAdminOnly"
+      "name": "requiresAuthBadge",
+      "msg": "requiresAuthBadge"
     },
     {
       "code": 6004,

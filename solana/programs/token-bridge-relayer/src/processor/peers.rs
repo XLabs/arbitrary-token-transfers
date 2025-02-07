@@ -15,7 +15,7 @@ pub struct RegisterPeer<'info> {
     pub signer: Signer<'info>,
 
     /// Proof that the signer is authorized.
-    #[account(constraint = &auth_badge.address == signer.key @ TokenBridgeRelayerError::OwnerOrAdminOnly)]
+    #[account(constraint = &auth_badge.address == signer.key @ TokenBridgeRelayerError::RequiresAuthBadge)]
     pub auth_badge: Account<'info, AuthBadgeState>,
 
     #[account(

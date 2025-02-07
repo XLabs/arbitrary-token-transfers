@@ -1156,7 +1156,7 @@
         {
           "name": "signer",
           "docs": [
-            "Owner as set in the [`TbrConfig`] account, or an admin."
+            "Owner as set in the [`TbrConfigState`] account, or an admin."
           ],
           "writable": true,
           "signer": true
@@ -1751,7 +1751,7 @@
         {
           "name": "signer",
           "docs": [
-            "Owner as set in the [`TbrConfig`] account, or an admin."
+            "Owner as set in the [`TbrConfigState`] account, or an admin."
           ],
           "writable": true,
           "signer": true
@@ -1798,7 +1798,7 @@
         {
           "name": "signer",
           "docs": [
-            "Owner as set in the [`TbrConfig`] account, or an admin."
+            "Owner as set in the [`TbrConfigState`] account, or an admin."
           ],
           "writable": true,
           "signer": true
@@ -1933,8 +1933,8 @@
     },
     {
       "code": 6003,
-      "name": "OwnerOrAdminOnly",
-      "msg": "OwnerOrAdminOnly"
+      "name": "RequiresAuthBadge",
+      "msg": "RequiresAuthBadge"
     },
     {
       "code": 6004,

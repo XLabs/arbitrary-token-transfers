@@ -18,8 +18,8 @@ pub(crate) enum TokenBridgeRelayerError {
     PendingOwnerOnly,
 
     /// Only the program's owner or admin are permitted.
-    #[msg("OwnerOrAdminOnly")]
-    OwnerOrAdminOnly,
+    #[msg("RequiresAuthBadge")]
+    RequiresAuthBadge,
 
     /// Specified key is already the program's owner.
     #[msg("AlreadyTheOwner")]
