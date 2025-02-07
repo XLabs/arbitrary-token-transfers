@@ -6,7 +6,7 @@ use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
 pub struct UpdateChainConfig<'info> {
-    /// Owner as set in the [`TbrConfig`] account, or an admin.
+    /// Owner as set in the [`TbrConfigState`] account, or an admin.
     #[account(mut)]
     pub signer: Signer<'info>,
 
