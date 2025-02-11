@@ -31,8 +31,8 @@ const initializeSolanaTbr: SolanaScriptCb = async function (
       feeRecipient: new PublicKey(tbrInitParams.feeRecipient),
       admins: tbrInitParams.admins.map((adminKey) => new PublicKey(adminKey)),
     },
-    BigInt(tbrInitParams.evmRelayGas),
-    BigInt(tbrInitParams.evmRelayTxSize)
+    Number(tbrInitParams.evmRelayGas),
+    Number(tbrInitParams.evmRelayTxSize)
   );
 
   await ledgerSignAndSend(connection, initializeIxs, []);

@@ -58,13 +58,11 @@ pub fn calculate_total_fee(
 
     // Mwei = gas * Mwei/gas + bytes * Mwei/byte + µToken * Mwei/µToken
     let total_fees_mwei = (|| {
-        let evm_transaction_fee_mwei = config
-            .evm_transaction_gas
-            .checked_mul(u64::from(oracle_evm_prices.gas_price))?;
-        let evm_tx_size_fee_mwei = config
-            .evm_transaction_size
-            .checked_mul(u64::from(oracle_evm_prices.price_per_byte))?;
-        let dropoff_mwei = u64::from(dropoff_amount_micro).checked_mul(MWEI_PER_MICRO_ETH)?;
+        let evm_transaction_fee_mwei = u64::from(config.evm_transaction_gas)
+            * u64::from(oracle_evm_prices.gas_price);
+        let evm_tx_size_fee_mwei = u64::from(config.evm_transaction_size)
+            * u64::from(oracle_evm_prices.price_per_byte);
+        let dropoff_mwei = u64::from(dropoff_amount_micro) * MWEI_PER_MICRO_ETH;
 
         evm_transaction_fee_mwei
             .checked_add(evm_tx_size_fee_mwei)?

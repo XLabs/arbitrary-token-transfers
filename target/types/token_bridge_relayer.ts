@@ -1676,11 +1676,11 @@ export type TokenBridgeRelayer = {
       "args": [
         {
           "name": "evmTransactionGas",
-          "type": "u64"
+          "type": "u32"
         },
         {
           "name": "evmTransactionSize",
-          "type": "u64"
+          "type": "u32"
         }
       ]
     },
@@ -2229,11 +2229,11 @@ export type TokenBridgeRelayer = {
           },
           {
             "name": "evmTransactionGas",
-            "type": "u64"
+            "type": "u32"
           },
           {
             "name": "evmTransactionSize",
-            "type": "u64"
+            "type": "u32"
           },
           {
             "name": "mintAuthority",

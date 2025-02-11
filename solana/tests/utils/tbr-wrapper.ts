@@ -200,8 +200,8 @@ export class TbrWrapper {
   }
 
   async updateEvmTransactionConfig(
-    evmTransactionGas: bigint,
-    evmTransactionSize: bigint,
+    evmTransactionGas: number,
+    evmTransactionSize: number,
   ): Promise<VersionedTransactionResponse | null> {
     return $.getTransaction(
       $.sendAndConfirm(
