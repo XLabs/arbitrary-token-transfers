@@ -74,8 +74,8 @@ pub fn calculate_total_fee(
     let total_fees_micro_usd = u64::try_from(
         u128::from(total_fees_mwei) * u128::from(oracle_evm_prices.gas_token_price) / MWEI_PER_ETH,
     )
-    .map_err(|_| TokenBridgeRelayerError::Overflow)?
-    .checked_add(u64::from(chain_config.relayer_fee_micro_usd))
+    .ok()
+    .and_then(|x| x.checked_add(u64::from(chain_config.relayer_fee_micro_usd)))
     .ok_or(TokenBridgeRelayerError::Overflow)?;
 
     // lamports/SOL * μusd / μusd/SOL
