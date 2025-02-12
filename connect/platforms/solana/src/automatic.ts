@@ -243,13 +243,13 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     const gasDropoffMicroEth = args.gasDropoff / 10n ** 12n;
 
     const totalFeesMWei =
-      BigInt(config.evmTransactionGas.toString()) * BigInt(oraclePrices.gasPrice) +
-      BigInt(config.evmTransactionSize.toString()) * BigInt(oraclePrices.pricePerByte) +
+      BigInt(config.evmTransactionGas) * BigInt(oraclePrices.gasPrice) +
+      BigInt(config.evmTransactionSize) * BigInt(oraclePrices.pricePerByte) +
       gasDropoffMicroEth * MWEI_PER_MICRO_ETH;
 
     const totalFeesMicroUsd =
-      (totalFeesMWei * BigInt(oraclePrices.gasTokenPrice.toString())) / MWEI_PER_ETH +
-      BigInt(chainConfig.relayerFeeMicroUsd.toString());
+      (totalFeesMWei * oraclePrices.gasTokenPrice) / MWEI_PER_ETH +
+      BigInt(chainConfig.relayerFeeMicroUsd);
 
     const fee = Number(KLAM_PER_SOL * totalFeesMicroUsd) / Number(oracleConfig.solPrice.toString());
 

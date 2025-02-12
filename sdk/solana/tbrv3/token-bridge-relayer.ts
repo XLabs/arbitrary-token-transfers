@@ -216,8 +216,8 @@ export class SolanaTokenBridgeRelayer {
           .config()
           .fetch()
           .then(({ evmTransactionGas, evmTransactionSize, ...rest }) => ({
-            evmTransactionGas: bnToBigint(evmTransactionGas),
-            evmTransactionSize: bnToBigint(evmTransactionSize),
+            evmTransactionGas,
+            evmTransactionSize,
             ...rest,
           })),
       /** Returns all Wormhole messages emitted by a user */
