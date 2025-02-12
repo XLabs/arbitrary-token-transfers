@@ -35,12 +35,12 @@ const configureSolanaTbr: SolanaScriptCb = async function (
     await ledgerSignAndSend(connection, [ix], []);
   }
 
-  const evmTxSize = BigInt(config.evmTransactionSize);
-  const evmTxGas = BigInt(config.evmTransactionGas);
+  const evmTxSize = Number(config.evmTransactionSize);
+  const evmTxGas = Number(config.evmTransactionGas);
 
   if (
-    evmTxSize !== BigInt(contractConfig.evmTransactionSize.toString()) ||
-    evmTxGas !== BigInt(contractConfig.evmTransactionGas.toString())
+    evmTxSize !== contractConfig.evmTransactionSize ||
+    evmTxGas !== contractConfig.evmTransactionGas
   ) {
     log(`Updating EVM Transaction config.`);
     const ix = await tbr.updateEvmTransactionConfig(

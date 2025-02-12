@@ -78,8 +78,8 @@ describe('Token Bridge Relayer Program', () => {
   );
 
   const feeRecipient = PublicKey.unique();
-  const evmTransactionGas = 321_000n;
-  const evmTransactionSize = 654_000n;
+  const evmTransactionGas = 321_000;
+  const evmTransactionSize = 654_000;
 
   const ethereumTokenBridge = $.universalAddress.generate();
   const oasisTokenBridge = $.universalAddress.generate();
@@ -167,8 +167,8 @@ describe('Token Bridge Relayer Program', () => {
           owner: ownerClient.publicKey,
           admins: [adminClient1.publicKey, adminClient2.publicKey, upgradeAuthorityClient.publicKey],
         },
-        evmTransactionGas + 1n,
-        evmTransactionSize + 1n
+        evmTransactionGas + 1,
+        evmTransactionSize + 1
       );
 
       // Verify that the authority has been updated to the new owner.
@@ -454,7 +454,7 @@ describe('Token Bridge Relayer Program', () => {
         .promise(unauthorizedClient.updateFeeRecipient(PublicKey.unique()))
         .fails(SendTransactionError);
       await assert
-        .promise(unauthorizedClient.updateEvmTransactionConfig(0n, 0n))
+        .promise(unauthorizedClient.updateEvmTransactionConfig(0, 0))
         .fails(SendTransactionError);
     });
   });

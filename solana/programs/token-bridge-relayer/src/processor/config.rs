@@ -31,8 +31,8 @@ pub fn update_fee_recipient(
 
 pub fn update_evm_transaction_config(
     ctx: Context<UpdateTbrConfig>,
-    evm_transaction_gas: u64,
-    evm_transaction_size: u64,
+    evm_transaction_gas: u32,
+    evm_transaction_size: u32,
 ) -> Result<()> {
     let tbr_config = &mut ctx.accounts.tbr_config;
     tbr_config.evm_transaction_gas = evm_transaction_gas;

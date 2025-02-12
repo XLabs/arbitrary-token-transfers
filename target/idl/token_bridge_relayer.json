@@ -1670,11 +1670,11 @@
       "args": [
         {
           "name": "evm_transaction_gas",
-          "type": "u64"
+          "type": "u32"
         },
         {
           "name": "evm_transaction_size",
-          "type": "u64"
+          "type": "u32"
         }
       ]
     },
@@ -2223,11 +2223,11 @@
           },
           {
             "name": "evm_transaction_gas",
-            "type": "u64"
+            "type": "u32"
           },
           {
             "name": "evm_transaction_size",
-            "type": "u64"
+            "type": "u32"
           },
           {
             "name": "mint_authority",

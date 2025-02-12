@@ -11,8 +11,8 @@ pub struct TbrConfigState {
 
     pub fee_recipient: Pubkey,
 
-    pub evm_transaction_gas: u64,
-    pub evm_transaction_size: u64,
+    pub evm_transaction_gas: u32,
+    pub evm_transaction_size: u32,
 
     /// The mint authority used by the Token Bridge. Used to check whether a transfer is native
     /// or wrapped.

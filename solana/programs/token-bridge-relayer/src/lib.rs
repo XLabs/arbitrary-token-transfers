@@ -155,8 +155,8 @@ pub mod token_bridge_relayer {
     /// Owner or Admin.
     pub fn update_evm_transaction_config(
         ctx: Context<UpdateTbrConfig>,
-        evm_transaction_gas: u64,
-        evm_transaction_size: u64,
+        evm_transaction_gas: u32,
+        evm_transaction_size: u32,
     ) -> Result<()> {
         processor::update_evm_transaction_config(ctx, evm_transaction_gas, evm_transaction_size)
     }

@@ -58,13 +58,11 @@ pub fn calculate_total_fee(
 
     // Mwei = gas * Mwei/gas + bytes * Mwei/byte + µToken * Mwei/µToken
     let total_fees_mwei = (|| {
-        let evm_transaction_fee_mwei = config
-            .evm_transaction_gas
-            .checked_mul(u64::from(oracle_evm_prices.gas_price))?;
-        let evm_tx_size_fee_mwei = config
-            .evm_transaction_size
-            .checked_mul(u64::from(oracle_evm_prices.price_per_byte))?;
-        let dropoff_mwei = u64::from(dropoff_amount_micro).checked_mul(MWEI_PER_MICRO_ETH)?;
+        let evm_transaction_fee_mwei = u64::from(config.evm_transaction_gas)
+            * u64::from(oracle_evm_prices.gas_price);
+        let evm_tx_size_fee_mwei = u64::from(config.evm_transaction_size)
+            * u64::from(oracle_evm_prices.price_per_byte);
+        let dropoff_mwei = u64::from(dropoff_amount_micro) * MWEI_PER_MICRO_ETH;
 
         evm_transaction_fee_mwei
             .checked_add(evm_tx_size_fee_mwei)?
@@ -76,8 +74,8 @@ pub fn calculate_total_fee(
     let total_fees_micro_usd = u64::try_from(
         u128::from(total_fees_mwei) * u128::from(oracle_evm_prices.gas_token_price) / MWEI_PER_ETH,
     )
-    .map_err(|_| TokenBridgeRelayerError::Overflow)?
-    .checked_add(u64::from(chain_config.relayer_fee_micro_usd))
+    .ok()
+    .and_then(|x| x.checked_add(u64::from(chain_config.relayer_fee_micro_usd)))
     .ok_or(TokenBridgeRelayerError::Overflow)?;
 
     // lamports/SOL * μusd / μusd/SOL

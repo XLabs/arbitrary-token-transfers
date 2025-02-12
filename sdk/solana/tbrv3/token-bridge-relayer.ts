@@ -216,8 +216,8 @@ export class SolanaTokenBridgeRelayer {
           .config()
           .fetch()
           .then(({ evmTransactionGas, evmTransactionSize, ...rest }) => ({
-            evmTransactionGas: bnToBigint(evmTransactionGas),
-            evmTransactionSize: bnToBigint(evmTransactionSize),
+            evmTransactionGas,
+            evmTransactionSize,
             ...rest,
           })),
       /** Returns all Wormhole messages emitted by a user */
@@ -273,8 +273,8 @@ export class SolanaTokenBridgeRelayer {
       },
       state: async (): Promise<{
         evm: {
-          transactionGas: bigint;
-          transactionSize: bigint;
+          transactionGas: number;
+          transactionSize: number;
         };
         admins: anchor.web3.PublicKey[];
         chains: {
@@ -365,8 +365,8 @@ export class SolanaTokenBridgeRelayer {
       feeRecipient: PublicKey;
       admins: PublicKey[];
     },
-    evmTransactionGas: bigint,
-    evmTransactionSize: bigint,
+    evmTransactionGas: number,
+    evmTransactionSize: number,
   ): Promise<TransactionInstruction[]> {
 
     const program = new BpfLoaderUpgradeableProgram(this.programId, this.connection);
@@ -396,7 +396,7 @@ Current authority: ${upgradeAuthority}`);
         .remainingAccounts(authBadges)
         .instruction(),
       this.program.methods
-        .updateEvmTransactionConfig(bigintToBn(evmTransactionGas), bigintToBn(evmTransactionSize))
+        .updateEvmTransactionConfig(evmTransactionGas, evmTransactionSize)
         .accounts({
           signer,
           authBadge: this.account.authBadge(signer).address,
@@ -651,11 +651,11 @@ Current authority: ${upgradeAuthority}`);
    */
   async updateEvmTransactionConfig(
     signer: PublicKey,
-    evmTransactionGas: bigint,
-    evmTransactionSize: bigint,
+    evmTransactionGas: number,
+    evmTransactionSize: number,
   ): Promise<TransactionInstruction> {
     return this.program.methods
-      .updateEvmTransactionConfig(bigintToBn(evmTransactionGas), bigintToBn(evmTransactionSize))
+      .updateEvmTransactionConfig(evmTransactionGas, evmTransactionSize)
       .accounts({
         signer,
         authBadge: this.account.authBadge(signer).address,
@@ -832,8 +832,8 @@ Current authority: ${upgradeAuthority}`);
     const MWEI_PER_ETH = 1_000_000_000_000n;
 
     const totalFeesMwei =
-      tbrConfig.evmTransactionGas * BigInt(evmPrices.gasPrice) +
-      tbrConfig.evmTransactionSize * BigInt(evmPrices.pricePerByte) +
+      BigInt(tbrConfig.evmTransactionGas) * BigInt(evmPrices.gasPrice) +
+      BigInt(tbrConfig.evmTransactionSize) * BigInt(evmPrices.pricePerByte) +
       BigInt(dropoffAmount) * MWEI_PER_MICRO_ETH;
     const totalFeesMicroUsd =
       (totalFeesMwei * evmPrices.gasTokenPrice) / MWEI_PER_ETH +
