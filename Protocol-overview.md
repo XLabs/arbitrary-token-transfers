@@ -43,5 +43,5 @@ Tokens that expand or contract their supply on transfers are not supported by th
 
 Normally, users don't need to use this operation. But if, for whatever reason, the relay never happens, they can use this to redeem their Token Bridge transfer.
 
-Currently, the user needs to provide both the VAA and the gas dropoff amount for the VAA to be redeemed.
+The user needs to only provide the VAA to be redeemed as long as they use the recipient wallet. If they use another wallet, they need to provide the gas dropoff, if any was requested.
 
