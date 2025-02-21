@@ -1,6 +1,6 @@
 {
   "name": "@xlabs-xyz/evm-arbitrary-token-transfers",
-  "version": "0.0.2-alpha2",
+  "version": "0.0.2-alpha3",
   "description": "",
   "type": "module",
   "module": "ts-build/tbrv3/index.js",
@@ -31,9 +31,6 @@
   "keywords": [],
   "author": "",
   "license": "Apache 2",
-  "dependencies": {
-    "ethers": "^6.13.5"
-  },
   "devDependencies": {
     "@types/chai": "^4.3.19",
     "@types/mocha": "^10",
@@ -42,6 +39,7 @@
     "@wormhole-foundation/sdk-definitions": "^1.4.5",
     "@wormhole-foundation/sdk-evm": "^1.4.5",
     "chai": "^5.1.1",
+    "ethers": "^6.13.5",
     "mocha": "^10.7.3",
     "tsup": "^8.3.5",
     "tsx": "4.19.2",
@@ -73,8 +71,7 @@
       "@internal/loader",
       "@wormhole-foundation/sdk-definitions",
       "@wormhole-foundation/sdk-base",
-      "@wormhole-foundation/sdk-evm",
-      "ethers"
+      "@wormhole-foundation/sdk-evm"
     ]
   }
 }
