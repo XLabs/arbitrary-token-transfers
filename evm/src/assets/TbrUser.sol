@@ -23,11 +23,14 @@ uint8 constant ACQUIRE_PERMIT = 1;
 uint8 constant ACQUIRE_PERMIT2TRANSFER = 2;
 uint8 constant ACQUIRE_PERMIT2PERMIT = 3;
 
-// How many accounts are created by a relay on Solana.
-// signatureSet, PostedVAA, ATA
-uint8 constant SOLANA_RELAY_SPAWNED_ACCOUNTS = 3;
+// Solana computation units per relay.
+// TODO: measure this.
+uint32 constant SOLANA_RELAY_COMPUTATION_UNITS = 1_000_000;
+// Solana signature count per relay.
+// TODO: measure this.
+uint8 constant SOLANA_RELAY_SIGNATURE_COUNT = 7;
 // Size of all accounts created during a relay to Solana.
-uint32 constant SOLANA_RELAY_TOTAL_SIZE =
+uint32 constant SOLANA_RELAY_TOTAL_SIZE_OF_ACCOUNTS =
   //signatureSet
   // see here: https://github.com/wormhole-foundation/wormhole/blob/91ec4d1dc01f8b690f0492815407505fb4587520/solana/bridge/program/src/accounts/signature_set.rs#L17
    4 + //signatureSet vec length
@@ -383,8 +386,9 @@ abstract contract TbrUser is TbrBase {
       return (
         _solanaTransactionQuote(
           GasDropoff.wrap(gasDropoff),
-          SOLANA_RELAY_SPAWNED_ACCOUNTS,
-          SOLANA_RELAY_TOTAL_SIZE,
+          SOLANA_RELAY_COMPUTATION_UNITS,
+          SOLANA_RELAY_TOTAL_SIZE_OF_ACCOUNTS,
+          SOLANA_RELAY_SIGNATURE_COUNT,
           BaseFee.wrap(baseFee)
         ),
         wormholeFee
