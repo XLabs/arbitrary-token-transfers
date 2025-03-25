@@ -213,7 +213,14 @@ abstract contract TbrUser is TbrBase {
     (targetChain, recipient, gasDropoff, tokenAmount, offset) = _parseSharedParams(data, offset);
 
     (bytes32 peer, uint256 finalTokenAmount, uint256 fee, uint256 wormholeFee) =
-      _getAndCheckTransferParams(targetChain, recipient, IERC20Metadata(address(gasToken)), tokenAmount, gasDropoff, commandIndex);
+      _getAndCheckTransferParams(
+        targetChain,
+        recipient,
+        IERC20Metadata(address(gasToken)),
+        tokenAmount,
+        gasDropoff,
+        commandIndex
+      );
 
     if (fee + finalTokenAmount + wormholeFee > unallocatedBalance)
       revert FeesInsufficient(msg.value, commandIndex);
@@ -224,7 +231,17 @@ abstract contract TbrUser is TbrBase {
       gasToken.deposit{value: finalTokenAmount}();
 
     IERC20Metadata token = IERC20Metadata(address(gasToken));
-    _bridgeOut(token, targetChain, peer, recipient, finalTokenAmount, gasDropoff, false, fee, wormholeFee);
+    _bridgeOut(
+      token,
+      targetChain,
+      peer,
+      recipient,
+      finalTokenAmount,
+      gasDropoff,
+      false,
+      fee,
+      wormholeFee
+    );
 
     // Return the fee that must be sent to the fee recipient.
     return (fee, finalTokenAmount + wormholeFee, offset);
@@ -234,15 +251,15 @@ abstract contract TbrUser is TbrBase {
     bytes calldata data,
     uint offset
   ) internal pure returns (
-    uint16 targetChain,
+    uint16  targetChain,
     bytes32 recipient,
-    uint32 gasDropoff,
+    uint32  gasDropoff,
     uint256 inputAmount,
-    uint //offset
+    uint    //offset
   ) {
     (targetChain, offset) = data.asUint16CdUnchecked(offset);
-    (recipient, offset) = data.asBytes32CdUnchecked(offset);
-    (gasDropoff, offset) = data.asUint32CdUnchecked(offset);
+    (recipient,   offset) = data.asBytes32CdUnchecked(offset);
+    (gasDropoff,  offset) = data.asUint32CdUnchecked(offset);
     (inputAmount, offset) = data.asUint256CdUnchecked(offset);
     return (targetChain, recipient, gasDropoff, inputAmount, offset);
   }
@@ -344,13 +361,15 @@ abstract contract TbrUser is TbrBase {
       revert InvalidTokenRecipient();
 
     uint8 decimals = token.decimals();
-    uint256 cleanedTokenAmount = deNormalizeAmount(normalizeAmount(tokenAmount, decimals), decimals);
+    uint256 cleanedTokenAmount = deNormalizeAmount(
+      normalizeAmount(tokenAmount, decimals),
+      decimals
+    );
 
     if (cleanedTokenAmount == 0)
       revert InvalidTokenAmount();
 
-    (uint256 fee, uint256 wormholeFee) =
-      _quoteRelay(targetChain, gasDropoff, baseFee);
+    (uint256 fee, uint256 wormholeFee) = _quoteRelay(targetChain, gasDropoff, baseFee);
 
     return (peer, cleanedTokenAmount, fee, wormholeFee);
   }
