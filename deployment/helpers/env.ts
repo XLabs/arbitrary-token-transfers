@@ -151,16 +151,6 @@ export function getDependencyAddress(dependencyName: keyof Dependencies, chain: 
   }
 }
 
-export async function getContractInstance(
-  contractName: string,
-  contractAddress: string,
-  chain: EvmChainInfo,
-): Promise<ethers.BaseContract> {
-  const factory = require("../contract-bindings")[`${contractName}__factory`];
-  const signer = await getSigner(chain);
-  return factory.connect(contractAddress, signer);
-}
-
 export function getDeploymentArgs(contractName: string, whChainId: ChainId): UncheckedConstructorArgs | undefined {
   const constructorArgs = contracts[contractName]?.find((c) => c.chainId === whChainId)?.constructorArgs;
 
