@@ -562,6 +562,7 @@ Current authority: ${upgradeAuthority}`);
       .updateCanonicalPeer()
       .accountsStrict({
         owner: config.owner,
+        tbrConfig: this.account.config().address,
         peer: this.account.peer(chain, peerAddress).address,
         chainConfig: this.account.chainConfig(chain).address,
         systemProgram: SystemProgram.programId,

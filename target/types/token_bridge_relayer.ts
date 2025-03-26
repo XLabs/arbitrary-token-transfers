@@ -1614,7 +1614,17 @@ export type TokenBridgeRelayer = {
           "docs": [
             "Owner of the program as set in the [`TbrConfig`] account."
           ],
-          "signer": true
+          "signer": true,
+          "relations": [
+            "tbrConfig"
+          ]
+        },
+        {
+          "name": "tbrConfig",
+          "docs": [
+            "Owner Config account. This program requires that the `owner` specified",
+            "in the context equals the `owner` pubkey specified in this account."
+          ]
         },
         {
           "name": "peer"

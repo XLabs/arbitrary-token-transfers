@@ -1,6 +1,6 @@
 use crate::{
     error::TokenBridgeRelayerError,
-    state::{AuthBadgeState, ChainConfigState, PeerState},
+    state::{AuthBadgeState, ChainConfigState, PeerState, TbrConfigState},
 };
 use anchor_lang::prelude::*;
 
@@ -79,6 +79,11 @@ pub fn register_peer(
 pub struct UpdateCanonicalPeer<'info> {
     /// Owner of the program as set in the [`TbrConfig`] account.
     pub owner: Signer<'info>,
+
+    /// Owner Config account. This program requires that the `owner` specified
+    /// in the context equals the `owner` pubkey specified in this account.
+    #[account(has_one = owner @ TokenBridgeRelayerError::OwnerOnly)]
+    pub tbr_config: Account<'info, TbrConfigState>,
 
     #[account(
         constraint = {
