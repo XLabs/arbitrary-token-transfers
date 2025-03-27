@@ -23,55 +23,66 @@ uint8 constant ACQUIRE_PERMIT = 1;
 uint8 constant ACQUIRE_PERMIT2TRANSFER = 2;
 uint8 constant ACQUIRE_PERMIT2PERMIT = 3;
 
-// How many accounts are created by a relay on Solana.
-// signatureSet, PostedVAA, ATA
-uint8 constant SOLANA_RELAY_SPAWNED_ACCOUNTS = 3;
+// Solana computation units per relay.
+// TODO: measure this.
+uint32 constant SOLANA_RELAY_COMPUTATION_UNITS = 1_500_000;
+// Solana signature count per relay.
+// Post VAA -> 3 txs
+//   7 Signature  verifications -> 2 signatures
+//   6 Signature  verifications -> 2 signatures
+//   Core verify signature set  -> 1 signature
+// Create user ATA              -> 1 signature
+// Redeem tx                    -> 1 signature
+uint8 constant SOLANA_RELAY_SIGNATURE_COUNT = 7;
 // Size of all accounts created during a relay to Solana.
-uint32 constant SOLANA_RELAY_TOTAL_SIZE =
+uint32 constant SOLANA_RELAY_TOTAL_SIZE_OF_ACCOUNTS =
   //signatureSet
   // see here: https://github.com/wormhole-foundation/wormhole/blob/91ec4d1dc01f8b690f0492815407505fb4587520/solana/bridge/program/src/accounts/signature_set.rs#L17
-   4 + //signatureSet vec length
-  19 + //signatureSet bool vec for 19 guardians
-  32 + //vaa hash
-   4 + //guardianSet
-  //PostedVAA
+  128 + // signatureSet account overhead
+    4 + // signatureSet vec length
+   19 + // signatureSet bool vec for 19 guardians
+   32 + // vaa hash
+    4 + // guardianSet
+  // PostedVAA
   // see here: https://github.com/wormhole-foundation/wormhole/blob/91ec4d1dc01f8b690f0492815407505fb4587520/solana/bridge/program/src/accounts/posted_vaa.rs#L39
   // and here: https://github.com/wormhole-foundation/wormhole/blob/91ec4d1dc01f8b690f0492815407505fb4587520/solana/bridge/program/src/accounts/posted_message.rs#L46
   // and here: https://github.com/wormhole-foundation/wormhole/blob/91ec4d1dc01f8b690f0492815407505fb4587520/solana/modules/token_bridge/program/src/messages.rs#L175
-   3 +//discriminator
-   1 + //vaa version
-   1 + //consistency level
-   4 + //vaa timestamp
-  32 + //signature account address
-   4 + //submission_time (waste)
-   4 + //nonce
-   8 + //sequence
-   2 + //emitterChain
-   4 + //payload vec length
-   1 + //payload id
-  32 + //token amount
-  32 + //token origin address
-   2 + //token origin chain
-  32 + //token bridge recipient address
-   2 + //recipient chain
-  32 + //from(=peer) address
-   1 + //tbrv3 version
-  32 + //recipient address
-   4 + //gas dropoff
-   1 + //unwrap intent*/ +
+  128 + // PostedVaa account overhead
+    3 + // discriminator
+    1 + // vaa version
+    1 + // consistency level
+    4 + // vaa timestamp
+   32 + // signature account address
+    4 + // submission_time (waste)
+    4 + // nonce
+    8 + // sequence
+    2 + // emitterChain
+    4 + // payload vec length
+    1 + // payload id
+   32 + // token amount
+   32 + // token origin address
+    2 + // token origin chain
+   32 + // token bridge recipient address
+    2 + // recipient chain
+   32 + // from(=peer) address
+    1 + // tbrv3 version
+   32 + // recipient address
+    4 + // gas dropoff
+    1 + // unwrap intent*/ +
   //ATA (should sum up to 165)
   // see here https://github.com/solana-labs/solana-program-library/blob/6d92f4537a8dc278285abd66d93e7d49caaca0c5/token/program/src/state.rs#L89
-  32 + //associated mint
-  32 + //owner
-   8 + //amount
-   4 + //COption prefix (0 or 1, 4 bytes, waste) - see https://github.com/solana-labs/solana-program-library/blob/6d92f4537a8dc278285abd66d93e7d49caaca0c5/token/program/src/state.rs#L267
-  32 + //delegate COption<Pubkey>
-   1 + //account state enum
-   4 + //COoption prefix
-   8 + //is_native COption<u64>
-   8 + //delegated amount
-   4 + //COoption prefix
-  32; //close authority COption<Pubkey>
+  128 + // ATA account overhead
+   32 + // associated mint
+   32 + // owner
+    8 + // amount
+    4 + // COption prefix (0 or 1, 4 bytes, waste) - see https://github.com/solana-labs/solana-program-library/blob/6d92f4537a8dc278285abd66d93e7d49caaca0c5/token/program/src/state.rs#L267
+   32 + // delegate COption<Pubkey>
+    1 + // account state enum
+    4 + // COoption prefix
+    8 + // is_native COption<u64>
+    8 + // delegated amount
+    4 + // COoption prefix
+   32;  // close authority COption<Pubkey>
 
 // Gas cost of a single `complete transfer` method execution.
 // TODO: measure this.
@@ -402,8 +413,9 @@ abstract contract TbrUser is TbrBase {
       return (
         _solanaTransactionQuote(
           GasDropoff.wrap(gasDropoff),
-          SOLANA_RELAY_SPAWNED_ACCOUNTS,
-          SOLANA_RELAY_TOTAL_SIZE,
+          SOLANA_RELAY_COMPUTATION_UNITS,
+          SOLANA_RELAY_TOTAL_SIZE_OF_ACCOUNTS,
+          SOLANA_RELAY_SIGNATURE_COUNT,
           BaseFee.wrap(baseFee)
         ),
         wormholeFee

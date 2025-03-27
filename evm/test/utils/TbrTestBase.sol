@@ -6,11 +6,12 @@ import "forge-std/Test.sol";
 import { SolanaFeeParams } from "price-oracle/assets/types/SolanaFeeParams.sol";
 import { EvmFeeParams } from "price-oracle/assets/types/EvmFeeParams.sol";
 import {
-  PricePerByte,
+  PricePerTxByte,
   GasPrice,
   GasTokenPrice,
-  AccountOverhead,
-  AccountSizeCost
+  SolanaComputationPrice,
+  PricePerAccountByte,
+  SignaturePrice
 } from "price-oracle/assets/types/ParamLibs.sol";
 import { IPriceOracle } from "price-oracle/IPriceOracle.sol";
 import { PriceOracle } from "price-oracle/PriceOracle.sol";
@@ -150,18 +151,19 @@ contract TbrTestBase is Test {
   function setUpOracle() internal {
     address assistant = makeAddr("assistant");
     EvmFeeParams evmFeeParams;
-    evmFeeParams = evmFeeParams.pricePerByte(PricePerByte.wrap(0));
+    evmFeeParams = evmFeeParams.pricePerTxByte(PricePerTxByte.wrap(1e6));
     evmFeeParams = evmFeeParams.gasPrice(GasPrice.wrap(1e6));
     evmFeeParams = evmFeeParams.gasTokenPrice(GasTokenPrice.wrap(1e12));
 
     EvmFeeParams evmL2FeeParams;
-    evmL2FeeParams = evmL2FeeParams.pricePerByte(PricePerByte.wrap(1e6));
+    evmL2FeeParams = evmL2FeeParams.pricePerTxByte(PricePerTxByte.wrap(1e6));
     evmL2FeeParams = evmL2FeeParams.gasPrice(GasPrice.wrap(1e6));
     evmL2FeeParams = evmL2FeeParams.gasTokenPrice(GasTokenPrice.wrap(1e12));
 
     SolanaFeeParams solanaFeeParams;
-    solanaFeeParams = solanaFeeParams.accountOverhead(AccountOverhead.wrap(1e9)); 
-    solanaFeeParams = solanaFeeParams.accountSizeCost(AccountSizeCost.wrap(1e9));
+    solanaFeeParams = solanaFeeParams.computationPrice(SolanaComputationPrice.wrap(1e3));
+    solanaFeeParams = solanaFeeParams.pricePerAccountByte(PricePerAccountByte.wrap(1e9));
+    solanaFeeParams = solanaFeeParams.signaturePrice(SignaturePrice.wrap(1e9));
     solanaFeeParams = solanaFeeParams.gasTokenPrice(GasTokenPrice.wrap(1e12));
 
     vm.mockCall(
