@@ -11,9 +11,7 @@ import {
   VerificationApiKeys,
   UncheckedConstructorArgs,
   SolanaTbrInitParams,
-  EvmChainInfo
 } from "./interfaces.js";
-import { getSigner } from "./evm.js";
 // TODO: support different env files
 import 'dotenv/config';
 import { ChainId, chainToChainId, contracts as connectDependencies } from "@wormhole-foundation/sdk-base";
