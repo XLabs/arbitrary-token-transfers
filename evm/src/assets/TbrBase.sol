@@ -73,10 +73,6 @@ error ChainNotSupportedByTokenBridge(uint16 chainId);
  * This TBR instance doesn't have a peer in the specified chain.
  */
 error ChainIsNotRegistered(uint16 chainId);
-/**
- * Payment to the target failed.
- */
-error PaymentFailure(address target);
 
 
 abstract contract TbrBase is PriceOracleIntegration {
