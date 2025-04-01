@@ -1,8 +1,8 @@
 import { SolanaTokenBridgeRelayer } from '@xlabs-xyz/solana-arbitrary-token-transfers';
-import { runOnSolana, ledgerSignAndSend, getConnection } from '../helpers/solana.js';
+import { runOnSolana, ledgerSignAndSend, getConnection, getPrioritizationFee, PriorityFeePolicy } from '../helpers/solana.js';
 import { SolanaScriptCb } from '../helpers/interfaces.js';
 import { PublicKey } from '@solana/web3.js';
-import { loadSolanaTbrInitParams } from '../helpers/env.js';
+import { getEnvOrDefault, loadSolanaTbrInitParams } from '../helpers/env.js';
 
 const initializeSolanaTbr: SolanaScriptCb = async function (
   chain,
@@ -11,6 +11,7 @@ const initializeSolanaTbr: SolanaScriptCb = async function (
 ) {
   const connection = getConnection(chain);
   const tbr = await SolanaTokenBridgeRelayer.create(connection);
+  const priorityFeePolicy = getEnvOrDefault('PRIORITY_FEE_POLICY', 'normal') as PriorityFeePolicy;
 
   const tbrInitParams = loadSolanaTbrInitParams();
 
@@ -23,7 +24,7 @@ const initializeSolanaTbr: SolanaScriptCb = async function (
   }
 
   const deployerPubkey = new PublicKey(await signer.getAddress());
-
+   
   const initializeIxs = await tbr.initialize(
     deployerPubkey,
     {
@@ -35,7 +36,7 @@ const initializeSolanaTbr: SolanaScriptCb = async function (
     Number(tbrInitParams.evmRelayTxSize)
   );
 
-  await ledgerSignAndSend(connection, initializeIxs, []);
+  await ledgerSignAndSend(connection, initializeIxs, [], { lockedWritableAccounts: [], priorityFeePolicy });
 }
 
 runOnSolana('initialize-tbr', initializeSolanaTbr).catch((e) => {

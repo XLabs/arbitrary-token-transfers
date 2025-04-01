@@ -2,8 +2,9 @@ import { SolanaTokenBridgeRelayer } from '@xlabs-xyz/solana-arbitrary-token-tran
 import { chain, chains, chainToChainId, isChain } from '@wormhole-foundation/sdk-base';
 import { runOnSolana, ledgerSignAndSend, getConnection } from '../helpers/solana.js';
 import { SolanaScriptCb } from '../helpers/interfaces.js';
-import { dependencies } from '../helpers/env.js';
+import { dependencies, getEnvOrDefault } from '../helpers/env.js';
 import { PublicKey } from '@solana/web3.js';
+import { PriorityFeePolicy } from '../helpers/solana.js';
 
 const unpauseContract: SolanaScriptCb = async function (
   operatingChain,
@@ -23,7 +24,9 @@ const unpauseContract: SolanaScriptCb = async function (
   if (!isChain(chainName)) {
     throw new Error(`Invalid chain name: ${chainName}`);
   }
-  
+
+  const priorityFeePolicy = getEnvOrDefault('PRIORITY_FEE_POLICY', 'normal') as PriorityFeePolicy;
+
   const signerKey = new PublicKey(await signer.getAddress());
   const connection = getConnection(operatingChain);
   const solanaDependencies = dependencies.find((d) => d.chainId === chainToChainId(operatingChain.name));
@@ -34,7 +37,7 @@ const unpauseContract: SolanaScriptCb = async function (
 
   const initializeIx = await tbr.setPauseForOutboundTransfers(signerKey, chainName, false);
 
-  await ledgerSignAndSend(connection, [initializeIx], []);
+  await ledgerSignAndSend(connection, [initializeIx], [], { lockedWritableAccounts: [], priorityFeePolicy });
 }
 
 runOnSolana('unpause-contract', unpauseContract).catch((e) => {

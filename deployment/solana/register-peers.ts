@@ -1,10 +1,10 @@
 import { chainIdToChain, chainToChainId } from '@wormhole-foundation/sdk-base';
 import { UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import { SolanaTokenBridgeRelayer } from '@xlabs-xyz/solana-arbitrary-token-transfers';
-import { runOnSolana, ledgerSignAndSend, getConnection } from '../helpers/solana.js';
+import { runOnSolana, ledgerSignAndSend, getConnection, getPrioritizationFee, PriorityFeePolicy } from '../helpers/solana.js';
 import { SolanaScriptCb } from '../helpers/interfaces.js';
-import { dependencies } from '../helpers/env.js';
-import { PublicKey } from '@solana/web3.js';
+import { dependencies, getEnvOrDefault } from '../helpers/env.js';
+import { ComputeBudgetProgram, PublicKey } from '@solana/web3.js';
 import { contracts } from '../helpers';
 import { getChainConfig } from '../helpers/env';
 import { EvmTbrV3Config } from '../config/config.types.js';
@@ -24,6 +24,8 @@ const configureSolanaTbr: SolanaScriptCb = async function (
 ) {
   const signerKey = new PublicKey(await signer.getAddress());
   const connection = getConnection(chain);
+  const priorityFeePolicy = getEnvOrDefault('PRIORITY_FEE_POLICY', 'normal') as PriorityFeePolicy;
+
   const solanaDependencies = dependencies.find((d) => d.chainId === chainToChainId(chain.name));
   if (solanaDependencies === undefined) {
     throw new Error(`No dependencies found for chain ${chainToChainId(chain.name)}`);
@@ -62,7 +64,7 @@ const configureSolanaTbr: SolanaScriptCb = async function (
           pausedOutboundTransfers: false,
         }
       );
-      const tx = await ledgerSignAndSend(connection, ixs, []);
+      const tx = await ledgerSignAndSend(connection, ixs, [], { lockedWritableAccounts: [], priorityFeePolicy });
       log(`Register succeeded on tx: ${tx}`);
     } else {
       const currentPeer = currentChainConfig.canonicalPeer.toUniversalAddress();
@@ -75,7 +77,7 @@ const configureSolanaTbr: SolanaScriptCb = async function (
           chainIdToChain(tbrDeployment.chainId),
           peerUniversalAddress,
         );
-        const tx = await ledgerSignAndSend(connection, [ix], []);
+        const tx = await ledgerSignAndSend(connection, [ix], [], { lockedWritableAccounts: [], priorityFeePolicy: 'normal' });
         log(`Update succeeded on tx: ${tx}`);
       }
     }
@@ -95,7 +97,7 @@ const configureSolanaTbr: SolanaScriptCb = async function (
         chainIdToChain(tbrDeployment.chainId),
         Number(desiredChainConfig.maxGasDropoff) * 10**6,
       );
-      const tx = await ledgerSignAndSend(connection, [ix], []);
+      const tx = await ledgerSignAndSend(connection, [ix], [], { lockedWritableAccounts: [], priorityFeePolicy: 'normal' });
       log(`Update succeeded on tx: ${tx}`);
     }
 
@@ -111,7 +113,7 @@ const configureSolanaTbr: SolanaScriptCb = async function (
         chainIdToChain(tbrDeployment.chainId),
         desiredChainConfig.relayFee,
       );
-      const tx = await ledgerSignAndSend(connection, [ix], []);
+      const tx = await ledgerSignAndSend(connection, [ix], [], { lockedWritableAccounts: [], priorityFeePolicy: 'normal' });
       log(`Update succeeded on tx: ${tx}`);
     }
   }
