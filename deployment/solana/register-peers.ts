@@ -77,7 +77,7 @@ const configureSolanaTbr: SolanaScriptCb = async function (
           chainIdToChain(tbrDeployment.chainId),
           peerUniversalAddress,
         );
-        const tx = await ledgerSignAndSend(connection, [ix], [], { lockedWritableAccounts: [], priorityFeePolicy: 'normal' });
+        const tx = await ledgerSignAndSend(connection, [ix], [], { lockedWritableAccounts: [], priorityFeePolicy });
         log(`Update succeeded on tx: ${tx}`);
       }
     }
@@ -97,7 +97,7 @@ const configureSolanaTbr: SolanaScriptCb = async function (
         chainIdToChain(tbrDeployment.chainId),
         Number(desiredChainConfig.maxGasDropoff) * 10**6,
       );
-      const tx = await ledgerSignAndSend(connection, [ix], [], { lockedWritableAccounts: [], priorityFeePolicy: 'normal' });
+      const tx = await ledgerSignAndSend(connection, [ix], [], { lockedWritableAccounts: [], priorityFeePolicy });
       log(`Update succeeded on tx: ${tx}`);
     }
 
@@ -113,7 +113,7 @@ const configureSolanaTbr: SolanaScriptCb = async function (
         chainIdToChain(tbrDeployment.chainId),
         desiredChainConfig.relayFee,
       );
-      const tx = await ledgerSignAndSend(connection, [ix], [], { lockedWritableAccounts: [], priorityFeePolicy: 'normal' });
+      const tx = await ledgerSignAndSend(connection, [ix], [], { lockedWritableAccounts: [], priorityFeePolicy });
       log(`Update succeeded on tx: ${tx}`);
     }
   }
