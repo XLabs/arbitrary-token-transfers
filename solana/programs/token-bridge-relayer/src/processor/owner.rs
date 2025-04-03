@@ -20,8 +20,6 @@ pub struct SubmitOwnerTransfer<'info> {
     #[account(
         mut,
         has_one = owner @ TokenBridgeRelayerError::OwnerOnly,
-        seeds = [TbrConfigState::SEED_PREFIX],
-        bump = tbr_config.bump
     )]
     pub tbr_config: Account<'info, TbrConfigState>,
 
