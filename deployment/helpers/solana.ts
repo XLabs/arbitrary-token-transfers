@@ -148,6 +148,8 @@ export async function ledgerSignAndSend(connection: Connection,
 
   const tx = new Transaction();
 
+  tx.add(...instructions);
+
   if (priorityFeeConfig) {
     const priorityFee = await getPrioritizationFee(connection, 
       priorityFeeConfig.lockedWritableAccounts, 
@@ -159,8 +161,6 @@ export async function ledgerSignAndSend(connection: Connection,
     });
     tx.add(addPriorityFeeIx);
   }
-
-  tx.add(...instructions);
 
   tx.feePayer = deployerPk;
 
