@@ -24,6 +24,7 @@ const initializeSolanaTbr: SolanaScriptCb = async function (
   }
 
   const deployerPubkey = new PublicKey(await signer.getAddress());
+
   const initializeIxs = await tbr.initialize(
     deployerPubkey,
     {
