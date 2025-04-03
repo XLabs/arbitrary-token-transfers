@@ -1220,22 +1220,7 @@ export type TokenBridgeRelayer = {
             "in the context equals a pubkey specified in this account. Mutable,",
             "because we will update roles depending on the operation."
           ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          "writable": true
         },
         {
           "name": "upgradeLock",
