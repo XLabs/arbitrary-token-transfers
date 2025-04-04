@@ -70,7 +70,7 @@ contract ConfigTest is TbrTestBase {
         peerChain,
         newPeer
       )
-    ).asBoolUnchecked(0);
+    ).asBoolMemUnchecked(0);
 
     assertEq(isPeer, true);
   }
@@ -96,7 +96,7 @@ contract ConfigTest is TbrTestBase {
         peerChain,
         newPeer
       )
-    ).asBoolUnchecked(0);
+    ).asBoolMemUnchecked(0);
 
     assertEq(isPeer, true);
 
@@ -109,7 +109,7 @@ contract ConfigTest is TbrTestBase {
         CANONICAL_PEER_ID,
         peerChain
       )
-    ).asBytes32Unchecked(0);
+    ).asBytes32MemUnchecked(0);
     
     assertEq(canonicalPeer, newPeer);
 
@@ -126,7 +126,7 @@ contract ConfigTest is TbrTestBase {
         peerChain,
         anotherPeer
       )
-    ).asBoolUnchecked(0);
+    ).asBoolMemUnchecked(0);
 
     assertEq(isPeer, true);
 
@@ -139,7 +139,7 @@ contract ConfigTest is TbrTestBase {
         CANONICAL_PEER_ID,
         peerChain
       )
-    ).asBytes32Unchecked(0);
+    ).asBytes32MemUnchecked(0);
 
     assertEq(canonicalPeer, anotherPeer);
   }
@@ -203,7 +203,7 @@ contract ConfigTest is TbrTestBase {
         MAX_GAS_DROPOFF_ID,
         chainId
       )
-    ).asUint32Unchecked(0);
+    ).asUint32MemUnchecked(0);
 
     assertEq(maxGasDropoff_, maxGasDropoff);
   }
@@ -244,7 +244,7 @@ contract ConfigTest is TbrTestBase {
         commandCount, 
         FEE_RECIPIENT_ID
       )
-    ).asAddressUnchecked(0);
+    ).asAddressMemUnchecked(0);
 
     assertEq(newFeeRecipient_, newFeeRecipient);
   }
@@ -308,7 +308,7 @@ contract ConfigTest is TbrTestBase {
         BASE_FEE_ID,
         chainId
       )
-    ).asUint32Unchecked(0);
+    ).asUint32MemUnchecked(0);
 
     assertEq(newRelayFee_, newRelayFee);
   }
@@ -372,7 +372,7 @@ contract ConfigTest is TbrTestBase {
         IS_CHAIN_PAUSED_ID,
         chainId
       )
-    ).asBoolUnchecked(0);
+    ).asBoolMemUnchecked(0);
 
     assertEq(paused_, paused);
   }
@@ -417,7 +417,7 @@ contract ConfigTest is TbrTestBase {
         CANONICAL_PEER_ID,
         peerChain
       )
-    ).asBytes32Unchecked(0);
+    ).asBytes32MemUnchecked(0);
 
     assertEq(newCanonicalPeer_, newCanonicalPeer);
   }
@@ -435,7 +435,7 @@ contract ConfigTest is TbrTestBase {
         IS_CHAIN_SUPPORTED_ID,
         chainId
       )
-    ).asBoolUnchecked(0);
+    ).asBoolMemUnchecked(0);
     assertEq(isSupported, false);
 
     vm.prank(owner);
@@ -450,7 +450,7 @@ contract ConfigTest is TbrTestBase {
         IS_CHAIN_SUPPORTED_ID,
         chainId
       )
-    ).asBoolUnchecked(0);
+    ).asBoolMemUnchecked(0);
     assertEq(isSupported, true);
   }
 
