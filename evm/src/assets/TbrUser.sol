@@ -290,7 +290,7 @@ abstract contract TbrUser is TbrBase {
     else if (acquireMode == ACQUIRE_PERMIT) {
       uint256 value; uint256 deadline; bytes32 r; bytes32 s; uint8 v;
       (value, deadline, r, s, v, offset) =
-        PermitParsing.asPermitCdUnchecked(data, offset);
+        PermitParsing.decodePermitCdUnchecked(data, offset);
       //allow failure to prevent front-running griefing attacks
       //  (i.e. getting permit from mempool and submitting it to the token contract directly)
       try
@@ -303,7 +303,7 @@ abstract contract TbrUser is TbrBase {
     else if (acquireMode == ACQUIRE_PERMIT2TRANSFER) {
       uint256 amount; uint256 nonce; uint256 sigDeadline; bytes memory signature;
       (amount, nonce, sigDeadline, signature, offset) =
-        PermitParsing.asPermit2TransferCdUnchecked(data, offset);
+        PermitParsing.decodePermit2TransferCdUnchecked(data, offset);
 
       permit2.permitTransferFrom(
         ISignatureTransfer.PermitTransferFrom({
@@ -322,7 +322,7 @@ abstract contract TbrUser is TbrBase {
     else if (acquireMode == ACQUIRE_PERMIT2PERMIT) {
       uint160 amount; uint48 expiration; uint48 nonce; uint256 sigDeadline; bytes memory signature;
       (amount, expiration, nonce, sigDeadline, signature, offset) =
-        PermitParsing.asPermit2PermitCdUnchecked(data, offset);
+        PermitParsing.decodePermit2PermitCdUnchecked(data, offset);
       //allow failure to prevent front-running griefing attacks
       try
         permit2.permit(
@@ -602,7 +602,7 @@ abstract contract TbrUser is TbrBase {
     uint
   ) internal view returns(bytes memory, uint256) {
     uint16 chainId;
-    (chainId, offset) = data.asUint16Unchecked(offset);
+    (chainId, offset) = data.asUint16CdUnchecked(offset);
     (bytes32 peer, uint32 baseFee, uint32 maxGasDropoff, bool paused) =
       _getTargetChainData(chainId);
 
