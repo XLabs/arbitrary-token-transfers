@@ -164,10 +164,10 @@ export async function ledgerSignAndSend(connection: Connection,
 
   tx.feePayer = deployerPk;
 
-  signers.forEach((signer) => tx.partialSign(signer));
-
   const recentBlockHash = await connection.getLatestBlockhash();
   tx.recentBlockhash = recentBlockHash.blockhash;
+
+  signers.forEach((signer) => tx.partialSign(signer));
 
   const signedTx = await addSignature(tx, deployerSigner, deployerPk);
 
