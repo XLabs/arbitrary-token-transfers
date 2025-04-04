@@ -166,13 +166,14 @@ export async function ledgerSignAndSend(connection: Connection,
 
   signers.forEach((signer) => tx.partialSign(signer));
 
+  const recentBlockHash = await connection.getLatestBlockhash();
+  tx.recentBlockhash = recentBlockHash.blockhash;
+
   const signedTx = await addSignature(tx, deployerSigner, deployerPk);
 
   const txid = await connection.sendRawTransaction(signedTx.serialize());
   console.log(`Transaction signature: ${txid}, waiting for confirmation...`);
   
-  const recentBlockHash = await connection.getLatestBlockhash();
-  tx.recentBlockhash = recentBlockHash.blockhash;
   const txStatus = await connection.confirmTransaction({
     signature: txid,
     ...recentBlockHash
