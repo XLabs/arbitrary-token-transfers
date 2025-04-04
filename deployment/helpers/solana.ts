@@ -5,6 +5,8 @@ import {
   PublicKey,
   Connection,
   Commitment,
+  RecentPrioritizationFees,
+  ComputeBudgetProgram,
 } from "@solana/web3.js";
 import { SolanaLedgerSigner } from "@xlabs-xyz/ledger-signer-solana";
 import { chainToChainId } from '@wormhole-foundation/sdk-base';
@@ -18,7 +20,8 @@ import { UniversalAddress } from "@wormhole-foundation/sdk-definitions";
 // Ensure SolanaAddress is registered
 import "@wormhole-foundation/sdk-solana";
 
-
+export const DEFAULT_COMPUTE_BUDGET_MICROLAMPORTS = 100000;
+export type PriorityFeePolicy = 'max' | 'high' | 'normal' | 'low';
 
 export interface ChainConfigEntry {
   chainId: number;
@@ -128,10 +131,17 @@ export function getConnection(chain: SolanaChainInfo) {
   return connection;
 }
 
-/**
- * @todo Add priority fee instruction when configured to do so.
- */
-export async function ledgerSignAndSend(connection: Connection, instructions: TransactionInstruction[], signers: Keypair[]) {
+export type PriorityFeeConfiguration = {
+  lockedWritableAccounts: PublicKey[]
+  priorityFeePolicy: PriorityFeePolicy
+  defaultFee?: number
+}
+
+export async function ledgerSignAndSend(connection: Connection, 
+  instructions: TransactionInstruction[], 
+  signers: Keypair[],
+  priorityFeeConfig?: PriorityFeeConfiguration
+) {
   const deployerSigner = await getSigner();
 
   const deployerPk = new PublicKey(await deployerSigner.getAddress());
@@ -140,16 +150,38 @@ export async function ledgerSignAndSend(connection: Connection, instructions: Tr
 
   tx.add(...instructions);
 
-  const recentBlockHash = await connection.getLatestBlockhash();
+  if (priorityFeeConfig) {
+    const priorityFee = await getPrioritizationFee(connection, 
+      priorityFeeConfig.lockedWritableAccounts, 
+      priorityFeeConfig.priorityFeePolicy, 
+      priorityFeeConfig.defaultFee);
+    console.log(`Using priority fee policy: ${priorityFeeConfig.priorityFeePolicy}, selected fee: ${priorityFee} microLamports`);
+    const addPriorityFeeIx = ComputeBudgetProgram.setComputeUnitPrice({ 
+      microLamports: priorityFee
+    });
+    tx.add(addPriorityFeeIx);
+  }
 
-  tx.recentBlockhash = recentBlockHash.blockhash;
   tx.feePayer = deployerPk;
+
+  const recentBlockHash = await connection.getLatestBlockhash();
+  tx.recentBlockhash = recentBlockHash.blockhash;
 
   signers.forEach((signer) => tx.partialSign(signer));
 
   const signedTx = await addSignature(tx, deployerSigner, deployerPk);
 
-  return connection.sendRawTransaction(signedTx.serialize());
+  const txid = await connection.sendRawTransaction(signedTx.serialize());
+  console.log(`Transaction signature: ${txid}, waiting for confirmation...`);
+  
+  const txStatus = await connection.confirmTransaction({
+    signature: txid,
+    ...recentBlockHash
+  });
+  if (txStatus.value.err) {
+    throw new Error(`Transaction failed: ${txStatus.value.err}`);
+  }
+  return txid;
 }
 
 async function addSignature(tx: Transaction, signer: SolanaSigner, signerPk: PublicKey):Promise<Transaction> {
@@ -159,5 +191,71 @@ async function addSignature(tx: Transaction, signer: SolanaSigner, signerPk: Pub
     return tx;
   } else {
     return await (signer.raw() as NodeWallet).signTransaction(tx);
+  }
+}
+
+
+/**
+ * Get the prioritization fee in microlamports from the network using a given policy.
+ * If no prioritization fee is found, return the default fee.
+ * 
+ * @param connection - The connection to the network.
+ * @param lockedWritableAccounts - The locked writable accounts.
+ * @param priorityFeePolicy - The policy to use to get the prioritization fee.
+ * @param defaultFee - The default fee to return if no prioritization fee is found.
+ * @returns The prioritization fee.
+ */
+export async function getPrioritizationFee(connection: Connection, 
+  lockedWritableAccounts: PublicKey[], 
+  priorityFeePolicy: PriorityFeePolicy, 
+  defaultFee: number = DEFAULT_COMPUTE_BUDGET_MICROLAMPORTS): Promise<number> {
+
+  const sortedPrioritizationFeeList = await getSortedPrioritizationFeeList(connection, lockedWritableAccounts);
+  if (sortedPrioritizationFeeList.length === 0) {
+    return defaultFee;
+  }
+
+  return getPrioritizationFeeFromList(sortedPrioritizationFeeList, priorityFeePolicy);
+}
+
+/**
+ * Get the sorted prioritization fee list, in ascending order.
+ * @param connection - The connection to the network.
+ * @param lockedWritableAccounts - The locked writable accounts.
+ * @returns The sorted prioritization fee list.
+ */
+export async function getSortedPrioritizationFeeList(connection: Connection, lockedWritableAccounts: PublicKey[]): Promise<RecentPrioritizationFees[]> {
+  const prioritizationFeeConfig = {
+    lockedWritableAccounts: lockedWritableAccounts,
+  }
+
+  const prioritizationFeeList = await connection.getRecentPrioritizationFees(prioritizationFeeConfig);
+  const nonZeroPrioritizationFeeList = prioritizationFeeList.filter((entry) => entry.prioritizationFee > 0);
+  return nonZeroPrioritizationFeeList.sort((a, b) => a.prioritizationFee - b.prioritizationFee);
+}
+
+
+/**
+ * Get the prioritization fee from a sorted list of prioritization fees and a given policy.
+ * @param sortedPrioritizationFeeList - The sorted prioritization fee list, in ascending order.
+ * @param priorityFeePolicy - The policy to use to get the prioritization fee.
+ * @returns The prioritization fee.
+ */
+export function getPrioritizationFeeFromList(sortedPrioritizationFeeList: RecentPrioritizationFees[], priorityFeePolicy: PriorityFeePolicy): number {
+  if (sortedPrioritizationFeeList.length === 0) {
+    throw new Error("Prioritization fee list is empty");
+  }
+
+  switch (priorityFeePolicy) {
+    case 'max':
+      return sortedPrioritizationFeeList[sortedPrioritizationFeeList.length - 1].prioritizationFee;
+    case 'high':
+      return sortedPrioritizationFeeList[Math.floor(sortedPrioritizationFeeList.length * 0.95)].prioritizationFee;
+    case 'normal':
+      return sortedPrioritizationFeeList[Math.floor(sortedPrioritizationFeeList.length * 0.87)].prioritizationFee;
+    case 'low':
+      return sortedPrioritizationFeeList[Math.floor(sortedPrioritizationFeeList.length * 0.5)].prioritizationFee;
+    default:
+      throw new Error(`Invalid priorityFeePolicy: ${priorityFeePolicy} must be one of: max, high, normal, low`);
   }
 }
