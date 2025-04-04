@@ -69,7 +69,7 @@ contract OracleIntegrationTest is TbrTestBase {
   function testQuoteRelay_solanaTransactionQuote() public {
     uint32 gasDropoff = 1000;
     uint16 chainId = SOLANA_CHAIN_ID;
-    uint256 expectedQuote = 465001001001000000000;
+    uint256 expectedQuote = 849001001501000000000;
 
     uint fakeWormholeFee = 100;
     vm.mockCall(

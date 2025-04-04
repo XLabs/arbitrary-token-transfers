@@ -123,8 +123,8 @@ contract TbrTestBase is Test {
     if (!success) {
       reRevert(result);
     }
-    (uint length,) = result.asUint256Unchecked(32);
-    (data,) = result.sliceUnchecked(64, length);
+    (uint length,) = result.asUint256MemUnchecked(32);
+    (data,) = result.sliceMemUnchecked(64, length);
   }
 
   function invokeTbr(bytes memory encoded) internal returns (bytes memory data) {
@@ -136,8 +136,8 @@ contract TbrTestBase is Test {
     if (!success) {
       reRevert(result);
     }
-    (uint length,) = result.asUint256Unchecked(32);
-    (data,) = result.sliceUnchecked(64, length);
+    (uint length,) = result.asUint256MemUnchecked(32);
+    (data,) = result.sliceMemUnchecked(64, length);
   }
 
   function expectRevertInvokeTbr(bytes memory encoded, uint value) internal returns (bytes memory) {

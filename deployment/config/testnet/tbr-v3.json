@@ -45,5 +45,11 @@
     "initGasErc20TokenizationIsExplicit": true,
     "relayFee": 1000,
     "maxGasDropoff": 0.1
+  },
+  {
+    "chainId": 10007,
+    "initGasErc20TokenizationIsExplicit": true,
+    "relayFee": 1000,
+    "maxGasDropoff": 0.1
   }
 ]
