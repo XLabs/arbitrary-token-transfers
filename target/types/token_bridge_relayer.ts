@@ -2104,9 +2104,9 @@ export type TokenBridgeRelayer = {
             "type": "u32"
           },
           {
-            "name": "pricePerByte",
+            "name": "pricePerTxByte",
             "docs": [
-              "Regulates the cost of including data blobs in Ethereum transactions, in Mwei/byte."
+              "Regulates the cost of including L2 transactions in the Ethereum chain, in Mwei/byte."
             ],
             "type": "u32"
           },
