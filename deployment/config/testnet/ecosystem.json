@@ -1,4 +1,6 @@
 {
+  "operatingChains": [6, 14, 10002, 10003, 10004, 10005, 10007],
+
   "evm": {
     "networks": [
       {
@@ -21,7 +23,7 @@
         "name": "Sepolia",
         "externalId": 11155111,
         "chainId": 10002,
-        "rpc": "https://ethereum-sepolia.publicnode.com",
+        "rpc": "https://eth-sepolia.g.alchemy.com/v2/n7D3C5-Th1KJHZgdyI0hjJR2XWBMzD9L",
         "network": "Testnet",
         "wormholeAddress": "0x4a8bc80Ed5a4067f1CCf107057b8270E0cC11A78"
       },
@@ -30,8 +32,32 @@
         "externalId": 421614,
         "chainId": 10003,
         "network": "Testnet",
-        "rpc": "https://sepolia-rollup.arbitrum.io/rpc",
+        "rpc": "https://arb-sepolia.g.alchemy.com/v2/n7D3C5-Th1KJHZgdyI0hjJR2XWBMzD9L",
         "wormholeAddress": "0x6b9C8671cdDC8dEab9c719bB87cBd3e782bA6a35"
+      },
+      {
+        "name": "BaseSepolia",
+        "externalId": 84532,
+        "chainId": 10004,
+        "network": "Testnet",
+        "rpc": "https://base-sepolia.g.alchemy.com/v2/n7D3C5-Th1KJHZgdyI0hjJR2XWBMzD9L",
+        "wormholeAddress": "0x79A1027a6A159502049F10906D333EC57E95F083"
+      },
+      {
+        "name": "OptimismSepolia",
+        "externalId": 43113,
+        "chainId": 10005,
+        "network": "Testnet",
+        "rpc": "https://opt-sepolia.g.alchemy.com/v2/n7D3C5-Th1KJHZgdyI0hjJR2XWBMzD9L",
+        "wormholeAddress": "0x31377888146f3253211EFEf5c676D41ECe7D58Fe"
+      },
+      {
+        "name": "PolygonSepolia",
+        "externalId": 80002,
+        "chainId": 10007,
+        "network": "Testnet",
+        "rpc": "https://polygon-amoy.g.alchemy.com/v2/n7D3C5-Th1KJHZgdyI0hjJR2XWBMzD9L",
+        "wormholeAddress": "0x0CBE91CF822c73C2315FB05100C2F714765d5c20"
       }
     ]
   },

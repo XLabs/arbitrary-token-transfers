@@ -2,7 +2,7 @@
   "TbrV3": [
     {
       "chainId": 10002,
-      "address": "0xeE956C7C72AAd6eD9383e07d96679186fd3054B0",
+      "address": "0xD746bd8157d8DefA1a4b403Dc6a73AE4456F4DC9",
       "constructorArgs": [
         "0x000000000022D473030F116dDEE9F6B43aC78BA3",
         "0xDB5492265f6038831E89f495670FF909aDe94bd9",
@@ -13,7 +13,7 @@
     },
     {
       "chainId": 10005,
-      "address": "0xeE956C7C72AAd6eD9383e07d96679186fd3054B0",
+      "address": "0xD746bd8157d8DefA1a4b403Dc6a73AE4456F4DC9",
       "constructorArgs": [
         "0x000000000022D473030F116dDEE9F6B43aC78BA3",
         "0x99737Ec4B815d816c49A385943baf0380e75c0Ac",
@@ -24,7 +24,7 @@
     },
     {
       "chainId": 10004,
-      "address": "0xeE956C7C72AAd6eD9383e07d96679186fd3054B0",
+      "address": "0xD746bd8157d8DefA1a4b403Dc6a73AE4456F4DC9",
       "constructorArgs": [
         "0x000000000022D473030F116dDEE9F6B43aC78BA3",
         "0x86F55A04690fd7815A3D802bD587e83eA888B239",
@@ -40,7 +40,7 @@
     },
     {
       "chainId": 14,
-      "address": "0xeE956C7C72AAd6eD9383e07d96679186fd3054B0",
+      "address": "0xD746bd8157d8DefA1a4b403Dc6a73AE4456F4DC9",
       "constructorArgs": [
         "0x000000000022D473030F116dDEE9F6B43aC78BA3",
         "0x05ca6037eC51F8b712eD2E6Fa72219FEaE74E153",
@@ -51,7 +51,7 @@
     },
     {
       "chainId": 10003,
-      "address": "0xeE956C7C72AAd6eD9383e07d96679186fd3054B0",
+      "address": "0xD746bd8157d8DefA1a4b403Dc6a73AE4456F4DC9",
       "constructorArgs": [
         "0x000000000022D473030F116dDEE9F6B43aC78BA3",
         "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e",
@@ -62,7 +62,7 @@
     },
     {
       "chainId": 6,
-      "address": "0xeE956C7C72AAd6eD9383e07d96679186fd3054B0",
+      "address": "0xD746bd8157d8DefA1a4b403Dc6a73AE4456F4DC9",
       "constructorArgs": [
         "0x000000000022D473030F116dDEE9F6B43aC78BA3",
         "0x61E44E506Ca5659E6c0bba9b678586fA2d729756",
@@ -73,7 +73,7 @@
     },
     {
       "chainId": 10007,
-      "address": "0xeE956C7C72AAd6eD9383e07d96679186fd3054B0",
+      "address": "0xD746bd8157d8DefA1a4b403Dc6a73AE4456F4DC9",
       "constructorArgs": [
         "0x000000000022D473030F116dDEE9F6B43aC78BA3",
         "0xC7A204bDBFe983FCD8d8E61D02b475D4073fF97e",
@@ -86,57 +86,57 @@
   "TbrV3Proxies": [
     {
       "chainId": 10002,
-      "address": "0x4736a3f3181aB3BEc701bdf9b3E27ee6C378032D",
+      "address": "0x9afDC1Af7CE1498E24723a2bC34e14D383045d4e",
       "constructorArgs": [
-        "0xeE956C7C72AAd6eD9383e07d96679186fd3054B0",
+        "0xD746bd8157d8DefA1a4b403Dc6a73AE4456F4DC9",
         "0x6d1f3715b51d08b06e9b973728f77024019e7a876d1f3715b51d08b06e9b973728f77024019e7a87016d1f3715b51d08b06e9b973728f77024019e7a87"
       ]
     },
     {
       "chainId": 10005,
-      "address": "0x4736a3f3181aB3BEc701bdf9b3E27ee6C378032D",
+      "address": "0x9afDC1Af7CE1498E24723a2bC34e14D383045d4e",
       "constructorArgs": [
-        "0xeE956C7C72AAd6eD9383e07d96679186fd3054B0",
+        "0xD746bd8157d8DefA1a4b403Dc6a73AE4456F4DC9",
         "0x6d1f3715b51d08b06e9b973728f77024019e7a876d1f3715b51d08b06e9b973728f77024019e7a87016d1f3715b51d08b06e9b973728f77024019e7a87"
       ]
     },
     {
       "chainId": 10004,
-      "address": "0x4736a3f3181aB3BEc701bdf9b3E27ee6C378032D",
+      "address": "0x9afDC1Af7CE1498E24723a2bC34e14D383045d4e",
       "constructorArgs": [
-        "0xeE956C7C72AAd6eD9383e07d96679186fd3054B0",
+        "0xD746bd8157d8DefA1a4b403Dc6a73AE4456F4DC9",
         "0x6d1f3715b51d08b06e9b973728f77024019e7a876d1f3715b51d08b06e9b973728f77024019e7a87016d1f3715b51d08b06e9b973728f77024019e7a87"
       ]
     },
     {
       "chainId": 14,
-      "address": "0x4736a3f3181aB3BEc701bdf9b3E27ee6C378032D",
+      "address": "0x9afDC1Af7CE1498E24723a2bC34e14D383045d4e",
       "constructorArgs": [
-        "0xeE956C7C72AAd6eD9383e07d96679186fd3054B0",
+        "0xD746bd8157d8DefA1a4b403Dc6a73AE4456F4DC9",
         "0x6d1f3715b51d08b06e9b973728f77024019e7a876d1f3715b51d08b06e9b973728f77024019e7a87016d1f3715b51d08b06e9b973728f77024019e7a87"
       ]
     },
     {
       "chainId": 10003,
-      "address": "0x4736a3f3181aB3BEc701bdf9b3E27ee6C378032D",
+      "address": "0x9afDC1Af7CE1498E24723a2bC34e14D383045d4e",
       "constructorArgs": [
-        "0xeE956C7C72AAd6eD9383e07d96679186fd3054B0",
+        "0xD746bd8157d8DefA1a4b403Dc6a73AE4456F4DC9",
         "0x6d1f3715b51d08b06e9b973728f77024019e7a876d1f3715b51d08b06e9b973728f77024019e7a87016d1f3715b51d08b06e9b973728f77024019e7a87"
       ]
     },
     {
       "chainId": 6,
-      "address": "0x4736a3f3181aB3BEc701bdf9b3E27ee6C378032D",
+      "address": "0x9afDC1Af7CE1498E24723a2bC34e14D383045d4e",
       "constructorArgs": [
-        "0xeE956C7C72AAd6eD9383e07d96679186fd3054B0",
+        "0xD746bd8157d8DefA1a4b403Dc6a73AE4456F4DC9",
         "0x6d1f3715b51d08b06e9b973728f77024019e7a876d1f3715b51d08b06e9b973728f77024019e7a87016d1f3715b51d08b06e9b973728f77024019e7a87"
       ]
     },
     {
       "chainId": 10007,
-      "address": "0x4736a3f3181aB3BEc701bdf9b3E27ee6C378032D",
+      "address": "0x9afDC1Af7CE1498E24723a2bC34e14D383045d4e",
       "constructorArgs": [
-        "0xeE956C7C72AAd6eD9383e07d96679186fd3054B0",
+        "0xD746bd8157d8DefA1a4b403Dc6a73AE4456F4DC9",
         "0x6d1f3715b51d08b06e9b973728f77024019e7a876d1f3715b51d08b06e9b973728f77024019e7a87016d1f3715b51d08b06e9b973728f77024019e7a87"
       ]
     }
