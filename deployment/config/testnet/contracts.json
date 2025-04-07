@@ -34,11 +34,6 @@
       ]
     },
     {
-      "chainId": 1,
-      "address": "ATtHi7TM2rYEXsnzVNy8o1gHA8af3Y6CjKZVMbsQB1KN",
-      "constructorArgs": []
-    },
-    {
       "chainId": 14,
       "address": "0xD746bd8157d8DefA1a4b403Dc6a73AE4456F4DC9",
       "constructorArgs": [
