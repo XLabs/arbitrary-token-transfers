@@ -190,12 +190,14 @@ async function sendEvmTestTransaction(
       chain.name,
       tbrv3ProxyAddress
     );
+
+    // TODO: targetChain should just be the singular value filtered for in this list
     const targetChains = availableChains.filter((c) => c.name === testTransfer.toChain);
 
     let allAllowances = {};
+    // TODO: this list will always have a single value at most, so we should remove the `map()` to reduce code complexity
     const promises = await Promise.allSettled(
       targetChains
-        .filter((targetChain) => chain.name !== targetChain.name)
         .map(async (targetChain) => {
           try {
             log(`Creating transfer for ${chain.name} -> ${targetChain.name}`);
@@ -251,7 +253,7 @@ async function sendEvmTestTransaction(
               feeEstimation,
             } satisfies Transfer;
           } catch (err) {
-            console.error(`Error creating transfer for ${chain.name}->${targetChain.name}: ${err}`);
+            console.error(`Error creating transfer for test ${testTransfer.name}, route ${chain.name}->${targetChain.name}: ${err}`);
             throw err;
           }
         }),
@@ -310,8 +312,10 @@ async function sendSolanaTestTransaction(
     maxFeeSol,
     unwrapIntent,
   });
+  // TODO: targetChain should just be the singular value filtered for in this list
   const targetChains = evmChains.filter((c) => c.name === testTransfer.toChain);
 
+  // TODO: this list will always have a single value at most, so we should remove the `map()` to reduce code complexity
   await Promise.all(
     targetChains.map(async (targetChain) => {
       log(`Creating transfer for Solana->${targetChain.name}`);
@@ -339,6 +343,7 @@ async function sendSolanaTestTransaction(
         gasDropoffAmount,
         maxFeeLamports,
         unwrapIntent,
+        mintAddress: mint,
       } satisfies TransferParameters;
 
       transferIx = await tbr.transferTokens(signerKey, params);
@@ -389,7 +394,7 @@ function getAta(signer: Buffer, mint: PublicKey) {
 const uniqueTestTransfers: TestTransfer[] = [
   // EVM to Solana and viceversa
   {
-    // case A with no gas dropoff
+    name: "case A with no gas dropoff",
     transferredAmount: '1000000',
     gasDropoffAmount: '0',
     unwrapIntent: false,
@@ -400,7 +405,7 @@ const uniqueTestTransfers: TestTransfer[] = [
     skip: true,
   },
   {
-    // case A with gas dropoff
+    name: "case A with gas dropoff",
     transferredAmount: '1000000',
     gasDropoffAmount: '0.00001',
     unwrapIntent: false,
@@ -411,7 +416,7 @@ const uniqueTestTransfers: TestTransfer[] = [
     skip: true,
   },
   {
-    // case B gas token with no gas dropoff
+    name: "case B gas token with no gas dropoff",
     transferredAmount: '1000000000000', 
     gasDropoffAmount: '0',
     unwrapIntent: false,
@@ -421,7 +426,7 @@ const uniqueTestTransfers: TestTransfer[] = [
     skip: true,
   },
   {
-    // case B gas token with gas dropoff
+    name: "case B gas token with gas dropoff",
     transferredAmount: '1000000000000',
     gasDropoffAmount: '0.00001',
     unwrapIntent: false,
@@ -431,7 +436,7 @@ const uniqueTestTransfers: TestTransfer[] = [
     skip: true,
   },
   {
-    // case C (native sol token)
+    name: "case C (native sol token)",
     transferredAmount: '1',
     gasDropoffAmount: '0',
     unwrapIntent: false,
@@ -442,7 +447,7 @@ const uniqueTestTransfers: TestTransfer[] = [
     skip: true,
   },
   {
-    // case C (native sol token) with gas dropoff
+    name: "case C (native sol token) with gas dropoff",
     transferredAmount: '1',
     gasDropoffAmount: '0.0001',
     unwrapIntent: false,
@@ -453,7 +458,7 @@ const uniqueTestTransfers: TestTransfer[] = [
     skip: true,
   },
   {
-    // case D (gas token)
+    name: "case D (gas token)",
     transferredAmount: '100000000',
     gasDropoffAmount: '0',
     unwrapIntent: false,
@@ -464,7 +469,7 @@ const uniqueTestTransfers: TestTransfer[] = [
     skip: true,
   },
   {
-    // case D (gas token)
+    name: "case D (gas token)",
     transferredAmount: '1',
     gasDropoffAmount: '0.0001',
     unwrapIntent: false,
@@ -475,7 +480,7 @@ const uniqueTestTransfers: TestTransfer[] = [
     skip: true,
   },
   {
-    // case D* (native solana token wrapped on evm)
+    name: "case D* (native solana token wrapped on evm)",
     transferredAmount: '1000000',
     gasDropoffAmount: '0',
     unwrapIntent: false,
@@ -488,7 +493,7 @@ const uniqueTestTransfers: TestTransfer[] = [
     skip: true,
   },
   {
-    // case D* (native solana token wrapped on evm with unwrap)
+    name: "case D* (native solana token wrapped on evm with unwrap)",
     transferredAmount: '1000000',
     gasDropoffAmount: '0',
     unwrapIntent: true,
@@ -499,7 +504,7 @@ const uniqueTestTransfers: TestTransfer[] = [
     skip: true,
   },
   {
-    // case E native evm token (wrapped on solana)
+    name: "case E native evm token (wrapped on solana)",
     transferredAmount: '1000000',
     gasDropoffAmount: '0',
     unwrapIntent: false,
@@ -511,7 +516,7 @@ const uniqueTestTransfers: TestTransfer[] = [
     skip: true,
   },
   {
-    // case E native evm token (wrapped on solana) with gas dropoff
+    name: "case E native evm token (wrapped on solana) with gas dropoff",
     transferredAmount: '1000000',
     gasDropoffAmount: '100',
     unwrapIntent: true,
@@ -524,60 +529,60 @@ const uniqueTestTransfers: TestTransfer[] = [
   },
 
   // EVM to EVM
- {
-   // case F with no gas dropoff
-   transferredAmount: '1000000',
-   gasDropoffAmount: '0',
-   unwrapIntent: false,
-   tokenAddress: usdcAddresses.Sepolia,
-   tokenChain: "Sepolia",
-   fromChain: "Sepolia",
-   toChain: "Celo",
-   skip: true,
- },
- {
-   // case F with gas dropoff
-   transferredAmount: '1',
-   gasDropoffAmount: '0.00001',
-   unwrapIntent: false,
-   tokenAddress: usdcAddresses.Sepolia,
-   tokenChain: "Sepolia",
-   fromChain: "Sepolia",
-   toChain: "Sepolia",
-   skip: true,
- },
- {
-   // case G gas token with no gas dropoff
-   transferredAmount: '100000000000',
-   gasDropoffAmount: '0',
-   unwrapIntent: true,
-   tokenChain: "Sepolia",
-   fromChain: "Sepolia",
-   toChain: "Celo",
-   // gasTokenAddresses.Celo,
-   skip: true,
- },
- {
-   // case G gas token with gas dropoff
-   transferredAmount: '1000000',
-   gasDropoffAmount: '0.00001',
-   unwrapIntent: true,
-   tokenChain: "Celo",
-   fromChain: "Celo",
-   toChain: "Sepolia",
-   skip: true,
- },
- {
-   // case H
-   transferredAmount: '99999',
-   gasDropoffAmount: '0',
-   unwrapIntent: false,
-   tokenAddress: usdcAddresses.Sepolia,
-   tokenChain: "Sepolia",
-   fromChain: "Celo",
-   toChain: "Sepolia",
-   skip: false,
- }
+  {
+    name: "case F with no gas dropoff",
+    transferredAmount: '1000000',
+    gasDropoffAmount: '0',
+    unwrapIntent: false,
+    tokenAddress: usdcAddresses.Sepolia,
+    tokenChain: "Sepolia",
+    fromChain: "Sepolia",
+    toChain: "Celo",
+    skip: true,
+  },
+  {
+    name: "case F with gas dropoff",
+    transferredAmount: '1',
+    gasDropoffAmount: '0.00001',
+    unwrapIntent: false,
+    tokenAddress: usdcAddresses.Sepolia,
+    tokenChain: "Sepolia",
+    fromChain: "Sepolia",
+    toChain: "Sepolia",
+    skip: true,
+  },
+  {
+    name: "case G gas token with no gas dropoff",
+    transferredAmount: '100000000000',
+    gasDropoffAmount: '0',
+    unwrapIntent: true,
+    tokenChain: "Sepolia",
+    fromChain: "Sepolia",
+    toChain: "Celo",
+    // gasTokenAddresses.Celo,
+    skip: true,
+  },
+  {
+    name: "case G gas token with gas dropoff",
+    transferredAmount: '1000000',
+    gasDropoffAmount: '0.00001',
+    unwrapIntent: true,
+    tokenChain: "Celo",
+    fromChain: "Celo",
+    toChain: "Sepolia",
+    skip: true,
+  },
+  {
+    name: "case H",
+    transferredAmount: '99999',
+    gasDropoffAmount: '0',
+    unwrapIntent: false,
+    tokenAddress: usdcAddresses.Sepolia,
+    tokenChain: "Sepolia",
+    fromChain: "Celo",
+    toChain: "Sepolia",
+    skip: false,
+  }
 
 ];
 
