@@ -2098,9 +2098,9 @@
             "type": "u32"
           },
           {
-            "name": "price_per_byte",
+            "name": "price_per_tx_byte",
             "docs": [
-              "Regulates the cost of including data blobs in Ethereum transactions, in Mwei/byte."
+              "Regulates the cost of including L2 transactions in the Ethereum chain, in Mwei/byte."
             ],
             "type": "u32"
           },
