@@ -40,11 +40,28 @@ const processName = 'att-test-transfer';
 const evmChains = evm.evmOperatingChains();
 const availableChains = (evmChains as ChainInfo[]).concat(solanaOperatingChains());
 const usdcAddresses = {
+  ArbitrumSepolia: '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d',
   OptimismSepolia: '0x5fd84259d66Cd46123540766Be93DFE6D43130D7',
   Sepolia: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
   Celo: ' 0x2F25deB3848C207fc8E0c34035B3Ba7fC157602B',
   Solana: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU'
 };
+const gasTokenAddresses = {
+  Celo: '0xF194afDf50B03e69Bd7D057c1Aa9e10c9954E4C9',
+};
+
+async function approve(tokenAddress: string, spenderAddress: string, amount: number, signer: ethers.Signer) {
+  const erc20Abi = [
+    "function approve(address spender, uint256 amount) public returns (bool)"
+  ];
+
+  const tokenContract = new ethers.Contract(tokenAddress, erc20Abi, signer);
+  const tx = await tokenContract.approve(spenderAddress, amount);
+  const res = await tx.wait();
+  if (res.status !== 1) {
+    throw new Error(`Failed to approve ${amount} tokens to ${spenderAddress}`);
+  }
+}
 
 /**
  * This script expects the following environment variables:
@@ -163,7 +180,9 @@ async function sendEvmTestTransaction(
 
     console.log(`Operating chain: ${inspect(chain)}`);
 
+    await approve(inputToken.toString(), getContractAddress('TbrV3Proxies', chainToChainId(chain.name)), Number(inputAmountInAtomic), signer);
     const tbrv3ProxyAddress = new EvmAddress(getContractAddress('TbrV3Proxies', chainToChainId(chain.name)));
+
     const provider = getProvider(chain);
     const tbrv3 = Tbrv3.connectUnknown(
       wrapEthersProvider(provider!),
@@ -320,7 +339,6 @@ async function sendSolanaTestTransaction(
         gasDropoffAmount,
         maxFeeLamports,
         unwrapIntent,
-        mintAddress: mint,
       } satisfies TransferParameters;
 
       transferIx = await tbr.transferTokens(signerKey, params);
@@ -421,10 +439,10 @@ const uniqueTestTransfers: TestTransfer[] = [
     tokenChain: "Solana",
     fromChain: "Solana",
     toChain: "Sepolia",
-    skip: false,
+    skip: true,
   },
   {
-    // case C (native sol token)
+    // case C (native sol token) with gas dropoff
     transferredAmount: '1',
     gasDropoffAmount: '0.0001',
     unwrapIntent: false,
@@ -436,13 +454,13 @@ const uniqueTestTransfers: TestTransfer[] = [
   },
   {
     // case D (gas token)
-    transferredAmount: '1',
+    transferredAmount: '100000000',
     gasDropoffAmount: '0',
     unwrapIntent: false,
     tokenAddress: NATIVE_MINT.toBase58(),
     tokenChain: "Solana",
     fromChain: "Solana",
-    toChain: "OptimismSepolia",
+    toChain: "Sepolia",
     skip: true,
   },
   {
@@ -453,26 +471,28 @@ const uniqueTestTransfers: TestTransfer[] = [
     tokenAddress: NATIVE_MINT.toBase58(),
     tokenChain: "Solana",
     fromChain: "Solana",
-    toChain: "OptimismSepolia",
+    toChain: "Sepolia",
     skip: true,
   },
   {
-    // case D (native solana token wrapped on evm)
-    transferredAmount: '1',
+    // case D* (native solana token wrapped on evm)
+    transferredAmount: '1000000',
     gasDropoffAmount: '0',
     unwrapIntent: false,
-    tokenAddress: '0x8e62ff4ba9944b4ddff5fc548deab4b22c6ea34e', // wrapped USDC
+    // tokenAddress: '0x8e62ff4ba9944b4ddff5fc548deab4b22c6ea34e', // wrapped USDC
+    // tokenAddress: '0x824cb8fc742f8d3300d29f16ca8bee94471169f5', // WSOL on Sepolia
+    tokenAddress: NATIVE_MINT.toBase58(),
     tokenChain: "Solana",
     fromChain: "Sepolia",
     toChain: "Solana",
     skip: true,
   },
   {
-    // case D (native solana token wrapped on evm with unwrap)
-    transferredAmount: '1',
+    // case D* (native solana token wrapped on evm with unwrap)
+    transferredAmount: '1000000',
     gasDropoffAmount: '0',
     unwrapIntent: true,
-    tokenAddress: '0x8e62ff4ba9944b4ddff5fc548deab4b22c6ea34e', // wrapped USDC
+    tokenAddress: NATIVE_MINT.toBase58(),
     tokenChain: "Solana",
     fromChain: "Sepolia",
     toChain: "Solana",
@@ -491,27 +511,28 @@ const uniqueTestTransfers: TestTransfer[] = [
     skip: true,
   },
   {
-    // case E native evm token (wrapped on solana)
-    transferredAmount: '1',
-    gasDropoffAmount: '0.0001',
+    // case E native evm token (wrapped on solana) with gas dropoff
+    transferredAmount: '1000000',
+    gasDropoffAmount: '100',
     unwrapIntent: true,
-    tokenAddress: 'TBD',
-    tokenChain: "OptimismSepolia",
+    tokenAddress: '6F5YWWrUMNpee8C6BDUc6DmRvYRMDDTgJHwKhbXuifWs', // WETH
+    sourceTokenAddress: '0xeef12A83EE5b7161D3873317c8E0E7B76e0B5D9c',
+    tokenChain: "Sepolia",
     fromChain: "Solana",
-    toChain: "OptimismSepolia",
+    toChain: "Sepolia",
     skip: true,
   },
 
   // EVM to EVM
-  {
+ {
    // case F with no gas dropoff
-   transferredAmount: '1',
+   transferredAmount: '1000000',
    gasDropoffAmount: '0',
    unwrapIntent: false,
    tokenAddress: usdcAddresses.Sepolia,
    tokenChain: "Sepolia",
    fromChain: "Sepolia",
-   toChain: "Sepolia",
+   toChain: "Celo",
    skip: true,
  },
  {
@@ -527,17 +548,18 @@ const uniqueTestTransfers: TestTransfer[] = [
  },
  {
    // case G gas token with no gas dropoff
-   transferredAmount: '1',
+   transferredAmount: '100000000000',
    gasDropoffAmount: '0',
    unwrapIntent: true,
-   tokenChain: "Celo",
-   fromChain: "Celo",
-   toChain: "Sepolia",
+   tokenChain: "Sepolia",
+   fromChain: "Sepolia",
+   toChain: "Celo",
+   // gasTokenAddresses.Celo,
    skip: true,
  },
  {
    // case G gas token with gas dropoff
-   transferredAmount: '1',
+   transferredAmount: '1000000',
    gasDropoffAmount: '0.00001',
    unwrapIntent: true,
    tokenChain: "Celo",
@@ -547,26 +569,15 @@ const uniqueTestTransfers: TestTransfer[] = [
  },
  {
    // case H
-   transferredAmount: '1',
+   transferredAmount: '99999',
    gasDropoffAmount: '0',
    unwrapIntent: false,
-   tokenAddress: '0x99d8471E68E67a5ED748Afa806bFcfD7C56Bf63c', // wrapped sepolia USDC on optimism
+   tokenAddress: usdcAddresses.Sepolia,
    tokenChain: "Sepolia",
-   fromChain: "Sepolia",
+   fromChain: "Celo",
    toChain: "Sepolia",
-   skip: true,
- },
- {
-   // case H
-   transferredAmount: '1',
-   gasDropoffAmount: '0',
-   unwrapIntent: true,
-   tokenAddress: '0x99d8471E68E67a5ED748Afa806bFcfD7C56Bf63c', // wrapped sepolia USDC on optimism
-   tokenChain: "Sepolia",
-   fromChain: "Sepolia",
-   toChain: "Sepolia",
-   skip: true,
- },
+   skip: false,
+ }
 
 ];
 
