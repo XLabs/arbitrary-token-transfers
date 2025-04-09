@@ -98,6 +98,7 @@ export interface VerificationApiKeys extends ChainConfig {
 } 
 
 export type TestTransfer = {
+  name: string;
   /**
    * Amount to transfer in atomic units
    */
