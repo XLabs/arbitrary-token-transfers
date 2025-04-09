@@ -26,10 +26,13 @@ import {
   TransferParameters,
 } from '@xlabs-xyz/solana-arbitrary-token-transfers';
 import {
+  ASSOCIATED_TOKEN_PROGRAM_ID,
   createAssociatedTokenAccountIdempotentInstruction,
   createSyncNativeInstruction,
   getAssociatedTokenAddress,
-  NATIVE_MINT
+  NATIVE_MINT,
+  TOKEN_2022_PROGRAM_ID,
+  TOKEN_PROGRAM_ID
 } from '@solana/spl-token';
 
 import { ethers_contracts } from "@wormhole-foundation/sdk-evm-tokenbridge";
@@ -44,11 +47,16 @@ const usdcAddresses = {
   OptimismSepolia: '0x5fd84259d66Cd46123540766Be93DFE6D43130D7',
   Sepolia: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
   Celo: ' 0x2F25deB3848C207fc8E0c34035B3Ba7fC157602B',
-  Solana: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU'
+  Solana: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
+  PolygonSepolia: '0x41e94eb019c0762f9bfcf9fb1e58725bfb0e7582'
 };
 const gasTokenAddresses = {
   Celo: '0xF194afDf50B03e69Bd7D057c1Aa9e10c9954E4C9',
 };
+
+const DEFAULT_MAX_FEE_SOL = 5000;
+const DEFAULT_MAX_FEE_KLAMPORTS = 5000000;
+
 
 async function approve(tokenAddress: string, spenderAddress: string, amount: number, signer: ethers.Signer) {
   const erc20Abi = [
@@ -191,84 +199,72 @@ async function sendEvmTestTransaction(
       tbrv3ProxyAddress
     );
 
-    // TODO: targetChain should just be the singular value filtered for in this list
-    const targetChains = availableChains.filter((c) => c.name === testTransfer.toChain);
-
-    let allAllowances = {};
-    // TODO: this list will always have a single value at most, so we should remove the `map()` to reduce code complexity
-    const promises = await Promise.allSettled(
-      targetChains
-        .map(async (targetChain) => {
-          try {
-            log(`Creating transfer for ${chain.name} -> ${targetChain.name}`);
-
-            const address =
-              chainToPlatform(targetChain.name as Chain) === 'Evm'
-                ? await signer.getAddress()
-                : getEnv('SOLANA_RECIPIENT_ADDRESS');
-
-            const [{result: isChainSupported}] = await tbrv3.query([
-              {
-                query: "ConfigQueries", queries: [{ query: "IsChainSupported", chain: targetChain.name as SupportedChain}]
-              }
-            ]);
-
-            if (!isChainSupported) {
-              console.error(`Chain ${targetChain.name} is not supported`);
-              throw new Error(`Chain ${targetChain.name} is not supported`);
-            }
-
-            log({
-              chain: targetChain.name,
-              gasDropoff,
-            });
-
-            const {feeEstimations, allowances} = (
-              await tbrv3.relayingFee({
-                tokens: [inputToken],
-                transferRequests: [{
-                  targetChain: targetChain.name as SupportedChain,
-                  gasDropoff,
-                }],
-              })
-            );
-
-            const feeEstimation = feeEstimations[0];
-            log(`Fee estimation ${chain.name}->${targetChain.name}: ${inspect(feeEstimation)}`);
-
-            allAllowances = {...allAllowances, ...allowances};
-            return {
-              args: {
-                method: testTransfer.tokenAddress ? 'TransferTokenWithRelay' : 'TransferGasTokenWithRelay',
-                acquireMode: { mode: 'Preapproved' },
-                inputAmountInAtomic,
-                gasDropoff,
-                recipient: {
-                  chain: targetChain.name as SupportedChain,
-                  address: toUniversal(targetChain.name as Chain, address),
-                },
-                inputToken,
-                unwrapIntent,
-              },
-              feeEstimation,
-            } satisfies Transfer;
-          } catch (err) {
-            console.error(`Error creating transfer for test ${testTransfer.name}, route ${chain.name}->${targetChain.name}: ${err}`);
-            throw err;
-          }
-        }),
-    );
-
-    const transfers = promises
-      .filter((promise) => promise.status === 'fulfilled')
-      .map((promise) => promise.value);
-
-    if (!transfers.length) {
-      throw new Error('No transfers to execute');
+    const targetChain = availableChains.find((c) => c.name === testTransfer.toChain);
+    if (!targetChain) {
+      throw new Error(`Target chain ${testTransfer.toChain} not found in configured operatingChains`);
     }
 
-    log(`Executing ${transfers.length} transfers`, transfers);
-    const { to, value, data } = tbrv3.transferWithRelay(allAllowances, ...transfers);
+    let allAllowances = {}, transfer: Transfer
+    try {
+      log(`Creating transfer for ${chain.name} -> ${targetChain.name}`);
+
+      const address =
+        chainToPlatform(targetChain.name as Chain) === 'Evm'
+          ? await signer.getAddress()
+          : getEnv('SOLANA_RECIPIENT_ADDRESS');
+
+      const [{ result: isChainSupported }] = await tbrv3.query([
+        {
+          query: "ConfigQueries", queries: [{ query: "IsChainSupported", chain: targetChain.name as SupportedChain }]
+        }
+      ]);
+
+      if (!isChainSupported) {
+        console.error(`Chain ${targetChain.name} is not supported`);
+        throw new Error(`Chain ${targetChain.name} is not supported`);
+      }
+
+      log({
+        chain: targetChain.name,
+        gasDropoff,
+      });
+
+      const { feeEstimations, allowances } = (
+        await tbrv3.relayingFee({
+          tokens: [inputToken],
+          transferRequests: [{
+            targetChain: targetChain.name as SupportedChain,
+            gasDropoff,
+          }],
+        })
+      );
+
+      const feeEstimation = feeEstimations[0];
+      log(`Fee estimation ${chain.name}->${targetChain.name}: ${inspect(feeEstimation)}`);
+
+      allAllowances = { ...allAllowances, ...allowances };
+      transfer = {
+        args: {
+          method: testTransfer.tokenAddress ? 'TransferTokenWithRelay' : 'TransferGasTokenWithRelay',
+          acquireMode: { mode: 'Preapproved' },
+          inputAmountInAtomic,
+          gasDropoff,
+          recipient: {
+            chain: targetChain.name as SupportedChain,
+            address: toUniversal(targetChain.name as Chain, address),
+          },
+          inputToken,
+          unwrapIntent,
+        },
+        feeEstimation,
+      } satisfies Transfer;
+    } catch (err) {
+      console.error(`Error creating transfer for test ${testTransfer.name}, route ${chain.name}->${targetChain.name}: ${err}`);
+      throw err;
+    }
+
+    log(`Executing transfer`, transfer);
+    const { to, value, data } = tbrv3.transferWithRelay(allAllowances, transfer);
 
     const { receipt, error } = await sendTxCatch(signer, {
       to,
@@ -301,7 +297,7 @@ async function sendSolanaTestTransaction(
   const mint = testTransfer.tokenAddress ? new PublicKey(testTransfer.tokenAddress) : NATIVE_MINT;
   const tokenAccount = getAta(await signer.getAddress(), mint);
 
-  const maxFeeSol = BigInt(getEnvOrDefault('MAX_FEE_SOL', '5000'));
+  const maxFeeSol = BigInt(getEnvOrDefault('MAX_FEE_SOL', DEFAULT_MAX_FEE_SOL.toString()));
 
   console.log({
     sourceChain: 'Solana',
@@ -312,76 +308,73 @@ async function sendSolanaTestTransaction(
     maxFeeSol,
     unwrapIntent,
   });
-  // TODO: targetChain should just be the singular value filtered for in this list
-  const targetChains = evmChains.filter((c) => c.name === testTransfer.toChain);
+  const targetChain = evmChains.find((c) => c.name === testTransfer.toChain);
+  if (!targetChain) {
+    throw new Error(`Target chain ${testTransfer.toChain} not found in configured operatingChains`);
+  }
 
-  // TODO: this list will always have a single value at most, so we should remove the `map()` to reduce code complexity
-  await Promise.all(
-    targetChains.map(async (targetChain) => {
-      log(`Creating transfer for Solana->${targetChain.name}`);
-      const signerKey = new PublicKey(await signer.getAddress());
-      const connection = getConnection(chain);
-      const solanaDependencies = dependencies.find((d) => d.chainId === chainToChainId(chain.name));
-      if (solanaDependencies === undefined) {
-        throw new Error(`No dependencies found for chain ${chain.name}`);
-      }
+  log(`Creating transfer for Solana->${targetChain.name}`);
+  const signerKey = new PublicKey(await signer.getAddress());
+  const connection = getConnection(chain);
+  const solanaDependencies = dependencies.find((d) => d.chainId === chainToChainId(chain.name));
+  if (solanaDependencies === undefined) {
+    throw new Error(`No dependencies found for chain ${chain.name}`);
+  }
 
-      const tbr = await SolanaTokenBridgeRelayer.create(connection);
+  const tbr = await SolanaTokenBridgeRelayer.create(connection);
 
-      const evmAddress = getEnv('RECIPIENT_EVM_ADDRESS');
-      const maxFeeLamports = BigInt(getEnvOrDefault('MAX_FEE_KLAMPORTS', '5000000'));
+  const evmAddress = getEnv('RECIPIENT_EVM_ADDRESS');
+  const maxFeeLamports = BigInt(getEnvOrDefault('MAX_FEE_KLAMPORTS', DEFAULT_MAX_FEE_KLAMPORTS.toString()));
 
-      let transferIx: TransactionInstruction;
+  let transferIx: TransactionInstruction;
 
-      const params = {
-        recipient: {
-          chain: targetChain.name as Chain,
-          address: toUniversal(targetChain.name as Chain, evmAddress),
-        },
-        userTokenAccount: tokenAccount,
-        transferredAmount,
-        gasDropoffAmount,
-        maxFeeLamports,
-        unwrapIntent,
-        mintAddress: mint,
-      } satisfies TransferParameters;
+  const params = {
+    recipient: {
+      chain: targetChain.name as Chain,
+      address: toUniversal(targetChain.name as Chain, evmAddress),
+    },
+    userTokenAccount: tokenAccount,
+    transferredAmount,
+    gasDropoffAmount,
+    maxFeeLamports,
+    unwrapIntent,
+    mintAddress: mint,
+  } satisfies TransferParameters;
 
-      transferIx = await tbr.transferTokens(signerKey, params);
-      const ixs: TransactionInstruction[] = [];
+  transferIx = await tbr.transferTokens(signerKey, params);
+  const ixs: TransactionInstruction[] = [];
 
-      // if transferring SOL first we have to wrap it
-      if (testTransfer.tokenAddress && testTransfer.tokenAddress === NATIVE_MINT.toBase58()) {
-        const ata = await getAssociatedTokenAddress(
-          mint!,
-          signerKey,
-        );
+  // if transferring SOL first we have to wrap it
+  if (testTransfer.tokenAddress && testTransfer.tokenAddress === NATIVE_MINT.toBase58()) {
+    const ata = await getAssociatedTokenAddress(
+      mint!,
+      signerKey,
+    );
 
-        const ataIx = createAssociatedTokenAccountIdempotentInstruction(
-          signerKey,
-          ata,
-          signerKey,
-          mint!
-        );
-        ixs.push(ataIx);
+    const ataIx = createAssociatedTokenAccountIdempotentInstruction(
+      signerKey,
+      ata,
+      signerKey,
+      mint!
+    );
+    ixs.push(ataIx);
 
-        const transferSol = SystemProgram.transfer({
-          fromPubkey: signerKey,
-          toPubkey: ata,
-          lamports: Number(testTransfer.transferredAmount),
-        });
-        ixs.push(transferSol);
-        ixs.push(createSyncNativeInstruction(ata));
-      }
-      ixs.push(transferIx);
-      const txSignature = await ledgerSignAndSend(connection, ixs, []);
-      log(`Transaction sent: ${txSignature}`);
-    }),
-  );
+    const transferSol = SystemProgram.transfer({
+      fromPubkey: signerKey,
+      toPubkey: ata,
+      lamports: Number(testTransfer.transferredAmount),
+    });
+    ixs.push(transferSol);
+    ixs.push(createSyncNativeInstruction(ata));
+  }
+  ixs.push(transferIx);
+  const txSignature = await ledgerSignAndSend(connection, ixs, []);
+  log(`Transaction sent: ${txSignature}`);
 }
 
 function getAta(signer: Buffer, mint: PublicKey) {
-  const tokenProgramId = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
-  const associatedTokenProgramId = new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL');
+  const tokenProgramId = new PublicKey(TOKEN_PROGRAM_ID);
+  const associatedTokenProgramId = new PublicKey(ASSOCIATED_TOKEN_PROGRAM_ID);
 
   const [address] = PublicKey.findProgramAddressSync(
     [signer, tokenProgramId.toBuffer(), mint.toBuffer()],
