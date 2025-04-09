@@ -31,7 +31,6 @@ import {
   createSyncNativeInstruction,
   getAssociatedTokenAddress,
   NATIVE_MINT,
-  TOKEN_2022_PROGRAM_ID,
   TOKEN_PROGRAM_ID
 } from '@solana/spl-token';
 
@@ -263,7 +262,7 @@ async function sendEvmTestTransaction(
       throw err;
     }
 
-    log(`Executing transfer`, transfer);
+    log(`Executing transfer`);
     const { to, value, data } = tbrv3.transferWithRelay(allAllowances, transfer);
 
     const { receipt, error } = await sendTxCatch(signer, {
