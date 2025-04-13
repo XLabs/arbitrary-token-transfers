@@ -149,38 +149,38 @@ export type TokenBridgeRelayer = {
               {
                 "kind": "const",
                 "value": [
-                  13,
-                  74,
-                  247,
-                  118,
-                  36,
-                  164,
-                  201,
-                  97,
-                  25,
-                  221,
-                  241,
-                  144,
-                  142,
-                  148,
-                  63,
-                  218,
-                  160,
-                  137,
-                  78,
-                  28,
-                  18,
                   140,
-                  195,
-                  112,
-                  127,
-                  26,
-                  150,
-                  227,
-                  211,
-                  125,
-                  216,
-                  108
+                  156,
+                  96,
+                  106,
+                  139,
+                  134,
+                  209,
+                  183,
+                  153,
+                  144,
+                  134,
+                  228,
+                  25,
+                  176,
+                  11,
+                  82,
+                  103,
+                  56,
+                  108,
+                  247,
+                  219,
+                  74,
+                  115,
+                  4,
+                  42,
+                  155,
+                  200,
+                  149,
+                  178,
+                  86,
+                  219,
+                  143
                 ]
               }
             ],
@@ -618,38 +618,38 @@ export type TokenBridgeRelayer = {
               {
                 "kind": "const",
                 "value": [
-                  13,
-                  74,
-                  247,
-                  118,
-                  36,
-                  164,
-                  201,
-                  97,
-                  25,
-                  221,
-                  241,
-                  144,
-                  142,
-                  148,
-                  63,
-                  218,
-                  160,
-                  137,
-                  78,
-                  28,
-                  18,
                   140,
-                  195,
-                  112,
-                  127,
-                  26,
-                  150,
-                  227,
-                  211,
-                  125,
-                  216,
-                  108
+                  156,
+                  96,
+                  106,
+                  139,
+                  134,
+                  209,
+                  183,
+                  153,
+                  144,
+                  134,
+                  228,
+                  25,
+                  176,
+                  11,
+                  82,
+                  103,
+                  56,
+                  108,
+                  247,
+                  219,
+                  74,
+                  115,
+                  4,
+                  42,
+                  155,
+                  200,
+                  149,
+                  178,
+                  86,
+                  219,
+                  143
                 ]
               }
             ],
@@ -785,38 +785,38 @@ export type TokenBridgeRelayer = {
               {
                 "kind": "const",
                 "value": [
-                  13,
-                  74,
-                  247,
-                  118,
-                  36,
-                  164,
-                  201,
-                  97,
-                  25,
-                  221,
-                  241,
-                  144,
-                  142,
-                  148,
-                  63,
-                  218,
-                  160,
-                  137,
-                  78,
-                  28,
-                  18,
                   140,
-                  195,
-                  112,
-                  127,
-                  26,
-                  150,
-                  227,
-                  211,
-                  125,
-                  216,
-                  108
+                  156,
+                  96,
+                  106,
+                  139,
+                  134,
+                  209,
+                  183,
+                  153,
+                  144,
+                  134,
+                  228,
+                  25,
+                  176,
+                  11,
+                  82,
+                  103,
+                  56,
+                  108,
+                  247,
+                  219,
+                  74,
+                  115,
+                  4,
+                  42,
+                  155,
+                  200,
+                  149,
+                  178,
+                  86,
+                  219,
+                  143
                 ]
               }
             ],
@@ -1061,30 +1061,7 @@ export type TokenBridgeRelayer = {
           "name": "oracleConfig"
         },
         {
-          "name": "oracleEvmPrices",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  101,
-                  118,
-                  109,
-                  112,
-                  114,
-                  105,
-                  99,
-                  101,
-                  115
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "chain_config.chain_id",
-                "account": "chainConfigState"
-              }
-            ]
-          }
+          "name": "oraclePrices"
         }
       ],
       "args": [
@@ -1254,38 +1231,38 @@ export type TokenBridgeRelayer = {
               {
                 "kind": "const",
                 "value": [
-                  13,
-                  74,
-                  247,
-                  118,
-                  36,
-                  164,
-                  201,
-                  97,
-                  25,
-                  221,
-                  241,
-                  144,
-                  142,
-                  148,
-                  63,
-                  218,
-                  160,
-                  137,
-                  78,
-                  28,
-                  18,
                   140,
-                  195,
-                  112,
-                  127,
-                  26,
-                  150,
-                  227,
-                  211,
-                  125,
-                  216,
-                  108
+                  156,
+                  96,
+                  106,
+                  139,
+                  134,
+                  209,
+                  183,
+                  153,
+                  144,
+                  134,
+                  228,
+                  25,
+                  176,
+                  11,
+                  82,
+                  103,
+                  56,
+                  108,
+                  247,
+                  219,
+                  74,
+                  115,
+                  4,
+                  42,
+                  155,
+                  200,
+                  149,
+                  178,
+                  86,
+                  219,
+                  143
                 ]
               }
             ],
@@ -1423,7 +1400,7 @@ export type TokenBridgeRelayer = {
           "name": "oracleConfig"
         },
         {
-          "name": "oracleEvmPrices"
+          "name": "oraclePrices"
         },
         {
           "name": "tokenBridgeConfig"
@@ -1851,19 +1828,6 @@ export type TokenBridgeRelayer = {
       ]
     },
     {
-      "name": "evmPricesState",
-      "discriminator": [
-        96,
-        16,
-        101,
-        97,
-        209,
-        101,
-        197,
-        178
-      ]
-    },
-    {
       "name": "peerState",
       "discriminator": [
         219,
@@ -1887,6 +1851,19 @@ export type TokenBridgeRelayer = {
         230,
         127,
         150
+      ]
+    },
+    {
+      "name": "pricesState",
+      "discriminator": [
+        55,
+        137,
+        49,
+        187,
+        15,
+        99,
+        1,
+        30
       ]
     },
     {
@@ -1984,8 +1961,8 @@ export type TokenBridgeRelayer = {
     },
     {
       "code": 6013,
-      "name": "evmChainPriceNotSet",
-      "msg": "evmChainPriceNotSet"
+      "name": "gasTokenPriceNotSet",
+      "msg": "gasTokenPriceNotSet"
     },
     {
       "code": 6014,
@@ -2009,16 +1986,21 @@ export type TokenBridgeRelayer = {
     },
     {
       "code": 6018,
+      "name": "unsupportedPlatform",
+      "msg": "unsupportedPlatform"
+    },
+    {
+      "code": 6019,
       "name": "invalidPeerAddress",
       "msg": "invalidPeerAddress"
     },
     {
-      "code": 6019,
+      "code": 6020,
       "name": "missingAssociatedTokenAccount",
       "msg": "missingAssociatedTokenAccount"
     },
     {
-      "code": 6020,
+      "code": 6021,
       "name": "overflow",
       "msg": "overflow"
     }
@@ -2082,45 +2064,6 @@ export type TokenBridgeRelayer = {
       }
     },
     {
-      "name": "evmPricesState",
-      "docs": [
-        "EVM chains prices."
-      ],
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "chainId",
-            "docs": [
-              "The chain that will be read or updated is identified by this field."
-            ],
-            "type": "u16"
-          },
-          {
-            "name": "gasPrice",
-            "docs": [
-              "The gas price / base fee for the Ethereum transaction, in Mwei/gas."
-            ],
-            "type": "u32"
-          },
-          {
-            "name": "pricePerTxByte",
-            "docs": [
-              "Regulates the cost of including L2 transactions in the Ethereum chain, in Mwei/byte."
-            ],
-            "type": "u32"
-          },
-          {
-            "name": "gasTokenPrice",
-            "docs": [
-              "The gas price in μusd/Token, typically ETH."
-            ],
-            "type": "u64"
-          }
-        ]
-      }
-    },
-    {
       "name": "peerState",
       "docs": [
         "A peer chain for sending token to or from."
@@ -2174,6 +2117,31 @@ export type TokenBridgeRelayer = {
               "The SOL price in μusd/SOL."
             ],
             "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "pricesState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "chainId",
+            "type": "u16"
+          },
+          {
+            "name": "gasTokenPrice",
+            "type": "u64"
+          },
+          {
+            "name": "prices",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
           }
         ]
       }

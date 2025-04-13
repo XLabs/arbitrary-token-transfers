@@ -719,7 +719,7 @@ Current authority: ${upgradeAuthority}`);
       temporaryAccount,
       feeRecipient,
       oracleConfig: this.priceOracleClient.account.config().address,
-      oracleEvmPrices: this.priceOracleClient.account.evmPrices(recipient.chain).address,
+      oraclePrices: this.priceOracleClient.account.evmPrices(recipient.chain).address,
       ...tokenBridgeAccounts,
       wormholeMessage: this.account.wormholeMessage(signer, payerSequenceNumber).address,
       payerSequence: this.account.signerSequence(signer).address,
@@ -863,7 +863,7 @@ Current authority: ${upgradeAuthority}`);
         tbrConfig: this.account.config().address,
         chainConfig: this.account.chainConfig(chain).address,
         oracleConfig: this.priceOracleClient.account.config().address,
-        oracleEvmPrices: this.priceOracleClient.account.evmPrices(chain).address,
+        oraclePrices: this.priceOracleClient.account.evmPrices(chain).address,
       })
       .instruction();
     const txResponse = await simulateTransaction(this.connection, payer, [ix]);
