@@ -8,7 +8,7 @@ use anchor_lang::{
     system_program,
 };
 use anchor_spl::token::Mint;
-use solana_price_oracle::state::{EvmPricesState, PriceOracleConfigState};
+use solana_price_oracle::state::{PriceOracleConfigState, PricesState, PricesStatePlatform};
 
 const MWEI_PER_MICRO_ETH: u64 = 1_000_000;
 const MWEI_PER_ETH: u128 = 1_000_000_000_000;
@@ -28,11 +28,11 @@ const MWEI_PER_ETH: u128 = 1_000_000_000_000;
 pub fn calculate_total_fee(
     config: &TbrConfigState,
     chain_config: &ChainConfigState,
-    oracle_evm_prices: &EvmPricesState,
+    oracle_prices: &PricesState,
     oracle_config: &PriceOracleConfigState,
     dropoff_amount_micro: u32,
 ) -> Result<u64> {
-    check_prices_are_set(oracle_evm_prices)?;
+    check_prices_are_set(oracle_prices)?;
 
     /*
     msg!(
@@ -46,33 +46,37 @@ pub fn calculate_total_fee(
     Relayer fee: {}µUSD
     Sol price: {}µUSD/SOL",
         config.evm_transaction_gas,
-        oracle_evm_prices.gas_price,
+        oracle_prices.gas_price,
         config.evm_transaction_size,
-        oracle_evm_prices.price_per_tx_byte,
+        oracle_prices.price_per_tx_byte,
         dropoff_amount_micro,
-        oracle_evm_prices.gas_token_price,
+        oracle_prices.gas_token_price,
         chain_config.relayer_fee_micro_usd,
         oracle_config.sol_price,
     );
     */
 
     // Mwei = gas * Mwei/gas + bytes * Mwei/byte + µToken * Mwei/µToken
-    let total_fees_mwei = (|| {
-        let evm_transaction_fee_mwei = u64::from(config.evm_transaction_gas)
-            * u64::from(oracle_evm_prices.gas_price);
-        let evm_tx_size_fee_mwei = u64::from(config.evm_transaction_size)
-            * u64::from(oracle_evm_prices.price_per_tx_byte);
-        let dropoff_mwei = u64::from(dropoff_amount_micro) * MWEI_PER_MICRO_ETH;
+    let total_fees_mwei = match oracle_prices.prices {
+        PricesStatePlatform::Evm{gas_price, price_per_tx_byte} => {
+            (|| {
+                let evm_transaction_fee_mwei = u64::from(config.evm_transaction_gas)
+                    * u64::from(gas_price);
+                let evm_tx_size_fee_mwei = u64::from(config.evm_transaction_size)
+                    * u64::from(price_per_tx_byte);
+                let dropoff_mwei = u64::from(dropoff_amount_micro) * MWEI_PER_MICRO_ETH;
 
-        evm_transaction_fee_mwei
-            .checked_add(evm_tx_size_fee_mwei)?
-            .checked_add(dropoff_mwei)
-    })()
-    .ok_or(TokenBridgeRelayerError::Overflow)?;
+                evm_transaction_fee_mwei
+                    .checked_add(evm_tx_size_fee_mwei)?
+                    .checked_add(dropoff_mwei)
+            })().ok_or(TokenBridgeRelayerError::Overflow)
+        },
+        _ => Err(TokenBridgeRelayerError::UnsupportedPlatform),
+    }?;
 
     // μusd = Mwei * μusd/Token / Mwei/Token + μusd)
     let total_fees_micro_usd = u64::try_from(
-        u128::from(total_fees_mwei) * u128::from(oracle_evm_prices.gas_token_price) / MWEI_PER_ETH,
+        u128::from(total_fees_mwei) * u128::from(oracle_prices.gas_token_price) / MWEI_PER_ETH,
     )
     .ok()
     .and_then(|x| x.checked_add(u64::from(chain_config.relayer_fee_micro_usd)))
@@ -87,18 +91,13 @@ pub fn calculate_total_fee(
     Ok(fee)
 }
 
-/// This is a basic security against a wrong manip, to be sure that the prices
-/// have been set correctly.
-fn check_prices_are_set(evm_prices: &EvmPricesState) -> Result<()> {
+/// This is a basic security against a wrong manip. We only check the gas token price
+/// because setting the compute price to zero can actually be used as a kind of promotion.
+fn check_prices_are_set(prices: &PricesState) -> Result<()> {
     require_neq!(
-        evm_prices.gas_price,
+        prices.gas_token_price,
         0,
-        TokenBridgeRelayerError::EvmChainPriceNotSet
-    );
-    require_neq!(
-        evm_prices.gas_token_price,
-        0,
-        TokenBridgeRelayerError::EvmChainPriceNotSet
+        TokenBridgeRelayerError::GasTokenPriceNotSet
     );
 
     // We don't need to check the SOL price, because it will cause a division by 0
