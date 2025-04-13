@@ -62,9 +62,9 @@ pub(crate) enum TokenBridgeRelayerError {
     #[msg("InvalidRecipient")]
     InvalidRecipient,
 
-    /// The EVM token price is zero.
-    #[msg("EvmChainPriceNotSet")]
-    EvmChainPriceNotSet,
+    /// The gas token price is zero.
+    #[msg("GasTokenPriceNotSet")]
+    GasTokenPriceNotSet,
 
     /// The prices account chain must match the chain config.
     #[msg("ChainPriceMismatch")]
@@ -81,6 +81,10 @@ pub(crate) enum TokenBridgeRelayerError {
     /// Solana cannot be registered as a chain in Solana.
     #[msg("CannotRegisterSolana")]
     CannotRegisterSolana,
+
+    /// The chosen chain has an unknown platform.
+    #[msg("UnsupportedPlatform")]
+    UnsupportedPlatform,
 
     /// The peer address is empty, please set a peer address.
     #[msg("InvalidPeerAddress")]

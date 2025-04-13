@@ -17,6 +17,7 @@ no-log-ix-name = []
 idl-build = [
     "anchor-lang/idl-build",
     "anchor-spl/idl-build",
+    "solana-price-oracle/idl-build",
     "wormhole-anchor-sdk/idl-build",
 ]
 # Networks:

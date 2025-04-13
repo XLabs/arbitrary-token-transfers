@@ -7,7 +7,7 @@ use crate::{
 };
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use solana_price_oracle::state::{EvmPricesState, PriceOracleConfigState};
+use solana_price_oracle::state::{PriceOracleConfigState, PricesState};
 use wormhole_anchor_sdk::{
     token_bridge::{self, program::TokenBridge},
     wormhole::program::Wormhole,
@@ -69,10 +69,10 @@ pub struct OutboundTransfer<'info> {
     pub oracle_config: Box<Account<'info, PriceOracleConfigState>>,
 
     #[account(
-        constraint = oracle_evm_prices.chain_id == chain_config.chain_id
+        constraint = oracle_prices.chain_id == chain_config.chain_id
             @ TokenBridgeRelayerError::ChainPriceMismatch,
     )]
-    pub oracle_evm_prices: Box<Account<'info, EvmPricesState>>,
+    pub oracle_prices: Box<Account<'info, PricesState>>,
 
     /// CHECK: Token Bridge config. Read-only.
     pub token_bridge_config: UncheckedAccount<'info>,
@@ -194,7 +194,7 @@ pub fn transfer_tokens(
     let total_fees_lamports = calculate_total_fee(
         &ctx.accounts.tbr_config,
         &ctx.accounts.chain_config,
-        &ctx.accounts.oracle_evm_prices,
+        &ctx.accounts.oracle_prices,
         &ctx.accounts.oracle_config,
         dropoff_amount_micro,
     )?;
