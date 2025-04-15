@@ -128,7 +128,7 @@ describe('Token Bridge Relayer Program', () => {
         await oracleAuthorityClient.registerEvmPrices(oracleAuthorityProvider.publicKey, {
           chain: ETHEREUM,
           gasPrice: 2117, // 1 gas costs 2117 Mwei
-          pricePerByte: 0, // ETH does not care about transaction size
+          pricePerTxByte: 0, // ETH does not care about transaction size
           gasTokenPrice: 789_000_000n, // ETH is at $789
         }),
         await oracleAuthorityClient.updateSolPrice(oracleAuthorityProvider.publicKey, 113_000_000n), // SOL is at $113
