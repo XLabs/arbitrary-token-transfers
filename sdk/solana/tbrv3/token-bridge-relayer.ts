@@ -28,6 +28,7 @@ import {
   serializeLayout,
   Layout,
   LayoutToType,
+  PlatformToChains,
 } from '@wormhole-foundation/sdk-base';
 import { layoutItems, toNative, UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import { SolanaPriceOracle, bigintToBn, bnToBigint } from '@xlabs-xyz/solana-price-oracle-sdk';
@@ -91,6 +92,11 @@ const MICROTOKENS_PER_TOKEN = 1_000_000n;
  */
 export const uaToArray = (ua: UniversalAddress): number[] => Array.from(ua.toUint8Array());
 const uaToPubkey = (address: UniversalAddress) => toNative('Solana', address).unwrap();
+
+// TODO: have this export this from the price oracle SDK
+// or better yet, eliminate it.
+type SupportedChain = PlatformToChains<'Evm'> | PlatformToChains<'Sui'>;
+
 
 export class SolanaTokenBridgeRelayer {
   public readonly program: anchor.Program<IdlType>;
@@ -719,7 +725,7 @@ Current authority: ${upgradeAuthority}`);
       temporaryAccount,
       feeRecipient,
       oracleConfig: this.priceOracleClient.account.config().address,
-      oraclePrices: this.priceOracleClient.account.evmPrices(recipient.chain).address,
+      oraclePrices: this.priceOracleClient.account.prices(recipient.chain).address,
       ...tokenBridgeAccounts,
       wormholeMessage: this.account.wormholeMessage(signer, payerSequenceNumber).address,
       payerSequence: this.account.signerSequence(signer).address,
@@ -826,16 +832,18 @@ Current authority: ${upgradeAuthority}`);
     const [tbrConfig, chainConfig, evmPrices, oracleConfig] = await Promise.all([
       this.read.config(),
       this.account.chainConfig(chain).fetch(),
-      this.priceOracleClient.read.evmPrices(chain),
+      this.priceOracleClient.read.foreignPrices(chain as SupportedChain),
       this.priceOracleClient.read.config(),
     ]);
 
     const MWEI_PER_MICRO_ETH = 1_000_000n;
     const MWEI_PER_ETH = 1_000_000_000_000n;
 
+    if (!("gasPrice" in evmPrices)) throw new Error("Only EVM chains are supported");
+
     const totalFeesMwei =
       BigInt(tbrConfig.evmTransactionGas) * BigInt(evmPrices.gasPrice) +
-      BigInt(tbrConfig.evmTransactionSize) * BigInt(evmPrices.pricePerByte) +
+      BigInt(tbrConfig.evmTransactionSize) * BigInt(evmPrices.pricePerTxByte) +
       BigInt(dropoffAmount) * MWEI_PER_MICRO_ETH;
     const totalFeesMicroUsd =
       (totalFeesMwei * evmPrices.gasTokenPrice) / MWEI_PER_ETH +
@@ -863,7 +871,7 @@ Current authority: ${upgradeAuthority}`);
         tbrConfig: this.account.config().address,
         chainConfig: this.account.chainConfig(chain).address,
         oracleConfig: this.priceOracleClient.account.config().address,
-        oraclePrices: this.priceOracleClient.account.evmPrices(chain).address,
+        oraclePrices: this.priceOracleClient.account.prices(chain).address,
       })
       .instruction();
     const txResponse = await simulateTransaction(this.connection, payer, [ix]);
