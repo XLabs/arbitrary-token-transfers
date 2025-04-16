@@ -21,13 +21,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@coral-xyz/anchor-errors@npm:^0.30.1":
-  version: 0.30.1
-  resolution: "@coral-xyz/anchor-errors@npm:0.30.1"
-  checksum: 10c0/cb6749b68c12df54041d1be47df7a7b7f1d4ad2c54759bca7964c22a5dd892de0deb004100ac81cf70278e373d228a99d648013225613b5de85854530c41f501
-  languageName: node
-  linkType: hard
-
 "@coral-xyz/anchor-errors@npm:^0.31.0":
   version: 0.31.0
   resolution: "@coral-xyz/anchor-errors@npm:0.31.0"
@@ -54,29 +47,6 @@ __metadata:
     superstruct: "npm:^0.15.4"
     toml: "npm:^3.0.0"
   checksum: 10c0/cc863ab22b23c126e83b0804a43d45fdb7836659b917db0a8895146ec8d48637db034a7ae7dbd55d5ec7a058a266dd06878e1f921950df1e899369e49fb36c93
-  languageName: node
-  linkType: hard
-
-"@coral-xyz/anchor@npm:^0.30.1":
-  version: 0.30.1
-  resolution: "@coral-xyz/anchor@npm:0.30.1"
-  dependencies:
-    "@coral-xyz/anchor-errors": "npm:^0.30.1"
-    "@coral-xyz/borsh": "npm:^0.30.1"
-    "@noble/hashes": "npm:^1.3.1"
-    "@solana/web3.js": "npm:^1.68.0"
-    bn.js: "npm:^5.1.2"
-    bs58: "npm:^4.0.1"
-    buffer-layout: "npm:^1.2.2"
-    camelcase: "npm:^6.3.0"
-    cross-fetch: "npm:^3.1.5"
-    crypto-hash: "npm:^1.3.0"
-    eventemitter3: "npm:^4.0.7"
-    pako: "npm:^2.0.3"
-    snake-case: "npm:^3.0.4"
-    superstruct: "npm:^0.15.4"
-    toml: "npm:^3.0.0"
-  checksum: 10c0/ed0e5903e72d11884015bd8c21199604f56c20a4570972323133011172677b7dcfa8c7054055d827f914b61ad5b70378343809a83a06f3f6010e9d08707fd4c5
   languageName: node
   linkType: hard
 
@@ -110,18 +80,6 @@ __metadata:
   peerDependencies:
     "@solana/web3.js": ^1.68.0
   checksum: 10c0/25afec48714d9f0c95a02d04215803181f7da0aad85fdd1b076d9f37ef54586342e01e24fc1b2128aba0b5155e970afd6a2c6f8b0343699d8733c0703655ce39
-  languageName: node
-  linkType: hard
-
-"@coral-xyz/borsh@npm:^0.30.1":
-  version: 0.30.1
-  resolution: "@coral-xyz/borsh@npm:0.30.1"
-  dependencies:
-    bn.js: "npm:^5.1.2"
-    buffer-layout: "npm:^1.2.0"
-  peerDependencies:
-    "@solana/web3.js": ^1.68.0
-  checksum: 10c0/eaad9c59647ba58faecc408a30416f17b0cab56bce907cc54654f7a0b151526954c71cedadce7ed38830b731244d918e87b7c3fb19c56a26c2b140c5ccef27dd
   languageName: node
   linkType: hard
 
@@ -1827,7 +1785,7 @@ __metadata:
     prettier: "npm:^3.3.3"
     tsup: "npm:^8.3.5"
     tsx: "npm:4.19.2"
-    typescript: "npm:5.6.3"
+    typescript: "npm:5.8.3"
   peerDependencies:
     "@wormhole-foundation/sdk-base": ">= 1.3.0 < 2"
     "@wormhole-foundation/sdk-definitions": ">= 1.3.0 < 2"
@@ -1850,7 +1808,7 @@ __metadata:
     prettier: "npm:^3.3.3"
     tsup: "npm:^8.3.5"
     tsx: "npm:4.19.2"
-    typescript: "npm:5.6.3"
+    typescript: "npm:5.8.3"
   peerDependencies:
     "@wormhole-foundation/sdk-base": ">= 1.3.0 < 2"
     "@wormhole-foundation/sdk-connect": ">= 1.3.0 < 2"
@@ -1874,7 +1832,7 @@ __metadata:
     prettier: "npm:^3.3.3"
     tsup: "npm:^8.3.5"
     tsx: "npm:4.19.2"
-    typescript: "npm:5.6.3"
+    typescript: "npm:5.8.3"
   peerDependencies:
     "@wormhole-foundation/sdk-base": ">= 1.3.0 < 2"
     "@wormhole-foundation/sdk-definitions": ">= 1.3.0 < 2"
@@ -1893,7 +1851,7 @@ __metadata:
     prettier: "npm:^3.3.3"
     tsup: "npm:^8.3.5"
     tsx: "npm:4.19.2"
-    typescript: "npm:5.6.3"
+    typescript: "npm:5.8.3"
   peerDependencies:
     "@wormhole-foundation/sdk-base": ">= 1.3.0 < 2"
     "@wormhole-foundation/sdk-definitions": ">= 1.3.0 < 2"
@@ -1915,7 +1873,7 @@ __metadata:
     mocha: "npm:^10.7.3"
     tsup: "npm:^8.3.5"
     tsx: "npm:4.19.2"
-    typescript: "npm:5.6.3"
+    typescript: "npm:5.8.3"
   peerDependencies:
     "@wormhole-foundation/sdk-base": ">= 1.3.0 < 2"
     "@wormhole-foundation/sdk-definitions": ">= 1.3.0 < 2"
@@ -1970,10 +1928,10 @@ __metadata:
     "@wormhole-foundation/sdk-definitions": "npm:^1.4.5"
     "@wormhole-foundation/sdk-solana": "npm:^1.4.5"
     "@wormhole-foundation/sdk-solana-tokenbridge": "npm:^1.4.5"
-    "@xlabs-xyz/solana-price-oracle-sdk": "npm:^0.0.20"
+    "@xlabs-xyz/solana-price-oracle-sdk": "npm:^0.0.22"
     tsup: "npm:^8.3.5"
     tsx: "npm:4.19.2"
-    typescript: "npm:5.6.3"
+    typescript: "npm:5.8.3"
   peerDependencies:
     "@wormhole-foundation/sdk-base": ">= 1.3.0 < 2"
     "@wormhole-foundation/sdk-definitions": ">= 1.3.0 < 2"
@@ -1982,17 +1940,17 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xlabs-xyz/solana-price-oracle-sdk@npm:^0.0.20":
-  version: 0.0.20
-  resolution: "@xlabs-xyz/solana-price-oracle-sdk@npm:0.0.20"
+"@xlabs-xyz/solana-price-oracle-sdk@npm:^0.0.22":
+  version: 0.0.22
+  resolution: "@xlabs-xyz/solana-price-oracle-sdk@npm:0.0.22"
   dependencies:
-    "@coral-xyz/anchor": "npm:^0.30.1"
+    "@coral-xyz/anchor": "npm:^0.31.0"
   peerDependencies:
     "@solana/web3.js": ">= 1.98.0 < 2"
     "@wormhole-foundation/sdk-base": ">= 1.3.0 < 2"
     "@wormhole-foundation/sdk-definitions": ">= 1.3.0 < 2"
     "@wormhole-foundation/sdk-solana": ">= 1.3.0 < 2"
-  checksum: 10c0/bb206db5b51032997660d624077f248419aabf5c33b15a45b2c4c096bd8d1c859233b3b1707071a43a00ffd0c3f3fc8146642639a4ef81b1b5178d152c36c351
+  checksum: 10c0/48d97951222da399e7bb8ae78da6dd493b636d5400328b35edb3f684d01d4e41b575890637913c7c4ffcc71979ceb2a76cfbcbb2520aa8d46ce615a8b0bd9039
   languageName: node
   linkType: hard
 
@@ -2697,7 +2655,7 @@ __metadata:
     bn.js: "npm:^5.2.1"
     tsup: "npm:^8.3.5"
     tsx: "npm:4.19.2"
-    typescript: "npm:5.6.3"
+    typescript: "npm:5.8.3"
   peerDependencies:
     "@wormhole-foundation/sdk-base": ">= 1.3.0 < 2"
     "@wormhole-foundation/sdk-definitions": ">= 1.3.0 < 2"
@@ -2846,7 +2804,7 @@ __metadata:
     dotenv: "npm:^16.4.5"
     ethers: "npm:^6.13.5"
     tsx: "npm:^4.19.2"
-    typescript: "npm:^5.6.3"
+    typescript: "npm:^5.8.3"
   languageName: unknown
   linkType: soft
 
@@ -5094,7 +5052,7 @@ __metadata:
     mocha: "npm:11.*"
     toml: "npm:^3.0.0"
     ts-mocha: "npm:10.*"
-    typescript: "npm:^5.6.3"
+    typescript: "npm:^5.8.3"
   languageName: unknown
   linkType: soft
 
@@ -5400,7 +5358,7 @@ __metadata:
     prettier: "npm:^3.3.3"
     ts-mocha: "npm:^10"
     tsx: "npm:^4.19.2"
-    typescript: "npm:5.6.3"
+    typescript: "npm:5.8.3"
   languageName: unknown
   linkType: soft
 
@@ -5593,23 +5551,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:5.6.3, typescript@npm:^5.6.3":
-  version: 5.6.3
-  resolution: "typescript@npm:5.6.3"
+"typescript@npm:5.8.3, typescript@npm:^5.8.3":
+  version: 5.8.3
+  resolution: "typescript@npm:5.8.3"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10c0/44f61d3fb15c35359bc60399cb8127c30bae554cd555b8e2b46d68fa79d680354b83320ad419ff1b81a0bdf324197b29affe6cc28988cd6a74d4ac60c94f9799
+  checksum: 10c0/5f8bb01196e542e64d44db3d16ee0e4063ce4f3e3966df6005f2588e86d91c03e1fb131c2581baf0fb65ee79669eea6e161cd448178986587e9f6844446dbb48
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.6.3#optional!builtin<compat/typescript>":
-  version: 5.6.3
-  resolution: "typescript@patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"
+"typescript@patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.8.3#optional!builtin<compat/typescript>":
+  version: 5.8.3
+  resolution: "typescript@patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10c0/7c9d2e07c81226d60435939618c91ec2ff0b75fbfa106eec3430f0fcf93a584bc6c73176676f532d78c3594fe28a54b36eb40b3d75593071a7ec91301533ace7
+  checksum: 10c0/39117e346ff8ebd87ae1510b3a77d5d92dae5a89bde588c747d25da5c146603a99c8ee588c7ef80faaf123d89ed46f6dbd918d534d641083177d5fac38b8a1cb
   languageName: node
   linkType: hard
 
