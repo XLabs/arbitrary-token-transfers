@@ -416,8 +416,9 @@ Current authority: ${upgradeAuthority}`);
 
     return this.program.methods
       .submitOwnerTransferRequest(newOwner)
-      .accounts({
+      .accountsPartial({
         owner: config.owner,
+        tbrConfig: this.account.config().address,
       })
       .instruction();
   }

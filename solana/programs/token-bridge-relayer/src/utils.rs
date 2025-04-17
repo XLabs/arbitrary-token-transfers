@@ -15,7 +15,7 @@ const MWEI_PER_ETH: u128 = 1_000_000_000_000;
 
 /// Returns the transfer fee in lamports.
 ///
-/// If `price_per_byte` is set to 0, it means that the transaction size does
+/// If `price_per_tx_byte` is set to 0, it means that the transaction size does
 /// not matter.
 ///
 /// # Arguments
@@ -48,7 +48,7 @@ pub fn calculate_total_fee(
         config.evm_transaction_gas,
         oracle_evm_prices.gas_price,
         config.evm_transaction_size,
-        oracle_evm_prices.price_per_byte,
+        oracle_evm_prices.price_per_tx_byte,
         dropoff_amount_micro,
         oracle_evm_prices.gas_token_price,
         chain_config.relayer_fee_micro_usd,
@@ -61,7 +61,7 @@ pub fn calculate_total_fee(
         let evm_transaction_fee_mwei = u64::from(config.evm_transaction_gas)
             * u64::from(oracle_evm_prices.gas_price);
         let evm_tx_size_fee_mwei = u64::from(config.evm_transaction_size)
-            * u64::from(oracle_evm_prices.price_per_byte);
+            * u64::from(oracle_evm_prices.price_per_tx_byte);
         let dropoff_mwei = u64::from(dropoff_amount_micro) * MWEI_PER_MICRO_ETH;
 
         evm_transaction_fee_mwei

@@ -1220,22 +1220,7 @@ export type TokenBridgeRelayer = {
             "in the context equals a pubkey specified in this account. Mutable,",
             "because we will update roles depending on the operation."
           ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
+          "writable": true
         },
         {
           "name": "upgradeLock",
@@ -2119,9 +2104,9 @@ export type TokenBridgeRelayer = {
             "type": "u32"
           },
           {
-            "name": "pricePerByte",
+            "name": "pricePerTxByte",
             "docs": [
-              "Regulates the cost of including data blobs in Ethereum transactions, in Mwei/byte."
+              "Regulates the cost of including L2 transactions in the Ethereum chain, in Mwei/byte."
             ],
             "type": "u32"
           },

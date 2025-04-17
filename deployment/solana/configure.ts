@@ -1,9 +1,9 @@
 import { SolanaTokenBridgeRelayer } from '@xlabs-xyz/solana-arbitrary-token-transfers';
 import { chainToChainId } from '@wormhole-foundation/sdk-base';
-import { runOnSolana, ledgerSignAndSend, getConnection } from '../helpers/solana.js';
+import { runOnSolana, ledgerSignAndSend, getConnection, getPrioritizationFee, PriorityFeePolicy } from '../helpers/solana.js';
 import { SolanaScriptCb } from '../helpers/interfaces.js';
-import { dependencies } from '../helpers/env.js';
-import { PublicKey } from '@solana/web3.js';
+import { dependencies, getEnvOrDefault } from '../helpers/env.js';
+import { ComputeBudgetProgram, PublicKey } from '@solana/web3.js';
 import { getChainConfig } from '../helpers/env';
 import { SolanaTbrV3Config } from '../config/config.types.js';
 
@@ -14,6 +14,8 @@ const configureSolanaTbr: SolanaScriptCb = async function (
 ) {
   const signerKey = new PublicKey(await signer.getAddress());
   const connection = getConnection(chain);
+  const priorityFeePolicy = getEnvOrDefault('PRIORITY_FEE_POLICY', 'normal') as PriorityFeePolicy;
+
   const solanaDependencies = dependencies.find((d) => d.chainId === chainToChainId(chain.name));
   if (solanaDependencies === undefined) {
     throw new Error(`No dependencies found for chain ${chainToChainId(chain.name)}`);
@@ -32,7 +34,7 @@ const configureSolanaTbr: SolanaScriptCb = async function (
       `Updating fee recipient from ${contractConfig.feeRecipient.toString()} to ${config.feeRecipient}`,
     );
     const ix = await tbr.updateFeeRecipient(signerKey, new PublicKey(config.feeRecipient));
-    await ledgerSignAndSend(connection, [ix], []);
+    await ledgerSignAndSend(connection, [ix], [], { lockedWritableAccounts: [], priorityFeePolicy });
   }
 
   const evmTxSize = Number(config.evmTransactionSize);
@@ -49,7 +51,7 @@ const configureSolanaTbr: SolanaScriptCb = async function (
       evmTxSize
     );
 
-    await ledgerSignAndSend(connection, [ix], []);
+    await ledgerSignAndSend(connection, [ix], [], { lockedWritableAccounts: [], priorityFeePolicy });
   }
 }
 
