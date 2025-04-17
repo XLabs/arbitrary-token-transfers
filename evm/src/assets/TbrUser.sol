@@ -15,6 +15,8 @@ import {ISignatureTransfer, IAllowanceTransfer} from "permit2/IPermit2.sol";
 import {TRANSFER_TOKEN_WITH_RELAY_ID, TRANSFER_GAS_TOKEN_WITH_RELAY_ID, COMPLETE_TRANSFER_ID, RELAY_FEE_ID, BASE_RELAYING_CONFIG_ID, APPROVE_TOKEN_ID} from "./TbrIds.sol";
 import {TbrBase, InvalidCommand} from "./TbrBase.sol";
 import {GasDropoff, BaseFee} from "price-oracle/PriceOracleIntegration.sol";
+import {VaaLib} from "wormhole-sdk/libraries/VaaLib.sol";
+import {TokenBridgeMessageLib} from "wormhole-sdk/libraries/TokenBridgeMessages.sol";
 
 uint8 constant TBR_V3_MESSAGE_VERSION = 0;
 
@@ -290,7 +292,7 @@ abstract contract TbrUser is TbrBase {
     else if (acquireMode == ACQUIRE_PERMIT) {
       uint256 value; uint256 deadline; bytes32 r; bytes32 s; uint8 v;
       (value, deadline, r, s, v, offset) =
-        PermitParsing.asPermitCdUnchecked(data, offset);
+        PermitParsing.decodePermitCdUnchecked(data, offset);
       //allow failure to prevent front-running griefing attacks
       //  (i.e. getting permit from mempool and submitting it to the token contract directly)
       try
@@ -303,7 +305,7 @@ abstract contract TbrUser is TbrBase {
     else if (acquireMode == ACQUIRE_PERMIT2TRANSFER) {
       uint256 amount; uint256 nonce; uint256 sigDeadline; bytes memory signature;
       (amount, nonce, sigDeadline, signature, offset) =
-        PermitParsing.asPermit2TransferCdUnchecked(data, offset);
+        PermitParsing.decodePermit2TransferCdUnchecked(data, offset);
 
       permit2.permitTransferFrom(
         ISignatureTransfer.PermitTransferFrom({
@@ -322,7 +324,7 @@ abstract contract TbrUser is TbrBase {
     else if (acquireMode == ACQUIRE_PERMIT2PERMIT) {
       uint160 amount; uint48 expiration; uint48 nonce; uint256 sigDeadline; bytes memory signature;
       (amount, expiration, nonce, sigDeadline, signature, offset) =
-        PermitParsing.asPermit2PermitCdUnchecked(data, offset);
+        PermitParsing.decodePermit2PermitCdUnchecked(data, offset);
       //allow failure to prevent front-running griefing attacks
       try
         permit2.permit(
@@ -516,7 +518,7 @@ abstract contract TbrUser is TbrBase {
       uint32 gasDropoff,
       bool unwrapIntent,
       uint retOffset
-    ) = TokenBridgeVAAParser.parse(data, offset, commandIndex);
+    ) = parse(data, offset, commandIndex);
 
     if (!_isPeer(peerChain, peerAddress))
       revert UnrecognizedPeer(peerChain, peerAddress, commandIndex);
@@ -602,35 +604,12 @@ abstract contract TbrUser is TbrBase {
     uint
   ) internal view returns(bytes memory, uint256) {
     uint16 chainId;
-    (chainId, offset) = data.asUint16Unchecked(offset);
+    (chainId, offset) = data.asUint16CdUnchecked(offset);
     (bytes32 peer, uint32 baseFee, uint32 maxGasDropoff, bool paused) =
       _getTargetChainData(chainId);
 
     return (abi.encodePacked(peer, baseFee, maxGasDropoff, paused), offset);
   }
-
-  receive() external payable {
-    // NOTE: all values retrieved here need to be immutables to avoid going over the 2300 gas stipend
-    if (!gasErc20TokenizationIsExplicit)
-      revert GasTokenNotSupported();
-
-    if (msg.sender != address(gasToken))
-      revert GasTokenOnlyAcceptedViaWithdrawal();
-  }
-}
-
-//TODO clean up and move this sort of functionality into the Solidity SDK _ASAP_
-library TokenBridgeVAAParser {
-  using BytesParsing for bytes;
-
-  uint private constant _TBR_V3_VAA_LENGTH_PREFIX_SIZE = 2;
-  uint private constant _VAA_SIGNATURE_ARRAY_OFFSET = 1 /*version*/ + 4 /*guardianSet*/;
-  uint private constant _VAA_SIGNATURE_SIZE = 1 /*guardianSetIndex*/ + 65 /*signaturesize*/;
-  uint private constant _VAA_EMITTER_CHAIN_SKIP = 4 /*timestamp*/ + 4 /*nonce*/;
-  uint private constant _VAA_TOKEN_AMOUNT_SKIP =
-    32 /*emitter address*/ + 8 /*sequence*/ + 1 /*consistencyLevel*/ + 1 /*payload id*/;
-  uint private constant _VAA_TOKEN_BRIDGE_RECIPIENT_SKIP =
-    32 /*token bridge recipient address (us)*/ + 2 /*token bridge recipient chain id (our chain)*/;
 
   function parse(
     bytes calldata data,
@@ -649,38 +628,38 @@ library TokenBridgeVAAParser {
     uint retOffset
   ) { unchecked {
     (vaa, retOffset) = data.sliceUint16PrefixedCdUnchecked(offset);
-
-    //we continue using calldata parsing functionality to avoid code bloat from using
-    //  both calldata and memory parsing functions unnecessarily
-    uint dataOffset = offset + _TBR_V3_VAA_LENGTH_PREFIX_SIZE + _VAA_SIGNATURE_ARRAY_OFFSET;
-    uint signatureCount;
-    (signatureCount, dataOffset) = data.asUint8CdUnchecked(dataOffset);
-
-    dataOffset += signatureCount * _VAA_SIGNATURE_SIZE + _VAA_EMITTER_CHAIN_SKIP;
-    (peerChain, dataOffset) = data.asUint16CdUnchecked(dataOffset);
-    dataOffset += _VAA_TOKEN_AMOUNT_SKIP;
-    //we don't check the payload id because the sizes will mismatch in the end if it's not a
-    //  payload 3 transfer
-
+    bytes memory vaaPayload;
+    (peerChain, vaaPayload) = VaaLib.decodeEmitterChainAndPayloadMemUnchecked(vaa);
     // Note that the token amount is expressed in at most 8 decimals so
     // you need to denormalize this amount before calling transfer functions on the token.
-    (tbNormalizedTokenAmount, dataOffset) = data.asUint256CdUnchecked(dataOffset);
-    (tokenOriginAddress, dataOffset) = data.asBytes32CdUnchecked(dataOffset);
-    (tokenOriginChain, dataOffset) = data.asUint16CdUnchecked(dataOffset);
-    dataOffset += _VAA_TOKEN_BRIDGE_RECIPIENT_SKIP;
-    (peerAddress, dataOffset) = data.asBytes32CdUnchecked(dataOffset);
+
+    bytes memory payload;
+    ( tbNormalizedTokenAmount, 
+      tokenOriginAddress, 
+      tokenOriginChain, 
+      peerAddress, 
+      payload
+    ) = TokenBridgeMessageLib.decodeTransferWithPayloadEssentialsMem(vaaPayload);
+
+    uint payloadOffset = 0;
     uint8 tbrV3Version;
-    (tbrV3Version, dataOffset) = data.asUint8CdUnchecked(dataOffset);
+    (tbrV3Version, payloadOffset) = payload.asUint8MemUnchecked(payloadOffset);
     if (tbrV3Version != TBR_V3_MESSAGE_VERSION)
       revert InvalidMsgVersion(tbrV3Version, commandIndex);
 
     bytes32 universalRecipient;
-    (universalRecipient, dataOffset) = data.asBytes32CdUnchecked(dataOffset);
+    (universalRecipient, payloadOffset) = payload.asBytes32MemUnchecked(payloadOffset);
     recipient = fromUniversalAddress(universalRecipient);
-    (gasDropoff, dataOffset) = data.asUint32CdUnchecked(dataOffset);
-    (unwrapIntent, dataOffset) = data.asBoolCdUnchecked(dataOffset);
-
-    if (dataOffset != retOffset)
-      revert InvalidVaaLength(commandIndex);
+    (gasDropoff, payloadOffset) = payload.asUint32MemUnchecked(payloadOffset);
+    (unwrapIntent, payloadOffset) = payload.asBoolMemUnchecked(payloadOffset);
   }}
+
+  receive() external payable {
+    // NOTE: all values retrieved here need to be immutables to avoid going over the 2300 gas stipend
+    if (!gasErc20TokenizationIsExplicit)
+      revert GasTokenNotSupported();
+
+    if (msg.sender != address(gasToken))
+      revert GasTokenOnlyAcceptedViaWithdrawal();
+  }
 }

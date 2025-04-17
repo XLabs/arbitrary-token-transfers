@@ -22,7 +22,7 @@ contract ConfigTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         IMPLEMENTATION_ID
       )
-    ).asAddressUnchecked(0);
+    ).asAddressMemUnchecked(0);
 
     vm.expectRevert(NotAuthorized.selector);
     invokeTbr(
@@ -66,7 +66,7 @@ contract ConfigTest is TbrTestBase {
         DISPATCHER_PROTOCOL_VERSION0, 
         IMPLEMENTATION_ID
       )
-    ).asAddressUnchecked(0);
+    ).asAddressMemUnchecked(0);
     assertEq(restoredImplementation, implementation);
   }
 
@@ -108,8 +108,8 @@ contract ConfigTest is TbrTestBase {
         PENDING_OWNER_ID
       )
     );
-    (address owner_,        ) = getRes.asAddressUnchecked(0);
-    (address pendingOwner_, ) = getRes.asAddressUnchecked(20);
+    (address owner_,        ) = getRes.asAddressMemUnchecked(0);
+    (address pendingOwner_, ) = getRes.asAddressMemUnchecked(20);
 
     assertEq(owner_,        owner);
     assertEq(pendingOwner_, newOwner);
@@ -143,8 +143,8 @@ contract ConfigTest is TbrTestBase {
         PENDING_OWNER_ID
       )
     );
-    (owner_,        ) = getRes.asAddressUnchecked(0);
-    (pendingOwner_, ) = getRes.asAddressUnchecked(20);
+    (owner_,        ) = getRes.asAddressMemUnchecked(0);
+    (pendingOwner_, ) = getRes.asAddressMemUnchecked(20);
 
     assertEq(owner_, newOwner);
     assertEq(pendingOwner_, address(0));

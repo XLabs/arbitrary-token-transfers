@@ -1131,8 +1131,8 @@ contract UserTest is TbrTestBase {
     uint offset;
     bool isPaused;
     uint64 fee;
-    (isPaused, offset) = response.asBoolUnchecked(offset);
-    (fee, offset) = response.asUint64Unchecked(offset);
+    (isPaused, offset) = response.asBoolMemUnchecked(offset);
+    (fee, offset) = response.asUint64MemUnchecked(offset);
     assertEq(isPaused, false);
     assertEq(fee, expectedFee);
   }
@@ -1171,8 +1171,8 @@ contract UserTest is TbrTestBase {
     uint offset;
     bool isPaused;
     uint64 fee;
-    (isPaused, offset) = response.asBoolUnchecked(offset);
-    (fee, offset) = response.asUint64Unchecked(offset);
+    (isPaused, offset) = response.asBoolMemUnchecked(offset);
+    (fee, offset) = response.asUint64MemUnchecked(offset);
     assertEq(isPaused, false);
     assertEq(fee, expectedFee);
   }
@@ -1214,10 +1214,10 @@ contract UserTest is TbrTestBase {
     bool chainIsPaused;
     uint32 maxGasDropoff;
     uint32 baseFee;
-    (peer, offset) = response.asBytes32Unchecked(offset);
-    (baseFee, offset) = response.asUint32Unchecked(offset);
-    (maxGasDropoff, offset) = response.asUint32Unchecked(offset);
-    (chainIsPaused, offset) = response.asBoolUnchecked(offset);
+    (peer, offset) = response.asBytes32MemUnchecked(offset);
+    (baseFee, offset) = response.asUint32MemUnchecked(offset);
+    (maxGasDropoff, offset) = response.asUint32MemUnchecked(offset);
+    (chainIsPaused, offset) = response.asBoolMemUnchecked(offset);
 
     assertEq(peer, SOLANA_CANONICAL_PEER);
     assertEq(baseFee, RELAY_FEE_AMOUNT);
@@ -1235,10 +1235,10 @@ contract UserTest is TbrTestBase {
     );
 
     offset = 0;
-    (peer, offset) = response.asBytes32Unchecked(offset);
-    (baseFee, offset) = response.asUint32Unchecked(offset);
-    (maxGasDropoff, offset) = response.asUint32Unchecked(offset);
-    (chainIsPaused, offset) = response.asBoolUnchecked(offset);
+    (peer, offset) = response.asBytes32MemUnchecked(offset);
+    (baseFee, offset) = response.asUint32MemUnchecked(offset);
+    (maxGasDropoff, offset) = response.asUint32MemUnchecked(offset);
+    (chainIsPaused, offset) = response.asBoolMemUnchecked(offset);
 
     assertEq(peer, EVM_CANONICAL_PEER);
     assertEq(baseFee, RELAY_FEE_AMOUNT);
@@ -1690,12 +1690,12 @@ function testCompleteTransfer_GasDropoffNotNecessaryInRecipientCall(
     bytes4 nestedErrorSelector;
     uint256 thrownErrorId;
 
-    (bytes4 errorSelector, uint256 offset) = result.asBytes4Unchecked(0);
-    (commandIndex, offset) = result.asUint256Unchecked(offset);
-    (errorSize, offset) = result.asUint256Unchecked(offset);
+    (bytes4 errorSelector, uint256 offset) = result.asBytes4MemUnchecked(0);
+    (commandIndex, offset) = result.asUint256MemUnchecked(offset);
+    (errorSize, offset) = result.asUint256MemUnchecked(offset);
     uint errorOverheadSize = offset;
-    (nestedErrorSelector, offset) = result.asBytes4Unchecked(offset);
-    (thrownErrorId, offset) = result.asUint256Unchecked(offset);
+    (nestedErrorSelector, offset) = result.asBytes4MemUnchecked(offset);
+    (thrownErrorId, offset) = result.asUint256MemUnchecked(offset);
 
     assertEq(errorSelector, PayFailure.selector);
     assertEq(commandIndex, 0);
