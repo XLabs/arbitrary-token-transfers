@@ -391,23 +391,28 @@ Current authority: ${upgradeAuthority}`);
       isWritable: true,
     }));
 
+    const initAccounts = {
+      deployer: signer,
+      programData: program.dataAddress,
+      owner,
+    } as const;
+
+    const updateEvmTxConfigAccounts = {
+      signer,
+      authBadge: this.account.authBadge(signer).address,
+      tbrConfig: this.account.config().address,
+    } as const;
+    this.logDebug('initialize:', objToString(initAccounts), objToString(updateEvmTxConfigAccounts));
+
     return Promise.all([
       this.program.methods
         .initialize(feeRecipient, admins)
-        .accountsPartial({
-          deployer: signer,
-          programData: program.dataAddress,
-          owner,
-        })
+        .accountsPartial(initAccounts)
         .remainingAccounts(authBadges)
         .instruction(),
       this.program.methods
         .updateEvmTransactionConfig(evmTransactionGas, evmTransactionSize)
-        .accounts({
-          signer,
-          authBadge: this.account.authBadge(signer).address,
-          tbrConfig: this.account.config().address,
-        })
+        .accounts(updateEvmTxConfigAccounts)
         .instruction()
     ]);
   }
