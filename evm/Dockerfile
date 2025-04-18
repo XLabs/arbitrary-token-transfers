@@ -1,4 +1,9 @@
-FROM ghcr.io/foundry-rs/foundry:nightly-4817280d96e0e33a2e96cf169770da60514d1764 AS builder
+FROM ghcr.io/foundry-rs/foundry:v1.0.0@sha256:d12a373ec950de170d5461014ef9320ba0fb6e0db6f87835999d0fcf3820370e AS builder
+
+# Foundry image runs as foundry user by default
+# We need root to both run apt and to write files to the filesystem
+USER root
+RUN apt update && apt install -y jq wget
 
 # Preflight 
 
@@ -7,7 +12,6 @@ COPY evm/foundry.toml evm/foundry.toml
 COPY --link lib lib
 COPY --link evm/lib evm/lib
 COPY --link evm/src evm/src
-RUN apk add --no-cache jq
 
 # Prepare compiler input.
 
