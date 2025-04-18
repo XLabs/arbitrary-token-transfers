@@ -440,6 +440,7 @@ Current authority: ${upgradeAuthority}`);
       .accounts({
         newOwner: config.pendingOwner ?? throwError('No pending owner in the program'),
         tbrConfig: this.account.config().address,
+        ownerCtx: {},
       })
       .instruction();
   }
