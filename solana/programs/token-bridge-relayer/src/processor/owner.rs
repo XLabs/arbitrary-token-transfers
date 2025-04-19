@@ -11,18 +11,7 @@ use anchor_lang::{
 };
 
 #[derive(Accounts)]
-pub struct SubmitOwnerTransfer<'info> {
-    pub owner: Signer<'info>,
-
-    /// Program Config account. This program requires that the [`signer`] specified
-    /// in the context equals a pubkey specified in this account. Mutable,
-    /// because we will update roles depending on the operation.
-    #[account(
-        mut,
-        has_one = owner @ TokenBridgeRelayerError::OwnerOnly,
-    )]
-    pub tbr_config: Account<'info, TbrConfigState>,
-
+pub struct OwnerContext<'info> {
     /// CHECK: The seeds constraint enforces that this is the correct address
     #[account(
         seeds = [SEED_PREFIX_UPGRADE_LOCK],
@@ -41,6 +30,22 @@ pub struct SubmitOwnerTransfer<'info> {
     /// CHECK: The BPF loader program.
     #[account(address = bpf_loader_upgradeable::ID)]
     pub bpf_loader_upgradeable: UncheckedAccount<'info>,
+}
+
+#[derive(Accounts)]
+pub struct SubmitOwnerTransfer<'info> {
+    pub owner: Signer<'info>,
+
+    /// Program Config account. This program requires that the [`signer`] specified
+    /// in the context equals a pubkey specified in this account. Mutable,
+    /// because we will update roles depending on the operation.
+    #[account(
+        mut,
+        has_one = owner @ TokenBridgeRelayerError::OwnerOnly,
+    )]
+    pub tbr_config: Account<'info, TbrConfigState>,
+
+    pub owner_ctx: OwnerContext<'info>,
 }
 
 pub fn submit_owner_transfer_request(
@@ -62,14 +67,14 @@ pub fn submit_owner_transfer_request(
         &bpf_loader_upgradeable::set_upgrade_authority_checked(
             &ctx.program_id,
             &ctx.accounts.owner.key(),
-            &ctx.accounts.upgrade_lock.key(),
+            &ctx.accounts.owner_ctx.upgrade_lock.key(),
         ),
         &[
-            ctx.accounts.program_data.to_account_info(),
+            ctx.accounts.owner_ctx.program_data.to_account_info(),
             ctx.accounts.owner.to_account_info(),
-            ctx.accounts.upgrade_lock.to_account_info(),
+            ctx.accounts.owner_ctx.upgrade_lock.to_account_info(),
         ],
-        &[&[SEED_PREFIX_UPGRADE_LOCK, &[ctx.bumps.upgrade_lock]]],
+        &[&[SEED_PREFIX_UPGRADE_LOCK, &[ctx.bumps.owner_ctx.upgrade_lock]]],
     )?;
 
     Ok(())
@@ -108,24 +113,7 @@ pub struct ConfirmOwnerTransfer<'info> {
     )]
     pub tbr_config: Account<'info, TbrConfigState>,
 
-    /// CHECK: The seeds constraint enforces that this is the correct address
-    #[account(
-        seeds = [SEED_PREFIX_UPGRADE_LOCK],
-        bump,
-    )]
-    upgrade_lock: UncheckedAccount<'info>,
-
-    #[account(
-        mut,
-        seeds = [crate::ID.as_ref()],
-        bump,
-        seeds::program = bpf_loader_upgradeable::ID,
-    )]
-    program_data: Account<'info, ProgramData>,
-
-    /// CHECK: The BPF loader program.
-    #[account(address = bpf_loader_upgradeable::ID)]
-    pub bpf_loader_upgradeable: UncheckedAccount<'info>,
+    pub owner_ctx: OwnerContext<'info>,
 
     pub system_program: Program<'info, System>,
 }
@@ -137,15 +125,15 @@ pub fn confirm_owner_transfer_request(ctx: Context<ConfirmOwnerTransfer>) -> Res
     invoke_signed(
         &bpf_loader_upgradeable::set_upgrade_authority(
             &ctx.program_id,
-            &ctx.accounts.upgrade_lock.key(),
+            &ctx.accounts.owner_ctx.upgrade_lock.key(),
             Some(&ctx.accounts.new_owner.key()),
         ),
         &[
-            ctx.accounts.program_data.to_account_info(),
-            ctx.accounts.upgrade_lock.to_account_info(),
+            ctx.accounts.owner_ctx.program_data.to_account_info(),
+            ctx.accounts.owner_ctx.upgrade_lock.to_account_info(),
             ctx.accounts.new_owner.to_account_info(),
         ],
-        &[&[SEED_PREFIX_UPGRADE_LOCK, &[ctx.bumps.upgrade_lock]]],
+        &[&[SEED_PREFIX_UPGRADE_LOCK, &[ctx.bumps.owner_ctx.upgrade_lock]]],
     )?;
 
     tbr_config.owner = ctx.accounts.new_owner.key();
@@ -171,24 +159,7 @@ pub struct CancelOwnerTransfer<'info> {
     )]
     pub tbr_config: Account<'info, TbrConfigState>,
 
-    /// CHECK: The seeds constraint enforces that this is the correct address
-    #[account(
-        seeds = [SEED_PREFIX_UPGRADE_LOCK],
-        bump,
-    )]
-    upgrade_lock: UncheckedAccount<'info>,
-
-    #[account(
-        mut,
-        seeds = [crate::ID.as_ref()],
-        bump,
-        seeds::program = bpf_loader_upgradeable::ID,
-    )]
-    program_data: Account<'info, ProgramData>,
-
-    /// CHECK: The BPF loader program.
-    #[account(address = bpf_loader_upgradeable::ID)]
-    pub bpf_loader_upgradeable: UncheckedAccount<'info>,
+    pub owner_ctx: OwnerContext<'info>,
 }
 
 pub fn cancel_owner_transfer_request(ctx: Context<CancelOwnerTransfer>) -> Result<()> {
@@ -198,15 +169,15 @@ pub fn cancel_owner_transfer_request(ctx: Context<CancelOwnerTransfer>) -> Resul
     invoke_signed(
         &bpf_loader_upgradeable::set_upgrade_authority(
             &ctx.program_id,
-            &ctx.accounts.upgrade_lock.key(),
+            &ctx.accounts.owner_ctx.upgrade_lock.key(),
             Some(&ctx.accounts.owner.key()),
         ),
         &[
-            ctx.accounts.program_data.to_account_info(),
-            ctx.accounts.upgrade_lock.to_account_info(),
+            ctx.accounts.owner_ctx.program_data.to_account_info(),
+            ctx.accounts.owner_ctx.upgrade_lock.to_account_info(),
             ctx.accounts.owner.to_account_info(),
         ],
-        &[&[SEED_PREFIX_UPGRADE_LOCK, &[ctx.bumps.upgrade_lock]]],
+        &[&[SEED_PREFIX_UPGRADE_LOCK, &[ctx.bumps.owner_ctx.upgrade_lock]]],
     )?;
 
     Ok(())

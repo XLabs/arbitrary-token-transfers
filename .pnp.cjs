@@ -88,7 +88,7 @@ const RAW_RUNTIME_STATE =
           ["prettier", "npm:3.3.3"],\
           ["ts-mocha", "virtual:33d4007d0290747430617a5c0eb2da58d74cdff8bc8263fdea6457aebe82a895aa6f9c4f9f07fab8e85221c695fc8a7b8d17e2e26cee5cd3bfae6b8271723910#npm:10.0.0"],\
           ["tsx", "npm:4.19.2"],\
-          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -134,12 +134,12 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "HARD"\
       }],\
-      ["npm:0.30.1", {\
-        "packageLocation": "./.yarn/cache/@coral-xyz-anchor-npm-0.30.1-a611cfd278-ed0e5903e7.zip/node_modules/@coral-xyz/anchor/",\
+      ["npm:0.31.0", {\
+        "packageLocation": "./.yarn/cache/@coral-xyz-anchor-npm-0.31.0-a290862b22-6f85a993da.zip/node_modules/@coral-xyz/anchor/",\
         "packageDependencies": [\
-          ["@coral-xyz/anchor", "npm:0.30.1"],\
-          ["@coral-xyz/anchor-errors", "npm:0.30.1"],\
-          ["@coral-xyz/borsh", "virtual:a611cfd278c4d8a297b1ef0935be119209af2444e0d0255039fdb97aea2daf321ff934bb7d3fd8e0c029a9b8f22090f93f456cb99acfe4e696ec77fab8240b5f#npm:0.30.1"],\
+          ["@coral-xyz/anchor", "npm:0.31.0"],\
+          ["@coral-xyz/anchor-errors", "npm:0.31.0"],\
+          ["@coral-xyz/borsh", "virtual:a290862b222c34873efaaccb6d8c32eda14f2d73a8745875db7217e64d1036de839ea6a0e761996d24d47fec3df594dbd44a77cf2d4e7b8f4fa2bc6103834897#npm:0.31.0"],\
           ["@noble/hashes", "npm:1.5.0"],\
           ["@solana/web3.js", "npm:1.98.0"],\
           ["bn.js", "npm:5.2.1"],\
@@ -147,10 +147,8 @@ const RAW_RUNTIME_STATE =
           ["buffer-layout", "npm:1.2.2"],\
           ["camelcase", "npm:6.3.0"],\
           ["cross-fetch", "npm:3.1.8"],\
-          ["crypto-hash", "npm:1.3.0"],\
           ["eventemitter3", "npm:4.0.7"],\
           ["pako", "npm:2.1.0"],\
-          ["snake-case", "npm:3.0.4"],\
           ["superstruct", "npm:0.15.5"],\
           ["toml", "npm:3.0.0"]\
         ],\
@@ -158,10 +156,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@coral-xyz/anchor-errors", [\
-      ["npm:0.30.1", {\
-        "packageLocation": "./.yarn/cache/@coral-xyz-anchor-errors-npm-0.30.1-3d4861734e-cb6749b68c.zip/node_modules/@coral-xyz/anchor-errors/",\
+      ["npm:0.31.0", {\
+        "packageLocation": "./.yarn/cache/@coral-xyz-anchor-errors-npm-0.31.0-133cca4abd-efe753b58d.zip/node_modules/@coral-xyz/anchor-errors/",\
         "packageDependencies": [\
-          ["@coral-xyz/anchor-errors", "npm:0.30.1"]\
+          ["@coral-xyz/anchor-errors", "npm:0.31.0"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -174,10 +172,10 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "SOFT"\
       }],\
-      ["npm:0.30.1", {\
-        "packageLocation": "./.yarn/cache/@coral-xyz-borsh-npm-0.30.1-1493a86d3d-eaad9c5964.zip/node_modules/@coral-xyz/borsh/",\
+      ["npm:0.31.0", {\
+        "packageLocation": "./.yarn/cache/@coral-xyz-borsh-npm-0.31.0-fc459c6a6c-3d12e622a5.zip/node_modules/@coral-xyz/borsh/",\
         "packageDependencies": [\
-          ["@coral-xyz/borsh", "npm:0.30.1"]\
+          ["@coral-xyz/borsh", "npm:0.31.0"]\
         ],\
         "linkType": "SOFT"\
       }],\
@@ -196,10 +194,10 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "HARD"\
       }],\
-      ["virtual:a611cfd278c4d8a297b1ef0935be119209af2444e0d0255039fdb97aea2daf321ff934bb7d3fd8e0c029a9b8f22090f93f456cb99acfe4e696ec77fab8240b5f#npm:0.30.1", {\
-        "packageLocation": "./.yarn/__virtual__/@coral-xyz-borsh-virtual-de6b9f6553/0/cache/@coral-xyz-borsh-npm-0.30.1-1493a86d3d-eaad9c5964.zip/node_modules/@coral-xyz/borsh/",\
+      ["virtual:a290862b222c34873efaaccb6d8c32eda14f2d73a8745875db7217e64d1036de839ea6a0e761996d24d47fec3df594dbd44a77cf2d4e7b8f4fa2bc6103834897#npm:0.31.0", {\
+        "packageLocation": "./.yarn/__virtual__/@coral-xyz-borsh-virtual-a81f9c5635/0/cache/@coral-xyz-borsh-npm-0.31.0-fc459c6a6c-3d12e622a5.zip/node_modules/@coral-xyz/borsh/",\
         "packageDependencies": [\
-          ["@coral-xyz/borsh", "virtual:a611cfd278c4d8a297b1ef0935be119209af2444e0d0255039fdb97aea2daf321ff934bb7d3fd8e0c029a9b8f22090f93f456cb99acfe4e696ec77fab8240b5f#npm:0.30.1"],\
+          ["@coral-xyz/borsh", "virtual:a290862b222c34873efaaccb6d8c32eda14f2d73a8745875db7217e64d1036de839ea6a0e761996d24d47fec3df594dbd44a77cf2d4e7b8f4fa2bc6103834897#npm:0.31.0"],\
           ["@solana/web3.js", "npm:1.98.0"],\
           ["@types/solana__web3.js", null],\
           ["bn.js", "npm:5.2.1"],\
@@ -2217,7 +2215,7 @@ const RAW_RUNTIME_STATE =
           ["prettier", "npm:3.3.3"],\
           ["tsup", "virtual:9bef669af1c3b4b384f01597b4618f767933970b69e6fd62d81f9bbc7b8c4900225bffb44e48b8c05eea593d7778ed11aa109309394c7caa9adf8cbab67e8377#npm:8.3.5"],\
           ["tsx", "npm:4.19.2"],\
-          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"]\
         ],\
         "packagePeers": [\
           "@types/wormhole-foundation__sdk-base",\
@@ -2242,7 +2240,7 @@ const RAW_RUNTIME_STATE =
           ["prettier", "npm:3.3.3"],\
           ["tsup", "virtual:9bef669af1c3b4b384f01597b4618f767933970b69e6fd62d81f9bbc7b8c4900225bffb44e48b8c05eea593d7778ed11aa109309394c7caa9adf8cbab67e8377#npm:8.3.5"],\
           ["tsx", "npm:4.19.2"],\
-          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -2263,7 +2261,7 @@ const RAW_RUNTIME_STATE =
           ["prettier", "npm:3.3.3"],\
           ["tsup", "virtual:9bef669af1c3b4b384f01597b4618f767933970b69e6fd62d81f9bbc7b8c4900225bffb44e48b8c05eea593d7778ed11aa109309394c7caa9adf8cbab67e8377#npm:8.3.5"],\
           ["tsx", "npm:4.19.2"],\
-          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -2273,7 +2271,7 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/__virtual__/@xlabs-xyz-arbitrary-token-transfer-solana-route-virtual-3fb738aee5/1/connect/platforms/solana/",\
         "packageDependencies": [\
           ["@xlabs-xyz/arbitrary-token-transfer-solana-route", "virtual:7cda11cf41ec3aea9e17430f03ad79610580397857ff46ee50430450feb5afb15b4a40b03704a201d1027ce9343220439cf102a8edb6ba975056d9f88edab920#workspace:connect/platforms/solana"],\
-          ["@coral-xyz/anchor", "npm:0.30.1"],\
+          ["@coral-xyz/anchor", "npm:0.31.0"],\
           ["@solana/spl-token", "virtual:1083298bcb0ac2d0c31e8d54e5d8046d04af5b3b1ca39b8404f80e1c4c08f4735785338190f77488c34d544aec8cdd0fb4bb5631f5f8a4e09017b7efc0afa473#npm:0.4.9"],\
           ["@solana/web3.js", "npm:1.98.0"],\
           ["@types/node", "npm:20.17.5"],\
@@ -2288,7 +2286,7 @@ const RAW_RUNTIME_STATE =
           ["prettier", "npm:3.3.3"],\
           ["tsup", "virtual:9bef669af1c3b4b384f01597b4618f767933970b69e6fd62d81f9bbc7b8c4900225bffb44e48b8c05eea593d7778ed11aa109309394c7caa9adf8cbab67e8377#npm:8.3.5"],\
           ["tsx", "npm:4.19.2"],\
-          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"]\
         ],\
         "packagePeers": [\
           "@types/wormhole-foundation__sdk-base",\
@@ -2303,7 +2301,7 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./connect/platforms/solana/",\
         "packageDependencies": [\
           ["@xlabs-xyz/arbitrary-token-transfer-solana-route", "workspace:connect/platforms/solana"],\
-          ["@coral-xyz/anchor", "npm:0.30.1"],\
+          ["@coral-xyz/anchor", "npm:0.31.0"],\
           ["@solana/spl-token", "virtual:1083298bcb0ac2d0c31e8d54e5d8046d04af5b3b1ca39b8404f80e1c4c08f4735785338190f77488c34d544aec8cdd0fb4bb5631f5f8a4e09017b7efc0afa473#npm:0.4.9"],\
           ["@solana/web3.js", "npm:1.98.0"],\
           ["@types/node", "npm:20.17.5"],\
@@ -2315,7 +2313,7 @@ const RAW_RUNTIME_STATE =
           ["prettier", "npm:3.3.3"],\
           ["tsup", "virtual:9bef669af1c3b4b384f01597b4618f767933970b69e6fd62d81f9bbc7b8c4900225bffb44e48b8c05eea593d7778ed11aa109309394c7caa9adf8cbab67e8377#npm:8.3.5"],\
           ["tsx", "npm:4.19.2"],\
-          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -2334,7 +2332,7 @@ const RAW_RUNTIME_STATE =
           ["prettier", "npm:3.3.3"],\
           ["tsup", "virtual:9bef669af1c3b4b384f01597b4618f767933970b69e6fd62d81f9bbc7b8c4900225bffb44e48b8c05eea593d7778ed11aa109309394c7caa9adf8cbab67e8377#npm:8.3.5"],\
           ["tsx", "npm:4.19.2"],\
-          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"]\
         ],\
         "packagePeers": [\
           "@types/wormhole-foundation__sdk-base",\
@@ -2355,7 +2353,7 @@ const RAW_RUNTIME_STATE =
           ["prettier", "npm:3.3.3"],\
           ["tsup", "virtual:9bef669af1c3b4b384f01597b4618f767933970b69e6fd62d81f9bbc7b8c4900225bffb44e48b8c05eea593d7778ed11aa109309394c7caa9adf8cbab67e8377#npm:8.3.5"],\
           ["tsx", "npm:4.19.2"],\
-          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -2379,7 +2377,7 @@ const RAW_RUNTIME_STATE =
           ["mocha", "npm:10.7.3"],\
           ["tsup", "virtual:9bef669af1c3b4b384f01597b4618f767933970b69e6fd62d81f9bbc7b8c4900225bffb44e48b8c05eea593d7778ed11aa109309394c7caa9adf8cbab67e8377#npm:8.3.5"],\
           ["tsx", "npm:4.19.2"],\
-          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"]\
         ],\
         "packagePeers": [\
           "@types/wormhole-foundation__sdk-base",\
@@ -2406,7 +2404,7 @@ const RAW_RUNTIME_STATE =
           ["mocha", "npm:10.7.3"],\
           ["tsup", "virtual:9bef669af1c3b4b384f01597b4618f767933970b69e6fd62d81f9bbc7b8c4900225bffb44e48b8c05eea593d7778ed11aa109309394c7caa9adf8cbab67e8377#npm:8.3.5"],\
           ["tsx", "npm:4.19.2"],\
-          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -2454,7 +2452,7 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/__virtual__/@xlabs-xyz-solana-arbitrary-token-transfers-virtual-4baef52035/1/sdk/solana/",\
         "packageDependencies": [\
           ["@xlabs-xyz/solana-arbitrary-token-transfers", "virtual:1083298bcb0ac2d0c31e8d54e5d8046d04af5b3b1ca39b8404f80e1c4c08f4735785338190f77488c34d544aec8cdd0fb4bb5631f5f8a4e09017b7efc0afa473#workspace:sdk/solana"],\
-          ["@coral-xyz/anchor", "npm:0.30.1"],\
+          ["@coral-xyz/anchor", "npm:0.31.0"],\
           ["@solana/spl-token", "virtual:1083298bcb0ac2d0c31e8d54e5d8046d04af5b3b1ca39b8404f80e1c4c08f4735785338190f77488c34d544aec8cdd0fb4bb5631f5f8a4e09017b7efc0afa473#npm:0.4.9"],\
           ["@solana/web3.js", "npm:1.98.0"],\
           ["@types/node", "npm:20.17.5"],\
@@ -2466,10 +2464,10 @@ const RAW_RUNTIME_STATE =
           ["@wormhole-foundation/sdk-definitions", "npm:1.4.5"],\
           ["@wormhole-foundation/sdk-solana", "npm:1.4.5"],\
           ["@wormhole-foundation/sdk-solana-tokenbridge", "npm:1.4.5"],\
-          ["@xlabs-xyz/solana-price-oracle-sdk", "virtual:4baef52035962ca133136492d40dec95183e8207fc44d69d3dda9910201c7f8cdfbe32f418548f345203723358c5a8abbd7d4d91f540905fb6331fb448af68a4#npm:0.0.20"],\
+          ["@xlabs-xyz/solana-price-oracle-sdk", "virtual:4baef52035962ca133136492d40dec95183e8207fc44d69d3dda9910201c7f8cdfbe32f418548f345203723358c5a8abbd7d4d91f540905fb6331fb448af68a4#file:../../../relayer-infra-contracts/src/solana/xlabs-xyz-solana-price-oracle-sdk-0.0.21.tgz#../../../relayer-infra-contracts/src/solana/xlabs-xyz-solana-price-oracle-sdk-0.0.21.tgz::hash=268d8c&locator=%40xlabs-xyz%2Fsolana-arbitrary-token-transfers%40workspace%3Asdk%2Fsolana"],\
           ["tsup", "virtual:9bef669af1c3b4b384f01597b4618f767933970b69e6fd62d81f9bbc7b8c4900225bffb44e48b8c05eea593d7778ed11aa109309394c7caa9adf8cbab67e8377#npm:8.3.5"],\
           ["tsx", "npm:4.19.2"],\
-          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"]\
         ],\
         "packagePeers": [\
           "@types/wormhole-foundation__sdk-base",\
@@ -2486,7 +2484,7 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./sdk/solana/",\
         "packageDependencies": [\
           ["@xlabs-xyz/solana-arbitrary-token-transfers", "workspace:sdk/solana"],\
-          ["@coral-xyz/anchor", "npm:0.30.1"],\
+          ["@coral-xyz/anchor", "npm:0.31.0"],\
           ["@solana/spl-token", "virtual:1083298bcb0ac2d0c31e8d54e5d8046d04af5b3b1ca39b8404f80e1c4c08f4735785338190f77488c34d544aec8cdd0fb4bb5631f5f8a4e09017b7efc0afa473#npm:0.4.9"],\
           ["@solana/web3.js", "npm:1.98.0"],\
           ["@types/node", "npm:20.17.5"],\
@@ -2494,27 +2492,27 @@ const RAW_RUNTIME_STATE =
           ["@wormhole-foundation/sdk-definitions", "npm:1.4.5"],\
           ["@wormhole-foundation/sdk-solana", "npm:1.4.5"],\
           ["@wormhole-foundation/sdk-solana-tokenbridge", "npm:1.4.5"],\
-          ["@xlabs-xyz/solana-price-oracle-sdk", "virtual:4baef52035962ca133136492d40dec95183e8207fc44d69d3dda9910201c7f8cdfbe32f418548f345203723358c5a8abbd7d4d91f540905fb6331fb448af68a4#npm:0.0.20"],\
+          ["@xlabs-xyz/solana-price-oracle-sdk", "virtual:4baef52035962ca133136492d40dec95183e8207fc44d69d3dda9910201c7f8cdfbe32f418548f345203723358c5a8abbd7d4d91f540905fb6331fb448af68a4#file:../../../relayer-infra-contracts/src/solana/xlabs-xyz-solana-price-oracle-sdk-0.0.21.tgz#../../../relayer-infra-contracts/src/solana/xlabs-xyz-solana-price-oracle-sdk-0.0.21.tgz::hash=268d8c&locator=%40xlabs-xyz%2Fsolana-arbitrary-token-transfers%40workspace%3Asdk%2Fsolana"],\
           ["tsup", "virtual:9bef669af1c3b4b384f01597b4618f767933970b69e6fd62d81f9bbc7b8c4900225bffb44e48b8c05eea593d7778ed11aa109309394c7caa9adf8cbab67e8377#npm:8.3.5"],\
           ["tsx", "npm:4.19.2"],\
-          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"]\
         ],\
         "linkType": "SOFT"\
       }]\
     ]],\
     ["@xlabs-xyz/solana-price-oracle-sdk", [\
-      ["npm:0.0.20", {\
-        "packageLocation": "./.yarn/cache/@xlabs-xyz-solana-price-oracle-sdk-npm-0.0.20-32d95aee97-bb206db5b5.zip/node_modules/@xlabs-xyz/solana-price-oracle-sdk/",\
+      ["file:../../../relayer-infra-contracts/src/solana/xlabs-xyz-solana-price-oracle-sdk-0.0.21.tgz#../../../relayer-infra-contracts/src/solana/xlabs-xyz-solana-price-oracle-sdk-0.0.21.tgz::hash=268d8c&locator=%40xlabs-xyz%2Fsolana-arbitrary-token-transfers%40workspace%3Asdk%2Fsolana", {\
+        "packageLocation": "./.yarn/cache/@xlabs-xyz-solana-price-oracle-sdk-file-f4b2355446-5e16249619.zip/node_modules/@xlabs-xyz/solana-price-oracle-sdk/",\
         "packageDependencies": [\
-          ["@xlabs-xyz/solana-price-oracle-sdk", "npm:0.0.20"]\
+          ["@xlabs-xyz/solana-price-oracle-sdk", "file:../../../relayer-infra-contracts/src/solana/xlabs-xyz-solana-price-oracle-sdk-0.0.21.tgz#../../../relayer-infra-contracts/src/solana/xlabs-xyz-solana-price-oracle-sdk-0.0.21.tgz::hash=268d8c&locator=%40xlabs-xyz%2Fsolana-arbitrary-token-transfers%40workspace%3Asdk%2Fsolana"]\
         ],\
         "linkType": "SOFT"\
       }],\
-      ["virtual:4baef52035962ca133136492d40dec95183e8207fc44d69d3dda9910201c7f8cdfbe32f418548f345203723358c5a8abbd7d4d91f540905fb6331fb448af68a4#npm:0.0.20", {\
-        "packageLocation": "./.yarn/__virtual__/@xlabs-xyz-solana-price-oracle-sdk-virtual-9328828750/0/cache/@xlabs-xyz-solana-price-oracle-sdk-npm-0.0.20-32d95aee97-bb206db5b5.zip/node_modules/@xlabs-xyz/solana-price-oracle-sdk/",\
+      ["virtual:4baef52035962ca133136492d40dec95183e8207fc44d69d3dda9910201c7f8cdfbe32f418548f345203723358c5a8abbd7d4d91f540905fb6331fb448af68a4#file:../../../relayer-infra-contracts/src/solana/xlabs-xyz-solana-price-oracle-sdk-0.0.21.tgz#../../../relayer-infra-contracts/src/solana/xlabs-xyz-solana-price-oracle-sdk-0.0.21.tgz::hash=268d8c&locator=%40xlabs-xyz%2Fsolana-arbitrary-token-transfers%40workspace%3Asdk%2Fsolana", {\
+        "packageLocation": "./.yarn/__virtual__/@xlabs-xyz-solana-price-oracle-sdk-virtual-fefe7e46f0/0/cache/@xlabs-xyz-solana-price-oracle-sdk-file-f4b2355446-5e16249619.zip/node_modules/@xlabs-xyz/solana-price-oracle-sdk/",\
         "packageDependencies": [\
-          ["@xlabs-xyz/solana-price-oracle-sdk", "virtual:4baef52035962ca133136492d40dec95183e8207fc44d69d3dda9910201c7f8cdfbe32f418548f345203723358c5a8abbd7d4d91f540905fb6331fb448af68a4#npm:0.0.20"],\
-          ["@coral-xyz/anchor", "npm:0.30.1"],\
+          ["@xlabs-xyz/solana-price-oracle-sdk", "virtual:4baef52035962ca133136492d40dec95183e8207fc44d69d3dda9910201c7f8cdfbe32f418548f345203723358c5a8abbd7d4d91f540905fb6331fb448af68a4#file:../../../relayer-infra-contracts/src/solana/xlabs-xyz-solana-price-oracle-sdk-0.0.21.tgz#../../../relayer-infra-contracts/src/solana/xlabs-xyz-solana-price-oracle-sdk-0.0.21.tgz::hash=268d8c&locator=%40xlabs-xyz%2Fsolana-arbitrary-token-transfers%40workspace%3Asdk%2Fsolana"],\
+          ["@coral-xyz/anchor", "npm:0.31.0"],\
           ["@solana/web3.js", "npm:1.98.0"],\
           ["@types/solana__web3.js", null],\
           ["@types/wormhole-foundation__sdk-base", null],\
@@ -2560,7 +2558,7 @@ const RAW_RUNTIME_STATE =
           ["prettier", "npm:2.8.8"],\
           ["ts-command-line-args", "npm:2.5.1"],\
           ["ts-essentials", "virtual:69041e1aca6387d7f05022e99bcb3e2751b2b011c0cd9cd9a0cf8ef96b97e39bd4c3b6473bc21a418f781380cc895cc1e06f491fa7369cf8891f12322b7284b8#npm:7.0.3"],\
-          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"]\
         ],\
         "packagePeers": [\
           "@types/typescript",\
@@ -2611,7 +2609,7 @@ const RAW_RUNTIME_STATE =
           ["ethers", "npm:6.13.5"],\
           ["lodash", "npm:4.17.21"],\
           ["ts-essentials", "virtual:69041e1aca6387d7f05022e99bcb3e2751b2b011c0cd9cd9a0cf8ef96b97e39bd4c3b6473bc21a418f781380cc895cc1e06f491fa7369cf8891f12322b7284b8#npm:7.0.3"],\
-          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"]\
         ],\
         "packagePeers": [\
           "@types/ethers",\
@@ -3403,7 +3401,7 @@ const RAW_RUNTIME_STATE =
           ["bn.js", "npm:5.2.1"],\
           ["tsup", "virtual:9bef669af1c3b4b384f01597b4618f767933970b69e6fd62d81f9bbc7b8c4900225bffb44e48b8c05eea593d7778ed11aa109309394c7caa9adf8cbab67e8377#npm:8.3.5"],\
           ["tsx", "npm:4.19.2"],\
-          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"]\
         ],\
         "packagePeers": [\
           "@types/wormhole-foundation__sdk-base",\
@@ -3424,7 +3422,7 @@ const RAW_RUNTIME_STATE =
           ["bn.js", "npm:5.2.1"],\
           ["tsup", "virtual:9bef669af1c3b4b384f01597b4618f767933970b69e6fd62d81f9bbc7b8c4900225bffb44e48b8c05eea593d7778ed11aa109309394c7caa9adf8cbab67e8377#npm:8.3.5"],\
           ["tsx", "npm:4.19.2"],\
-          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -3598,7 +3596,7 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./deployment/",\
         "packageDependencies": [\
           ["deployment", "workspace:deployment"],\
-          ["@coral-xyz/anchor", "npm:0.30.1"],\
+          ["@coral-xyz/anchor", "npm:0.31.0"],\
           ["@solana/spl-token", "virtual:1083298bcb0ac2d0c31e8d54e5d8046d04af5b3b1ca39b8404f80e1c4c08f4735785338190f77488c34d544aec8cdd0fb4bb5631f5f8a4e09017b7efc0afa473#npm:0.4.9"],\
           ["@solana/web3.js", "npm:1.98.0"],\
           ["@types/node", "npm:20.17.5"],\
@@ -3619,7 +3617,7 @@ const RAW_RUNTIME_STATE =
           ["dotenv", "npm:16.4.5"],\
           ["ethers", "npm:6.13.5"],\
           ["tsx", "npm:4.19.2"],\
-          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -5959,7 +5957,7 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./solana/",\
         "packageDependencies": [\
           ["solana", "workspace:solana"],\
-          ["@coral-xyz/anchor", "npm:0.30.1"],\
+          ["@coral-xyz/anchor", "npm:0.31.0"],\
           ["@solana/spl-token", "virtual:1083298bcb0ac2d0c31e8d54e5d8046d04af5b3b1ca39b8404f80e1c4c08f4735785338190f77488c34d544aec8cdd0fb4bb5631f5f8a4e09017b7efc0afa473#npm:0.4.9"],\
           ["@solana/web3.js", "npm:1.98.0"],\
           ["@types/chai", "npm:5.0.0"],\
@@ -5976,7 +5974,7 @@ const RAW_RUNTIME_STATE =
           ["mocha", "npm:11.0.1"],\
           ["toml", "npm:3.0.0"],\
           ["ts-mocha", "virtual:0d651797a2843a64f9d24ebdfb5ce5b0c9db186e0bfb087fd6b67500708c972daac5ffe588b86f37cbeeb4bf85347e25cd633d8c0eb04e887e07267bb68096fd#npm:10.0.0"],\
-          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -6309,7 +6307,7 @@ const RAW_RUNTIME_STATE =
           ["prettier", "npm:3.3.3"],\
           ["ts-mocha", "virtual:33d4007d0290747430617a5c0eb2da58d74cdff8bc8263fdea6457aebe82a895aa6f9c4f9f07fab8e85221c695fc8a7b8d17e2e26cee5cd3bfae6b8271723910#npm:10.0.0"],\
           ["tsx", "npm:4.19.2"],\
-          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -6388,7 +6386,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["ts-essentials", "virtual:69041e1aca6387d7f05022e99bcb3e2751b2b011c0cd9cd9a0cf8ef96b97e39bd4c3b6473bc21a418f781380cc895cc1e06f491fa7369cf8891f12322b7284b8#npm:7.0.3"],\
           ["@types/typescript", null],\
-          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"]\
         ],\
         "packagePeers": [\
           "@types/typescript",\
@@ -6526,7 +6524,7 @@ const RAW_RUNTIME_STATE =
           ["tinyexec", "npm:0.3.1"],\
           ["tinyglobby", "npm:0.2.10"],\
           ["tree-kill", "npm:1.2.2"],\
-          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"]\
         ],\
         "packagePeers": [\
           "@microsoft/api-extractor",\
@@ -6564,10 +6562,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["typescript", [\
-      ["patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40", {\
-        "packageLocation": "./.yarn/cache/typescript-patch-8964a48ba3-7c9d2e07c8.zip/node_modules/typescript/",\
+      ["patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5", {\
+        "packageLocation": "./.yarn/cache/typescript-patch-f64146f279-39117e346f.zip/node_modules/typescript/",\
         "packageDependencies": [\
-          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"]\
         ],\
         "linkType": "HARD"\
       }]\
