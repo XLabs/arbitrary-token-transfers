@@ -508,7 +508,7 @@ abstract contract TbrUser is TbrBase {
     uint256 unallocatedBalance,
     uint commandIndex
   ) internal returns (uint256, uint) { unchecked {
-    ( bytes memory vaa,
+    ( bytes calldata vaa,
       uint16 peerChain,
       bytes32 peerAddress,
       uint16 tokenOriginChain,
@@ -616,7 +616,7 @@ abstract contract TbrUser is TbrBase {
     uint offset,
     uint commandIndex
   ) internal pure returns(
-    bytes memory vaa,
+    bytes calldata vaa,
     uint16 peerChain,
     bytes32 peerAddress,
     uint16 tokenOriginChain,
@@ -628,30 +628,30 @@ abstract contract TbrUser is TbrBase {
     uint retOffset
   ) { unchecked {
     (vaa, retOffset) = data.sliceUint16PrefixedCdUnchecked(offset);
-    bytes memory vaaPayload;
-    (peerChain, vaaPayload) = VaaLib.decodeEmitterChainAndPayloadMemUnchecked(vaa);
+    bytes calldata vaaPayload;
+    (peerChain, vaaPayload) = VaaLib.decodeEmitterChainAndPayloadCdUnchecked(vaa);
     // Note that the token amount is expressed in at most 8 decimals so
     // you need to denormalize this amount before calling transfer functions on the token.
 
-    bytes memory payload;
+    bytes calldata payload;
     ( tbNormalizedTokenAmount, 
       tokenOriginAddress, 
       tokenOriginChain, 
       peerAddress, 
       payload
-    ) = TokenBridgeMessageLib.decodeTransferWithPayloadEssentialsMem(vaaPayload);
+    ) = TokenBridgeMessageLib.decodeTransferWithPayloadEssentialsCd(vaaPayload);
 
     uint payloadOffset = 0;
     uint8 tbrV3Version;
-    (tbrV3Version, payloadOffset) = payload.asUint8MemUnchecked(payloadOffset);
+    (tbrV3Version, payloadOffset) = payload.asUint8CdUnchecked(payloadOffset);
     if (tbrV3Version != TBR_V3_MESSAGE_VERSION)
       revert InvalidMsgVersion(tbrV3Version, commandIndex);
 
     bytes32 universalRecipient;
-    (universalRecipient, payloadOffset) = payload.asBytes32MemUnchecked(payloadOffset);
+    (universalRecipient, payloadOffset) = payload.asBytes32CdUnchecked(payloadOffset);
     recipient = fromUniversalAddress(universalRecipient);
-    (gasDropoff, payloadOffset) = payload.asUint32MemUnchecked(payloadOffset);
-    (unwrapIntent, payloadOffset) = payload.asBoolMemUnchecked(payloadOffset);
+    (gasDropoff, payloadOffset) = payload.asUint32CdUnchecked(payloadOffset);
+    (unwrapIntent, payloadOffset) = payload.asBoolCdUnchecked(payloadOffset);
   }}
 
   receive() external payable {
