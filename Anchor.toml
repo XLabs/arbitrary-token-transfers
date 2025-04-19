@@ -21,9 +21,18 @@ upgradeable = true
 # See https://github.com/anza-xyz/agave/blob/v2.2.7/feature-set/src/lib.rs
 deactivate_feature = ["AjX3A4Nv2rzUuATEUWLP4rrBaBropyUnHxEvFDj1dKbx"]
 
-#[[test.genesis]]
-#address = "CefQJaxQTV28gCf4MMd1PgDHgCcRmuEHZgXZwjJReUY3"
+[[test.genesis]]
+name = "price-oracle"
+address = "CefQJaxQTV28gCf4MMd1PgDHgCcRmuEHZgXZwjJReUY3"
 #program = "../relayer-infra-contracts/src/solana/target/sbf-solana-solana/release/solana_price_oracle.so"
+program = "target/sbf-solana-solana/release/solana_price_oracle.so"
+upgradeable = true
+
+[[test.genesis]]
+name = "TBRv3"
+address = "ttbrcA1ckR3D3Ff4VR1MJNCvA7t4d4XV9TcvrVp4AoM"
+program = "target/sbf-solana-solana/release/token_bridge_relayer.so"
+upgradeable = true
 
 [[test.genesis]]
 name = "wormhole-core"
