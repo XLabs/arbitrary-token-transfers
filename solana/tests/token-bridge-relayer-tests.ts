@@ -100,24 +100,6 @@ describe('Token Bridge Relayer Program', () => {
       ...clients.map((client) => client.signer),
     ]);
 
-    // Programs Deployment
-    // ===================
-    await Promise.all([
-      // Token Bridge Relayer
-      $.deploy({
-        programKeypair: './solana/programs/token-bridge-relayer/test-program-keypair.json',
-        authorityKeypair,
-        binary: './target/sbf-solana-solana/release/token_bridge_relayer.so',
-      }),
-      // Price Oracle
-      $.deploy({
-        programKeypair:
-          './lib/relayer-infra-contracts/src/solana/programs/price-oracle/test-program-keypair.json',
-        authorityKeypair,
-        binary: './target/sbf-solana-solana/release/solana_price_oracle.so',
-      }),
-    ]);
-
     // Oracle Setup
     // ============
     const oracleAuthorityProvider = await $.keypair.read(authorityKeypair);
