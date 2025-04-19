@@ -40,6 +40,8 @@ wormhole-anchor-sdk = { git = "https://github.com/wormhole-foundation/wormhole-s
 
 wormhole-io = "0.1"
 
+anchor-extra-util = { path = "../../../lib/relayer-infra-contracts/src/solana/magic/anchor-extra-util" }
+
 [build-dependencies]
 serde = "1"
 serde_json = "1"

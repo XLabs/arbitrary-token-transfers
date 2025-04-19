@@ -171,6 +171,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "anchor-extra-util"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.100",
+]
+
+[[package]]
 name = "anchor-lang"
 version = "0.31.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1784,6 +1793,7 @@ dependencies = [
 name = "solana-price-oracle"
 version = "0.2.0"
 dependencies = [
+ "anchor-extra-util",
  "anchor-lang",
  "anyhow",
  "bs58",
@@ -2687,6 +2697,7 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 name = "token-bridge-relayer"
 version = "3.0.0"
 dependencies = [
+ "anchor-extra-util",
  "anchor-lang",
  "anchor-spl",
  "anyhow",
