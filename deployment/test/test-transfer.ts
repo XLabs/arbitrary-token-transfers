@@ -325,8 +325,6 @@ async function sendSolanaTestTransaction(
   const evmAddress = getEnv('RECIPIENT_EVM_ADDRESS');
   const maxFeeLamports = BigInt(getEnvOrDefault('MAX_FEE_KLAMPORTS', DEFAULT_MAX_FEE_KLAMPORTS.toString()));
 
-  let transferIx: TransactionInstruction;
-
   const params = {
     recipient: {
       chain: targetChain.name as Chain,
@@ -340,7 +338,7 @@ async function sendSolanaTestTransaction(
     mintAddress: mint,
   } satisfies TransferParameters;
 
-  transferIx = await tbr.transferTokens(signerKey, params);
+  const transferIxs = await tbr.transferTokens(signerKey, params);
   const ixs: TransactionInstruction[] = [];
 
   // if transferring SOL first we have to wrap it
@@ -366,8 +364,7 @@ async function sendSolanaTestTransaction(
     ixs.push(transferSol);
     ixs.push(createSyncNativeInstruction(ata));
   }
-  ixs.push(transferIx);
-  const txSignature = await ledgerSignAndSend(connection, ixs, []);
+  const txSignature = await ledgerSignAndSend(connection, ixs.concat(transferIxs), []);
   log(`Transaction sent: ${txSignature}`);
 }
 

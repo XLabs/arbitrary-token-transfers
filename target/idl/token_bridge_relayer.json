@@ -708,6 +708,57 @@
       "args": []
     },
     {
+      "name": "init_user",
+      "discriminator": [
+        14,
+        51,
+        68,
+        159,
+        237,
+        78,
+        158,
+        102
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "docs": [
+            "Payer will pay rent of its own sequence."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "payer_sequence",
+          "docs": [
+            "Used to keep track of payer's Wormhole sequence number."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  113
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "payer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "initialize",
       "discriminator": [
         175,
@@ -1485,23 +1536,7 @@
           "docs": [
             "Used to keep track of payer's Wormhole sequence number."
           ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  115,
-                  101,
-                  113
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "payer"
-              }
-            ]
-          }
+          "writable": true
         },
         {
           "name": "system_program",
@@ -2014,6 +2049,11 @@
     },
     {
       "code": 6021,
+      "name": "WrongSignerSequenceAccount",
+      "msg": "WrongSignerSequenceAccount"
+    },
+    {
+      "code": 6022,
       "name": "Overflow",
       "msg": "Overflow"
     }
@@ -2171,6 +2211,10 @@
           {
             "name": "value",
             "type": "u64"
+          },
+          {
+            "name": "signer",
+            "type": "pubkey"
           }
         ]
       }

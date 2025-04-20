@@ -172,7 +172,7 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     const gasDropoffAmount = Number(sdkAmount.display(params.gasDropOff));
 
     transaction.add(
-      await this.client.transferTokens(senderPk, {
+      ...await this.client.transferTokens(senderPk, {
         recipient: {
           chain: params.recipient.chain,
           address: params.recipient.address.toUniversalAddress(),

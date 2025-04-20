@@ -13,6 +13,34 @@ use wormhole_anchor_sdk::{
     wormhole::program::Wormhole,
 };
 
+/// Prepares TBRv3 user state so they can ask for transfers.
+///
+#[derive(Accounts)]
+pub struct InitUser<'info> {
+    /// Payer will pay rent of its own sequence.
+    #[account(mut)]
+    pub payer: Signer<'info>,
+
+    /// Used to keep track of payer's Wormhole sequence number.
+    #[account(
+        init,
+        payer = payer,
+        space = 8 + SignerSequenceState::INIT_SPACE,
+        seeds = [SignerSequenceState::SEED_PREFIX, payer.key().as_ref()],
+        bump,
+    )]
+    payer_sequence: Account<'info, SignerSequenceState>,
+
+    pub system_program: Program<'info, System>,
+}
+
+pub fn init_user(ctx: Context<InitUser>) -> Result<()> {
+    ctx.accounts.payer_sequence.set_inner(
+        SignerSequenceState { value: 0, signer: ctx.accounts.payer.key() }
+    );
+    Ok(())
+}
+
 /// Transfer a native SPL token.
 ///
 /// The other side will mint a wrapped token issued by Wormhole.
@@ -134,11 +162,9 @@ pub struct OutboundTransfer<'info> {
 
     /// Used to keep track of payer's Wormhole sequence number.
     #[account(
-        init_if_needed,
-        payer = payer,
-        space = 8 + SignerSequenceState::INIT_SPACE,
-        seeds = [SignerSequenceState::SEED_PREFIX, payer.key().as_ref()],
-        bump,
+        mut,
+        constraint = payer.key == &payer_sequence.signer
+            @ TokenBridgeRelayerError::WrongSignerSequenceAccount
     )]
     payer_sequence: Account<'info, SignerSequenceState>,
 

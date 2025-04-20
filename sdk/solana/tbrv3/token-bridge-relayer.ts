@@ -97,6 +97,9 @@ const uaToPubkey = (address: UniversalAddress) => toNative('Solana', address).un
 // or better yet, eliminate it.
 type SupportedChain = PlatformToChains<'Evm'> | PlatformToChains<'Sui'>;
 
+enum UserSequence {
+  NotInitialized,
+}
 
 export class SolanaTokenBridgeRelayer {
   public readonly program: anchor.Program<IdlType>;
@@ -228,7 +231,8 @@ export class SolanaTokenBridgeRelayer {
           })),
       /** Returns all Wormhole messages emitted by a user */
       allWormholeMessages: async (payer: PublicKey) => {
-        const maxSequence = await this.payerSequenceNumber(payer);
+        const currentSequence = await this.payerSequenceNumber(payer);
+        const maxSequence = currentSequence === UserSequence.NotInitialized ? 0n : currentSequence;
 
         return Promise.all(
           range(0n, maxSequence).map((seq) => {
@@ -686,7 +690,7 @@ Current authority: ${upgradeAuthority}`);
   async transferTokens(
     signer: PublicKey,
     params: TransferParameters,
-  ): Promise<TransactionInstruction> {
+  ): Promise<TransactionInstruction[]> {
     const {
       recipient,
       userTokenAccount,
@@ -697,6 +701,7 @@ Current authority: ${upgradeAuthority}`);
       mintAddress,
     } = params;
 
+    const ixs: TransactionInstruction[] = [];
     let transferType = '?';
 
     const getTokenBridgeAccounts = async () => {
@@ -718,12 +723,20 @@ Current authority: ${upgradeAuthority}`);
       getTokenBridgeAccounts(),
     ]);
 
+    let nextPayerSequence;
+    if (payerSequenceNumber === UserSequence.NotInitialized) {
+      ixs.push(await this.program.methods.initUser().accounts({payer: signer}).instruction());
+      nextPayerSequence = 0n;
+    } else {
+      nextPayerSequence = payerSequenceNumber;
+    }
+
     const { address: temporaryAccount, bump: temporaryAccountBump } = this.account.temporary(
       tokenBridgeAccounts.mint,
     );
     const { address: wormholeMessageAccount, bump: wormholeMessageAccountBump } = this.account.wormholeMessage(
       signer,
-      payerSequenceNumber
+      nextPayerSequence
     );
     const gasDropoffAmountMicro = gasDropoffAmount * Number(MICROTOKENS_PER_TOKEN);
 
@@ -765,12 +778,16 @@ Current authority: ${upgradeAuthority}`);
       objToString(accounts),
       "instruction data:",
       objToString(instructionData),
+      `initializes user sequence: ${ixs.length > 0 ? "yes" : "no"}`,
     );
 
-    return this.program.methods
-      .transferTokens(...instructionData)
-      .accountsStrict(accounts)
-      .instruction();
+    ixs.push(
+      await this.program.methods
+        .transferTokens(...instructionData)
+        .accountsStrict(accounts)
+        .instruction()
+    );
+    return ixs;
   }
 
   async baseRelayingParams(chain: Chain): Promise<BaseRelayingParams> {
@@ -921,13 +938,13 @@ Current authority: ${upgradeAuthority}`);
     };
   }
 
-  private async payerSequenceNumber(payer: PublicKey): Promise<bigint> {
+  private async payerSequenceNumber(payer: PublicKey): Promise<bigint | UserSequence> {
     const impl = async (payer: PublicKey) => {
       try {
         const account = await this.account.signerSequence(payer).fetch();
         return bnToBigint(account.value);
       } catch {
-        return 0n;
+        return UserSequence.NotInitialized;
       }
     };
 

@@ -714,6 +714,57 @@ export type TokenBridgeRelayer = {
       "args": []
     },
     {
+      "name": "initUser",
+      "discriminator": [
+        14,
+        51,
+        68,
+        159,
+        237,
+        78,
+        158,
+        102
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "docs": [
+            "Payer will pay rent of its own sequence."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "payerSequence",
+          "docs": [
+            "Used to keep track of payer's Wormhole sequence number."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  113
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "payer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "initialize",
       "discriminator": [
         175,
@@ -1491,23 +1542,7 @@ export type TokenBridgeRelayer = {
           "docs": [
             "Used to keep track of payer's Wormhole sequence number."
           ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  115,
-                  101,
-                  113
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "payer"
-              }
-            ]
-          }
+          "writable": true
         },
         {
           "name": "systemProgram",
@@ -2020,6 +2055,11 @@ export type TokenBridgeRelayer = {
     },
     {
       "code": 6021,
+      "name": "wrongSignerSequenceAccount",
+      "msg": "wrongSignerSequenceAccount"
+    },
+    {
+      "code": 6022,
       "name": "overflow",
       "msg": "overflow"
     }
@@ -2177,6 +2217,10 @@ export type TokenBridgeRelayer = {
           {
             "name": "value",
             "type": "u64"
+          },
+          {
+            "name": "signer",
+            "type": "pubkey"
           }
         ]
       }
