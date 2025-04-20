@@ -1100,17 +1100,10 @@
       ],
       "accounts": [
         {
-          "name": "tbr_config",
-          "docs": [
-            "This program's config."
-          ]
+          "name": "tbr_config"
         },
         {
-          "name": "chain_config",
-          "docs": [
-            "The peer config. We need to verify that the transfer is sent to the",
-            "canonical peer."
-          ]
+          "name": "chain_config"
         },
         {
           "name": "oracle_config"

@@ -10,11 +10,8 @@ use solana_price_oracle::{
 
 #[derive(Accounts)]
 pub struct QuoteQuery<'info> {
-    /// This program's config.
     pub tbr_config: Account<'info, TbrConfigState>,
 
-    /// The peer config. We need to verify that the transfer is sent to the
-    /// canonical peer.
     #[account(
         constraint = chain_config.chain_id == oracle_prices.chain_id
           @ TokenBridgeRelayerError::ChainIdMismatch

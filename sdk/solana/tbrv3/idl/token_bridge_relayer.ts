@@ -1106,17 +1106,10 @@ export type TokenBridgeRelayer = {
       ],
       "accounts": [
         {
-          "name": "tbrConfig",
-          "docs": [
-            "This program's config."
-          ]
+          "name": "tbrConfig"
         },
         {
-          "name": "chainConfig",
-          "docs": [
-            "The peer config. We need to verify that the transfer is sent to the",
-            "canonical peer."
-          ]
+          "name": "chainConfig"
         },
         {
           "name": "oracleConfig"
