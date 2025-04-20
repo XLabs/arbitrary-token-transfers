@@ -1648,10 +1648,6 @@ export type TokenBridgeRelayer = {
         {
           "name": "chainConfig",
           "writable": true
-        },
-        {
-          "name": "systemProgram",
-          "address": "11111111111111111111111111111111"
         }
       ],
       "args": []

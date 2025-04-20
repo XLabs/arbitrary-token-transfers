@@ -1642,10 +1642,6 @@
         {
           "name": "chain_config",
           "writable": true
-        },
-        {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
