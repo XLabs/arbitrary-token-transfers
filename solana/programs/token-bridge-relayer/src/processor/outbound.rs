@@ -122,15 +122,7 @@ pub struct OutboundTransfer<'info> {
 
     /// CHECK: Wormhole Message. Token Bridge program writes info about the
     /// tokens transferred in this account for our program. Mutable.
-    #[account(
-        mut,
-        seeds = [
-            SEED_PREFIX_BRIDGED,
-            payer.key().as_ref(),
-            &payer_sequence.value.to_be_bytes()[..]
-        ],
-        bump,
-    )]
+    #[account(mut)]
     pub wormhole_message: UncheckedAccount<'info>,
 
     /// CHECK: Wormhole sender.
@@ -162,6 +154,7 @@ pub struct OutboundTransfer<'info> {
 pub fn transfer_tokens(
     mut ctx: Context<OutboundTransfer>,
     temporary_account_bump: u8,
+    wormhole_message_bump: u8,
     transferred_amount: u64,
     unwrap_intent: bool,
     dropoff_amount_micro: u32,
@@ -178,7 +171,7 @@ pub fn transfer_tokens(
         SEED_PREFIX_BRIDGED,
         ctx.accounts.payer.key.as_ref(),
         &ctx.accounts.payer_sequence.take_and_uptick(),
-        &[ctx.bumps.wormhole_message],
+        &[wormhole_message_bump],
     ];
     let sender_seeds = &[
         token_bridge::SEED_PREFIX_SENDER.as_ref(),

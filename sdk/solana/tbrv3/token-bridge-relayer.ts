@@ -721,6 +721,10 @@ Current authority: ${upgradeAuthority}`);
     const { address: temporaryAccount, bump: temporaryAccountBump } = this.account.temporary(
       tokenBridgeAccounts.mint,
     );
+    const { address: wormholeMessageAccount, bump: wormholeMessageAccountBump } = this.account.wormholeMessage(
+      signer,
+      payerSequenceNumber
+    );
     const gasDropoffAmountMicro = gasDropoffAmount * Number(MICROTOKENS_PER_TOKEN);
 
     const accounts = {
@@ -733,7 +737,7 @@ Current authority: ${upgradeAuthority}`);
       oracleConfig: this.priceOracleClient.account.config().address,
       oraclePrices: this.priceOracleClient.account.prices(recipient.chain).address,
       ...tokenBridgeAccounts,
-      wormholeMessage: this.account.wormholeMessage(signer, payerSequenceNumber).address,
+      wormholeMessage: wormholeMessageAccount,
       payerSequence: this.account.signerSequence(signer).address,
       wormholeSender: this.pda('sender').address,
       tokenBridgeProgram: this.tokenBridgeProgramId,
@@ -742,19 +746,29 @@ Current authority: ${upgradeAuthority}`);
       tokenProgram: spl.TOKEN_PROGRAM_ID,
       rent: SYSVAR_RENT_PUBKEY,
       clock: SYSVAR_CLOCK_PUBKEY,
-    };
+    } as const;
 
-    this.logDebug('transferTokens:', transferType, objToString(params), objToString(accounts));
+    const instructionData = [
+      temporaryAccountBump,
+      wormholeMessageAccountBump,
+      uaToArray(recipient.address),
+      bigintToBn(transferredAmount),
+      unwrapIntent ?? false,
+      gasDropoffAmountMicro,
+      bigintToBn(maxFeeLamports),
+    ] as const;
+
+    this.logDebug(
+      'transferTokens:',
+      transferType,
+      objToString(params),
+      objToString(accounts),
+      "instruction data:",
+      objToString(instructionData),
+    );
 
     return this.program.methods
-      .transferTokens(
-        temporaryAccountBump,
-        uaToArray(recipient.address),
-        bigintToBn(transferredAmount),
-        unwrapIntent ?? false,
-        gasDropoffAmountMicro,
-        bigintToBn(maxFeeLamports),
-      )
+      .transferTokens(...instructionData)
       .accountsStrict(accounts)
       .instruction();
   }

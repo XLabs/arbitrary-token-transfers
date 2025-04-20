@@ -1534,6 +1534,10 @@
           "type": "u8"
         },
         {
+          "name": "wormhole_message_bump",
+          "type": "u8"
+        },
+        {
           "name": "recipient_address",
           "type": {
             "array": [

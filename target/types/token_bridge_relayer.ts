@@ -1540,6 +1540,10 @@ export type TokenBridgeRelayer = {
           "type": "u8"
         },
         {
+          "name": "wormholeMessageBump",
+          "type": "u8"
+        },
+        {
           "name": "recipientAddress",
           "type": {
             "array": [
