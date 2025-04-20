@@ -31,7 +31,6 @@
     "common-arbitrary-token-transfer": "workspace:^",
     "mocha": "11.*",
     "toml": "^3.0.0",
-    "ts-mocha": "10.*",
     "typescript": "^5.8.3"
   },
   "noExternal": [
