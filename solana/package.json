@@ -5,9 +5,10 @@
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
     "build:contract:testnet": "anchor build -- --features testnet",
     "build:contract:verifiable:testnet": "anchor build --verifiable -- --features testnet && mkdir -p ../target/sbf-solana-solana/release && cp ../target/verifiable/token_bridge_relayer.so ../target/sbf-solana-solana/release",
-    "build:ts": "yarn run tsc --project ./tsconfig.json",
-    "build:contract:mainnet": "anchor build",
+    "build:ts": "tsc --project ./tsconfig.json",
+    "build:contract:mainnet": "anchor build -- --features mainnet",
     "build:contract:verifiable:mainnet": "anchor build --verifiable && mkdir -p ../target/sbf-solana-solana/release && cp ../target/verifiable/token_bridge_relayer.so ../target/sbf-solana-solana/release",
+    "build:contract:local": "anchor build",
     "build": "yarn build:contract:mainnet && yarn build:ts",
     "clean:ts": "rm -rf ts-build/",
     "clean": "yarn run clean:ts && rm -rf ../target/idl ../target/types",
@@ -32,8 +33,5 @@
     "mocha": "11.*",
     "toml": "^3.0.0",
     "typescript": "^5.8.3"
-  },
-  "noExternal": [
-    "common-arbitrary-token-transfer"
-  ]
+  }
 }
