@@ -5084,10 +5084,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["napi-build-utils", [\
-      ["npm:1.0.2", {\
-        "packageLocation": "./.yarn/cache/napi-build-utils-npm-1.0.2-892e4bba56-37fd2cd0ff.zip/node_modules/napi-build-utils/",\
+      ["npm:2.0.0", {\
+        "packageLocation": "./.yarn/cache/napi-build-utils-npm-2.0.0-95da9c2e4e-5833aaeb5c.zip/node_modules/napi-build-utils/",\
         "packageDependencies": [\
-          ["napi-build-utils", "npm:1.0.2"]\
+          ["napi-build-utils", "npm:2.0.0"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -5207,7 +5207,7 @@ const RAW_RUNTIME_STATE =
           ["bindings", "npm:1.5.0"],\
           ["node-addon-api", "npm:3.2.1"],\
           ["node-gyp", "npm:10.2.0"],\
-          ["prebuild-install", "npm:7.1.2"]\
+          ["prebuild-install", "npm:7.1.3"]\
         ],\
         "linkType": "HARD"\
       }],\
@@ -5218,7 +5218,7 @@ const RAW_RUNTIME_STATE =
           ["bindings", "npm:1.5.0"],\
           ["node-addon-api", "npm:3.2.1"],\
           ["node-gyp", "npm:10.2.0"],\
-          ["prebuild-install", "npm:7.1.2"]\
+          ["prebuild-install", "npm:7.1.3"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -5426,16 +5426,16 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["prebuild-install", [\
-      ["npm:7.1.2", {\
-        "packageLocation": "./.yarn/cache/prebuild-install-npm-7.1.2-5beaea7f37-e64868ba9e.zip/node_modules/prebuild-install/",\
+      ["npm:7.1.3", {\
+        "packageLocation": "./.yarn/cache/prebuild-install-npm-7.1.3-8e79c3a0a2-25919a42b5.zip/node_modules/prebuild-install/",\
         "packageDependencies": [\
-          ["prebuild-install", "npm:7.1.2"],\
+          ["prebuild-install", "npm:7.1.3"],\
           ["detect-libc", "npm:2.0.3"],\
           ["expand-template", "npm:2.0.3"],\
           ["github-from-package", "npm:0.0.0"],\
           ["minimist", "npm:1.2.8"],\
           ["mkdirp-classic", "npm:0.5.3"],\
-          ["napi-build-utils", "npm:1.0.2"],\
+          ["napi-build-utils", "npm:2.0.0"],\
           ["node-abi", "npm:3.67.0"],\
           ["pump", "npm:3.0.1"],\
           ["rc", "npm:1.2.8"],\
