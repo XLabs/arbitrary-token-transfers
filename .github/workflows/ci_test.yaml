@@ -42,7 +42,21 @@ jobs:
           ssh-key: '${{ secrets.RELAYER_INFRA_CONTRACTS }}'
           ref: ${{ steps.relayer-infra-contracts-commit.outputs.commit }}
 
+      - name: Set the rust toolchain version
+        run: rustup override set 1.86.0
+      # Less than ideal since a single program dependency change will impact the cache for both
+      - name: Cache Rust packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+            lib/relayer-infra-contracts/src/solana/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock', 'lib/relayer-infra-contracts/src/solana/Cargo.lock') }}
+
       # Taken from https://github.com/metaDAOproject/setup-anchor/blob/main/action.yml#L25-L40
+      # TODO: read Solana version from Anchor.toml
       - name: Cache Solana CLI tools
         uses: actions/cache@v4
         with:
@@ -53,11 +67,24 @@ jobs:
       - name: Install Solana CLI tools
         run: sh -c "$(curl -sSfL https://release.anza.xyz/v2.1.18/install)"
         shell: bash
-      - name: Update PATH
-        run: echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
-        shell: bash
+      # TODO: read Anchor version from Anchor.toml
+      - name: Cache Anchor CLI tools
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/bin/anchor
+          key: anchor-cli-${{ runner.os }}-build-0.31.1
       - name: Install Anchor
-        run: npm i -g @coral-xyz/anchor-cli@0.31.0
+        run: |
+          wget https://github.com/coral-xyz/anchor/releases/download/v0.31.1/anchor-0.31.1-x86_64-unknown-linux-gnu
+          chmod +x anchor-0.31.1-x86_64-unknown-linux-gnu
+          mkdir -p "$HOME/bin/anchor"
+          mv anchor-0.31.1-x86_64-unknown-linux-gnu "$HOME/bin/anchor/anchor"
+        shell: bash
+      - name: Update PATH
+        run: |
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+          echo "$HOME/bin/anchor" >> $GITHUB_PATH
         shell: bash
       - name: Create keypair
         run: solana-keygen new --no-bip39-passphrase
@@ -72,7 +99,6 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Build Solana programs
         run: anchor build
-        working-directory: ./solana
         shell: bash
  
       - name: Run Solana SDK tests
