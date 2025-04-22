@@ -6,6 +6,7 @@ use anchor_lang::prelude::*;
 #[derive(InitSpace)]
 pub struct SignerSequenceState {
     pub value: u64,
+    pub signer: Pubkey,
 }
 
 impl SignerSequenceState {

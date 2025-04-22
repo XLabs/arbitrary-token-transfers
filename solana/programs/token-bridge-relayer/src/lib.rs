@@ -163,6 +163,10 @@ pub mod token_bridge_relayer {
 
     /* Transfers */
 
+    pub fn init_user(ctx: Context<InitUser>) -> Result<()> {
+        processor::init_user(ctx)
+    }
+
     /// # Parameters
     ///
     /// - `dropoff_amount_micro`: the dropoff in µ-target-token.
@@ -170,6 +174,7 @@ pub mod token_bridge_relayer {
     pub fn transfer_tokens(
         ctx: Context<OutboundTransfer>,
         temporary_account_bump: u8,
+        wormhole_message_bump: u8,
         recipient_address: [u8; 32],
         transferred_amount: u64,
         unwrap_intent: bool,
@@ -179,6 +184,7 @@ pub mod token_bridge_relayer {
         processor::transfer_tokens(
             ctx,
             temporary_account_bump,
+            wormhole_message_bump,
             transferred_amount,
             unwrap_intent,
             dropoff_amount_micro,

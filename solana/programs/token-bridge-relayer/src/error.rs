@@ -95,6 +95,10 @@ pub(crate) enum TokenBridgeRelayerError {
     #[msg("MissingAssociatedTokenAccount")]
     MissingAssociatedTokenAccount,
 
+    /// The user sequence account is incorrect.
+    #[msg("WrongSignerSequenceAccount")]
+    WrongSignerSequenceAccount,
+
     /// Numerical overflow.
     #[msg("Overflow")]
     Overflow,

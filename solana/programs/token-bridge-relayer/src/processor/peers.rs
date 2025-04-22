@@ -99,8 +99,6 @@ pub struct UpdateCanonicalPeer<'info> {
         } @ TokenBridgeRelayerError::AlreadyTheCanonicalPeer
     )]
     pub chain_config: Account<'info, ChainConfigState>,
-
-    pub system_program: Program<'info, System>,
 }
 
 pub fn update_canonical_peer(ctx: Context<UpdateCanonicalPeer>) -> Result<()> {
