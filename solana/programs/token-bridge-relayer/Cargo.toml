@@ -26,10 +26,10 @@ testnet = ["solana-price-oracle/testnet", "wormhole-anchor-sdk/solana-devnet"]
 
 [dependencies]
 cfg-if = "1"
-anchor-lang = { version = "0.31.0", features = [
+anchor-lang = { version = "0.31.1", features = [
     "init-if-needed",
 ] }
-anchor-spl = { version = "0.31.0" }
+anchor-spl = { version = "0.31.1" }
 
 solana-price-oracle = { path = "../../../lib/relayer-infra-contracts/src/solana/programs/price-oracle" }
 
