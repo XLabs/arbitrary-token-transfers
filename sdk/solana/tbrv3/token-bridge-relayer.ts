@@ -93,7 +93,7 @@ const MICROTOKENS_PER_TOKEN = 1_000_000n;
 export const uaToArray = (ua: UniversalAddress): number[] => Array.from(ua.toUint8Array());
 const uaToPubkey = (address: UniversalAddress) => toNative('Solana', address).unwrap();
 
-// TODO: have this export this from the price oracle SDK
+// TODO: export this from the price oracle SDK
 // or better yet, eliminate it.
 type SupportedChain = PlatformToChains<'Evm'> | PlatformToChains<'Sui'>;
 

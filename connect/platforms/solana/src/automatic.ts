@@ -43,7 +43,7 @@ import {
   SolanaTokenBridgeRelayer,
 } from '@xlabs-xyz/solana-arbitrary-token-transfers';
 
-// TODO: have this export this from the price oracle SDK
+// TODO: export this from the price oracle SDK
 // or better yet, eliminate it.
 type SupportedChain = PlatformToChains<'Evm'> | PlatformToChains<'Sui'>;
 
