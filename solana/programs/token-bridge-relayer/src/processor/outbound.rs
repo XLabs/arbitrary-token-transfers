@@ -193,6 +193,8 @@ pub fn transfer_tokens(
         TbrConfigState::SEED_PREFIX.as_ref(),
         &[ctx.accounts.tbr_config.bump],
     ];
+    // Note that these seeds are entirely of our own choosing.
+    // We're imitating the Wormhole emitter + sequence tuple to get per user derivations.
     let message_seeds = &[
         SEED_PREFIX_BRIDGED,
         ctx.accounts.payer.key.as_ref(),
