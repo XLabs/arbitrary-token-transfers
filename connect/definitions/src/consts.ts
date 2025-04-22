@@ -5,12 +5,13 @@ const addresses = [[
   "Mainnet", []], [
   "Testnet", [
     ["Solana",          "ATtNvUvPZ3RU78P8Z5NuwHMTwQ8u8YsDWJ6YN6XvCErS"],
-    ["Avalanche",       "0x2BCC362643B0aa3b2608de68b2C2ef2e6eFd2bb6"],
-    ["Celo",            "0xAafD9ED1B11b1E1Bf08094Fa0E53e4eEa807B5D5"],
-    ["Sepolia",         "0xDc74c34F88d17895e31792439eaCE7cB1ed17d3a"],
-    ["ArbitrumSepolia", "0x7Ab71581b33948DdD07a4995a594d631BC4D2988"],
-    ["BaseSepolia",     "0xFe8dE1cf8893f0D928F007E787fD072660EAc06B"],
-    ["OptimismSepolia", "0x7057447A58b92e2C68A46548B6992203233e92eC"],
+    ["Avalanche",       "0x5DEfC04a5F34A7f6DD794Cd3D2D72e0C183C1cD4"],
+    ["Celo",            "0x5DEfC04a5F34A7f6DD794Cd3D2D72e0C183C1cD4"],
+    ["Sepolia",         "0x5DEfC04a5F34A7f6DD794Cd3D2D72e0C183C1cD4"],
+    ["ArbitrumSepolia", "0x5DEfC04a5F34A7f6DD794Cd3D2D72e0C183C1cD4"],
+    ["BaseSepolia",     "0x5DEfC04a5F34A7f6DD794Cd3D2D72e0C183C1cD4"],
+    ["OptimismSepolia", "0x5DEfC04a5F34A7f6DD794Cd3D2D72e0C183C1cD4"],
+    ["PolygonSepolia",  "0x919c3C01bFD374833a9D7a711305F9fF47bB544D"]
   ]],
 ] as const satisfies MapLevels<[Network, Chain, string]>;
 
