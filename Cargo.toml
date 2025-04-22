@@ -1,7 +1,8 @@
 [workspace]
 members = [
     "solana/programs/*",
-    "lib/relayer-infra-contracts/src/solana/programs/price-oracle"
+    "lib/relayer-infra-contracts/src/solana/programs/price-oracle",
+    "lib/relayer-infra-contracts/src/solana/magic/anchor-extra-util"
 ]
 resolver = "2"
 

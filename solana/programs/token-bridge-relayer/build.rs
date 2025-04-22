@@ -12,17 +12,12 @@ const TEST_KEYPAIR_PATH: &str = "test-program-keypair.json";
 fn main() -> Result<()> {
     // Tell Cargo that if the JSON file changes, or the env variable, to rerun this build script:
     println!("cargo:rerun-if-changed=network.json");
-    println!("cargo:rerun-if-changed=src/id.rs");
 
     // Generate the id.rs file:
     let network = Network::deserialize("network.json")?;
     let program_id = network.value()?;
 
-    fs::write(
-        "src/id.rs",
-        format!("anchor_lang::prelude::declare_id!({:?});\n", program_id),
-    )
-    .context("could not write the file: id.rs")?;
+    println!("cargo::rustc-env=TBRV3_PROGRAM_ID={program_id}");
 
     Ok(())
 }
