@@ -53,7 +53,7 @@ jobs:
             ~/.cargo/git
             target
             lib/relayer-infra-contracts/src/solana/target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock', 'lib/relayer-infra-contracts/src/solana/Cargo.lock') }}
+          key: ${{ runner.os }}-rust-1.86.0-cargo-${{ hashFiles('Cargo.lock', 'lib/relayer-infra-contracts/src/solana/Cargo.lock') }}
 
       # Taken from https://github.com/metaDAOproject/setup-anchor/blob/main/action.yml#L25-L40
       # TODO: read Solana version from Anchor.toml
