@@ -62,9 +62,9 @@ pub(crate) enum TokenBridgeRelayerError {
     #[msg("InvalidRecipient")]
     InvalidRecipient,
 
-    /// The EVM token price is zero.
-    #[msg("EvmChainPriceNotSet")]
-    EvmChainPriceNotSet,
+    /// The gas token price is zero.
+    #[msg("GasTokenPriceNotSet")]
+    GasTokenPriceNotSet,
 
     /// The prices account chain must match the chain config.
     #[msg("ChainPriceMismatch")]
@@ -82,6 +82,10 @@ pub(crate) enum TokenBridgeRelayerError {
     #[msg("CannotRegisterSolana")]
     CannotRegisterSolana,
 
+    /// The chosen chain has an unknown platform.
+    #[msg("UnsupportedPlatform")]
+    UnsupportedPlatform,
+
     /// The peer address is empty, please set a peer address.
     #[msg("InvalidPeerAddress")]
     InvalidPeerAddress,
@@ -90,6 +94,10 @@ pub(crate) enum TokenBridgeRelayerError {
     /// unwrap intent is set to `true`.
     #[msg("MissingAssociatedTokenAccount")]
     MissingAssociatedTokenAccount,
+
+    /// The user sequence account is incorrect.
+    #[msg("WrongSignerSequenceAccount")]
+    WrongSignerSequenceAccount,
 
     /// Numerical overflow.
     #[msg("Overflow")]

@@ -28,6 +28,7 @@ import {
   serializeLayout,
   Layout,
   LayoutToType,
+  PlatformToChains,
 } from '@wormhole-foundation/sdk-base';
 import { layoutItems, toNative, UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import { SolanaPriceOracle, bigintToBn, bnToBigint } from '@xlabs-xyz/solana-price-oracle-sdk';
@@ -91,6 +92,14 @@ const MICROTOKENS_PER_TOKEN = 1_000_000n;
  */
 export const uaToArray = (ua: UniversalAddress): number[] => Array.from(ua.toUint8Array());
 const uaToPubkey = (address: UniversalAddress) => toNative('Solana', address).unwrap();
+
+// TODO: export this from the price oracle SDK
+// or better yet, eliminate it.
+type SupportedChain = PlatformToChains<'Evm'> | PlatformToChains<'Sui'>;
+
+enum UserSequence {
+  NotInitialized,
+}
 
 export class SolanaTokenBridgeRelayer {
   public readonly program: anchor.Program<IdlType>;
@@ -222,7 +231,8 @@ export class SolanaTokenBridgeRelayer {
           })),
       /** Returns all Wormhole messages emitted by a user */
       allWormholeMessages: async (payer: PublicKey) => {
-        const maxSequence = await this.payerSequenceNumber(payer);
+        const currentSequence = await this.payerSequenceNumber(payer);
+        const maxSequence = currentSequence === UserSequence.NotInitialized ? 0n : currentSequence;
 
         return Promise.all(
           range(0n, maxSequence).map((seq) => {
@@ -385,23 +395,28 @@ Current authority: ${upgradeAuthority}`);
       isWritable: true,
     }));
 
+    const initAccounts = {
+      deployer: signer,
+      programData: program.dataAddress,
+      owner,
+    } as const;
+
+    const updateEvmTxConfigAccounts = {
+      signer,
+      authBadge: this.account.authBadge(signer).address,
+      tbrConfig: this.account.config().address,
+    } as const;
+    this.logDebug('initialize:', objToString(initAccounts), objToString(updateEvmTxConfigAccounts));
+
     return Promise.all([
       this.program.methods
         .initialize(feeRecipient, admins)
-        .accountsPartial({
-          deployer: signer,
-          programData: program.dataAddress,
-          owner,
-        })
+        .accountsPartial(initAccounts)
         .remainingAccounts(authBadges)
         .instruction(),
       this.program.methods
         .updateEvmTransactionConfig(evmTransactionGas, evmTransactionSize)
-        .accounts({
-          signer,
-          authBadge: this.account.authBadge(signer).address,
-          tbrConfig: this.account.config().address,
-        })
+        .accounts(updateEvmTxConfigAccounts)
         .instruction()
     ]);
   }
@@ -434,6 +449,7 @@ Current authority: ${upgradeAuthority}`);
       .accounts({
         newOwner: config.pendingOwner ?? throwError('No pending owner in the program'),
         tbrConfig: this.account.config().address,
+        ownerCtx: {},
       })
       .instruction();
   }
@@ -566,7 +582,6 @@ Current authority: ${upgradeAuthority}`);
         tbrConfig: this.account.config().address,
         peer: this.account.peer(chain, peerAddress).address,
         chainConfig: this.account.chainConfig(chain).address,
-        systemProgram: SystemProgram.programId,
       })
       .instruction();
   }
@@ -674,7 +689,7 @@ Current authority: ${upgradeAuthority}`);
   async transferTokens(
     signer: PublicKey,
     params: TransferParameters,
-  ): Promise<TransactionInstruction> {
+  ): Promise<TransactionInstruction[]> {
     const {
       recipient,
       userTokenAccount,
@@ -685,6 +700,7 @@ Current authority: ${upgradeAuthority}`);
       mintAddress,
     } = params;
 
+    const ixs: TransactionInstruction[] = [];
     let transferType = '?';
 
     const getTokenBridgeAccounts = async () => {
@@ -706,8 +722,20 @@ Current authority: ${upgradeAuthority}`);
       getTokenBridgeAccounts(),
     ]);
 
+    let nextPayerSequence;
+    if (payerSequenceNumber === UserSequence.NotInitialized) {
+      ixs.push(await this.program.methods.initUser().accounts({payer: signer}).instruction());
+      nextPayerSequence = 0n;
+    } else {
+      nextPayerSequence = payerSequenceNumber;
+    }
+
     const { address: temporaryAccount, bump: temporaryAccountBump } = this.account.temporary(
       tokenBridgeAccounts.mint,
+    );
+    const { address: wormholeMessageAccount, bump: wormholeMessageAccountBump } = this.account.wormholeMessage(
+      signer,
+      nextPayerSequence
     );
     const gasDropoffAmountMicro = gasDropoffAmount * Number(MICROTOKENS_PER_TOKEN);
 
@@ -719,9 +747,9 @@ Current authority: ${upgradeAuthority}`);
       temporaryAccount,
       feeRecipient,
       oracleConfig: this.priceOracleClient.account.config().address,
-      oracleEvmPrices: this.priceOracleClient.account.evmPrices(recipient.chain).address,
+      oraclePrices: this.priceOracleClient.account.prices(recipient.chain).address,
       ...tokenBridgeAccounts,
-      wormholeMessage: this.account.wormholeMessage(signer, payerSequenceNumber).address,
+      wormholeMessage: wormholeMessageAccount,
       payerSequence: this.account.signerSequence(signer).address,
       wormholeSender: this.pda('sender').address,
       tokenBridgeProgram: this.tokenBridgeProgramId,
@@ -730,21 +758,35 @@ Current authority: ${upgradeAuthority}`);
       tokenProgram: spl.TOKEN_PROGRAM_ID,
       rent: SYSVAR_RENT_PUBKEY,
       clock: SYSVAR_CLOCK_PUBKEY,
-    };
+    } as const;
 
-    this.logDebug('transferTokens:', transferType, objToString(params), objToString(accounts));
+    const instructionData = [
+      temporaryAccountBump,
+      wormholeMessageAccountBump,
+      uaToArray(recipient.address),
+      bigintToBn(transferredAmount),
+      unwrapIntent ?? false,
+      gasDropoffAmountMicro,
+      bigintToBn(maxFeeLamports),
+    ] as const;
 
-    return this.program.methods
-      .transferTokens(
-        temporaryAccountBump,
-        uaToArray(recipient.address),
-        bigintToBn(transferredAmount),
-        unwrapIntent ?? false,
-        gasDropoffAmountMicro,
-        bigintToBn(maxFeeLamports),
-      )
-      .accountsStrict(accounts)
-      .instruction();
+    this.logDebug(
+      'transferTokens:',
+      transferType,
+      objToString(params),
+      objToString(accounts),
+      "instruction data:",
+      objToString(instructionData),
+      `initializes user sequence: ${ixs.length > 0 ? "yes" : "no"}`,
+    );
+
+    ixs.push(
+      await this.program.methods
+        .transferTokens(...instructionData)
+        .accountsStrict(accounts)
+        .instruction()
+    );
+    return ixs;
   }
 
   async baseRelayingParams(chain: Chain): Promise<BaseRelayingParams> {
@@ -826,16 +868,18 @@ Current authority: ${upgradeAuthority}`);
     const [tbrConfig, chainConfig, evmPrices, oracleConfig] = await Promise.all([
       this.read.config(),
       this.account.chainConfig(chain).fetch(),
-      this.priceOracleClient.read.evmPrices(chain),
+      this.priceOracleClient.read.foreignPrices(chain as SupportedChain),
       this.priceOracleClient.read.config(),
     ]);
 
     const MWEI_PER_MICRO_ETH = 1_000_000n;
     const MWEI_PER_ETH = 1_000_000_000_000n;
 
+    if (!("gasPrice" in evmPrices)) throw new Error("Only EVM chains are supported");
+
     const totalFeesMwei =
       BigInt(tbrConfig.evmTransactionGas) * BigInt(evmPrices.gasPrice) +
-      BigInt(tbrConfig.evmTransactionSize) * BigInt(evmPrices.pricePerByte) +
+      BigInt(tbrConfig.evmTransactionSize) * BigInt(evmPrices.pricePerTxByte) +
       BigInt(dropoffAmount) * MWEI_PER_MICRO_ETH;
     const totalFeesMicroUsd =
       (totalFeesMwei * evmPrices.gasTokenPrice) / MWEI_PER_ETH +
@@ -863,7 +907,7 @@ Current authority: ${upgradeAuthority}`);
         tbrConfig: this.account.config().address,
         chainConfig: this.account.chainConfig(chain).address,
         oracleConfig: this.priceOracleClient.account.config().address,
-        oracleEvmPrices: this.priceOracleClient.account.evmPrices(chain).address,
+        oraclePrices: this.priceOracleClient.account.prices(chain).address,
       })
       .instruction();
     const txResponse = await simulateTransaction(this.connection, payer, [ix]);
@@ -893,13 +937,13 @@ Current authority: ${upgradeAuthority}`);
     };
   }
 
-  private async payerSequenceNumber(payer: PublicKey): Promise<bigint> {
+  private async payerSequenceNumber(payer: PublicKey): Promise<bigint | UserSequence> {
     const impl = async (payer: PublicKey) => {
       try {
         const account = await this.account.signerSequence(payer).fetch();
         return bnToBigint(account.value);
       } catch {
-        return 0n;
+        return UserSequence.NotInitialized;
       }
     };
 

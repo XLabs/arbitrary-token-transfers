@@ -170,7 +170,7 @@ export class TestsHelper {
   }
 
   async sendAndConfirm(
-    ixs: TransactionInstruction | Transaction | Array<TransactionInstruction>,
+    ixs: TransactionInstruction | Transaction | TransactionInstruction[],
     payer: Signer,
     ...signers: Signer[]
   ): Promise<TransactionSignature> {

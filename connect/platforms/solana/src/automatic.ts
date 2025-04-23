@@ -10,7 +10,7 @@ import {
   Transaction,
   VersionedTransaction,
 } from '@solana/web3.js';
-import { Chain, Network, amount as sdkAmount } from '@wormhole-foundation/sdk-base';
+import { Chain, Network, PlatformToChains, amount as sdkAmount } from '@wormhole-foundation/sdk-base';
 import {
   AccountAddress,
   ChainsConfig,
@@ -42,6 +42,10 @@ import {
   SolanaPriceOracle,
   SolanaTokenBridgeRelayer,
 } from '@xlabs-xyz/solana-arbitrary-token-transfers';
+
+// TODO: export this from the price oracle SDK
+// or better yet, eliminate it.
+type SupportedChain = PlatformToChains<'Evm'> | PlatformToChains<'Sui'>;
 
 const NATIVE_MINT = new PublicKey('So11111111111111111111111111111111111111112');
 const NATIVE_MINT_UNIVERSAL = new SolanaAddress(
@@ -168,7 +172,7 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
     const gasDropoffAmount = Number(sdkAmount.display(params.gasDropOff));
 
     transaction.add(
-      await this.client.transferTokens(senderPk, {
+      ...await this.client.transferTokens(senderPk, {
         recipient: {
           chain: params.recipient.chain,
           address: params.recipient.address.toUniversalAddress(),
@@ -235,16 +239,17 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
   async relayingFee(args: RelayingFeesParams): Promise<RelayingFee> {
     const config = await this.client.read.config();
     const chainConfig = await this.client.account.chainConfig(args.targetChain).fetch();
-
-    const oraclePrices = await this.oracleClient.read.evmPrices(args.targetChain);
+    const oraclePrices = await this.oracleClient.read.foreignPrices(args.targetChain as SupportedChain);
     const oracleConfig = await this.oracleClient.read.config();
 
     // gasDropoff comes in base units
     const gasDropoffMicroEth = args.gasDropoff / 10n ** 12n;
 
+    if (!("gasPrice" in oraclePrices)) throw new Error("Only EVM chains are supported");
+
     const totalFeesMWei =
       BigInt(config.evmTransactionGas) * BigInt(oraclePrices.gasPrice) +
-      BigInt(config.evmTransactionSize) * BigInt(oraclePrices.pricePerByte) +
+      BigInt(config.evmTransactionSize) * BigInt(oraclePrices.pricePerTxByte) +
       gasDropoffMicroEth * MWEI_PER_MICRO_ETH;
 
     const totalFeesMicroUsd =

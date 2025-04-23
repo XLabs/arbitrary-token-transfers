@@ -7,11 +7,39 @@ use crate::{
 };
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use solana_price_oracle::state::{EvmPricesState, PriceOracleConfigState};
+use solana_price_oracle::state::{PriceOracleConfigState, PricesState};
 use wormhole_anchor_sdk::{
     token_bridge::{self, program::TokenBridge},
     wormhole::program::Wormhole,
 };
+
+/// Prepares TBRv3 user state so they can ask for transfers.
+///
+#[derive(Accounts)]
+pub struct InitUser<'info> {
+    /// Payer will pay rent of its own sequence.
+    #[account(mut)]
+    pub payer: Signer<'info>,
+
+    /// Used to keep track of payer's Wormhole sequence number.
+    #[account(
+        init,
+        payer = payer,
+        space = 8 + SignerSequenceState::INIT_SPACE,
+        seeds = [SignerSequenceState::SEED_PREFIX, payer.key().as_ref()],
+        bump,
+    )]
+    payer_sequence: Account<'info, SignerSequenceState>,
+
+    pub system_program: Program<'info, System>,
+}
+
+pub fn init_user(ctx: Context<InitUser>) -> Result<()> {
+    ctx.accounts.payer_sequence.set_inner(
+        SignerSequenceState { value: 0, signer: ctx.accounts.payer.key() }
+    );
+    Ok(())
+}
 
 /// Transfer a native SPL token.
 ///
@@ -69,10 +97,10 @@ pub struct OutboundTransfer<'info> {
     pub oracle_config: Box<Account<'info, PriceOracleConfigState>>,
 
     #[account(
-        constraint = oracle_evm_prices.chain_id == chain_config.chain_id
+        constraint = oracle_prices.chain_id == chain_config.chain_id
             @ TokenBridgeRelayerError::ChainPriceMismatch,
     )]
-    pub oracle_evm_prices: Box<Account<'info, EvmPricesState>>,
+    pub oracle_prices: Box<Account<'info, PricesState>>,
 
     /// CHECK: Token Bridge config. Read-only.
     pub token_bridge_config: UncheckedAccount<'info>,
@@ -122,15 +150,7 @@ pub struct OutboundTransfer<'info> {
 
     /// CHECK: Wormhole Message. Token Bridge program writes info about the
     /// tokens transferred in this account for our program. Mutable.
-    #[account(
-        mut,
-        seeds = [
-            SEED_PREFIX_BRIDGED,
-            payer.key().as_ref(),
-            &payer_sequence.value.to_be_bytes()[..]
-        ],
-        bump,
-    )]
+    #[account(mut)]
     pub wormhole_message: UncheckedAccount<'info>,
 
     /// CHECK: Wormhole sender.
@@ -142,11 +162,9 @@ pub struct OutboundTransfer<'info> {
 
     /// Used to keep track of payer's Wormhole sequence number.
     #[account(
-        init_if_needed,
-        payer = payer,
-        space = 8 + SignerSequenceState::INIT_SPACE,
-        seeds = [SignerSequenceState::SEED_PREFIX, payer.key().as_ref()],
-        bump,
+        mut,
+        constraint = payer.key == &payer_sequence.signer
+            @ TokenBridgeRelayerError::WrongSignerSequenceAccount
     )]
     payer_sequence: Account<'info, SignerSequenceState>,
 
@@ -162,6 +180,7 @@ pub struct OutboundTransfer<'info> {
 pub fn transfer_tokens(
     mut ctx: Context<OutboundTransfer>,
     temporary_account_bump: u8,
+    wormhole_message_bump: u8,
     transferred_amount: u64,
     unwrap_intent: bool,
     dropoff_amount_micro: u32,
@@ -174,11 +193,13 @@ pub fn transfer_tokens(
         TbrConfigState::SEED_PREFIX.as_ref(),
         &[ctx.accounts.tbr_config.bump],
     ];
+    // Note that these seeds are entirely of our own choosing.
+    // We're imitating the Wormhole emitter + sequence tuple to get per user derivations.
     let message_seeds = &[
         SEED_PREFIX_BRIDGED,
         ctx.accounts.payer.key.as_ref(),
         &ctx.accounts.payer_sequence.take_and_uptick(),
-        &[ctx.bumps.wormhole_message],
+        &[wormhole_message_bump],
     ];
     let sender_seeds = &[
         token_bridge::SEED_PREFIX_SENDER.as_ref(),
@@ -194,7 +215,7 @@ pub fn transfer_tokens(
     let total_fees_lamports = calculate_total_fee(
         &ctx.accounts.tbr_config,
         &ctx.accounts.chain_config,
-        &ctx.accounts.oracle_evm_prices,
+        &ctx.accounts.oracle_prices,
         &ctx.accounts.oracle_config,
         dropoff_amount_micro,
     )?;
