@@ -21,10 +21,6 @@ export type VaaMessageWithTbrV3Payload = NestedOmit<VaaMessage, 'payload.payload
   payload: { payload: TbrV3Payload };
 };
 
-export function throwError(message: string): never {
-  throw new Error(message);
-}
-
 /** Deserialize the inner payload aka the message: `vaa.payload.payload`. */
 export function deserializeTbrV3Message(payload: Uint8Array): TbrV3Payload {
   return deserializeLayout(TBRv3MessageLayout, payload);
