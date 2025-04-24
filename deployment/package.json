@@ -17,13 +17,13 @@
   },
   "devDependencies": {
     "@types/node": "20.17.5",
-    "tsx": "^4.19.2",
+    "tsx": "^4.19.3",
     "typescript": "^5.8.3"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.1",
-    "@solana/spl-token": "^0.4.9",
-    "@solana/web3.js": "^1.98.0",
+    "@solana/spl-token": "^0.4.13",
+    "@solana/web3.js": "^1.98.1",
     "@wormhole-foundation/sdk-base": "^1.4.5",
     "@wormhole-foundation/sdk-definitions": "^1.4.5",
     "@wormhole-foundation/sdk-evm": "^1.4.5",
@@ -31,7 +31,6 @@
     "@wormhole-foundation/sdk-solana": "^1.4.5",
     "@wormhole-foundation/sdk-solana-tokenbridge": "^1.4.5",
     "@xlabs-xyz/evm-arbitrary-token-transfers": "workspace:*",
-    "@xlabs-xyz/ledger-signer": "^0.0.4",
     "@xlabs-xyz/ledger-signer-ethers-v6": "^0.0.1",
     "@xlabs-xyz/ledger-signer-solana": "^0.0.1",
     "@xlabs-xyz/solana-arbitrary-token-transfers": "workspace:*",
