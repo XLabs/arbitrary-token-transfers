@@ -21,6 +21,8 @@ import {
 } from "./TbrIds.sol";
 import {TbrBase} from "./TbrBase.sol";
 import {GasDropoff, BaseFee} from "price-oracle/PriceOracleIntegration.sol";
+import {VaaLib} from "wormhole-sdk/libraries/VaaLib.sol";
+import {TokenBridgeMessageLib} from "wormhole-sdk/libraries/TokenBridgeMessages.sol";
 
 uint8 constant TBR_V3_MESSAGE_VERSION = 0;
 
@@ -512,7 +514,7 @@ abstract contract TbrUser is TbrBase {
     uint256 unallocatedBalance,
     uint commandIndex
   ) internal returns (uint256, uint) { unchecked {
-    ( bytes memory vaa,
+    ( bytes calldata vaa,
       uint16 peerChain,
       bytes32 peerAddress,
       uint16 tokenOriginChain,
@@ -522,7 +524,7 @@ abstract contract TbrUser is TbrBase {
       uint32 gasDropoff,
       bool unwrapIntent,
       uint retOffset
-    ) = TokenBridgeVAAParser.parse(data, offset, commandIndex);
+    ) = _parseRedeem(data, offset, commandIndex);
 
     if (!_isPeer(peerChain, peerAddress))
       revert UnrecognizedPeer(peerChain, peerAddress, commandIndex);
@@ -615,35 +617,12 @@ abstract contract TbrUser is TbrBase {
     return (abi.encodePacked(peer, baseFee, maxGasDropoff, paused), offset);
   }
 
-  receive() external payable {
-    // NOTE: all values retrieved here need to be immutables to avoid going over the 2300 gas stipend
-    if (!gasErc20TokenizationIsExplicit)
-      revert GasTokenNotSupported();
-
-    if (msg.sender != address(gasToken))
-      revert GasTokenOnlyAcceptedViaWithdrawal();
-  }
-}
-
-//TODO clean up and move this sort of functionality into the Solidity SDK _ASAP_
-library TokenBridgeVAAParser {
-  using BytesParsing for bytes;
-
-  uint private constant _TBR_V3_VAA_LENGTH_PREFIX_SIZE = 2;
-  uint private constant _VAA_SIGNATURE_ARRAY_OFFSET = 1 /*version*/ + 4 /*guardianSet*/;
-  uint private constant _VAA_SIGNATURE_SIZE = 1 /*guardianSetIndex*/ + 65 /*signaturesize*/;
-  uint private constant _VAA_EMITTER_CHAIN_SKIP = 4 /*timestamp*/ + 4 /*nonce*/;
-  uint private constant _VAA_TOKEN_AMOUNT_SKIP =
-    32 /*emitter address*/ + 8 /*sequence*/ + 1 /*consistencyLevel*/ + 1 /*payload id*/;
-  uint private constant _VAA_TOKEN_BRIDGE_RECIPIENT_SKIP =
-    32 /*token bridge recipient address (us)*/ + 2 /*token bridge recipient chain id (our chain)*/;
-
-  function parse(
+  function _parseRedeem(
     bytes calldata data,
     uint offset,
     uint commandIndex
   ) internal pure returns(
-    bytes memory vaa,
+    bytes calldata vaa,
     uint16 peerChain,
     bytes32 peerAddress,
     uint16 tokenOriginChain,
@@ -655,38 +634,40 @@ library TokenBridgeVAAParser {
     uint retOffset
   ) { unchecked {
     (vaa, retOffset) = data.sliceUint16PrefixedCdUnchecked(offset);
-
-    //we continue using calldata parsing functionality to avoid code bloat from using
-    //  both calldata and memory parsing functions unnecessarily
-    uint dataOffset = offset + _TBR_V3_VAA_LENGTH_PREFIX_SIZE + _VAA_SIGNATURE_ARRAY_OFFSET;
-    uint signatureCount;
-    (signatureCount, dataOffset) = data.asUint8CdUnchecked(dataOffset);
-
-    dataOffset += signatureCount * _VAA_SIGNATURE_SIZE + _VAA_EMITTER_CHAIN_SKIP;
-    (peerChain, dataOffset) = data.asUint16CdUnchecked(dataOffset);
-    dataOffset += _VAA_TOKEN_AMOUNT_SKIP;
-    //we don't check the payload id because the sizes will mismatch in the end if it's not a
-    //  payload 3 transfer
-
+    bytes calldata vaaPayload;
+    (peerChain, vaaPayload) = VaaLib.decodeEmitterChainAndPayloadCdUnchecked(vaa);
     // Note that the token amount is expressed in at most 8 decimals so
     // you need to denormalize this amount before calling transfer functions on the token.
-    (tbNormalizedTokenAmount, dataOffset) = data.asUint256CdUnchecked(dataOffset);
-    (tokenOriginAddress, dataOffset) = data.asBytes32CdUnchecked(dataOffset);
-    (tokenOriginChain, dataOffset) = data.asUint16CdUnchecked(dataOffset);
-    dataOffset += _VAA_TOKEN_BRIDGE_RECIPIENT_SKIP;
-    (peerAddress, dataOffset) = data.asBytes32CdUnchecked(dataOffset);
+
+    bytes calldata payload;
+    ( tbNormalizedTokenAmount, 
+      tokenOriginAddress, 
+      tokenOriginChain, 
+      peerAddress, 
+      payload
+    ) = TokenBridgeMessageLib.decodeTransferWithPayloadEssentialsCd(vaaPayload);
+
+    uint payloadOffset = 0;
     uint8 tbrV3Version;
-    (tbrV3Version, dataOffset) = data.asUint8CdUnchecked(dataOffset);
+    (tbrV3Version, payloadOffset) = payload.asUint8CdUnchecked(payloadOffset);
     if (tbrV3Version != TBR_V3_MESSAGE_VERSION)
       revert InvalidMsgVersion(tbrV3Version, commandIndex);
 
     bytes32 universalRecipient;
-    (universalRecipient, dataOffset) = data.asBytes32CdUnchecked(dataOffset);
+    (universalRecipient, payloadOffset) = payload.asBytes32CdUnchecked(payloadOffset);
     recipient = fromUniversalAddress(universalRecipient);
-    (gasDropoff, dataOffset) = data.asUint32CdUnchecked(dataOffset);
-    (unwrapIntent, dataOffset) = data.asBoolCdUnchecked(dataOffset);
-
-    if (dataOffset != retOffset)
+    (gasDropoff, payloadOffset) = payload.asUint32CdUnchecked(payloadOffset);
+    (unwrapIntent, payloadOffset) = payload.asBoolCdUnchecked(payloadOffset);
+    if (payloadOffset != payload.length)
       revert InvalidVaaLength(commandIndex);
   }}
+
+  receive() external payable {
+    // NOTE: all values retrieved here need to be immutables to avoid going over the 2300 gas stipend
+    if (!gasErc20TokenizationIsExplicit)
+      revert GasTokenNotSupported();
+
+    if (msg.sender != address(gasToken))
+      revert GasTokenOnlyAcceptedViaWithdrawal();
+  }
 }
