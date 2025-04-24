@@ -524,7 +524,7 @@ abstract contract TbrUser is TbrBase {
       uint32 gasDropoff,
       bool unwrapIntent,
       uint retOffset
-    ) = parse(data, offset, commandIndex);
+    ) = _parseRedeem(data, offset, commandIndex);
 
     if (!_isPeer(peerChain, peerAddress))
       revert UnrecognizedPeer(peerChain, peerAddress, commandIndex);
@@ -617,7 +617,7 @@ abstract contract TbrUser is TbrBase {
     return (abi.encodePacked(peer, baseFee, maxGasDropoff, paused), offset);
   }
 
-  function parse(
+  function _parseRedeem(
     bytes calldata data,
     uint offset,
     uint commandIndex
