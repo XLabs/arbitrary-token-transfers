@@ -27,6 +27,9 @@
     "type": "git",
     "url": "git+https://github.com/XLabs/arbitrary-token-transfers.git"
   },
+  "dependencies": {
+    "@xlabs-xyz/common-arbitrary-token-transfer": "workspace:*"
+  },
   "keywords": [],
   "author": "",
   "license": "Apache 2",
