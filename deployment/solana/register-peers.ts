@@ -1,12 +1,12 @@
 import { chainIdToChain, chainToChainId } from '@wormhole-foundation/sdk-base';
 import { UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import { SolanaTokenBridgeRelayer } from '@xlabs-xyz/solana-arbitrary-token-transfers';
-import { runOnSolana, ledgerSignAndSend, getConnection, getPrioritizationFee, PriorityFeePolicy } from '../helpers/solana.js';
+import { runOnSolana, ledgerSignAndSend, getConnection, PriorityFeePolicy } from '../helpers/solana.js';
 import { SolanaScriptCb } from '../helpers/interfaces.js';
 import { dependencies, getEnvOrDefault } from '../helpers/env.js';
-import { ComputeBudgetProgram, PublicKey } from '@solana/web3.js';
-import { contracts } from '../helpers';
-import { getChainConfig } from '../helpers/env';
+import { PublicKey } from '@solana/web3.js';
+import { contracts } from '../helpers/index.js';
+import { getChainConfig } from '../helpers/env.js';
 import { EvmTbrV3Config } from '../config/config.types.js';
 
 type ChainConfigEntry = {

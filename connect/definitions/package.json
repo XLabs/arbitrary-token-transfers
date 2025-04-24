@@ -71,7 +71,7 @@
       "ethers"
     ],
     "noExternal": [
-      "common-arbitrary-token-transfer"
+      "@xlabs-xyz/common-arbitrary-token-transfer"
     ]
   }
 }

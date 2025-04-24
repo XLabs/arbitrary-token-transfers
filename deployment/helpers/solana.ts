@@ -13,7 +13,6 @@ import { chainToChainId } from '@wormhole-foundation/sdk-base';
 import { ecosystemChains, getEnv, resolveEnv } from "./env.js";
 import type { SolanaScriptCb, SolanaChainInfo } from "./interfaces.js";
 import { inspect } from "util";
-import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet.js";
 import { UniversalAddress } from "@wormhole-foundation/sdk-definitions";
 
 
@@ -81,11 +80,15 @@ export async function runOnSolana(scriptName: string, cb: SolanaScriptCb) {
   await Promise.all(result);
 }
 
-export interface SolanaSigner {
+export type SolanaSigner = ({
+  raw(): Keypair;
+  type: "wallet";
+} | {
+  raw(): SolanaLedgerSigner;
+  type: "ledger";
+}) & {
   getAddress(): Promise<Buffer>;
   signTransaction(transaction: Transaction): Promise<Buffer>;
-  raw(): NodeWallet | SolanaLedgerSigner;
-  type: "ledger" | "wallet";
 }
 
 let signer: SolanaSigner | null;
@@ -97,12 +100,14 @@ export async function getSigner(): Promise<SolanaSigner> {
       console.log("Creating wallet signer");
       const pk = Uint8Array.from(JSON.parse(privateKey));
       const keypair = Keypair.fromSecretKey(pk);
-      const wallet = new NodeWallet(keypair);
 
       signer = {
-        getAddress: () => Promise.resolve(wallet.publicKey.toBuffer()),
-        raw: () => wallet,
-        signTransaction: async (transaction) => (await wallet.signTransaction(transaction)).compileMessage().serialize(),
+        getAddress: () => Promise.resolve(keypair.publicKey.toBuffer()),
+        raw: () => keypair,
+        signTransaction: async (transaction) => {
+          transaction.sign(keypair);
+          return transaction.compileMessage().serialize();
+        },
         type: "wallet"
       } 
     }
@@ -185,13 +190,13 @@ export async function ledgerSignAndSend(connection: Connection,
 }
 
 async function addSignature(tx: Transaction, signer: SolanaSigner, signerPk: PublicKey):Promise<Transaction> {
-  if (signer.type === "ledger"){
+  if (signer.type === "ledger") {
     const signedByPayer = await signer.signTransaction(tx);
     tx.addSignature(signerPk, signedByPayer);
-    return tx;
   } else {
-    return await (signer.raw() as NodeWallet).signTransaction(tx);
+    tx.sign(signer.raw());
   }
+  return tx;
 }
 
 

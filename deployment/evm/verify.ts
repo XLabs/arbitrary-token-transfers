@@ -1,8 +1,14 @@
 import { execSync } from "child_process";
 import path from "path";
 import chalk from "chalk";
-import { getContractAddress, loadVerificationApiKeys, evm, getChainConfig, getDependencyAddress } from "../helpers";
-import { EvmTbrV3Config } from "../config/config.types";
+import {
+  getContractAddress,
+  loadVerificationApiKeys,
+  evm,
+  getChainConfig,
+  getDependencyAddress
+} from "../helpers/index.js";
+import { EvmTbrV3Config } from "../config/config.types.js";
 import { Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
 import { chainToChainId, encoding } from "@wormhole-foundation/sdk-base";
 import { ethers } from "ethers";

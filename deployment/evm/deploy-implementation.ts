@@ -1,8 +1,8 @@
 import { chainToChainId } from '@wormhole-foundation/sdk-base';
-import { EvmTbrV3Config } from "../config/config.types";
-import { Tbr__factory } from "../ethers-contracts";
-import { EvmChainInfo, getDependencyAddress } from "../helpers";
-import { getSigner } from "../helpers/evm";
+import { EvmTbrV3Config } from "../config/config.types.js";
+import { Tbr__factory } from "../ethers-contracts/index.js";
+import { EvmChainInfo, getDependencyAddress } from "../helpers/index.js";
+import { getSigner } from "../helpers/evm.js";
 
 export async function deployRelayerImplementation(chain: EvmChainInfo, config: EvmTbrV3Config) {
   console.log("Deploying Relayer Implementation " + chainToChainId(chain.name));

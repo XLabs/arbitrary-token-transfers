@@ -6,12 +6,12 @@ import {
   getDependencyAddress,
   getDeploymentArgs,
   writeDeployedContract
-} from "../helpers";
-import { EvmTbrV3Config } from "../config/config.types";
-import { getSigner, sendTx, wrapEthersProvider } from "../helpers/evm";
+} from "../helpers/index.js";
+import { EvmTbrV3Config } from "../config/config.types.js";
+import { getSigner, sendTx, wrapEthersProvider } from "../helpers/evm.js";
 import { EvmAddress } from '@wormhole-foundation/sdk-evm';
 import { chainToChainId, encoding } from '@wormhole-foundation/sdk-base';
-import { deployRelayerImplementation } from "./deploy-implementation";
+import { deployRelayerImplementation } from "./deploy-implementation.js";
 
 
 const processName = "tbr-v3";

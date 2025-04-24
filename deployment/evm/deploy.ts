@@ -3,15 +3,15 @@ import {
   EvmChainInfo,
   getChainConfig,
   writeDeployedContract
-} from "../helpers";
+} from "../helpers/index.js";
 import { chainToChainId } from '@wormhole-foundation/sdk-base';
-import { EvmTbrV3Config } from "../config/config.types";
+import { EvmTbrV3Config } from "../config/config.types.js";
 import { ethers } from "ethers";
 import { encoding } from "@wormhole-foundation/sdk-base";
 import { Proxy__factory } from "../ethers-contracts/index.js";
-import { getSigner } from "../helpers/evm";
+import { getSigner } from "../helpers/evm.js";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
-import { deployRelayerImplementation } from "./deploy-implementation";
+import { deployRelayerImplementation } from "./deploy-implementation.js";
 
 
 const processName = "tbr-v3";

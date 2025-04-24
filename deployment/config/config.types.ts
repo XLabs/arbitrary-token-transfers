@@ -1,4 +1,4 @@
-import { ChainConfig } from "../helpers";
+import { ChainConfig } from "../helpers/index.js";
 
 export type BaseTbrV3Config = ChainConfig & {
   owner?: string;

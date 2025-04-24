@@ -32,7 +32,7 @@ import {
 } from '@wormhole-foundation/sdk-base';
 import { layoutItems, toNative, UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import { SolanaPriceOracle, bigintToBn, bnToBigint } from '@xlabs-xyz/solana-price-oracle-sdk';
-import { deserializeTbrV3Message, VaaMessage, throwError } from 'common-arbitrary-token-transfer';
+import { deserializeTbrV3Message, VaaMessage, throwError } from '@xlabs-xyz/common-arbitrary-token-transfer';
 import { BpfLoaderUpgradeableProgram } from './bpf-loader-upgradeable.js';
 
 import { TokenBridgeRelayer as IdlType } from './idl/token_bridge_relayer.js';
@@ -45,7 +45,8 @@ import { TokenBridgeCpiAccountsBuilder } from './token-bridge-cpi-accounts-build
 export * from './idl/token_bridge_relayer.js';
 export const idl = IDL;
 export { SolanaPriceOracle, oraclePidByNetwork } from '@xlabs-xyz/solana-price-oracle-sdk';
-export type { VaaMessage } from 'common-arbitrary-token-transfer';
+export type { VaaMessage } from "@xlabs-xyz/common-arbitrary-token-transfer";
+export { BpfLoaderUpgradeableProgram } from "./bpf-loader-upgradeable.js";
 
 export interface WormholeAddress {
   chain: Chain;

@@ -1,7 +1,7 @@
 import type { Commitment } from "@solana/web3.js";
 import type { Chain, ChainId } from "@wormhole-foundation/sdk-base";
 import type { ethers } from "ethers";
-import type { SolanaSigner } from "./solana";
+import type { SolanaSigner } from "./solana.js";
 import type { EvmChain } from "@wormhole-foundation/sdk-evm";
 
 export type EvmScriptCb = (chain: EvmChainInfo, signer: ethers.Signer, logFn: LoggerFn) => Promise<void>;

@@ -1,8 +1,9 @@
 {
   "name": "deployment",
   "version": "0.0.1",
+  "type": "module",
   "scripts": {
-    "build:evm:typechain": "mkdir -p evm-build/bindings && yarn tsx ../evm/solc2bindings.ts evm-build/Tbr.output.json evm-build/bindings",
+    "build:evm:typechain": "mkdir -p evm-build/bindings && yarn tsx ../evm/solc2bindings.ts evm-build/bindings evm-build/Tbr.output.json evm-build/Proxy.output.json && rm -rf ethers-contracts && cp -r evm-build/bindings ethers-contracts",
     "build:evm:contract": "mkdir -p evm-build && docker build  --file ../evm/Dockerfile .. --tag tbrv3-evm-rebuild --output type=local,dest=evm-build",
     "build:evm": "yarn build:evm:contract && yarn build:evm:typechain",
     "clean": "rm -rf evm-build",
@@ -10,7 +11,7 @@
     "deploy:evm:testnet": "ENV=testnet tsx evm/deploy.ts",
     "deploy:evm:mainnet": "ENV=mainnet tsx evm/deploy.ts",
     "parse:evm": "tsx evm/parse.ts",
-    "test:build": "tsc --noEmit --project ./tsconfig.json",
+    "test:build": "tsc --build ./tsconfig.json",
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check"
   },

@@ -1,5 +1,5 @@
 import { SolanaTokenBridgeRelayer } from '@xlabs-xyz/solana-arbitrary-token-transfers';
-import { chain, chains, chainToChainId, isChain } from '@wormhole-foundation/sdk-base';
+import { chains, chainToChainId, isChain } from '@wormhole-foundation/sdk-base';
 import { runOnSolana, ledgerSignAndSend, getConnection } from '../helpers/solana.js';
 import { SolanaScriptCb } from '../helpers/interfaces.js';
 import { dependencies, getEnvOrDefault } from '../helpers/env.js';

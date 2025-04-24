@@ -4,7 +4,7 @@ import {
   registerPayloadTypes,
   transferWithPayloadLayout,
 } from '@wormhole-foundation/sdk-definitions';
-import { TBRv3MessageLayout } from 'common-arbitrary-token-transfer';
+import { TBRv3MessageLayout } from '@xlabs-xyz/common-arbitrary-token-transfer';
 
 const automaticTokenBridgeV3NamedPayloads = [
   ['TransferWithRelay', transferWithPayloadLayout(TBRv3MessageLayout)],
