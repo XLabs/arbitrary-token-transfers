@@ -25,7 +25,7 @@ import { expect } from 'chai';
 
 import testProgramKeypair from '../programs/token-bridge-relayer/test-program-keypair.json' with { type: 'json' };
 import oracleKeypair from './oracle-program-keypair.json' with { type: 'json' };
-import { toVaaWithTbrV3Message } from 'common-arbitrary-token-transfer';
+import { toVaaWithTbrV3Message } from '@xlabs-xyz/common-arbitrary-token-transfer';
 import { TestingWormholeCore } from './utils/testing-wormhole-core.js';
 import { TestingTokenBridge } from './utils/testing-token-bridge.js';
 

@@ -107,7 +107,7 @@ jobs:
  
       - name: Run Solana SDK tests
         run: |
-          yarn ./sdk/common build:ts && yarn ./sdk/solana build:ts && yarn ./solana build:ts
+          yarn ./sdk/common build:ts && yarn ./sdk/solana build && yarn ./solana build:ts
           anchor run setup-test
           anchor test
         shell: bash

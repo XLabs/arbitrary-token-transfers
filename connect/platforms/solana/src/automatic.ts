@@ -45,7 +45,7 @@ import {
 
 // TODO: export this from the price oracle SDK
 // or better yet, eliminate it.
-type SupportedChain = PlatformToChains<'Evm'> | PlatformToChains<'Sui'>;
+type SupportedChain = PlatformToChains<'Evm' | 'Sui'>;
 
 const NATIVE_MINT = new PublicKey('So11111111111111111111111111111111111111112');
 const NATIVE_MINT_UNIVERSAL = new SolanaAddress(

@@ -4,7 +4,6 @@ solana_version = "2.1.18"
 
 [workspace]
 members = ["solana/programs/*"]
-types = "sdk/solana/tbrv3/idl"
 
 [features]
 resolution = true

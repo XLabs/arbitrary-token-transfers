@@ -4,14 +4,11 @@ pragma solidity ^0.8.25;
 
 import { 
   AccessControl,
-  AccessControlState, 
-  accessControlState, 
   Role,
   NotAuthorized,
   senderAtLeastAdmin
 } from "wormhole-sdk/components/dispatcher/AccessControl.sol";
 import { BytesParsing } from "wormhole-sdk/libraries/BytesParsing.sol";
-import { ProxyBase } from "wormhole-sdk/proxy/ProxyBase.sol";
 import { TbrBase } from "./TbrBase.sol";
 import "./TbrIds.sol";
 

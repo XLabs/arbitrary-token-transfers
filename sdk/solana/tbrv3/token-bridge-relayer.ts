@@ -32,20 +32,21 @@ import {
 } from '@wormhole-foundation/sdk-base';
 import { layoutItems, toNative, UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import { SolanaPriceOracle, bigintToBn, bnToBigint } from '@xlabs-xyz/solana-price-oracle-sdk';
-import { deserializeTbrV3Message, VaaMessage, throwError } from 'common-arbitrary-token-transfer';
+import { deserializeTbrV3Message, VaaMessage } from '@xlabs-xyz/common-arbitrary-token-transfer';
 import { BpfLoaderUpgradeableProgram } from './bpf-loader-upgradeable.js';
 
 import { TokenBridgeRelayer as IdlType } from './idl/token_bridge_relayer.js';
-import IDL from '../../../target/idl/token_bridge_relayer.json' with { type: 'json' };
-import networkConfig from '../../../solana/programs/token-bridge-relayer/network.json' with { type: 'json' };
-import testProgramKeypair from '../../../solana/programs/token-bridge-relayer/test-program-keypair.json' with { type: 'json' };
+import IDL from './idl/token_bridge_relayer.json' with { type: 'json' };
+import networkConfig from './network/network.json' with { type: 'json' };
+import testProgramKeypair from './network/test-program-keypair.json' with { type: 'json' };
 import { TokenBridgeCpiAccountsBuilder } from './token-bridge-cpi-accounts-builder.js';
 
 // Export IDL
 export * from './idl/token_bridge_relayer.js';
 export const idl = IDL;
 export { SolanaPriceOracle, oraclePidByNetwork } from '@xlabs-xyz/solana-price-oracle-sdk';
-export type { VaaMessage } from 'common-arbitrary-token-transfer';
+export type { VaaMessage } from "@xlabs-xyz/common-arbitrary-token-transfer";
+export { BpfLoaderUpgradeableProgram } from "./bpf-loader-upgradeable.js";
 
 export interface WormholeAddress {
   chain: Chain;
@@ -95,7 +96,7 @@ const uaToPubkey = (address: UniversalAddress) => toNative('Solana', address).un
 
 // TODO: export this from the price oracle SDK
 // or better yet, eliminate it.
-type SupportedChain = PlatformToChains<'Evm'> | PlatformToChains<'Sui'>;
+type SupportedChain = PlatformToChains<'Evm' | 'Sui'>;
 
 enum UserSequence {
   NotInitialized,
@@ -189,10 +190,10 @@ export class SolanaTokenBridgeRelayer {
           address,
           bump,
           fetch: async (): Promise<Uint8Array> => {
-            const { data } =
-              (await this.connection.getAccountInfo(address)) ??
-              throwError('No VAA with this hash');
-            return data;
+            const vaaAccount = await this.connection.getAccountInfo(address);
+            if (vaaAccount === null)
+              throw new Error('No VAA with this hash');
+            return vaaAccount.data;
           },
         };
       },
@@ -208,10 +209,10 @@ export class SolanaTokenBridgeRelayer {
           address,
           bump,
           fetch: async (): Promise<Uint8Array> => {
-            const { data } =
-              (await this.connection.getAccountInfo(address)) ??
-              throwError('No message found at this address');
-            return data;
+            const messageAccount = await this.connection.getAccountInfo(address);
+            if (messageAccount === null)
+              throw new Error('No message found at this address');
+            return messageAccount.data;
           },
         };
       },
@@ -381,13 +382,13 @@ export class SolanaTokenBridgeRelayer {
 
     const program = new BpfLoaderUpgradeableProgram(this.programId, this.connection);
     const upgradeAuthority = (await program.getdata()).upgradeAuthority;
-    if (upgradeAuthority === undefined) throwError('The program must be upgradeable');
+    if (upgradeAuthority === undefined) throw new Error('The program must be upgradeable');
     if (!upgradeAuthority.equals(signer))
-      throwError(`The signer (${signer}) must be the upgrade authority.
+      throw new Error(`The signer (${signer}) must be the upgrade authority.
 Current authority: ${upgradeAuthority}`);
 
     if (!signer.equals(owner) && !admins.some((key) => signer.equals(key)))
-      throwError(`The signer must be set as either the owner or an admin`);
+      throw new Error(`The signer must be set as either the owner or an admin`);
 
     const authBadges = admins.map((key) => ({
       pubkey: this.account.authBadge(key).address,
@@ -443,11 +444,13 @@ Current authority: ${upgradeAuthority}`);
    */
   async confirmOwnerTransferRequest(): Promise<TransactionInstruction> {
     const config = await this.read.config();
+    if (config.pendingOwner === null)
+      throw new Error('No pending owner in the program');
 
     return this.program.methods
       .confirmOwnerTransferRequest()
       .accounts({
-        newOwner: config.pendingOwner ?? throwError('No pending owner in the program'),
+        newOwner: config.pendingOwner,
         tbrConfig: this.account.config().address,
         ownerCtx: {},
       })
@@ -955,9 +958,9 @@ Current authority: ${upgradeAuthority}`);
   /** Get the info about the foreign address from a Wormhole mint */
   private async getWormholeAddressFromWrappedMint(mint: PublicKey): Promise<WormholeAddress> {
     const metaAddress = findPda(this.tokenBridgeProgramId, ['meta', mint.toBuffer()]).address;
-    const { data } =
-      (await this.connection.getAccountInfo(metaAddress)) ??
-      throwError(
+    const metaAccount = await this.connection.getAccountInfo(metaAddress);
+    if (metaAccount === null)
+      throw new Error(
         'Cannot find the meta info\nThe mint authority indicates that the token is a Wormhole one, but no meta information is associated with it.',
       );
 
@@ -967,7 +970,7 @@ Current authority: ${upgradeAuthority}`);
       { name: 'decimals', binary: 'uint', size: 1 },
     ] as const;
 
-    const { chain, address } = deserializeLayout(wrapMetaLayout, data);
+    const { chain, address } = deserializeLayout(wrapMetaLayout, metaAccount.data);
 
     return { chain, address };
   }
@@ -1043,9 +1046,9 @@ export function returnedDataFromTransaction<L extends Layout>(
   if (logs == null) {
     throw new Error('Internal error: No logs in this transaction');
   }
-  const log =
-    logs.find((log) => log.startsWith(prefix)) ??
-    throwError('No returned value specified in these logs');
+  const log = logs.find((log) => log.startsWith(prefix))
+  if (log === undefined)
+    throw new Error('No returned value specified in these logs');
 
   // The line looks like 'Program return: <Public Key> <base64 encoded value>':
   const [, data] = log.slice(prefix.length).split(' ', 2);

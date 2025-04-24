@@ -11,14 +11,14 @@ import {
   SolanaChainInfo,
   SolanaScriptCb,
   TestTransfer,
-} from '../helpers';
+} from '../helpers/index.js';
 import { ethers } from 'ethers';
-import { getProvider, runOnEvms, sendTxCatch, wrapEthersProvider } from '../helpers/evm';
+import { getProvider, runOnEvms, sendTxCatch, wrapEthersProvider } from '../helpers/evm.js';
 import { SupportedChain, Tbrv3, Transfer } from '@xlabs-xyz/evm-arbitrary-token-transfers';
 import { resolveWrappedToken, toUniversal, UniversalAddress } from '@wormhole-foundation/sdk-definitions';
 import { Chain, chainToChainId, chainToPlatform, contracts } from '@wormhole-foundation/sdk-base';
 import { inspect } from 'util';
-import { solanaOperatingChains, getConnection, ledgerSignAndSend, runOnSolana, SolanaSigner } from '../helpers/solana';
+import { solanaOperatingChains, getConnection, ledgerSignAndSend, runOnSolana, SolanaSigner } from '../helpers/solana.js';
 import { EvmAddress } from '@wormhole-foundation/sdk-evm';
 import { PublicKey, SystemProgram, TransactionInstruction } from '@solana/web3.js';
 import {

@@ -4,8 +4,6 @@
     "lib": [
       "es2023"
     ],
-    "module": "commonjs",
-    "moduleResolution": "node",
     "outDir": "ts-build",
     "rootDir": "../"
   },

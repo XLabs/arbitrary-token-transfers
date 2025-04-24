@@ -5,7 +5,6 @@ pragma solidity ^0.8.25;
 import { InvalidConfigCommand, InvalidConfigQuery } from "tbr/assets/TbrConfig.sol";
 import { NotAuthorized } from "wormhole-sdk/components/dispatcher/AccessControl.sol";
 import { BytesParsing } from "wormhole-sdk/libraries/BytesParsing.sol";
-import { IdempotentUpgrade } from "wormhole-sdk/proxy/ProxyBase.sol";
 import { ChainIsNotRegistered } from "tbr/assets/TbrBase.sol";
 import { TbrTestBase } from "./utils/TbrTestBase.sol";
 import { makeBytes32 } from "./utils/utils.sol";

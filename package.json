@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "build": "yarn ./deployment build:evm:typechain; yarn ./sdk/common build && yarn ./sdk/evm build && yarn ./sdk/solana build && yarn ./sdk/deployment test:build && yarn ./solana build:ts && yarn ./connect/definitions build && yarn ./connect/platforms/evm build && yarn ./connect/platforms/solana build && yarn ./connect/route build",
+    "build": "yarn ./deployment build:evm:typechain; yarn ./sdk/common build && yarn ./sdk/evm build && yarn ./sdk/solana build && yarn ./deployment test:build && yarn ./solana build:ts && yarn ./connect/definitions build && yarn ./connect/platforms/evm build && yarn ./connect/platforms/solana build && yarn ./connect/route build",
     "build:all:common": "yarn ./deployment build:evm:contract && yarn build",
     "build:all-testnet": "yarn ./solana build:contract:testnet && yarn build:all:common",
     "build:verifiable:all-testnet": "yarn ./solana build:contract:verifiable:testnet && yarn build:all:common",
@@ -27,18 +27,16 @@
     "singleQuote": true
   },
   "dependencies": {
-    "@yarnpkg/types": "^4.0.0",
-    "bn.js": "^5.2.1"
+    "@yarnpkg/types": "^4.0.0"
   },
   "devDependencies": {
-    "@types/bn.js": "^5.1.5",
     "@types/chai": "^4.3.19",
     "@types/mocha": "^10",
     "@types/node": "20.17.5",
     "chai": "^5.1.1",
     "mocha": "^10",
-    "prettier": "^3.3.3",
-    "tsx": "^4.19.2",
+    "prettier": "^3.5.3",
+    "tsx": "^4.19.3",
     "typescript": "5.8.3"
   },
   "workspaces": [

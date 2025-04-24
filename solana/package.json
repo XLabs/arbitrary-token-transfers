@@ -17,8 +17,8 @@
   "type": "module",
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.1",
-    "@solana/spl-token": "^0.4.9",
-    "@solana/web3.js": "^1.98.0",
+    "@solana/spl-token": "^0.4.13",
+    "@solana/web3.js": "^1.98.1",
     "@types/chai": "^5",
     "@types/mocha": "10.*",
     "@wormhole-foundation/sdk-base": "^1.4.5",
@@ -27,9 +27,9 @@
     "@wormhole-foundation/sdk-solana": "^1.4.5",
     "@wormhole-foundation/sdk-solana-core": "^1.4.5",
     "@wormhole-foundation/sdk-solana-tokenbridge": "^1.4.5",
+    "@xlabs-xyz/common-arbitrary-token-transfer": "workspace:^",
     "@xlabs-xyz/solana-arbitrary-token-transfers": "workspace:^",
     "chai": "^5.1.1",
-    "common-arbitrary-token-transfer": "workspace:^",
     "mocha": "11.*",
     "toml": "^3.0.0",
     "typescript": "^5.8.3"

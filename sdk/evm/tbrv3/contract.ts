@@ -1,14 +1,10 @@
 import {
   RoArray,
-  MapLevels,
   Chain,
-  Network,
   serializeLayout,
   deserializeLayout,
   chainToPlatform,
   encoding,
-  constMap,
-  PlatformToChains,
 } from "@wormhole-foundation/sdk-base";
 import {
   keccak256,
@@ -16,9 +12,18 @@ import {
   resolveWrappedToken,
   serialize,
   UniversalAddress,
-  VAA,
 } from "@wormhole-foundation/sdk-definitions";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
+import {
+  TBRv3MessageLayout,
+  gasDropoffItem,
+  EvmChainsForNetwork,
+  tbrV3Contracts,
+  NetworkMain,
+  VaaMessage,
+  VaaMessageWithTbrV3Payload,
+} from "@xlabs-xyz/common-arbitrary-token-transfer";
+
 import {
   RelayingFeeParams,
   TransferTokenWithRelay,
@@ -26,12 +31,10 @@ import {
   ConfigQuery,
   RootCommand,
   RootQuery,
-  TBRv3MessageLayout,
   RelayingFeeReturn,
   BaseRelayingConfigReturn,
   AllowanceTokenBridgeReturn,
   baseFeeItem,
-  gasDropoffItem,
   proxyConstructorLayout,
   queryParamsLayout,
   relayingFeeReturnLayout,
@@ -47,8 +50,6 @@ import {
 } from "./solidity-sdk/access-control.js";
 import { evmAddressItem } from "./solidity-sdk/common.js";
 import { getCanonicalToken } from "@wormhole-foundation/sdk-base/tokens";
-
-const WHOLE_EVM_GAS_TOKEN_UNITS = 10 ** 18;
 
 export interface PartialTx {
   /**
@@ -92,7 +93,6 @@ export type TransferTokenWithRelayInput =
   TransferTokenWithRelay & {readonly method: "TransferTokenWithRelay";};
 export type TransferGasTokenWithRelayInput =
   TransferGasTokenWithRelay & {readonly method: "TransferGasTokenWithRelay";};
-export type NetworkMain = Exclude<Network, "Devnet">;
 
 interface ConnectionPrimitives {
   /**
@@ -113,28 +113,6 @@ export interface Transfer {
   feeEstimation: RelayingFeeReturn;
   args: TransferTokenWithRelayInput | TransferGasTokenWithRelayInput;
 };
-
-// prettier-ignore
-export const addresses = [[
-  // TODO: update `Tbrv3.connect` parameter type when adding mainnet addresses.
-  "Mainnet", [
-  ]], [
-  "Testnet", [
-    ["Avalanche",       "0x5DEfC04a5F34A7f6DD794Cd3D2D72e0C183C1cD4"],
-    ["Celo",            "0x5DEfC04a5F34A7f6DD794Cd3D2D72e0C183C1cD4"],
-    ["Sepolia",         "0x5DEfC04a5F34A7f6DD794Cd3D2D72e0C183C1cD4"],
-    ["ArbitrumSepolia", "0x5DEfC04a5F34A7f6DD794Cd3D2D72e0C183C1cD4"],
-    ["BaseSepolia",     "0x5DEfC04a5F34A7f6DD794Cd3D2D72e0C183C1cD4"],
-    ["OptimismSepolia", "0x5DEfC04a5F34A7f6DD794Cd3D2D72e0C183C1cD4"],
-    ["PolygonSepolia",  "0x919c3C01bFD374833a9D7a711305F9fF47bB544D"]
-  ]],
-] as const satisfies MapLevels<[Network, Chain, string]>;
-
-export const tbrV3Contracts = constMap(addresses);
-export const tbrV3Chains = tbrV3Contracts.subMap;
-
-type ChainsForNetwork<N extends NetworkMain> = Parameters<ReturnType<typeof tbrV3Chains<N>>>[number];
-type EvmChainsForNetwork<N extends NetworkMain> = ChainsForNetwork<N> & PlatformToChains<"Evm">;
 
 export class Tbrv3 {
   /**
@@ -313,7 +291,7 @@ export class Tbrv3 {
         throw new Error(`Relays to chain ${transfer.args.recipient.chain} are paused. Found in transfer ${i + 1}.`);
       // We are asking for a transfer on an EVM chain, so the gas token used to pay has 18 decimals.
       // Here we need to calculate the amount in wei.
-      value += BigInt(Math.ceil(transfer.feeEstimation.fee * WHOLE_EVM_GAS_TOKEN_UNITS));
+      value += gasTokenToIndivisibleGasToken(transfer.feeEstimation.fee);
 
       if (transfer.args.method === "TransferGasTokenWithRelay")
         value += transfer.args.inputAmountInAtomic;
@@ -345,14 +323,13 @@ export class Tbrv3 {
     return this.execTx(value, [...approveCalls, ...transferCalls]);
   }
 
-  completeTransfer(vaas: VAA<"TokenBridge:TransferWithPayload">[]): PartialTx {
+  completeTransfer(vaas: (VaaMessage | VaaMessageWithTbrV3Payload)[]): PartialTx {
     if (vaas.length === 0) {
       throw new Error("At least one TB VAA should be specified.");
     }
 
     if (vaas.some(({payload}) => {
       const destinationAddress = payload.to.address.toNative(payload.to.chain);
-      // TODO: actually check that this is part of the supported EVM chains
       return chainToPlatform(payload.to.chain) !== "Evm" || !destinationAddress.equals(this.address);
     })) {
       // TODO: point out which one; do a search instead.
@@ -361,10 +338,16 @@ export class Tbrv3 {
 
     let value: bigint = 0n;
     for (const vaa of vaas) {
-      const tbrv3Message = deserializeLayout(TBRv3MessageLayout, vaa.payload.payload);
+      let gasDropoff;
+      if (vaa.payload.payload?.gasDropoff !== undefined ) {
+        gasDropoff = (vaa as VaaMessageWithTbrV3Payload).payload.payload.gasDropoff
+      } else {
+        const tbrv3Message = deserializeLayout(TBRv3MessageLayout, vaa.payload.payload);
+        gasDropoff = tbrv3Message.gasDropoff;
+      }
       // We are redeeming on an EVM chain so the gas token has 18 decimals.
       // Here we need to calculate the amount in wei.
-      value += BigInt(Math.ceil(tbrv3Message.gasDropoff * WHOLE_EVM_GAS_TOKEN_UNITS));
+      value += wholeMicroGasTokenToIndivisibleGasToken(gasDropoff);
     }
 
     return this.execTx(
@@ -416,6 +399,14 @@ export class Tbrv3 {
 }
 
 const selectorOf = (funcSig: string) => keccak256(funcSig).subarray(0, 4);
+
+function wholeMicroGasTokenToIndivisibleGasToken(tokens: number): bigint {
+  return BigInt(tokens) * 10n ** 12n;
+}
+
+function gasTokenToIndivisibleGasToken(tokens: number, roundingFunction = Math.ceil): bigint {
+  return BigInt(roundingFunction(tokens * 10 ** 18));
+}
 
 type Tuple<T = unknown> = readonly [T, ...T[]] | readonly [];
 

@@ -1,10 +1,10 @@
 import { SolanaTokenBridgeRelayer } from '@xlabs-xyz/solana-arbitrary-token-transfers';
 import { chainToChainId } from '@wormhole-foundation/sdk-base';
-import { runOnSolana, ledgerSignAndSend, getConnection, getPrioritizationFee, PriorityFeePolicy } from '../helpers/solana.js';
+import { runOnSolana, ledgerSignAndSend, getConnection, PriorityFeePolicy } from '../helpers/solana.js';
 import { SolanaScriptCb } from '../helpers/interfaces.js';
 import { dependencies, getEnvOrDefault } from '../helpers/env.js';
-import { ComputeBudgetProgram, PublicKey } from '@solana/web3.js';
-import { getChainConfig } from '../helpers/env';
+import { PublicKey } from '@solana/web3.js';
+import { getChainConfig } from '../helpers/env.js';
 import { SolanaTbrV3Config } from '../config/config.types.js';
 
 const configureSolanaTbr: SolanaScriptCb = async function (

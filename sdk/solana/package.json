@@ -1,30 +1,30 @@
 {
   "name": "@xlabs-xyz/solana-arbitrary-token-transfers",
   "version": "0.0.2-alpha9",
-  "license": "ISC",
+  "license": "Apache 2",
   "type": "module",
-  "module": "ts-build/index.js",
-  "types": "ts-build/index.d.ts",
+  "module": "ts-build/solana/tbrv3/token-bridge-relayer.js",
+  "types": "ts-build/solana/tbrv3/token-bridge-relayer.d.ts",
   "exports": {
     ".": {
-      "types": "./ts-build/index.d.ts",
-      "require": "./ts-build/index.cjs",
-      "import": "./ts-build/index.js"
+      "types": "./ts-build/solana/tbrv3/token-bridge-relayer.d.ts",
+      "import": "./ts-build/solana/tbrv3/token-bridge-relayer.js"
     }
   },
   "files": [
     "ts-build"
   ],
   "scripts": {
-    "build:ts": "rm -rf ts-build && tsc --noEmit -p ./tsconfig.json && tsup",
-    "build": "yarn run build:ts",
+    "build:ts": "tsc --build ./tsconfig.json",
+    "build": "make && yarn run build:ts",
     "clean": "rm -rf ts-build",
     "prettier": "prettier --write ."
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.1",
-    "@solana/spl-token": "^0.4.9",
-    "@solana/web3.js": "^1.98.0",
+    "@solana/spl-token": "^0.4.13",
+    "@solana/web3.js": "^1.98.1",
+    "@xlabs-xyz/common-arbitrary-token-transfer": "workspace:*",
     "@xlabs-xyz/solana-price-oracle-sdk": "^0.0.24"
   },
   "devDependencies": {
@@ -33,41 +33,13 @@
     "@wormhole-foundation/sdk-definitions": "^1.4.5",
     "@wormhole-foundation/sdk-solana": "^1.4.5",
     "@wormhole-foundation/sdk-solana-tokenbridge": "^1.4.5",
-    "tsup": "^8.3.5",
-    "tsx": "4.19.2",
-    "typescript": "5.8.3"
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.3"
   },
   "peerDependencies": {
     "@wormhole-foundation/sdk-base": ">= 1.3.0 < 2",
     "@wormhole-foundation/sdk-definitions": ">= 1.3.0 < 2",
     "@wormhole-foundation/sdk-solana": ">= 1.3.0 < 2",
     "@wormhole-foundation/sdk-solana-tokenbridge": ">= 1.3.0 < 2"
-  },
-  "tsup": {
-    "entry": [
-      "index.ts"
-    ],
-    "tsconfig": "tsconfig.build.json",
-    "splitting": false,
-    "sourcemap": true,
-    "minify": false,
-    "clean": true,
-    "outDir": "ts-build",
-    "format": [
-      "esm",
-      "cjs"
-    ],
-    "dts": {
-      "resolve": true
-    },
-    "external": [
-      "@internal/loader",
-      "@wormhole-foundation/sdk-definitions",
-      "@wormhole-foundation/sdk-base",
-      "@wormhole-foundation/sdk-solana-tokenbridge"
-    ],
-    "noExternal": [
-      "common-arbitrary-token-transfer"
-    ]
   }
 }

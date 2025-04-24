@@ -1,6 +1,8 @@
 import type { Chain, CustomConversion, Layout, LayoutToType } from "@wormhole-foundation/sdk-base";
 import { layoutItems, type UniversalAddress } from "@wormhole-foundation/sdk-definitions";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
+import { gasDropoffItem } from "@xlabs-xyz/common-arbitrary-token-transfer";
+
 import { accessControlCommandMap, accessControlQueryMap } from "./solidity-sdk/access-control.js";
 import { implementationQueryLayout, upgradeCommandLayout } from "./solidity-sdk/upgrade.js";
 import { sweepTokensCommandLayout } from "./solidity-sdk/sweepTokens.js";
@@ -26,28 +28,6 @@ const peerChainAndAddressItem = {
     peerChainItem,
     peerAddressItem
   ]
-} as const;
-
-//TODO eliminate copy paste from oracle sdk and unify in some shared repo
-const decimalDownShift = (downShift: number, roundingFunction: (x: number) => number) => ({
-  to: (val: number): number => val / 10 ** downShift,
-  from: (price: number): number => {
-    const encoded = roundingFunction(price * 10 ** downShift);
-    if (encoded === 0 && price !== 0)
-      throw new Error(`losing all precision when storing ${price} with shift ${downShift}`);
-
-    return encoded;
-  }
-} as const satisfies CustomConversion<number, number>);
-
-/**
- * Specifed as: gas token (i.e. eth, avax, ...)
- * Encoded as: µgas token
- */
-export const gasDropoffItem = {
-  binary: "uint",
-  size: 4,
-  custom: decimalDownShift(6, Math.floor),
 } as const;
 
 /**
@@ -265,14 +245,6 @@ export type ExecParams = LayoutToType<typeof execParamsLayout>;
 export const queryParamsLayout =
   versionEnvelopeLayout("queries", rootQueryLayout);
 export type QueryParams = LayoutToType<typeof queryParamsLayout>;
-
-export const TBRv3MessageLayout = [ //we can turn this into a switch layout if we ever get a version 1
-  { name: "version", binary: "uint", size: 1, custom: 0, omit: true },
-  { name: "recipient",    ...layoutItems.universalAddressItem       },
-  { name: "gasDropoff",   ...gasDropoffItem                         },
-  { name: "unwrapIntent", ...layoutItems.boolItem                   },
-] as const satisfies Layout;
-export type TBRv3Message = LayoutToType<typeof TBRv3MessageLayout>;
 
 export const proxyConstructorLayout = [
   { name: "feeRecipient", ...evmAddressItem                                },

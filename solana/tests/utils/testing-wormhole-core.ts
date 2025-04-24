@@ -22,7 +22,7 @@ import { VaaMessage } from '@xlabs-xyz/solana-arbitrary-token-transfers';
 
 import { getBlockTime, sendAndConfirm } from './helpers.js';
 import { accountDataLayout } from './layout.js';
-import { serializeTbrV3Message } from 'common-arbitrary-token-transfer';
+import { serializeTbrV3Message } from '@xlabs-xyz/common-arbitrary-token-transfer';
 
 const guardianKey = 'cfb12303a19cde580bb4dd771639b0d26bc68353645571a8cff516ab2ee113a0';
 const guardianAddress = 'beFA429d57cD18b7F8A4d91A2da9AB4AF05d0FBe';

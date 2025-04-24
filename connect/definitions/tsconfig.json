@@ -9,7 +9,7 @@
     "outDir": "ts-build",
     "rootDirs": [".", "../../sdk/common"],
     "paths": {
-      "common-arbitrary-token-transfer": ["../../sdk/common/index.ts"]
+      "@xlabs-xyz/common-arbitrary-token-transfer": ["../../sdk/common/index.ts"]
     }
   },
   "include": ["src"],

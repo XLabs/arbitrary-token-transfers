@@ -9,6 +9,8 @@
   "devDependencies": {
     "@xlabs-xyz/typechain": "^8.3.7",
     "@xlabs-xyz/typechain-ethers-v6": "^0.5.1",
-    "tsx": "^4.19.2"
+    "ethers": "6.13.5",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.3"
   }
 }

@@ -1,7 +1,6 @@
 import { Connection, PublicKey, TransactionInstruction } from '@solana/web3.js';
 import { CustomConversion, deserializeLayout, Layout } from '@wormhole-foundation/sdk-base';
 //import { programDataLayout } from '@wormhole-foundation/sdk-solana/utils/utils/';
-import { throwError } from 'common-arbitrary-token-transfer';
 import { BN } from '@xlabs-xyz/solana-price-oracle-sdk';
 
 export class BpfLoaderUpgradeableProgram {
@@ -39,9 +38,9 @@ export class BpfLoaderUpgradeableProgram {
 
   async setAuthority(newAuthority: PublicKey): Promise<TransactionInstruction> {
     const SET_AUTHORITY_CODE = 4;
-    const upgradeAuthority =
-      (await this.getdata().then((data) => data.upgradeAuthority)) ??
-      throwError('Cannot set a new authority as the program is not upgradeable');
+    const upgradeAuthority = await this.getdata().then((data) => data.upgradeAuthority);
+    if (upgradeAuthority === undefined)
+      throw new Error('Cannot set a new authority as the program is not upgradeable');
 
     const accountsInfo = [
       {

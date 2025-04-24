@@ -5,10 +5,7 @@
       "es2023"
     ],
     "rootDir": "..",
-    "outDir": "ts-build",
-    "paths": {
-      "common-arbitrary-token-transfer": ["../common/index.ts"]
-    }  
+    "outDir": "ts-build"
 },
   "include": [
     "tbrv3",
