@@ -2155,7 +2155,8 @@ const RAW_RUNTIME_STATE =
           ["@coral-xyz/borsh", "virtual:852da326f150408584798524fe58e9855b987bcc4f041389e1ca13248c23c659c3ffb4a9aa4176cc7542f503f2e1e6422a1f18f69e5e623ca255691d222a55ca#npm:0.29.0"],\
           ["@solana/web3.js", "npm:1.98.0"],\
           ["@wormhole-foundation/sdk-connect", "npm:1.4.5"],\
-          ["@wormhole-foundation/sdk-solana", "npm:1.4.5"]\
+          ["@wormhole-foundation/sdk-solana", "npm:1.4.5"],\
+          ["bn.js", "npm:5.2.1"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -2170,7 +2171,8 @@ const RAW_RUNTIME_STATE =
           ["@solana/web3.js", "npm:1.98.0"],\
           ["@wormhole-foundation/sdk-connect", "npm:1.4.5"],\
           ["@wormhole-foundation/sdk-solana", "npm:1.4.5"],\
-          ["@wormhole-foundation/sdk-solana-core", "npm:1.4.5"]\
+          ["@wormhole-foundation/sdk-solana-core", "npm:1.4.5"],\
+          ["bn.js", "npm:5.2.1"]\
         ],\
         "linkType": "HARD"\
       }]\

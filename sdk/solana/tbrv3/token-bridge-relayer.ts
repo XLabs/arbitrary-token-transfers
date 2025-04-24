@@ -36,9 +36,9 @@ import { deserializeTbrV3Message, VaaMessage, throwError } from '@xlabs-xyz/comm
 import { BpfLoaderUpgradeableProgram } from './bpf-loader-upgradeable.js';
 
 import { TokenBridgeRelayer as IdlType } from './idl/token_bridge_relayer.js';
-import IDL from '../../../target/idl/token_bridge_relayer.json' with { type: 'json' };
-import networkConfig from '../../../solana/programs/token-bridge-relayer/network.json' with { type: 'json' };
-import testProgramKeypair from '../../../solana/programs/token-bridge-relayer/test-program-keypair.json' with { type: 'json' };
+import IDL from './idl/token_bridge_relayer.json' with { type: 'json' };
+import networkConfig from './network/network.json' with { type: 'json' };
+import testProgramKeypair from './network/test-program-keypair.json' with { type: 'json' };
 import { TokenBridgeCpiAccountsBuilder } from './token-bridge-cpi-accounts-builder.js';
 
 // Export IDL
