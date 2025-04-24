@@ -658,6 +658,8 @@ abstract contract TbrUser is TbrBase {
     recipient = fromUniversalAddress(universalRecipient);
     (gasDropoff, payloadOffset) = payload.asUint32CdUnchecked(payloadOffset);
     (unwrapIntent, payloadOffset) = payload.asBoolCdUnchecked(payloadOffset);
+    if (payloadOffset != payload.length)
+      revert InvalidVaaLength(commandIndex);
   }}
 
   receive() external payable {
