@@ -1768,8 +1768,8 @@ __metadata:
     "@wormhole-foundation/sdk-solana-tokenbridge": "npm:^1.4.5"
     "@xlabs-xyz/common-arbitrary-token-transfer": "workspace:*"
     "@xlabs-xyz/solana-price-oracle-sdk": "npm:^0.0.24"
-    tsx: "npm:4.19.3"
-    typescript: "npm:5.8.3"
+    tsx: "npm:^4.19.3"
+    typescript: "npm:^5.8.3"
   peerDependencies:
     "@wormhole-foundation/sdk-base": ">= 1.3.0 < 2"
     "@wormhole-foundation/sdk-definitions": ">= 1.3.0 < 2"
