@@ -2,4 +2,3 @@
 /* tslint:disable */
 /* eslint-disable */
 export type { Proxy } from './Proxy.js';
-export type { ProxyBase } from './ProxyBase.js';

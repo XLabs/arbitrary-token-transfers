@@ -2,4 +2,3 @@
 /* tslint:disable */
 /* eslint-disable */
 export { Proxy__factory } from './Proxy__factory.js';
-export { ProxyBase__factory } from './ProxyBase__factory.js';

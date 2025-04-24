@@ -1,19 +1,31 @@
 import { runTypeChainInMemory, FileDescription, PublicInMemoryConfig } from '@xlabs-xyz/typechain';
 import ethersv6Codegen from "@xlabs-xyz/typechain-ethers-v6";
 import { readFile } from 'fs/promises';
-import { normalize, join, sep } from 'path';
+import { normalize, join, sep, parse } from 'path';
 
 (async () => {
 
     if (process.argv.length < 4) {
         console.log('Generate Typechain bindings from Solc output');
-        console.log(`\nsolc2bindings <outDir> <inputFile1> [inputFile2] [inputFile3]...`);
+        console.log(`\nsolc2bindings <outDir> <inputFile1>;<contractName1> [inputFile2;contractName2] [inputFile3;contractName3]...`);
         process.exit(1);
     }
 
     const outDir = process.argv[2];
-    const inputFiles = process.argv.slice(3);
     const fileDescriptions: FileDescription[] = [];
+
+    const inputFiles = [] as string[];
+    const contractNames = [] as string[];
+    const fileAndContracts = process.argv.slice(3);
+    for (const fileAndContract of fileAndContracts) {
+        // We're going to assume we only care about the main contract in each file
+        // Note that doing this eliminates types for many things, but since we are already
+        // doing our own argument serialization, we don't really need any of them.
+        // TODO: allow customization with some compact specification format
+        const [inputFile, contractName] = fileAndContract.split(":");
+        inputFiles.push(inputFile);
+        contractNames.push(contractName);
+    }
 
     // TODO: If a contract is duplicated in the outputs, Typechain will generate
     // duplicate identifiers. this should be handled better somewhere.
@@ -28,7 +40,14 @@ import { normalize, join, sep } from 'path';
         for (const [path, contents] of Object.entries(contracts)) {
             const contractsInFile = Object.entries(contents as { [key: string]: any });
             console.log(`  Found path ${path} with ${contractsInFile.length} contracts`);
-            const pathSegments = normalize(path).split(sep);
+            const normalizedPath = normalize(path)
+            const pathSegments = normalizedPath.split(sep);
+            const pathComponents = parse(normalizedPath);
+            // TODO: the comparison here is actually fishy, maybe we need to look at the contents instead.
+            if (!contractNames.includes(pathComponents.name)) {
+                console.log(`Discarded contract ${pathComponents.name}`);
+                continue;
+            }
 
             if (pathSegments.length > 0 && pathSegments[0] === "..") {
                 console.log(`  Ignoring path ${path} due to being outside the project directory`);
