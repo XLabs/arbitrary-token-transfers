@@ -96,7 +96,7 @@ const uaToPubkey = (address: UniversalAddress) => toNative('Solana', address).un
 
 // TODO: export this from the price oracle SDK
 // or better yet, eliminate it.
-type SupportedChain = PlatformToChains<'Evm'> | PlatformToChains<'Sui'>;
+type SupportedChain = PlatformToChains<'Evm' | 'Sui'>;
 
 enum UserSequence {
   NotInitialized,
