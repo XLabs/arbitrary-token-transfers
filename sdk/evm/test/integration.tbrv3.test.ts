@@ -4,7 +4,7 @@ import { PartialTx, Tbrv3 } from "../tbrv3/index.js";
 import { ethers } from "ethers";
 import { UniversalAddress } from "@wormhole-foundation/sdk-definitions";
 import { encoding } from "@wormhole-foundation/sdk-base";
-import config from "../../../deployment/config/localnet/contracts.json" with { type: "json" };
+import config from "./localnet/contracts.json" with { type: "json" };
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
 
 const timeout = 20_000;
