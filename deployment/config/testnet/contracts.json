@@ -80,6 +80,10 @@
   ],
   "TbrV3Proxies": [
     {
+      "chainId": 1,
+      "address": "ATTAbEwfGfXMmvhnRWexGR8WnZnmafUwsxRvN2MnVVP7"
+    },
+    {
       "chainId": 10002,
       "address": "0x5DEfC04a5F34A7f6DD794Cd3D2D72e0C183C1cD4",
       "constructorArgs": [
