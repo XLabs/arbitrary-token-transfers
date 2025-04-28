@@ -18,6 +18,9 @@ import { CHAIN_ID_ETHEREUM } from "wormhole-sdk/constants/Chains.sol";
 import { TbrTestBase } from "./utils/TbrTestBase.sol";
 import { craftTbrV3Vaa, deNormalizeAmount, discardInsignificantBits, ERC20Mock, makeBytes32 } from "./utils/utils.sol";
 
+// USDC in Ethereum mainnet
+address usdcAddress = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+
 contract UserTest is TbrTestBase {
   using BytesParsing for bytes;
 
@@ -1135,6 +1138,41 @@ contract UserTest is TbrTestBase {
     (fee, offset) = response.asUint64MemUnchecked(offset);
     assertEq(isPaused, false);
     assertEq(fee, expectedFee);
+  }
+
+  function testSdkLikeFeeQuery() public {
+    uint32 gasDropoff = 0;
+    uint256 feeQuote = 1e6;
+    uint64 expectedFee = uint64(feeQuote) / 1e6;
+
+    vm.mockCall(
+      address(oracle),
+      abi.encodeWithSelector(IPriceOracle.get1959.selector),
+      abi.encode(abi.encodePacked(uint256(feeQuote)))
+    );
+
+    bytes memory response = invokeStaticTbr(
+      abi.encodePacked(
+        tbr.get1959.selector,
+        DISPATCHER_PROTOCOL_VERSION0,
+        RELAY_FEE_ID,
+        SOLANA_CHAIN_ID,
+        gasDropoff,
+        ALLOWANCE_TOKEN_BRIDGE_ID,
+        usdcAddress
+      )
+    );
+
+    uint offset;
+    bool isPaused;
+    uint64 fee;
+    uint256 allowance;
+    (isPaused, offset) = response.asBoolMemUnchecked(offset);
+    (fee, offset) = response.asUint64MemUnchecked(offset);
+    (allowance, offset) = response.asUint256MemUnchecked(offset);
+    assertEq(isPaused, false);
+    assertEq(fee, expectedFee);
+    assertEq(allowance, 0);
   }
 
   function testRelayFee_RemainderBelowMwei(uint32 gasDropoff) public {
