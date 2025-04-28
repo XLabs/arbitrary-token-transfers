@@ -86,7 +86,7 @@ export const addresses = [[
   "Mainnet", [
   ]], [
   "Testnet", [
-    ["Solana",          "ATTAbEwfGfXMmvhnRWexGR8WnZnmafUwsxRvN2MnVVP7"], 
+    ["Solana",          "ATTY1Vt5KY5vtXUTpgwjUJjgNwEBxZ2AUY9M437sDupw"], 
     ["Avalanche",       "0x5DEfC04a5F34A7f6DD794Cd3D2D72e0C183C1cD4"],
     ["Celo",            "0x5DEfC04a5F34A7f6DD794Cd3D2D72e0C183C1cD4"],
     ["Sepolia",         "0x5DEfC04a5F34A7f6DD794Cd3D2D72e0C183C1cD4"],
