@@ -17,7 +17,7 @@ type ChainConfigEntry = {
   canonicalPeer: UniversalAddress;
 };
 
-const registerPeersSolanaTbr: SolanaScriptCb = async function (
+const configureFeeDropOffSolanaTbr: SolanaScriptCb = async function (
   chain,
   signer,
   log,
@@ -49,30 +49,44 @@ const registerPeersSolanaTbr: SolanaScriptCb = async function (
         throw error;
     }
 
-    const peerUniversalAddress = new UniversalAddress(tbrDeployment.address);
+    if (
+      !currentChainConfig ||
+      currentChainConfig.maxGasDropoffMicroToken.toString() !== desiredChainConfig.maxGasDropoff
+    ) {
+      log(
+        `Updating maxGasDropoff on chain ${tbrDeployment.chainId} to ${desiredChainConfig.maxGasDropoff}`,
+      );
 
-    if (!currentChainConfig) {
-      log('Registering peer on chain', tbrDeployment.chainId);
-      const ixs = await tbr.registerFirstPeer(
+      // (!) WARN:  maxGasDropoff is in micro-tokens for the Solana TBR, so 
+      //            we need to do the correct conversion here.
+      const ix = await tbr.updateMaxGasDropoff(
         signerKey,
         chainIdToChain(tbrDeployment.chainId),
-        peerUniversalAddress,
-        {
-          maxGasDropoffMicroToken: Number(desiredChainConfig.maxGasDropoff) * 10 ** 6,
-          relayerFeeMicroUsd: desiredChainConfig.relayFee,
-          // TODO: have this be configurable?
-          pausedOutboundTransfers: false,
-        }
+        Number(desiredChainConfig.maxGasDropoff) * 10**6,
       );
-      const tx = await ledgerSignAndSend(connection, ixs, [], { lockedWritableAccounts: [], priorityFeePolicy });
-      log(`Register succeeded on tx: ${tx}`);
-    } else {
-      log(`Peer is already registered for ${tbrDeployment.chainId}, skipping.`);
+      const tx = await ledgerSignAndSend(connection, [ix], [], { lockedWritableAccounts: [], priorityFeePolicy });
+      log(`Update succeeded on tx: ${tx}`);
+    }
+
+    if (
+      !currentChainConfig ||
+      currentChainConfig.relayerFeeMicroUsd !== desiredChainConfig.relayFee
+    ) {
+      log(
+        `Updating relayerFee on chain ${tbrDeployment.chainId} to ${desiredChainConfig.relayFee}`,
+      );
+      const ix = await tbr.updateBaseFee(
+        signerKey,
+        chainIdToChain(tbrDeployment.chainId),
+        desiredChainConfig.relayFee,
+      );
+      const tx = await ledgerSignAndSend(connection, [ix], [], { lockedWritableAccounts: [], priorityFeePolicy });
+      log(`Update succeeded on tx: ${tx}`);
     }
   }
 }
 
-runOnSolana('register-peers-solana-tbr', registerPeersSolanaTbr).catch((error) => {
+runOnSolana('configure-fee-and-dropoff-solana-tbr', configureFeeDropOffSolanaTbr).catch((error) => {
   console.error('Error executing script: ', error);
   console.log('extra logs', error.getLogs());
 });

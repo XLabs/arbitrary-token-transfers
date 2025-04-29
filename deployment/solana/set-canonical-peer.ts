@@ -17,12 +17,11 @@ type ChainConfigEntry = {
   canonicalPeer: UniversalAddress;
 };
 
-const registerPeersSolanaTbr: SolanaScriptCb = async function (
+const setCanonicalPeerSolanaTbr: SolanaScriptCb = async function (
   chain,
   signer,
   log,
 ) {
-  const signerKey = new PublicKey(await signer.getAddress());
   const connection = getConnection(chain);
   const priorityFeePolicy = getEnvOrDefault('PRIORITY_FEE_POLICY', 'normal') as PriorityFeePolicy;
 
@@ -33,12 +32,8 @@ const registerPeersSolanaTbr: SolanaScriptCb = async function (
   const tbr = await SolanaTokenBridgeRelayer.create(connection);
 
   for (const tbrDeployment of contracts['TbrV3Proxies']) {
+    log(`Processing chain ${tbrDeployment.chainId}...`);
     if (tbrDeployment.chainId === chainToChainId(chain.name)) continue; // skip self;
-
-    const desiredChainConfig = await getChainConfig<EvmTbrV3Config>(
-      'tbr-v3',
-      tbrDeployment.chainId,
-    );
 
     let currentChainConfig: ChainConfigEntry | undefined;
     try {
@@ -52,27 +47,29 @@ const registerPeersSolanaTbr: SolanaScriptCb = async function (
     const peerUniversalAddress = new UniversalAddress(tbrDeployment.address);
 
     if (!currentChainConfig) {
-      log('Registering peer on chain', tbrDeployment.chainId);
-      const ixs = await tbr.registerFirstPeer(
-        signerKey,
-        chainIdToChain(tbrDeployment.chainId),
-        peerUniversalAddress,
-        {
-          maxGasDropoffMicroToken: Number(desiredChainConfig.maxGasDropoff) * 10 ** 6,
-          relayerFeeMicroUsd: desiredChainConfig.relayFee,
-          // TODO: have this be configurable?
-          pausedOutboundTransfers: false,
-        }
-      );
-      const tx = await ledgerSignAndSend(connection, ixs, [], { lockedWritableAccounts: [], priorityFeePolicy });
-      log(`Register succeeded on tx: ${tx}`);
+      log (`There is no peer registered for ${tbrDeployment.chainId}, skipping.`);
     } else {
-      log(`Peer is already registered for ${tbrDeployment.chainId}, skipping.`);
+      const currentPeer = currentChainConfig.canonicalPeer.toUniversalAddress();
+
+      if (!currentPeer.equals(peerUniversalAddress)) {
+        log(
+          `Updating peer for chain ${tbrDeployment.chainId} from ${currentPeer} to ${peerUniversalAddress}`,
+        );
+        const ix = await tbr.updateCanonicalPeer(
+          chainIdToChain(tbrDeployment.chainId),
+          peerUniversalAddress,
+        );
+        const tx = await ledgerSignAndSend(connection, [ix], [], { lockedWritableAccounts: [], priorityFeePolicy });
+        log(`Update succeeded on tx: ${tx}`);
+      }
+      else {
+        log(`Peer for chain ${tbrDeployment.chainId} is already set to ${peerUniversalAddress}, skipping.`);
+      }
     }
   }
 }
 
-runOnSolana('register-peers-solana-tbr', registerPeersSolanaTbr).catch((error) => {
+runOnSolana('set-canonical-peer-solana-tbr', setCanonicalPeerSolanaTbr).catch((error) => {
   console.error('Error executing script: ', error);
   console.log('extra logs', error.getLogs());
 });
