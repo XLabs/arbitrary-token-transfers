@@ -19,7 +19,7 @@ import { TbrTestBase } from "./utils/TbrTestBase.sol";
 import { craftTbrV3Vaa, deNormalizeAmount, discardInsignificantBits, ERC20Mock, makeBytes32 } from "./utils/utils.sol";
 
 // USDC in Ethereum mainnet
-address usdcAddress = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+address constant usdcAddress = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
 
 contract UserTest is TbrTestBase {
   using BytesParsing for bytes;
