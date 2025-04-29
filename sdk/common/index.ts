@@ -87,13 +87,13 @@ export const addresses = [[
   ]], [
   "Testnet", [
     ["Solana",          "ATTY1Vt5KY5vtXUTpgwjUJjgNwEBxZ2AUY9M437sDupw"], 
-    ["Avalanche",       "0x5DEfC04a5F34A7f6DD794Cd3D2D72e0C183C1cD4"],
-    ["Celo",            "0x5DEfC04a5F34A7f6DD794Cd3D2D72e0C183C1cD4"],
-    ["Sepolia",         "0x5DEfC04a5F34A7f6DD794Cd3D2D72e0C183C1cD4"],
-    ["ArbitrumSepolia", "0x5DEfC04a5F34A7f6DD794Cd3D2D72e0C183C1cD4"],
-    ["BaseSepolia",     "0x5DEfC04a5F34A7f6DD794Cd3D2D72e0C183C1cD4"],
-    ["OptimismSepolia", "0x5DEfC04a5F34A7f6DD794Cd3D2D72e0C183C1cD4"],
-    ["PolygonSepolia",  "0x919c3C01bFD374833a9D7a711305F9fF47bB544D"]
+    ["Avalanche",       "0xAD6AD1648a18448b7d66B1F20956C19F69cEb9d5"],
+    ["Celo",            "0xAD6AD1648a18448b7d66B1F20956C19F69cEb9d5"],
+    ["Sepolia",         "0xAD6AD1648a18448b7d66B1F20956C19F69cEb9d5"],
+    ["ArbitrumSepolia", "0xAD6AD1648a18448b7d66B1F20956C19F69cEb9d5"],
+    ["BaseSepolia",     "0xAD6AD1648a18448b7d66B1F20956C19F69cEb9d5"],
+    ["OptimismSepolia", "0xAD6AD1648a18448b7d66B1F20956C19F69cEb9d5"],
+    ["PolygonSepolia",  "0x840137D56d8cc11E0546dA882F4ba2Dd99fb340b"]
   ]],
 ] as const satisfies MapLevels<[Network, Chain, string]>;
 
