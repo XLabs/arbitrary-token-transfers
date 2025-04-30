@@ -33,7 +33,7 @@
     "@types/chai": "^4.3.19",
     "@types/mocha": "^10",
     "@types/node": "20.17.5",
-    "chai": "^5.1.1",
+    "chai": "^5.2.0",
     "mocha": "^10",
     "prettier": "^3.5.3",
     "tsx": "^4.19.3",

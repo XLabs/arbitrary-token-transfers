@@ -81,7 +81,7 @@ const RAW_RUNTIME_STATE =
           ["@types/mocha", "npm:10.0.7"],\
           ["@types/node", "npm:20.17.5"],\
           ["@yarnpkg/types", "npm:4.0.0"],\
-          ["chai", "npm:5.1.1"],\
+          ["chai", "npm:5.2.0"],\
           ["mocha", "npm:10.7.3"],\
           ["prettier", "npm:3.5.3"],\
           ["tsx", "npm:4.19.3"],\
@@ -1821,10 +1821,11 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "HARD"\
       }],\
-      ["npm:5.0.0", {\
-        "packageLocation": "./.yarn/cache/@types-chai-npm-5.0.0-0f4c896b79-fcce55f2bb.zip/node_modules/@types/chai/",\
+      ["npm:5.2.1", {\
+        "packageLocation": "./.yarn/cache/@types-chai-npm-5.2.1-a61ccf4b35-f8a03c9f84.zip/node_modules/@types/chai/",\
         "packageDependencies": [\
-          ["@types/chai", "npm:5.0.0"]\
+          ["@types/chai", "npm:5.2.1"],\
+          ["@types/deep-eql", "npm:4.0.2"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -1835,6 +1836,15 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@types/connect", "npm:3.4.38"],\
           ["@types/node", "npm:22.5.4"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@types/deep-eql", [\
+      ["npm:4.0.2", {\
+        "packageLocation": "./.yarn/cache/@types-deep-eql-npm-4.0.2-e6bc68cc92-bf3f811843.zip/node_modules/@types/deep-eql/",\
+        "packageDependencies": [\
+          ["@types/deep-eql", "npm:4.0.2"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -2276,7 +2286,7 @@ const RAW_RUNTIME_STATE =
           ["@wormhole-foundation/sdk-definitions", "npm:1.4.5"],\
           ["@wormhole-foundation/sdk-evm", "npm:1.4.5"],\
           ["@xlabs-xyz/common-arbitrary-token-transfer", "virtual:9bef669af1c3b4b384f01597b4618f767933970b69e6fd62d81f9bbc7b8c4900225bffb44e48b8c05eea593d7778ed11aa109309394c7caa9adf8cbab67e8377#workspace:sdk/common"],\
-          ["chai", "npm:5.1.1"],\
+          ["chai", "npm:5.2.0"],\
           ["ethers", "npm:6.13.5"],\
           ["mocha", "npm:10.7.3"],\
           ["tsx", "npm:4.19.3"],\
@@ -2303,7 +2313,7 @@ const RAW_RUNTIME_STATE =
           ["@wormhole-foundation/sdk-definitions", "npm:1.4.5"],\
           ["@wormhole-foundation/sdk-evm", "npm:1.4.5"],\
           ["@xlabs-xyz/common-arbitrary-token-transfer", "virtual:9bef669af1c3b4b384f01597b4618f767933970b69e6fd62d81f9bbc7b8c4900225bffb44e48b8c05eea593d7778ed11aa109309394c7caa9adf8cbab67e8377#workspace:sdk/common"],\
-          ["chai", "npm:5.1.1"],\
+          ["chai", "npm:5.2.0"],\
           ["ethers", "npm:6.13.5"],\
           ["mocha", "npm:10.7.3"],\
           ["tsx", "npm:4.19.3"],\
@@ -2997,10 +3007,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["chai", [\
-      ["npm:5.1.1", {\
-        "packageLocation": "./.yarn/cache/chai-npm-5.1.1-2e09e40819-e7f00e5881.zip/node_modules/chai/",\
+      ["npm:5.2.0", {\
+        "packageLocation": "./.yarn/cache/chai-npm-5.2.0-373e52d821-dfd1cb719c.zip/node_modules/chai/",\
         "packageDependencies": [\
-          ["chai", "npm:5.1.1"],\
+          ["chai", "npm:5.2.0"],\
           ["assertion-error", "npm:2.0.1"],\
           ["check-error", "npm:2.1.1"],\
           ["deep-eql", "npm:5.0.2"],\
@@ -5713,7 +5723,7 @@ const RAW_RUNTIME_STATE =
           ["@coral-xyz/anchor", "npm:0.31.1"],\
           ["@solana/spl-token", "virtual:1083298bcb0ac2d0c31e8d54e5d8046d04af5b3b1ca39b8404f80e1c4c08f4735785338190f77488c34d544aec8cdd0fb4bb5631f5f8a4e09017b7efc0afa473#npm:0.4.13"],\
           ["@solana/web3.js", "npm:1.98.1"],\
-          ["@types/chai", "npm:5.0.0"],\
+          ["@types/chai", "npm:5.2.1"],\
           ["@types/mocha", "npm:10.0.9"],\
           ["@wormhole-foundation/sdk-base", "npm:1.4.5"],\
           ["@wormhole-foundation/sdk-connect", "npm:1.4.5"],\
@@ -5723,7 +5733,7 @@ const RAW_RUNTIME_STATE =
           ["@wormhole-foundation/sdk-solana-tokenbridge", "npm:1.4.5"],\
           ["@xlabs-xyz/common-arbitrary-token-transfer", "virtual:9bef669af1c3b4b384f01597b4618f767933970b69e6fd62d81f9bbc7b8c4900225bffb44e48b8c05eea593d7778ed11aa109309394c7caa9adf8cbab67e8377#workspace:sdk/common"],\
           ["@xlabs-xyz/solana-arbitrary-token-transfers", "virtual:1083298bcb0ac2d0c31e8d54e5d8046d04af5b3b1ca39b8404f80e1c4c08f4735785338190f77488c34d544aec8cdd0fb4bb5631f5f8a4e09017b7efc0afa473#workspace:sdk/solana"],\
-          ["chai", "npm:5.1.1"],\
+          ["chai", "npm:5.2.0"],\
           ["mocha", "npm:11.0.1"],\
           ["toml", "npm:3.0.0"],\
           ["typescript", "patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"]\
@@ -6025,7 +6035,7 @@ const RAW_RUNTIME_STATE =
           ["@types/mocha", "npm:10.0.7"],\
           ["@types/node", "npm:20.17.5"],\
           ["@yarnpkg/types", "npm:4.0.0"],\
-          ["chai", "npm:5.1.1"],\
+          ["chai", "npm:5.2.0"],\
           ["mocha", "npm:10.7.3"],\
           ["prettier", "npm:3.5.3"],\
           ["tsx", "npm:4.19.3"],\
