@@ -39,7 +39,8 @@ export const assert = {
   chainConfig: (left: ChainConfigAccount) => ({
     equal: (right: ChainConfigAccount) => {
       expect(left.chainId).equal(right.chainId);
-      expect(left.canonicalPeer).deep.equal(right.canonicalPeer);
+      // TODO: implement a matcher for UniversalAddress
+      expect(left.canonicalPeer.equals(right.canonicalPeer)).to.be.true;
       expect(left.maxGasDropoffMicroToken).equal(right.maxGasDropoffMicroToken);
       expect(left.relayerFeeMicroUsd).equal(right.relayerFeeMicroUsd);
       expect(left.pausedOutboundTransfers).equal(right.pausedOutboundTransfers);
