@@ -552,6 +552,16 @@ Current authority: ${upgradeAuthority}`);
       throw new Error('Peers already exist. Use registerAdditionalPeer to add more peers.');
     }
 
+    const updateBaseFeeIx =
+      config.relayerFeeMicroUsd !== 0
+        ? [this.updateBaseFee(signer, chain, config.relayerFeeMicroUsd)]
+        : [];
+
+    const pauseOutboundTransfersIx =
+      config.pausedOutboundTransfers
+        ? []
+        : [this.setPauseForOutboundTransfers(signer, chain, config.pausedOutboundTransfers)];
+
     const updateMaxGasDropoffIx =
       config.maxGasDropoffMicroToken !== 0
         ? [this.updateMaxGasDropoff(signer, chain, config.maxGasDropoffMicroToken)]
@@ -559,8 +569,8 @@ Current authority: ${upgradeAuthority}`);
 
     return Promise.all([
       this.registerPeer(signer, chain, peerAddress),
-      this.updateBaseFee(signer, chain, config.relayerFeeMicroUsd),
-      this.setPauseForOutboundTransfers(signer, chain, config.pausedOutboundTransfers),
+      ...updateBaseFeeIx,
+      ...pauseOutboundTransfersIx,
       ...updateMaxGasDropoffIx,
     ]);
   }
