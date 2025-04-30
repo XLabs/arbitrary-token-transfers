@@ -45,7 +45,7 @@ import { normalize, join, sep, parse } from 'path';
             const pathComponents = parse(normalizedPath);
             // TODO: the comparison here is actually fishy, maybe we need to look at the contents instead.
             if (!contractNames.includes(pathComponents.name)) {
-                console.log(`Discarded contract ${pathComponents.name}`);
+                console.log(`    Discarded contract ${pathComponents.name}`);
                 continue;
             }
 
