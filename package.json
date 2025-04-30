@@ -14,7 +14,7 @@
     "clean": "yarn workspaces foreach --all --exclude ./solana run clean && yarn ./solana run clean:ts",
     "clean:all": "yarn workspaces foreach --all run clean && yarn ./evm clean:contracts",
     "test:evm": "yarn ./evm test",
-    "test:solana": "anchor run setup-test && anchor test",
+    "test:solana": "yarn ./solana build:ts && anchor run setup-test && anchor test",
     "test:sdk-evm": "yarn sdk/evm test:deploy:integration",
     "prettier": "prettier --write ."
   },
