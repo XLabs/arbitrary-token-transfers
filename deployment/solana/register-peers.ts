@@ -12,7 +12,7 @@ import {
   PriorityFeePolicy
 } from '../helpers/solana.js';
 import { SolanaScriptCb } from '../helpers/interfaces.js';
-import { dependencies, getEnvOrDefault } from '../helpers/env.js';
+import { getEnvOrDefault } from '../helpers/env.js';
 import { PublicKey } from '@solana/web3.js';
 import { contracts } from '../helpers/index.js';
 import { getChainConfig } from '../helpers/env.js';
@@ -27,10 +27,6 @@ const registerPeersSolanaTbr: SolanaScriptCb = async function (
   const connection = getConnection(operatingChain);
   const priorityFeePolicy = getEnvOrDefault('PRIORITY_FEE_POLICY', 'normal') as PriorityFeePolicy;
 
-  const solanaDependencies = dependencies.find((d) => d.chainId === chainToChainId(operatingChain.name));
-  if (solanaDependencies === undefined) {
-    throw new Error(`No dependencies found for chain ${chainToChainId(operatingChain.name)}`);
-  }
   const tbr = await SolanaTokenBridgeRelayer.create(connection);
 
   for (const tbrDeployment of contracts['TbrV3Proxies']) {
