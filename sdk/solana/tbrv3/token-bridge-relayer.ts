@@ -110,6 +110,10 @@ export enum ChainConfigAccountData {
   NotInitialized,
 };
 
+export enum PeerAccountData {
+  NotInitialized,
+};
+
 export class SolanaTokenBridgeRelayer {
   public readonly program: anchor.Program<IdlType>;
   public readonly priceOracleClient: SolanaPriceOracle;
@@ -359,6 +363,16 @@ export class SolanaTokenBridgeRelayer {
           canonicalPeer: new UniversalAddress(Uint8Array.from(chainAccount.canonicalPeer))
         };
       },
+      peer: async (chain: Chain, peer: UniversalAddress) => {
+        const peerAccount = await this.account.peer(chain, peer).fetchNullable();
+
+        if (peerAccount === null) return PeerAccountData.NotInitialized;
+
+        return {
+          ...peerAccount,
+          address: new UniversalAddress(Uint8Array.from(peerAccount.address)),
+        }
+      }
     };
   }
 
