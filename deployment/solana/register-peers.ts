@@ -61,12 +61,14 @@ const registerPeersSolanaTbr: SolanaScriptCb = async function (
         }
       );
       const tx = await ledgerSignAndSend(connection, ixs, [], { lockedWritableAccounts: [], priorityFeePolicy });
-      log(`Register succeeded on tx: ${tx}`);
+      log(`Register peer from chain ${peerChainName} succeeded on tx: ${tx}`);
     } else {
       let peerAccount = await tbr.tryRead.peer(peerChainName, peerUniversalAddress);
 
       if (peerAccount === PeerAccountData.NotInitialized) {
-        // TODO: register additional peer
+        const ix = await tbr.registerAdditionalPeer(signerKey, peerChainName, peerUniversalAddress, currentChainConfig);
+        const tx = await ledgerSignAndSend(connection, [ix], [], {lockedWritableAccounts: [], priorityFeePolicy });
+        log(`Register peer from chain ${peerChainName} succeeded on tx: ${tx}`);
       } else {
         log(`Peer is already registered for ${tbrDeployment.chainId}, skipping.`);
       }
