@@ -43,13 +43,18 @@ const registerPeersSolanaTbr: SolanaScriptCb = async function (
       tbrDeployment.chainId,
     );
 
-    const currentChainConfig = await tbr.tryRead.chainConfig(peerChainName);
-
     const peerUniversalAddress = new UniversalAddress(tbrDeployment.address);
+    const peerAccount = await tbr.tryRead.peer(peerChainName, peerUniversalAddress);
+    if (peerAccount === PeerAccountData.NotInitialized) {
+      log(`Peer is already registered from chain ${peerChainName}, skipping.`);
+      continue;
+    }
+
+    const currentChainConfig = await tbr.tryRead.chainConfig(peerChainName);
+    const ixs = [];
 
     if (currentChainConfig === ChainConfigAccountData.NotInitialized) {
-      log('Registering peer on chain', tbrDeployment.chainId);
-      const ixs = await tbr.registerFirstPeer(
+      ixs.push(...await tbr.registerFirstPeer(
         signerKey,
         peerChainName,
         peerUniversalAddress,
@@ -59,20 +64,14 @@ const registerPeersSolanaTbr: SolanaScriptCb = async function (
           // TODO: have this be configurable?
           pausedOutboundTransfers: false,
         }
-      );
-      const tx = await ledgerSignAndSend(connection, ixs, [], { lockedWritableAccounts: [], priorityFeePolicy });
-      log(`Register peer from chain ${peerChainName} succeeded on tx: ${tx}`);
+      ));
     } else {
-      let peerAccount = await tbr.tryRead.peer(peerChainName, peerUniversalAddress);
-
-      if (peerAccount === PeerAccountData.NotInitialized) {
-        const ix = await tbr.registerAdditionalPeer(signerKey, peerChainName, peerUniversalAddress, currentChainConfig);
-        const tx = await ledgerSignAndSend(connection, [ix], [], {lockedWritableAccounts: [], priorityFeePolicy });
-        log(`Register peer from chain ${peerChainName} succeeded on tx: ${tx}`);
-      } else {
-        log(`Peer is already registered for ${tbrDeployment.chainId}, skipping.`);
-      }
+      ixs.push(await tbr.registerAdditionalPeer(signerKey, peerChainName, peerUniversalAddress, currentChainConfig))
     }
+
+    log(`Registering peer from chain ${peerChainName}`);
+    const tx = await ledgerSignAndSend(connection, ixs, [], { lockedWritableAccounts: [], priorityFeePolicy });
+    log(`Register peer from chain ${peerChainName} succeeded on tx: ${tx}`);
   }
 }
 
