@@ -1,6 +1,5 @@
 import { chainIdToChain, chainToChainId } from '@wormhole-foundation/sdk-base';
-import { UniversalAddress } from '@wormhole-foundation/sdk-definitions';
-import { SolanaTokenBridgeRelayer } from '@xlabs-xyz/solana-arbitrary-token-transfers';
+import { ChainConfigAccountData, SolanaTokenBridgeRelayer } from '@xlabs-xyz/solana-arbitrary-token-transfers';
 import { runOnSolana, ledgerSignAndSend, getConnection, PriorityFeePolicy } from '../helpers/solana.js';
 import { SolanaScriptCb } from '../helpers/interfaces.js';
 import { dependencies, getEnvOrDefault } from '../helpers/env.js';
@@ -9,48 +8,36 @@ import { contracts } from '../helpers/index.js';
 import { getChainConfig } from '../helpers/env.js';
 import { EvmTbrV3Config } from '../config/config.types.js';
 
-type ChainConfigEntry = {
-  chainId: number;
-  maxGasDropoffMicroToken: number;
-  relayerFeeMicroUsd: number;
-  pausedOutboundTransfers: boolean;
-  canonicalPeer: UniversalAddress;
-};
-
 const configureFeeDropOffSolanaTbr: SolanaScriptCb = async function (
-  chain,
+  operatingChain,
   signer,
   log,
 ) {
   const signerKey = new PublicKey(await signer.getAddress());
-  const connection = getConnection(chain);
+  const connection = getConnection(operatingChain);
   const priorityFeePolicy = getEnvOrDefault('PRIORITY_FEE_POLICY', 'normal') as PriorityFeePolicy;
 
-  const solanaDependencies = dependencies.find((d) => d.chainId === chainToChainId(chain.name));
+  const solanaDependencies = dependencies.find((d) => d.chainId === chainToChainId(operatingChain.name));
   if (solanaDependencies === undefined) {
-    throw new Error(`No dependencies found for chain ${chainToChainId(chain.name)}`);
+    throw new Error(`No dependencies found for chain ${chainToChainId(operatingChain.name)}`);
   }
   const tbr = await SolanaTokenBridgeRelayer.create(connection);
 
   for (const tbrDeployment of contracts['TbrV3Proxies']) {
-    if (tbrDeployment.chainId === chainToChainId(chain.name)) continue; // skip self;
+    if (tbrDeployment.chainId === chainToChainId(operatingChain.name)) continue; // skip self;
+    const peerChain = chainIdToChain(tbrDeployment.chainId);
 
     const desiredChainConfig = await getChainConfig<EvmTbrV3Config>(
       'tbr-v3',
       tbrDeployment.chainId,
     );
-
-    let currentChainConfig: ChainConfigEntry | undefined;
-    try {
-      const allChainConfigs: ChainConfigEntry[]  = await tbr.read.allChainConfigs();
-      currentChainConfig = allChainConfigs.find((config) => config.chainId === tbrDeployment.chainId);
-    } catch (error) {
-      if (!(error instanceof Error) || !error.message?.includes('Account does not exist'))
-        throw error;
+    const currentChainConfig = await tbr.tryRead.chainConfig(peerChain);
+    if (currentChainConfig === ChainConfigAccountData.NotInitialized) {
+      console.log(`Chain ${peerChain} has no peers. Skipping configuration for this chain.`);
+      continue;
     }
 
     if (
-      !currentChainConfig ||
       currentChainConfig.maxGasDropoffMicroToken.toString() !== desiredChainConfig.maxGasDropoff
     ) {
       log(
@@ -61,7 +48,7 @@ const configureFeeDropOffSolanaTbr: SolanaScriptCb = async function (
       //            we need to do the correct conversion here.
       const ix = await tbr.updateMaxGasDropoff(
         signerKey,
-        chainIdToChain(tbrDeployment.chainId),
+        peerChain,
         Number(desiredChainConfig.maxGasDropoff) * 10**6,
       );
       const tx = await ledgerSignAndSend(connection, [ix], [], { lockedWritableAccounts: [], priorityFeePolicy });
@@ -69,7 +56,6 @@ const configureFeeDropOffSolanaTbr: SolanaScriptCb = async function (
     }
 
     if (
-      !currentChainConfig ||
       currentChainConfig.relayerFeeMicroUsd !== desiredChainConfig.relayFee
     ) {
       log(
@@ -77,7 +63,7 @@ const configureFeeDropOffSolanaTbr: SolanaScriptCb = async function (
       );
       const ix = await tbr.updateBaseFee(
         signerKey,
-        chainIdToChain(tbrDeployment.chainId),
+        peerChain,
         desiredChainConfig.relayFee,
       );
       const tx = await ledgerSignAndSend(connection, [ix], [], { lockedWritableAccounts: [], priorityFeePolicy });

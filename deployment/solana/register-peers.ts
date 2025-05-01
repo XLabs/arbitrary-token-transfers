@@ -1,21 +1,22 @@
 import { chainIdToChain, chainToChainId } from '@wormhole-foundation/sdk-base';
 import { UniversalAddress } from '@wormhole-foundation/sdk-definitions';
-import { SolanaTokenBridgeRelayer } from '@xlabs-xyz/solana-arbitrary-token-transfers';
-import { runOnSolana, ledgerSignAndSend, getConnection, PriorityFeePolicy } from '../helpers/solana.js';
+import {
+  ChainConfigAccountData,
+  SolanaTokenBridgeRelayer,
+  PeerAccountData
+} from '@xlabs-xyz/solana-arbitrary-token-transfers';
+import {
+  getConnection,
+  ledgerSignAndSend,
+  runOnSolana,
+  PriorityFeePolicy
+} from '../helpers/solana.js';
 import { SolanaScriptCb } from '../helpers/interfaces.js';
 import { dependencies, getEnvOrDefault } from '../helpers/env.js';
 import { PublicKey } from '@solana/web3.js';
 import { contracts } from '../helpers/index.js';
 import { getChainConfig } from '../helpers/env.js';
 import { EvmTbrV3Config } from '../config/config.types.js';
-
-type ChainConfigEntry = {
-  chainId: number;
-  maxGasDropoffMicroToken: number;
-  relayerFeeMicroUsd: number;
-  pausedOutboundTransfers: boolean;
-  canonicalPeer: UniversalAddress;
-};
 
 const registerPeersSolanaTbr: SolanaScriptCb = async function (
   operatingChain,
@@ -42,21 +43,11 @@ const registerPeersSolanaTbr: SolanaScriptCb = async function (
       tbrDeployment.chainId,
     );
 
-    let currentChainConfig: ChainConfigEntry | undefined;
-    try {
-      const peerChainConfig = await tbr.account.chainConfig(peerChainName).fetch();
-      currentChainConfig = {
-        ...peerChainConfig,
-        canonicalPeer: new UniversalAddress(Uint8Array.from(peerChainConfig.canonicalPeer))
-      };
-    } catch (error) {
-      if (!(error instanceof Error) || !error.message?.includes('Account does not exist'))
-        throw error;
-    }
+    const currentChainConfig = await tbr.tryRead.chainConfig(peerChainName);
 
     const peerUniversalAddress = new UniversalAddress(tbrDeployment.address);
 
-    if (!currentChainConfig) {
+    if (currentChainConfig === ChainConfigAccountData.NotInitialized) {
       log('Registering peer on chain', tbrDeployment.chainId);
       const ixs = await tbr.registerFirstPeer(
         signerKey,
@@ -72,14 +63,9 @@ const registerPeersSolanaTbr: SolanaScriptCb = async function (
       const tx = await ledgerSignAndSend(connection, ixs, [], { lockedWritableAccounts: [], priorityFeePolicy });
       log(`Register succeeded on tx: ${tx}`);
     } else {
-      let peerAccount;
-      try {
-        peerAccount = await tbr.account.peer(peerChainName, peerUniversalAddress).fetch();
-      } catch(error) {
-        if (!(error instanceof Error) || !error.message?.includes('Account does not exist'))
-          throw error;
-      };
-      if (peerAccount === undefined) {
+      let peerAccount = await tbr.tryRead.peer(peerChainName, peerUniversalAddress);
+
+      if (peerAccount === PeerAccountData.NotInitialized) {
         // TODO: register additional peer
       } else {
         log(`Peer is already registered for ${tbrDeployment.chainId}, skipping.`);
