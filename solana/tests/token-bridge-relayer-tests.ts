@@ -282,20 +282,15 @@ describe('Token Bridge Relayer Program', () => {
   describe('Peers', () => {
     it('Registers peers', async () => {
       // First ETH peer:
-
-      await assert
-        .promise(newOwnerClient.registerAdditionalPeer(ETHEREUM, ethereumTbrPeer1))
-        .failsWith('Use registerFirstPeer instead');
-
       const ethConfig = {
         maxGasDropoffMicroToken: 1000,
         pausedOutboundTransfers: false,
         relayerFeeMicroUsd: 200,
       };
       await newOwnerClient.registerFirstPeer(ETHEREUM, ethereumTbrPeer1, ethConfig);
-      assert.chainConfig(await unauthorizedClient.account.chainConfig(ETHEREUM).fetch()).equal({
+      assert.chainConfig(await unauthorizedClient.read.chainConfig(ETHEREUM)).equal({
         chainId: ETHEREUM_ID,
-        canonicalPeer: uaToArray(ethereumTbrPeer1),
+        canonicalPeer: ethereumTbrPeer1,
         ...ethConfig,
       });
       expect(
@@ -311,10 +306,12 @@ describe('Token Bridge Relayer Program', () => {
         .promise(newOwnerClient.registerFirstPeer(ETHEREUM, ethereumTbrPeer2, ethConfig))
         .failsWith('Peers already exist');
 
-      await adminClient1.registerAdditionalPeer(ETHEREUM, ethereumTbrPeer2);
-      assert.chainConfig(await unauthorizedClient.account.chainConfig(ETHEREUM).fetch()).equal({
+      const actualEthChainConfig = await unauthorizedClient.read.chainConfig(ETHEREUM);
+
+      await adminClient1.registerAdditionalPeer(ETHEREUM, ethereumTbrPeer2, actualEthChainConfig);
+      assert.chainConfig(await unauthorizedClient.read.chainConfig(ETHEREUM)).equal({
         chainId: ETHEREUM_ID,
-        canonicalPeer: uaToArray(ethereumTbrPeer1),
+        canonicalPeer: ethereumTbrPeer1,
         ...ethConfig,
       });
       expect(
@@ -332,14 +329,14 @@ describe('Token Bridge Relayer Program', () => {
         relayerFeeMicroUsd: 430,
       };
       await adminClient1.registerFirstPeer(OASIS, oasisTbrPeer, oasisConfig);
-      assert.chainConfig(await unauthorizedClient.account.chainConfig(OASIS).fetch()).equal({
+      assert.chainConfig(await unauthorizedClient.read.chainConfig(OASIS)).equal({
         chainId: OASIS_ID,
-        canonicalPeer: uaToArray(oasisTbrPeer),
+        canonicalPeer: oasisTbrPeer,
         ...oasisConfig,
       });
-      assert.chainConfig(await unauthorizedClient.account.chainConfig(ETHEREUM).fetch()).equal({
+      assert.chainConfig(await unauthorizedClient.read.chainConfig(ETHEREUM)).equal({
         chainId: ETHEREUM_ID,
-        canonicalPeer: uaToArray(ethereumTbrPeer1),
+        canonicalPeer: ethereumTbrPeer1,
         ...ethConfig,
       });
       expect(await unauthorizedClient.account.peer(OASIS, oasisTbrPeer).fetch()).deep.include({
@@ -351,9 +348,9 @@ describe('Token Bridge Relayer Program', () => {
     it('Updates the canonical peer to another one', async () => {
       await newOwnerClient.updateCanonicalPeer(ETHEREUM, ethereumTbrPeer2);
 
-      assert.chainConfig(await unauthorizedClient.account.chainConfig(ETHEREUM).fetch()).equal({
+      assert.chainConfig(await unauthorizedClient.read.chainConfig(ETHEREUM)).equal({
         chainId: ETHEREUM_ID,
-        canonicalPeer: uaToArray(ethereumTbrPeer2),
+        canonicalPeer: ethereumTbrPeer2,
         maxGasDropoffMicroToken: 1000,
         pausedOutboundTransfers: false,
         relayerFeeMicroUsd: 200,
@@ -373,9 +370,10 @@ describe('Token Bridge Relayer Program', () => {
     });
 
     it('Does not let unauthorized signers register or update a peer', async () => {
+      const actualEthChainConfig = await unauthorizedClient.read.chainConfig(ETHEREUM);
       // Unauthorized cannot register a peer:
       await assert
-        .promise(unauthorizedClient.registerAdditionalPeer(ETHEREUM, $.universalAddress.generate()))
+        .promise(unauthorizedClient.registerAdditionalPeer(ETHEREUM, $.universalAddress.generate(), actualEthChainConfig))
         .failsWith('AnchorError caused by account: auth_badge. Error Code: AccountNotInitialized.');
 
       // Admin cannot make another peer canonical:
@@ -395,9 +393,9 @@ describe('Token Bridge Relayer Program', () => {
         adminClient1.updateRelayerFee(ETHEREUM, relayerFeeMicroUsd),
       ]);
 
-      assert.chainConfig(await unauthorizedClient.account.chainConfig(ETHEREUM).fetch()).equal({
+      assert.chainConfig(await unauthorizedClient.read.chainConfig(ETHEREUM)).equal({
         chainId: ETHEREUM_ID,
-        canonicalPeer: uaToArray(ethereumTbrPeer2),
+        canonicalPeer: ethereumTbrPeer2,
         maxGasDropoffMicroToken,
         pausedOutboundTransfers: false,
         relayerFeeMicroUsd,
@@ -479,7 +477,7 @@ describe('Token Bridge Relayer Program', () => {
       const transferredAmount = 123789n;
 
       const foreignAddress = $.universalAddress.generate();
-      const canonicalEthereum = await unauthorizedClient.read.canonicalPeer(ETHEREUM);
+      const chainConfig = await unauthorizedClient.read.chainConfig(ETHEREUM);
 
       // Let's credit the temporary token account, to verify that we cannot trigger a denial of service:
       await $.airdrop(unauthorizedClient.account.temporary(spl.NATIVE_MINT).address);
@@ -506,7 +504,7 @@ describe('Token Bridge Relayer Program', () => {
       expect(vaa.emitterChain).equal('Solana');
       expect(uaToPubkey(vaa.emitterAddress)).deep.equal(tokenBridgeEmitter());
 
-      expect(vaa.payload.to).deep.equal({ address: canonicalEthereum, chain: ETHEREUM });
+      expect(vaa.payload.to).deep.equal({ address: chainConfig.canonicalPeer, chain: ETHEREUM });
       // Since the native mint has 9 decimals, the last digit is removed by the token bridge:
       expect(vaa.payload.token.amount).equal(transferredAmount / 10n);
 
@@ -523,7 +521,7 @@ describe('Token Bridge Relayer Program', () => {
       const tokenAccount = await barMint.mint(1_000_000_000n, unauthorizedClient.signer);
 
       const foreignAddress = $.universalAddress.generate();
-      const canonicalEthereum = await unauthorizedClient.read.canonicalPeer(ETHEREUM);
+      const chainConfig = await unauthorizedClient.read.chainConfig(ETHEREUM);
 
       await unauthorizedClient.transferTokens({
         recipient: { address: foreignAddress, chain: ETHEREUM },
@@ -546,7 +544,7 @@ describe('Token Bridge Relayer Program', () => {
       expect(vaa.emitterChain).equal('Solana');
       expect(uaToPubkey(vaa.emitterAddress)).deep.equal(tokenBridgeEmitter());
 
-      expect(vaa.payload.to).deep.equal({ address: canonicalEthereum, chain: ETHEREUM });
+      expect(vaa.payload.to).deep.equal({ address: chainConfig.canonicalPeer, chain: ETHEREUM });
       // Since the mint has 10 decimals, the last digit is removed by the token bridge:
       expect(vaa.payload.token.amount).equal(transferredAmount / 100n);
 
@@ -690,7 +688,7 @@ describe('Token Bridge Relayer Program', () => {
       const transferredAmount = 301_000_000n;
 
       const foreignAddress = $.universalAddress.generate();
-      const canonicalEthereum = await unauthorizedClient.read.canonicalPeer(ETHEREUM);
+      const chainConfig = await unauthorizedClient.read.chainConfig(ETHEREUM);
 
       await clientForeignToken.transferTokens({
         recipient: { address: foreignAddress, chain: ETHEREUM },
@@ -717,7 +715,7 @@ describe('Token Bridge Relayer Program', () => {
       expect(vaa.emitterChain).equal('Solana');
       expect(vaa.emitterAddress.address).deep.equal(tokenBridgeEmitter().toBytes());
 
-      expect(vaa.payload.to).deep.equal({ address: canonicalEthereum, chain: ETHEREUM });
+      expect(vaa.payload.to).deep.equal({ address: chainConfig.canonicalPeer, chain: ETHEREUM });
 
       expect(vaa.payload.token).deep.equal({
         // It is a wrapped token, so it has the expected number of decimals. No shenanigans, then:

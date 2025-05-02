@@ -78,8 +78,8 @@ export interface TransferParameters {
   mintAddress: PublicKey;
 }
 
-export type TbrConfigAccount = anchor.IdlAccounts<IdlType>['tbrConfigState'];
-export type ChainConfigAccount = anchor.IdlAccounts<IdlType>['chainConfigState'];
+export type TbrConfigAccount = Awaited<ReturnType<typeof SolanaTokenBridgeRelayer.prototype.read.config>>;
+export type ChainConfigAccount = Awaited<ReturnType<typeof SolanaTokenBridgeRelayer.prototype.read.chainConfig>>;
 export type PeerAccount = anchor.IdlAccounts<IdlType>['peerState'];
 export type SignerSequenceAccount = anchor.IdlAccounts<IdlType>['signerSequenceState'];
 export type AuthBadgeAccount = anchor.IdlAccounts<IdlType>['authBadgeState'];
@@ -98,9 +98,21 @@ const uaToPubkey = (address: UniversalAddress) => toNative('Solana', address).un
 // or better yet, eliminate it.
 type SupportedChain = PlatformToChains<'Evm' | 'Sui'>;
 
-enum UserSequence {
+export enum UserSequenceAccountData {
   NotInitialized,
-}
+};
+
+export enum Tbrv3ConfigAccountData {
+  NotInitialized,
+};
+
+export enum ChainConfigAccountData {
+  NotInitialized,
+};
+
+export enum PeerAccountData {
+  NotInitialized,
+};
 
 export class SolanaTokenBridgeRelayer {
   public readonly program: anchor.Program<IdlType>;
@@ -224,16 +236,11 @@ export class SolanaTokenBridgeRelayer {
       config: async () =>
         this.account
           .config()
-          .fetch()
-          .then(({ evmTransactionGas, evmTransactionSize, ...rest }) => ({
-            evmTransactionGas,
-            evmTransactionSize,
-            ...rest,
-          })),
+          .fetch(),
       /** Returns all Wormhole messages emitted by a user */
       allWormholeMessages: async (payer: PublicKey) => {
         const currentSequence = await this.payerSequenceNumber(payer);
-        const maxSequence = currentSequence === UserSequence.NotInitialized ? 0n : currentSequence;
+        const maxSequence = currentSequence === UserSequenceAccountData.NotInitialized ? 0n : currentSequence;
 
         return Promise.all(
           range(0n, maxSequence).map((seq) => {
@@ -262,9 +269,12 @@ export class SolanaTokenBridgeRelayer {
           ...rest,
         }));
       },
-      canonicalPeer: async (chain: Chain) => {
-        const { canonicalPeer } = await this.account.chainConfig(chain).fetch();
-        return new UniversalAddress(Uint8Array.from(canonicalPeer));
+      chainConfig: async (chain: Chain) => {
+        const chainAccount = await this.account.chainConfig(chain).fetch();
+        return {
+          ...chainAccount,
+          canonicalPeer: new UniversalAddress(Uint8Array.from(chainAccount.canonicalPeer))
+        };
       },
       allPeers: async (chain?: Chain) => {
         const filter =
@@ -332,6 +342,37 @@ export class SolanaTokenBridgeRelayer {
           }, {}),
         };
       },
+    };
+  }
+
+  get tryRead() {
+    return {
+      config: async () =>
+        this.account
+          .config()
+          .fetchNullable()
+          .then(configAccount => {
+            if (configAccount !== null) return configAccount;
+            else                        return Tbrv3ConfigAccountData.NotInitialized;
+          }),
+      chainConfig: async (chain: Chain) => {
+        const chainAccount = await this.account.chainConfig(chain).fetchNullable();
+        if (chainAccount === null) return ChainConfigAccountData.NotInitialized;
+        return {
+          ...chainAccount,
+          canonicalPeer: new UniversalAddress(Uint8Array.from(chainAccount.canonicalPeer))
+        };
+      },
+      peer: async (chain: Chain, peer: UniversalAddress) => {
+        const peerAccount = await this.account.peer(chain, peer).fetchNullable();
+
+        if (peerAccount === null) return PeerAccountData.NotInitialized;
+
+        return {
+          ...peerAccount,
+          address: new UniversalAddress(Uint8Array.from(peerAccount.address)),
+        }
+      }
     };
   }
 
@@ -520,10 +561,20 @@ Current authority: ${upgradeAuthority}`);
     },
   ): Promise<TransactionInstruction[]> {
     // Check if there are no existing peers:
-    const existingPeers = await this.read.allPeers(chain);
-    if (existingPeers.length > 0) {
+    const chainConfig = await this.tryRead.chainConfig(chain);
+    if (chainConfig !== ChainConfigAccountData.NotInitialized) {
       throw new Error('Peers already exist. Use registerAdditionalPeer to add more peers.');
     }
+
+    const updateBaseFeeIx =
+      config.relayerFeeMicroUsd !== 0
+        ? [this.updateBaseFee(signer, chain, config.relayerFeeMicroUsd)]
+        : [];
+
+    const pauseOutboundTransfersIx =
+      config.pausedOutboundTransfers
+        ? []
+        : [this.setPauseForOutboundTransfers(signer, chain, config.pausedOutboundTransfers)];
 
     const updateMaxGasDropoffIx =
       config.maxGasDropoffMicroToken !== 0
@@ -532,27 +583,26 @@ Current authority: ${upgradeAuthority}`);
 
     return Promise.all([
       this.registerPeer(signer, chain, peerAddress),
-      this.updateBaseFee(signer, chain, config.relayerFeeMicroUsd),
-      this.setPauseForOutboundTransfers(signer, chain, config.pausedOutboundTransfers),
+      ...updateBaseFeeIx,
+      ...pauseOutboundTransfersIx,
       ...updateMaxGasDropoffIx,
     ]);
   }
 
+  /**
+   * Use `this.tryRead.chainConfig(chain)` or
+   * `this.read.chainConfig(chain)` to read the chainConfig account.
+   */
   async registerAdditionalPeer(
     signer: PublicKey,
     chain: Chain,
     peerAddress: UniversalAddress,
+    chainConfig: ChainConfigAccount,
   ): Promise<TransactionInstruction> {
-    // Check if there are no existing peers:
-    const existingPeers = await this.read.allPeers(chain);
-    if (existingPeers.length === 0) {
-      throw new Error('No peer for this chain. Use registerFirstPeer instead.');
-    }
-
     return this.registerPeer(signer, chain, peerAddress);
   }
 
-  private async registerPeer(
+  private registerPeer(
     signer: PublicKey,
     chain: Chain,
     peerAddress: UniversalAddress,
@@ -726,7 +776,7 @@ Current authority: ${upgradeAuthority}`);
     ]);
 
     let nextPayerSequence;
-    if (payerSequenceNumber === UserSequence.NotInitialized) {
+    if (payerSequenceNumber === UserSequenceAccountData.NotInitialized) {
       ixs.push(await this.program.methods.initUser().accounts({payer: signer}).instruction());
       nextPayerSequence = 0n;
     } else {
@@ -937,20 +987,19 @@ Current authority: ${upgradeAuthority}`);
       address,
       bump,
       fetch: () => account.fetch(address),
+      fetchNullable: () => account.fetchNullable(address),
     };
   }
 
-  private async payerSequenceNumber(payer: PublicKey): Promise<bigint | UserSequence> {
-    const impl = async (payer: PublicKey) => {
-      try {
-        const account = await this.account.signerSequence(payer).fetch();
-        return bnToBigint(account.value);
-      } catch {
-        return UserSequence.NotInitialized;
-      }
+  private async payerSequenceNumber(payer: PublicKey): Promise<bigint | UserSequenceAccountData> {
+    const impl = async () => {
+      const account = await this.account.signerSequence(payer).fetchNullable();
+
+      if (account !== null) return bnToBigint(account.value);
+      else                  return UserSequenceAccountData.NotInitialized;
     };
 
-    const sequenceNumber = await impl(payer);
+    const sequenceNumber = await impl();
     this.logDebug({ payerSequenceNumber: sequenceNumber.toString() });
     return sequenceNumber;
   }

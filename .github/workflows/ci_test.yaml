@@ -90,6 +90,7 @@ jobs:
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
           echo "$HOME/bin/anchor" >> $GITHUB_PATH
         shell: bash
+      # We create the Solana CLI keypair to avoid errors and/or interactive keygen prompts
       - name: Create keypair
         run: solana-keygen new --no-bip39-passphrase
         shell: bash

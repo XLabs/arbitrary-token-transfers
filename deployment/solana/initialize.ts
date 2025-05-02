@@ -1,5 +1,5 @@
-import { SolanaTokenBridgeRelayer } from '@xlabs-xyz/solana-arbitrary-token-transfers';
-import { runOnSolana, ledgerSignAndSend, getConnection, getPrioritizationFee, PriorityFeePolicy } from '../helpers/solana.js';
+import { SolanaTokenBridgeRelayer, Tbrv3ConfigAccountData } from '@xlabs-xyz/solana-arbitrary-token-transfers';
+import { runOnSolana, ledgerSignAndSend, getConnection, PriorityFeePolicy } from '../helpers/solana.js';
 import { SolanaScriptCb } from '../helpers/interfaces.js';
 import { PublicKey } from '@solana/web3.js';
 import { getEnvOrDefault, loadSolanaTbrInitParams } from '../helpers/env.js';
@@ -22,6 +22,10 @@ const initializeSolanaTbr: SolanaScriptCb = async function (
   if (!tbrInitParams.feeRecipient) {
     throw new Error ("initialization parameters: feeRecipient address is required.");
   }
+
+  const configAccount = await tbr.tryRead.config();
+  if (configAccount !== Tbrv3ConfigAccountData.NotInitialized)
+    throw new Error("TBRv3 is already initialized");
 
   const deployerPubkey = new PublicKey(await signer.getAddress());
 

@@ -1385,10 +1385,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/chai@npm:^5":
-  version: 5.0.0
-  resolution: "@types/chai@npm:5.0.0"
-  checksum: 10c0/fcce55f2bbb8485fc860a1dcbac17c1a685b598cfc91a55d37b65b1642b921cf736caa8cce9dcc530830d900f78ab95cf43db4e118db34a5176f252cacd9e1e8
+"@types/chai@npm:^5.2.1":
+  version: 5.2.1
+  resolution: "@types/chai@npm:5.2.1"
+  dependencies:
+    "@types/deep-eql": "npm:*"
+  checksum: 10c0/f8a03c9f8450b7ab8df11f658c4194be17a6316b870490d5ffaf5289a3c0c0591ed6291b2d6551e181887c3eed89d0490744b3e569d9b23cf611b05f93e775b6
   languageName: node
   linkType: hard
 
@@ -1398,6 +1400,13 @@ __metadata:
   dependencies:
     "@types/node": "npm:*"
   checksum: 10c0/2e1cdba2c410f25649e77856505cd60223250fa12dff7a503e492208dbfdd25f62859918f28aba95315251fd1f5e1ffbfca1e25e73037189ab85dd3f8d0a148c
+  languageName: node
+  linkType: hard
+
+"@types/deep-eql@npm:*":
+  version: 4.0.2
+  resolution: "@types/deep-eql@npm:4.0.2"
+  checksum: 10c0/bf3f811843117900d7084b9d0c852da9a044d12eb40e6de73b552598a6843c21291a8a381b0532644574beecd5e3491c5ff3a0365ab86b15d59862c025384844
   languageName: node
   linkType: hard
 
@@ -1721,7 +1730,7 @@ __metadata:
     "@wormhole-foundation/sdk-definitions": "npm:^1.4.5"
     "@wormhole-foundation/sdk-evm": "npm:^1.4.5"
     "@xlabs-xyz/common-arbitrary-token-transfer": "workspace:*"
-    chai: "npm:^5.1.1"
+    chai: "npm:^5.2.0"
     ethers: "npm:^6.13.5"
     mocha: "npm:^10.7.3"
     tsx: "npm:4.19.3"
@@ -2266,16 +2275,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chai@npm:^5.1.1":
-  version: 5.1.1
-  resolution: "chai@npm:5.1.1"
+"chai@npm:^5.2.0":
+  version: 5.2.0
+  resolution: "chai@npm:5.2.0"
   dependencies:
     assertion-error: "npm:^2.0.1"
     check-error: "npm:^2.1.1"
     deep-eql: "npm:^5.0.1"
     loupe: "npm:^3.1.0"
     pathval: "npm:^2.0.0"
-  checksum: 10c0/e7f00e5881e3d5224f08fe63966ed6566bd9fdde175863c7c16dd5240416de9b34c4a0dd925f4fd64ad56256ca6507d32cf6131c49e1db65c62578eb31d4566c
+  checksum: 10c0/dfd1cb719c7cebb051b727672d382a35338af1470065cb12adb01f4ee451bbf528e0e0f9ab2016af5fc1eea4df6e7f4504dc8443f8f00bd8fb87ad32dc516f7d
   languageName: node
   linkType: hard
 
@@ -4756,7 +4765,7 @@ __metadata:
     "@coral-xyz/anchor": "npm:^0.31.1"
     "@solana/spl-token": "npm:^0.4.13"
     "@solana/web3.js": "npm:^1.98.1"
-    "@types/chai": "npm:^5"
+    "@types/chai": "npm:^5.2.1"
     "@types/mocha": "npm:10.*"
     "@wormhole-foundation/sdk-base": "npm:^1.4.5"
     "@wormhole-foundation/sdk-connect": "npm:^1.4.5"
@@ -4766,7 +4775,7 @@ __metadata:
     "@wormhole-foundation/sdk-solana-tokenbridge": "npm:^1.4.5"
     "@xlabs-xyz/common-arbitrary-token-transfer": "workspace:^"
     "@xlabs-xyz/solana-arbitrary-token-transfers": "workspace:^"
-    chai: "npm:^5.1.1"
+    chai: "npm:^5.2.0"
     mocha: "npm:11.*"
     toml: "npm:^3.0.0"
     typescript: "npm:^5.8.3"
@@ -5044,7 +5053,7 @@ __metadata:
     "@types/mocha": "npm:^10"
     "@types/node": "npm:20.17.5"
     "@yarnpkg/types": "npm:^4.0.0"
-    chai: "npm:^5.1.1"
+    chai: "npm:^5.2.0"
     mocha: "npm:^10"
     prettier: "npm:^3.5.3"
     tsx: "npm:^4.19.3"

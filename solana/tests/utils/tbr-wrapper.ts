@@ -132,12 +132,11 @@ export class TbrWrapper {
   }
 
   async registerAdditionalPeer(
-    chain: Chain,
-    peerAddress: UniversalAddress,
+    ...args: Tail<Parameters<typeof this.client.registerAdditionalPeer>>
   ): Promise<VersionedTransactionResponse | null> {
     return $.getTransaction(
       $.sendAndConfirm(
-        await this.client.registerAdditionalPeer(this.publicKey, chain, peerAddress),
+        await this.client.registerAdditionalPeer(this.publicKey, ...args),
         this.signer,
       ),
     );
