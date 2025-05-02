@@ -41,7 +41,7 @@ const registerPeersSolanaTbr: SolanaScriptCb = async function (
 
     const peerUniversalAddress = new UniversalAddress(tbrDeployment.address);
     const peerAccount = await tbr.tryRead.peer(peerChainName, peerUniversalAddress);
-    if (peerAccount === PeerAccountData.NotInitialized) {
+    if (peerAccount !== PeerAccountData.NotInitialized) {
       log(`Peer is already registered from chain ${peerChainName}, skipping.`);
       continue;
     }
