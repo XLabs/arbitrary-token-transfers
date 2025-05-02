@@ -1,6 +1,6 @@
 {
   "name": "@xlabs-xyz/arbitrary-token-transfers-definitions",
-  "version": "0.0.1-alpha7",
+  "version": "0.0.1-alpha8",
   "description": "",
   "type": "module",
   "module": "ts-build/src/index.js",
