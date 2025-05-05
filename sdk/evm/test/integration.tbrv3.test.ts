@@ -25,8 +25,8 @@ const peers = [
 describe('TbrV3 SDK Integration test', () => {
 
   before(async () => {
-    expect(rpc).to.not.be.undefined;
-    expect(ownerPk).to.not.be.undefined;
+    expect(rpc, "RPC is undefined").to.not.be.undefined;
+    expect(ownerPk, "Owner key is undefined").to.not.be.undefined;
 
     const address = new EvmAddress(config.TbrV3Proxies[0].address);
     const provider = new ethers.JsonRpcProvider(rpc, undefined, {staticNetwork: true});

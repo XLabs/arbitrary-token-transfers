@@ -15,7 +15,7 @@
     "build:ts": "tsc --build ./tsconfig.json",
     "build": "yarn run build:ts",
     "clean": "rm -rf ts-build",
-    "test:integration": "cd test && make test && tsc --build ./tsconfig.json && mocha build-test/test/integration.tbrv3.test.js",
+    "test:integration": "cd test && make && tsc --build ./tsconfig.json && mocha ../build-test/test/integration.tbrv3.test.js",
     "test:deploy:integration": "yarn workspace deployment run deploy:evm:localnet && yarn test:integration"
   },
   "files": [
