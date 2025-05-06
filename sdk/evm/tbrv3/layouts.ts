@@ -150,10 +150,10 @@ const configCommandLayout =
         peerChainItem,
         peerAddressItem
       ]],
-      [[ 0x01, "UpdateBaseFee"       ], [peerChainItem, { name: "value", ...baseFeeItem}]],
-      [[ 0x02, "UpdateMaxGasDropoff" ], [peerChainItem, { name: "value", ...gasDropoffItem }]],
+      [[ 0x01, "UpdateBaseFee"       ], [peerChainItem, { name: "value", ...baseFeeItem }]         ],
+      [[ 0x02, "UpdateMaxGasDropoff" ], [peerChainItem, { name: "value", ...gasDropoffItem }]      ],
       [[ 0x03, "UpdateTransferPause" ], [peerChainItem, { name: "value", ...layoutItems.boolItem }]],
-      [[ 0x0a, "UpdateFeeRecipient"  ], [{ name: "address",...evmAddressItem }]],
+      [[ 0x0a, "UpdateFeeRecipient"  ], [{ name: "address",...evmAddressItem }]                    ],
       // Only owner
       [[ 0x0b, "UpdateCanonicalPeer" ], [peerChainItem, peerAddressItem]],
     ]
@@ -165,13 +165,13 @@ export const configQueryLayout = {
   idSize: 1,
   idTag: "query",
   layouts: [
-    [[0x80, "IsChainSupported"], [peerChainItem]],
-    [[0x81, "IsChainPaused"   ], [peerChainItem]],
-    [[0x82, "BaseFee"         ], [peerChainItem]],
-    [[0x83, "MaxGasDropoff"   ], [peerChainItem]],
-    [[0x84, "CanonicalPeer"   ], [peerChainItem]],
+    [[0x80, "IsChainSupported"], [peerChainItem]                 ],
+    [[0x81, "IsChainPaused"   ], [peerChainItem]                 ],
+    [[0x82, "BaseFee"         ], [peerChainItem]                 ],
+    [[0x83, "MaxGasDropoff"   ], [peerChainItem]                 ],
+    [[0x84, "CanonicalPeer"   ], [peerChainItem]                 ],
     [[0x85, "IsPeer"          ], [peerChainItem, peerAddressItem]],
-    [[0x86, "FeeRecipient"    ], []],
+    [[0x86, "FeeRecipient"    ], []                              ],
   ],
 } as const satisfies Layout;
 export type ConfigQuery = LayoutToType<typeof configQueryLayout>;
