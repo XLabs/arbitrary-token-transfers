@@ -31,8 +31,8 @@ import { normalize, join, sep, parse } from 'path';
     // duplicate identifiers. this should be handled better somewhere.
     // Maybe here, maybe in the Typechain API.
     for (const inputFile of inputFiles) {
-        const data = await readFile(inputFile, null);
-        const json = JSON.parse(data.toString());
+        const data = await readFile(inputFile, "utf8");
+        const json = JSON.parse(data);
         const contracts: any = json['contracts'];
 
         console.log(`Found ${Object.keys(contracts).length} entries to process in file ${inputFile}...`);
@@ -76,6 +76,9 @@ import { normalize, join, sep, parse } from 'path';
     const result = await runTypeChainInMemory(pc, fileDescriptions, ethersv6Codegen);
 
     console.log(`Generated ${result.filesGenerated} file(s)`);
-})()
+})().catch((error) => {
+    console.error(error?.stack || error);
+    process.exit(1);
+})
 
 
