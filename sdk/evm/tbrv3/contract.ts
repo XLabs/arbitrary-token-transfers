@@ -42,6 +42,8 @@ import {
   allowanceTokenBridgeReturnLayout,
   execParamsLayout,
   peerAddressItem,
+  GasTokenReturn,
+  gasTokenReturnLayout,
 } from "./layouts.js";
 import {
   AccessControlQuery,
@@ -254,6 +256,8 @@ export class Tbrv3 {
             deserializeResult(configQuery, evmAddressItem);
       else if (query.query === "AllowanceTokenBridge")
         deserializeResult(query, allowanceTokenBridgeReturnLayout);
+      else if (query.query === "GasToken")
+        deserializeResult(query, gasTokenReturnLayout);
       else if (query.query === "AccessControlQueries")
         for (const acquery of query.queries)
           if (acquery.query === "IsAdmin")
@@ -484,6 +488,8 @@ type RootQueryToResults<C extends RootQuery> =
   ? ConfigQueryResults<C["queries"]>
   : C extends { query: "AllowanceTokenBridge" }
   ? ArgsResult<C, AllowanceTokenBridgeReturn>
+  : C extends { query: "GasToken" }
+  ? ArgsResult<C, GasTokenReturn>
   : C extends { query: "AccessControlQueries" }
   ? AccessControlQueryResults<C["queries"]>
   : C extends { query: "Implementation" }
