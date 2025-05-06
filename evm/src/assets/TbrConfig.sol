@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.25;
 
-import { 
+import {
   AccessControl,
   Role,
   NotAuthorized,
@@ -100,7 +100,7 @@ abstract contract TbrConfig is TbrBase, AccessControl {
       }
       else
         revert InvalidConfigCommand(command);
-      
+
     }
     return offset;
   }
@@ -166,7 +166,7 @@ abstract contract TbrConfig is TbrBase, AccessControl {
 
   function _setFeeRecipient(address newFeeRecipient) internal {
     senderAtLeastAdmin();
-    
+
     ConfigState storage state = configState();
     address oldFeeRecipient = state.feeRecipient;
     state.feeRecipient = payable(newFeeRecipient);
