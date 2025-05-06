@@ -59,7 +59,7 @@ function craftTbrV3Vaa(
 ) returns (bytes memory, uint64) {
   uint8 TOKEN_BRIDGE_PAYLOAD_ID = 3;
   bytes32 universalRecipient = toUniversalAddress(recipient);
-  
+
   bytes memory tokenBridgePayload = abi.encodePacked(
     TOKEN_BRIDGE_PAYLOAD_ID,
     amount,

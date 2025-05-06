@@ -15,7 +15,8 @@ import { IPriceOracle } from "price-oracle/IPriceOracle.sol";
 import { toUniversalAddress } from "wormhole-sdk/Utils.sol";
 import { CHAIN_ID_ETHEREUM } from "wormhole-sdk/constants/Chains.sol";
 
-import { TbrTestBase } from "./utils/TbrTestBase.sol";
+import { TbrTestBase, InvokeTbr } from "./utils/TbrTestBase.sol";
+import { Tbr } from "tbr/Tbr.sol";
 import { craftTbrV3Vaa, deNormalizeAmount, discardInsignificantBits, ERC20Mock, makeBytes32 } from "./utils/utils.sol";
 
 // USDC in Ethereum mainnet
@@ -23,6 +24,7 @@ address constant usdcAddress = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
 
 contract UserTest is TbrTestBase {
   using BytesParsing for bytes;
+  using InvokeTbr for Tbr;
 
   bytes32 SOLANA_CANONICAL_PEER  = makeBytes32("SOLANA_CANONICAL_PEER");
   bytes32 EVM_CANONICAL_PEER     = makeBytes32("EVM_CANONICAL_PEER");
@@ -38,7 +40,7 @@ contract UserTest is TbrTestBase {
     uint8 commandCount = 1;
 
     vm.prank(owner);
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
         tbr.exec768.selector,
         DISPATCHER_PROTOCOL_VERSION0,
@@ -163,7 +165,7 @@ contract UserTest is TbrTestBase {
     vm.expectEmit(address(tbr));
     emit TransferRequested(address(this), sequence, gasDropoff, feeQuote);
 
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
         tbr.exec768.selector,
         DISPATCHER_PROTOCOL_VERSION0,
@@ -251,7 +253,7 @@ contract UserTest is TbrTestBase {
     );
 
     vm.expectRevert("SafeERC20: low-level call failed");
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
         tbr.exec768.selector,
         DISPATCHER_PROTOCOL_VERSION0,
@@ -330,7 +332,7 @@ contract UserTest is TbrTestBase {
     vm.expectEmit(address(tbr));
     emit TransferRequested(address(this), sequence, gasDropoff, feeQuote);
 
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
         tbr.exec768.selector,
         DISPATCHER_PROTOCOL_VERSION0,
@@ -374,7 +376,7 @@ contract UserTest is TbrTestBase {
     vm.expectEmit(address(tbr));
     emit TransferRequested(address(this), sequence, gasDropoff, feeQuote);
 
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
         tbr.exec768.selector,
         DISPATCHER_PROTOCOL_VERSION0,
@@ -436,7 +438,7 @@ contract UserTest is TbrTestBase {
       abi.encodeWithSelector(FeesInsufficient.selector, unallocatedBalance, commandIndex)
     );
 
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
         tbr.exec768.selector,
         DISPATCHER_PROTOCOL_VERSION0,
@@ -516,7 +518,7 @@ contract UserTest is TbrTestBase {
     vm.expectEmit(address(tbr));
     emit TransferRequested(address(this), sequence, gasDropoff, feeQuote);
 
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
         tbr.exec768.selector,
         DISPATCHER_PROTOCOL_VERSION0,
@@ -593,7 +595,7 @@ contract UserTest is TbrTestBase {
     );
 
     vm.expectRevert("SafeERC20: low-level call failed");
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
         tbr.exec768.selector,
         DISPATCHER_PROTOCOL_VERSION0,
@@ -637,7 +639,7 @@ contract UserTest is TbrTestBase {
       abi.encodeWithSelector(FeesInsufficient.selector, unallocatedBalance, commandIndex)
     );
 
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
         tbr.exec768.selector,
         DISPATCHER_PROTOCOL_VERSION0,
@@ -1121,7 +1123,7 @@ contract UserTest is TbrTestBase {
       abi.encode(abi.encodePacked(uint256(feeQuote)))
     );
 
-    bytes memory response = invokeStaticTbr(
+    bytes memory response = tbr.invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector,
         DISPATCHER_PROTOCOL_VERSION0,
@@ -1151,7 +1153,7 @@ contract UserTest is TbrTestBase {
       abi.encode(abi.encodePacked(uint256(feeQuote)))
     );
 
-    bytes memory response = invokeStaticTbr(
+    bytes memory response = tbr.invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector,
         DISPATCHER_PROTOCOL_VERSION0,
@@ -1196,7 +1198,7 @@ contract UserTest is TbrTestBase {
       abi.encode(uint256(fakeWormholeFee))
     );
 
-    bytes memory response = invokeStaticTbr(
+    bytes memory response = tbr.invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector,
         DISPATCHER_PROTOCOL_VERSION0,
@@ -1226,7 +1228,7 @@ contract UserTest is TbrTestBase {
         commandIndex
       )
     );
-    invokeStaticTbr(
+    tbr.invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector,
         DISPATCHER_PROTOCOL_VERSION0,
@@ -1238,7 +1240,7 @@ contract UserTest is TbrTestBase {
   }
 
   function testBaseRelayingConfig() public view {
-    bytes memory response = invokeStaticTbr(
+    bytes memory response = tbr.invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector,
         DISPATCHER_PROTOCOL_VERSION0,
@@ -1263,7 +1265,7 @@ contract UserTest is TbrTestBase {
     assertEq(chainIsPaused, false);
     assertEq(response.length, offset);
 
-    response = invokeStaticTbr(
+    response = tbr.invokeStaticTbr(
       abi.encodePacked(
         tbr.get1959.selector,
         DISPATCHER_PROTOCOL_VERSION0,
@@ -1341,7 +1343,7 @@ contract UserTest is TbrTestBase {
     vm.expectEmit(address(tokenToTransfer));
     emit IWETH.Withdrawal(address(tbr), denormalizedAmount);
 
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
         tbr.exec768.selector,
         DISPATCHER_PROTOCOL_VERSION0,
@@ -1414,7 +1416,7 @@ contract UserTest is TbrTestBase {
     vm.expectEmit(tokenToTransfer);
     emit IERC20.Transfer(address(tbr), recipient, denormalizedAmount);
 
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
         tbr.exec768.selector,
         DISPATCHER_PROTOCOL_VERSION0,
@@ -1472,7 +1474,7 @@ contract UserTest is TbrTestBase {
       )
     );
 
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
         tbr.exec768.selector,
         DISPATCHER_PROTOCOL_VERSION0,
@@ -1523,7 +1525,7 @@ contract UserTest is TbrTestBase {
       )
     );
 
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
         tbr.exec768.selector,
         DISPATCHER_PROTOCOL_VERSION0,
@@ -1577,7 +1579,7 @@ contract UserTest is TbrTestBase {
       )
     );
 
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
         tbr.exec768.selector,
         DISPATCHER_PROTOCOL_VERSION0,
@@ -1637,7 +1639,7 @@ function testCompleteTransfer_GasDropoffNotNecessaryInRecipientCall(
     vm.expectEmit(tokenToTransfer);
     emit IERC20.Transfer(address(tbr), recipient, denormalizedAmount);
 
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
         tbr.exec768.selector,
         DISPATCHER_PROTOCOL_VERSION0,
@@ -1713,7 +1715,7 @@ function testCompleteTransfer_GasDropoffNotNecessaryInRecipientCall(
       errorId
     ));
 
-    bytes memory result = expectRevertInvokeTbr(
+    bytes memory result = tbr.expectRevertInvokeTbr(
       abi.encodePacked(
         tbr.exec768.selector,
         DISPATCHER_PROTOCOL_VERSION0,

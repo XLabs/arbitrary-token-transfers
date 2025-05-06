@@ -50,7 +50,7 @@ contract TbrTestBase is Test {
   ITokenBridge immutable tokenBridge;
   IWETH        immutable gasToken;
   bool         immutable gasErc20TokenizationIsExplicit;
-  
+
   IERC20Metadata immutable usdt;
   IWormhole      immutable wormholeCore;
 
@@ -59,7 +59,6 @@ contract TbrTestBase is Test {
   TbrExposer  tbrExposer;
   Tbr         tbr;
 
-  error TbrInvokeDidNotFail(bytes data, uint256 value);
 
   constructor() {
     owner         = makeAddr("owner");
@@ -118,34 +117,17 @@ contract TbrTestBase is Test {
     _setUp1();
   }
 
-  function invokeStaticTbr(bytes memory encoded) view internal returns (bytes memory data) {
-    (bool success, bytes memory result) = address(tbr).staticcall(encoded);
-    if (!success) {
-      reRevert(result);
-    }
-    (uint length,) = result.asUint256MemUnchecked(32);
-    (data,) = result.sliceMemUnchecked(64, length);
-  }
-
-  function invokeTbr(bytes memory encoded) internal returns (bytes memory data) {
-    return invokeTbr(encoded, 0);
-  }
-
-  function invokeTbr(bytes memory encoded, uint value) internal returns (bytes memory data) {
-    (bool success, bytes memory result) = address(tbr).call{value: value}(encoded);
-    if (!success) {
-      reRevert(result);
-    }
-    (uint length,) = result.asUint256MemUnchecked(32);
-    (data,) = result.sliceMemUnchecked(64, length);
-  }
-
-  function expectRevertInvokeTbr(bytes memory encoded, uint value) internal returns (bytes memory) {
-    (bool success, bytes memory result) = address(tbr).call{value: value}(encoded);
-    if (success) {
-      revert TbrInvokeDidNotFail(encoded, value);
-    }
-    return result;
+  /**
+   * Used for very basic tests that don't require cross registrations.
+   */
+  function deployInstrumentedTbr(IWETH aGasToken) internal returns (TbrExposer) {
+    return new TbrExposer(
+      permit2,
+      tokenBridge,
+      oracle,
+      aGasToken,
+      gasErc20TokenizationIsExplicit
+    );
   }
 
   function setUpOracle() internal {
@@ -189,5 +171,41 @@ contract TbrTestBase is Test {
         solanaFeeParams
       )
     )));
+  }
+}
+
+
+library InvokeTbr {
+  using BytesParsing for bytes;
+  error TbrInvokeDidNotFail(bytes data, uint256 value);
+
+  function invokeStaticTbr(Tbr tbr, bytes memory encoded) view internal returns (bytes memory data) {
+    (bool success, bytes memory result) = address(tbr).staticcall(encoded);
+    if (!success) {
+      reRevert(result);
+    }
+    (uint length,) = result.asUint256MemUnchecked(32);
+    (data,) = result.sliceMemUnchecked(64, length);
+  }
+
+  function invokeTbr(Tbr tbr, bytes memory encoded) internal returns (bytes memory data) {
+    return invokeTbr(tbr, encoded, 0);
+  }
+
+  function invokeTbr(Tbr tbr, bytes memory encoded, uint value) internal returns (bytes memory data) {
+    (bool success, bytes memory result) = address(tbr).call{value: value}(encoded);
+    if (!success) {
+      reRevert(result);
+    }
+    (uint length,) = result.asUint256MemUnchecked(32);
+    (data,) = result.sliceMemUnchecked(64, length);
+  }
+
+  function expectRevertInvokeTbr(Tbr tbr, bytes memory encoded, uint value) internal returns (bytes memory) {
+    (bool success, bytes memory result) = address(tbr).call{value: value}(encoded);
+    if (success) {
+      revert TbrInvokeDidNotFail(encoded, value);
+    }
+    return result;
   }
 }

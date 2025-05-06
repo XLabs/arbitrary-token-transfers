@@ -20,6 +20,7 @@ uint8 constant RELAY_FEE_ID = 0x80;
 uint8 constant BASE_RELAYING_CONFIG_ID = 0x81;
 uint8 constant CONFIG_QUERIES_ID = 0x82;
 uint8 constant ALLOWANCE_TOKEN_BRIDGE_ID = 0x83;
+uint8 constant GAS_TOKEN_ID = 0x84;
 
 // ----------- Config Ids -----------
 
