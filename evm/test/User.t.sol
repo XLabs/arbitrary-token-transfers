@@ -42,8 +42,6 @@ contract UserTest is TbrTestBase {
     vm.prank(owner);
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         CONFIG_ID,
         commandCount,
         command
@@ -167,8 +165,6 @@ contract UserTest is TbrTestBase {
 
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         APPROVE_TOKEN_ID,
         usdt,
         TRANSFER_TOKEN_WITH_RELAY_ID,
@@ -255,8 +251,6 @@ contract UserTest is TbrTestBase {
     vm.expectRevert("SafeERC20: low-level call failed");
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         TRANSFER_TOKEN_WITH_RELAY_ID,
         targetChain,
         recipient,
@@ -334,8 +328,6 @@ contract UserTest is TbrTestBase {
 
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         APPROVE_TOKEN_ID,
         token,
         TRANSFER_TOKEN_WITH_RELAY_ID,
@@ -378,8 +370,6 @@ contract UserTest is TbrTestBase {
 
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         TRANSFER_TOKEN_WITH_RELAY_ID,
         targetChain,
         recipient,
@@ -440,8 +430,6 @@ contract UserTest is TbrTestBase {
 
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         TRANSFER_TOKEN_WITH_RELAY_ID,
         targetChain,
         recipient,
@@ -520,8 +508,6 @@ contract UserTest is TbrTestBase {
 
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         APPROVE_TOKEN_ID,
         gasToken,
         TRANSFER_GAS_TOKEN_WITH_RELAY_ID,
@@ -597,8 +583,6 @@ contract UserTest is TbrTestBase {
     vm.expectRevert("SafeERC20: low-level call failed");
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         TRANSFER_GAS_TOKEN_WITH_RELAY_ID,
         targetChain,
         recipient,
@@ -641,8 +625,6 @@ contract UserTest is TbrTestBase {
 
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         TRANSFER_GAS_TOKEN_WITH_RELAY_ID,
         targetChain,
         recipient,
@@ -1125,8 +1107,6 @@ contract UserTest is TbrTestBase {
 
     bytes memory response = tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         RELAY_FEE_ID,
         SOLANA_CHAIN_ID,
         gasDropoff
@@ -1155,8 +1135,6 @@ contract UserTest is TbrTestBase {
 
     bytes memory response = tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         RELAY_FEE_ID,
         SOLANA_CHAIN_ID,
         gasDropoff,
@@ -1200,8 +1178,6 @@ contract UserTest is TbrTestBase {
 
     bytes memory response = tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         RELAY_FEE_ID,
         SOLANA_CHAIN_ID,
         gasDropoff
@@ -1230,8 +1206,6 @@ contract UserTest is TbrTestBase {
     );
     tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         RELAY_FEE_ID,
         SOLANA_CHAIN_ID,
         gasDropoff
@@ -1242,8 +1216,6 @@ contract UserTest is TbrTestBase {
   function testBaseRelayingConfig() public view {
     bytes memory response = tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         BASE_RELAYING_CONFIG_ID,
         SOLANA_CHAIN_ID
       )
@@ -1267,8 +1239,6 @@ contract UserTest is TbrTestBase {
 
     response = tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         BASE_RELAYING_CONFIG_ID,
         EVM_CHAIN_ID
       )
@@ -1308,7 +1278,7 @@ contract UserTest is TbrTestBase {
     bool unwrapIntent = true;
 
     uint16 tokenChain = CHAIN_ID_ETHEREUM;
-    bytes32 tokenAddress = WETH_CANONICAL_ADDRESS;
+    bytes32 tokenAddress = toUniversalAddress(WETH_CANONICAL_ADDRESS);
 
     deal(address(this), unallocatedBalance);
 
@@ -1345,8 +1315,6 @@ contract UserTest is TbrTestBase {
 
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         COMPLETE_TRANSFER_ID,
         encodedVaa
       ),
@@ -1418,8 +1386,6 @@ contract UserTest is TbrTestBase {
 
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         COMPLETE_TRANSFER_ID,
         encodedVaa
       ),
@@ -1476,8 +1442,6 @@ contract UserTest is TbrTestBase {
 
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         COMPLETE_TRANSFER_ID,
         encodedVaa
       )
@@ -1527,8 +1491,6 @@ contract UserTest is TbrTestBase {
 
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         COMPLETE_TRANSFER_ID,
         encodedVaa
       )
@@ -1581,8 +1543,6 @@ contract UserTest is TbrTestBase {
 
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         COMPLETE_TRANSFER_ID,
         encodedVaa
       ),
@@ -1641,8 +1601,6 @@ function testCompleteTransfer_GasDropoffNotNecessaryInRecipientCall(
 
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         COMPLETE_TRANSFER_ID,
         encodedVaa
       ),
@@ -1677,7 +1635,7 @@ function testCompleteTransfer_GasDropoffNotNecessaryInRecipientCall(
     bool unwrapIntent = true;
 
     uint16 tokenChain = CHAIN_ID_ETHEREUM;
-    bytes32 tokenAddress = WETH_CANONICAL_ADDRESS;
+    bytes32 tokenAddress = toUniversalAddress(WETH_CANONICAL_ADDRESS);
 
     deal(address(this), unallocatedBalance);
 
@@ -1717,8 +1675,6 @@ function testCompleteTransfer_GasDropoffNotNecessaryInRecipientCall(
 
     bytes memory result = tbr.expectRevertInvokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         COMPLETE_TRANSFER_ID,
         encodedVaa
       ),

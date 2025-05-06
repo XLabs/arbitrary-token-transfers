@@ -19,8 +19,6 @@ contract ConfigTest is TbrTestBase {
     uint8 commandCount = 1;
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         CONFIG_ID,
         commandCount,
         UPDATE_CANONICAL_PEER_ID,
@@ -38,8 +36,6 @@ contract ConfigTest is TbrTestBase {
     vm.expectRevert(NotAuthorized.selector);
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         CONFIG_ID,
         commandCount,
         ADD_PEER_ID,
@@ -51,8 +47,6 @@ contract ConfigTest is TbrTestBase {
     vm.startPrank(owner);
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         CONFIG_ID,
         commandCount,
         ADD_PEER_ID,
@@ -63,8 +57,6 @@ contract ConfigTest is TbrTestBase {
 
     (bool isPeer, ) = tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         CONFIG_QUERIES_ID,
         commandCount,
         IS_PEER_ID,
@@ -89,8 +81,6 @@ contract ConfigTest is TbrTestBase {
 
     (bool isPeer, ) = tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         CONFIG_QUERIES_ID,
         commandCount,
         IS_PEER_ID,
@@ -103,8 +93,6 @@ contract ConfigTest is TbrTestBase {
 
     (bytes32 canonicalPeer, ) = tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         CONFIG_QUERIES_ID,
         commandCount,
         CANONICAL_PEER_ID,
@@ -119,8 +107,6 @@ contract ConfigTest is TbrTestBase {
 
     (isPeer, ) = tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         CONFIG_QUERIES_ID,
         commandCount,
         IS_PEER_ID,
@@ -133,8 +119,6 @@ contract ConfigTest is TbrTestBase {
 
     (canonicalPeer, ) = tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         CONFIG_QUERIES_ID,
         commandCount,
         CANONICAL_PEER_ID,
@@ -153,8 +137,6 @@ contract ConfigTest is TbrTestBase {
     vm.expectRevert(NotAuthorized.selector);
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         CONFIG_ID,
         commandCount,
         UPDATE_MAX_GAS_DROPOFF_ID,
@@ -169,8 +151,6 @@ contract ConfigTest is TbrTestBase {
     );
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         CONFIG_ID,
         commandCount,
         UPDATE_MAX_GAS_DROPOFF_ID,
@@ -185,8 +165,6 @@ contract ConfigTest is TbrTestBase {
     vm.prank(admin);
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         CONFIG_ID,
         commandCount,
         UPDATE_MAX_GAS_DROPOFF_ID,
@@ -197,8 +175,6 @@ contract ConfigTest is TbrTestBase {
 
     (uint32 maxGasDropoff_, ) = tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         CONFIG_QUERIES_ID,
         commandCount,
         MAX_GAS_DROPOFF_ID,
@@ -216,8 +192,6 @@ contract ConfigTest is TbrTestBase {
     vm.expectRevert(NotAuthorized.selector);
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         CONFIG_ID,
         commandCount,
         UPDATE_FEE_RECIPIENT_ID,
@@ -228,8 +202,6 @@ contract ConfigTest is TbrTestBase {
     vm.prank(admin);
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         CONFIG_ID,
         commandCount,
         UPDATE_FEE_RECIPIENT_ID,
@@ -239,8 +211,6 @@ contract ConfigTest is TbrTestBase {
 
     (address newFeeRecipient_, ) = tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         CONFIG_QUERIES_ID,
         commandCount,
         FEE_RECIPIENT_ID
@@ -258,8 +228,6 @@ contract ConfigTest is TbrTestBase {
     vm.expectRevert(NotAuthorized.selector);
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         CONFIG_ID,
         commandCount,
         UPDATE_BASE_FEE_ID,
@@ -274,8 +242,6 @@ contract ConfigTest is TbrTestBase {
     );
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         CONFIG_ID,
         commandCount,
         UPDATE_BASE_FEE_ID,
@@ -290,8 +256,6 @@ contract ConfigTest is TbrTestBase {
     vm.prank(admin);
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         CONFIG_ID,
         commandCount,
         UPDATE_BASE_FEE_ID,
@@ -302,8 +266,6 @@ contract ConfigTest is TbrTestBase {
 
     (uint32 newRelayFee_, ) = tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         CONFIG_QUERIES_ID,
         commandCount,
         BASE_FEE_ID,
@@ -322,8 +284,6 @@ contract ConfigTest is TbrTestBase {
     vm.expectRevert(NotAuthorized.selector);
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         CONFIG_ID,
         commandCount,
         PAUSE_CHAIN_ID,
@@ -338,8 +298,6 @@ contract ConfigTest is TbrTestBase {
     );
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         CONFIG_ID,
         commandCount,
         PAUSE_CHAIN_ID,
@@ -354,8 +312,6 @@ contract ConfigTest is TbrTestBase {
     vm.prank(admin);
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         CONFIG_ID,
         commandCount,
         PAUSE_CHAIN_ID,
@@ -366,8 +322,6 @@ contract ConfigTest is TbrTestBase {
 
     (bool paused_, ) = tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         CONFIG_QUERIES_ID,
         commandCount,
         IS_CHAIN_PAUSED_ID,
@@ -386,8 +340,6 @@ contract ConfigTest is TbrTestBase {
     vm.expectRevert(NotAuthorized.selector);
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         CONFIG_ID,
         commandCount,
         UPDATE_CANONICAL_PEER_ID,
@@ -399,8 +351,6 @@ contract ConfigTest is TbrTestBase {
     vm.prank(owner);
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         CONFIG_ID,
         commandCount,
         UPDATE_CANONICAL_PEER_ID,
@@ -411,8 +361,6 @@ contract ConfigTest is TbrTestBase {
 
     (bytes32 newCanonicalPeer_, ) = tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         CONFIG_QUERIES_ID,
         commandCount,
         CANONICAL_PEER_ID,
@@ -429,8 +377,6 @@ contract ConfigTest is TbrTestBase {
 
     (bool isSupported, ) = tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         CONFIG_QUERIES_ID,
         commandCount,
         IS_CHAIN_SUPPORTED_ID,
@@ -444,8 +390,6 @@ contract ConfigTest is TbrTestBase {
 
     (isSupported, ) = tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         CONFIG_QUERIES_ID,
         commandCount,
         IS_CHAIN_SUPPORTED_ID,
@@ -467,8 +411,6 @@ contract ConfigTest is TbrTestBase {
     );
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         CONFIG_ID,
         commandCount,
         fakeCommand
@@ -488,8 +430,6 @@ contract ConfigTest is TbrTestBase {
     );
     tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         CONFIG_QUERIES_ID,
         commandCount,
         fakeQuery

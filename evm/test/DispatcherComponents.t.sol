@@ -20,8 +20,6 @@ contract ConfigTest is TbrTestBase {
 
     (address implementation, ) = tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         IMPLEMENTATION_ID
       )
     ).asAddressMemUnchecked(0);
@@ -29,8 +27,6 @@ contract ConfigTest is TbrTestBase {
     vm.expectRevert(NotAuthorized.selector);
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         UPGRADE_CONTRACT_ID,
         address(upgradeTester)
       )
@@ -40,8 +36,6 @@ contract ConfigTest is TbrTestBase {
     vm.expectRevert(NotAuthorized.selector);
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         UPGRADE_CONTRACT_ID,
         address(upgradeTester)
       )
@@ -50,8 +44,6 @@ contract ConfigTest is TbrTestBase {
     vm.startPrank(owner);
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         UPGRADE_CONTRACT_ID,
         address(upgradeTester)
       )
@@ -64,8 +56,6 @@ contract ConfigTest is TbrTestBase {
 
     (address restoredImplementation, ) = tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         IMPLEMENTATION_ID
       )
     ).asAddressMemUnchecked(0);
@@ -78,8 +68,6 @@ contract ConfigTest is TbrTestBase {
     vm.expectRevert(NotAuthorized.selector);
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         ACCESS_CONTROL_ID,
         commandCount,
         PROPOSE_OWNERSHIP_TRANSFER_ID,
@@ -90,8 +78,6 @@ contract ConfigTest is TbrTestBase {
     vm.prank(owner);
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         ACCESS_CONTROL_ID,
         commandCount,
         PROPOSE_OWNERSHIP_TRANSFER_ID,
@@ -102,8 +88,6 @@ contract ConfigTest is TbrTestBase {
     commandCount = 2;
     bytes memory getRes = tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         ACCESS_CONTROL_QUERIES_ID,
         commandCount,
         OWNER_ID,
@@ -119,8 +103,6 @@ contract ConfigTest is TbrTestBase {
     vm.expectRevert(NotAuthorized.selector);
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         ACQUIRE_OWNERSHIP_ID
       )
     );
@@ -128,8 +110,6 @@ contract ConfigTest is TbrTestBase {
     vm.prank(newOwner);
     tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         ACQUIRE_OWNERSHIP_ID
       )
     );
@@ -137,8 +117,6 @@ contract ConfigTest is TbrTestBase {
     commandCount = 2;
     getRes = tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         ACCESS_CONTROL_QUERIES_ID,
         commandCount,
         OWNER_ID,
@@ -164,8 +142,6 @@ contract ConfigTest is TbrTestBase {
     vm.prank(owner);
     tbr.invokeTbr(
       abi.encodePacked(
-      tbr.exec768.selector,
-      DISPATCHER_PROTOCOL_VERSION0,
       SWEEP_TOKENS_ID, address(usdt), usdtAmount,
       SWEEP_TOKENS_ID, address(0), ethAmount
       )

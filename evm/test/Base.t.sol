@@ -27,8 +27,6 @@ contract BaseTest is TbrTestBase {
 
     bytes memory result = tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         GAS_TOKEN_ID
       )
     );
@@ -44,8 +42,6 @@ contract BaseTest is TbrTestBase {
 
     bytes memory result = tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         GAS_TOKEN_ID
       )
     );
