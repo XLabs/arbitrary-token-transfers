@@ -50,3 +50,6 @@ verification-api-keys.json
 .env.evm-test
 
 .vscode/launch.json
+
+# generated test files
+sdk/evm/test/localnet
