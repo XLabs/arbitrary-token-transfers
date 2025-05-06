@@ -1,6 +1,5 @@
-import type { Chain, CustomConversion, Layout, LayoutToType } from "@wormhole-foundation/sdk-base";
-import { layoutItems, type UniversalAddress } from "@wormhole-foundation/sdk-definitions";
-import { EvmAddress } from "@wormhole-foundation/sdk-evm";
+import type { CustomConversion, Layout, LayoutToType } from "@wormhole-foundation/sdk-base";
+import { layoutItems } from "@wormhole-foundation/sdk-definitions";
 import { gasDropoffItem } from "@xlabs-xyz/common-arbitrary-token-transfer";
 
 import { accessControlCommandMap, accessControlQueryMap } from "./solidity-sdk/access-control.js";
@@ -8,13 +7,10 @@ import { implementationQueryLayout, upgradeCommandLayout } from "./solidity-sdk/
 import { sweepTokensCommandLayout } from "./solidity-sdk/sweepTokens.js";
 import { evmAddressItem } from "./solidity-sdk/common.js";
 
-// TODO: update supported chains to the actual chains supported
-export const supportedChains = ["Ethereum", "Solana", "Arbitrum", "Base", "Sepolia", "BaseSepolia", "OptimismSepolia"] as const satisfies readonly Chain[];
-const supportedChainItem = layoutItems.chainItem({allowedChains: supportedChains});
-export type SupportedChain = typeof supportedChains[number];
+const supportedChainItem = layoutItems.chainItem();
 
 const peerChainItem = {
-  name: "chain", ...layoutItems.chainItem({ allowedChains: supportedChains }) 
+  name: "chain", ...layoutItems.chainItem()
 } as const;
 
 export const peerAddressItem = {
