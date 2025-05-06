@@ -5,7 +5,7 @@ import {
 } from "../helpers/index.js";
 import { chainIdToChain, chainToChainId } from "@wormhole-foundation/sdk-base";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
-import { SupportedChain, Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
+import { Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
 import { wrapEthersProvider } from "../helpers/evm.js";
   
 /**
@@ -26,7 +26,7 @@ evm.runOnEvmsSequentially("read-configured-fee-and-dropoff", async (operatingCha
 
   let queries = [];
   for (const otherTbrv3 of peers) {
-    const otherTbrv3Chain = chainIdToChain(otherTbrv3.chainId) as SupportedChain;
+    const otherTbrv3Chain = chainIdToChain(otherTbrv3.chainId);
 
     queries.push({query: "BaseFee", chain: otherTbrv3Chain} as const);
     queries.push({query: "MaxGasDropoff", chain: otherTbrv3Chain} as const);

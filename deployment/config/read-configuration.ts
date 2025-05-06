@@ -7,7 +7,7 @@ import { dependencies, getContractAddress, loadTbrPeers } from '../helpers/env.j
 import { inspect } from 'util';
 import { getProvider, runOnEvmsSequentially, wrapEthersProvider } from '../helpers/evm.js';
 import type { EvmScriptCb } from '../helpers/interfaces.js';
-import { Tbrv3, ConfigQuery, SupportedChain } from '@xlabs-xyz/evm-arbitrary-token-transfers';
+import { Tbrv3, ConfigQuery } from '@xlabs-xyz/evm-arbitrary-token-transfers';
 import { EvmAddress } from '@wormhole-foundation/sdk-evm';
 
 const readChainConfig: SolanaScriptCb & EvmScriptCb = async function (
@@ -57,19 +57,19 @@ const readChainConfig: SolanaScriptCb & EvmScriptCb = async function (
     for (const chainId of otherChains) {
       const canonicalPeerQuery = {
         query: "CanonicalPeer",
-        chain: chainIdToChain(chainId) as SupportedChain
+        chain: chainIdToChain(chainId)
       } as const satisfies ConfigQuery;
       const maxGasDropoffQuery = {
         query: "MaxGasDropoff",
-        chain: chainIdToChain(chainId) as SupportedChain
+        chain: chainIdToChain(chainId)
       } as const satisfies ConfigQuery;
       const isPausedQuery = {
         query: "IsChainPaused",
-        chain: chainIdToChain(chainId) as SupportedChain
+        chain: chainIdToChain(chainId)
       } as const satisfies ConfigQuery;
       const baseFeeQuery = {
         query: "BaseFee",
-        chain: chainIdToChain(chainId) as SupportedChain
+        chain: chainIdToChain(chainId)
       } as const satisfies ConfigQuery;
 
       queries.push(canonicalPeerQuery);

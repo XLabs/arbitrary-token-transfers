@@ -5,8 +5,8 @@ import {
   loadTbrPeers,
 } from "../helpers/index.js";
 import { toUniversal } from "@wormhole-foundation/sdk-definitions";
-import { chainIdToChain, chainToChainId, encoding } from "@wormhole-foundation/sdk-base";
-import { ConfigCommand, ConfigQuery, SupportedChain, Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
+import { Chain, chainIdToChain, chainToChainId, encoding } from "@wormhole-foundation/sdk-base";
+import { ConfigCommand, ConfigQuery, Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
 import { wrapEthersProvider } from "../helpers/evm.js";
 
@@ -34,11 +34,11 @@ evm.runOnEvms("set-canonical-peer", async (operatingChain, signer, log) => {
 
   const queries = [];
   for (const otherTbrv3 of peers) {
-    const otherTbrv3Chain = chainIdToChain(otherTbrv3.chainId) as SupportedChain;
+    const otherTbrv3Chain = chainIdToChain(otherTbrv3.chainId);
     queries.push({query: "CanonicalPeer", chain: otherTbrv3Chain} as const satisfies ConfigQuery);
   }
   const currentCanonicalPeers = await tbrv3.query([{query: "ConfigQueries", queries}]);
-  const getCanonicalPeerAddress = (chain: SupportedChain) => {
+  const getCanonicalPeerAddress = (chain: Chain) => {
     return peers.find(({chainId}) => chainIdToChain(chainId) === chain)!.address;
   }
 

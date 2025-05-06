@@ -4,8 +4,8 @@ import {
   getContractAddress,
   loadTbrPeers,
 } from "../helpers/index.js";
-import { chainIdToChain, chainToChainId, encoding } from "@wormhole-foundation/sdk-base";
-import { SupportedChain, Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
+import { Chain, chainIdToChain, chainToChainId, encoding } from "@wormhole-foundation/sdk-base";
+import { Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
 import { EvmTbrV3Config } from "../config/config.types.js";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
 import { wrapEthersProvider } from "../helpers/evm.js";
@@ -25,7 +25,7 @@ evm.runOnEvms("configure-fee-and-dropoff", async (chain, signer, log) => {
 
   const queries = [];
   for (const otherTbrv3 of peers) {
-    const otherTbrv3Chain = chainIdToChain(otherTbrv3.chainId) as SupportedChain;
+    const otherTbrv3Chain = chainIdToChain(otherTbrv3.chainId);
 
     queries.push({query: "BaseFee", chain: otherTbrv3Chain} as const);
     queries.push({query: "MaxGasDropoff", chain: otherTbrv3Chain} as const);
@@ -33,8 +33,8 @@ evm.runOnEvms("configure-fee-and-dropoff", async (chain, signer, log) => {
 
   const configValues = await tbrv3.query([{query: "ConfigQueries", queries}]);
 
-  const currentState: Map<SupportedChain, {baseFee: number; maxGasDropoff: number}> = new Map(peers.map(({chainId}) => [
-    chainIdToChain(chainId) as SupportedChain,
+  const currentState: Map<Chain, {baseFee: number; maxGasDropoff: number}> = new Map(peers.map(({chainId}) => [
+    chainIdToChain(chainId),
     {} as any
   ]));
   for (const config of configValues) {
@@ -51,7 +51,7 @@ evm.runOnEvms("configure-fee-and-dropoff", async (chain, signer, log) => {
     const peerChainCfg = await getChainConfig<EvmTbrV3Config>("tbr-v3", otherTbrv3.chainId);
     const desiredBaseFee = Number(peerChainCfg.relayFee);
     const desiredMaxGasDropoff = Number(peerChainCfg.maxGasDropoff);
-    const otherTbrv3Chain = chainIdToChain(otherTbrv3.chainId) as SupportedChain;
+    const otherTbrv3Chain = chainIdToChain(otherTbrv3.chainId);
     const chainState = currentState.get(otherTbrv3Chain)!;
     // schedule update
     if (chainState.baseFee !== desiredBaseFee) {
