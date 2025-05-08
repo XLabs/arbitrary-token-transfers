@@ -1,6 +1,5 @@
 import {
   RoArray,
-  Chain,
   serializeLayout,
   deserializeLayout,
   chainToPlatform,
@@ -9,7 +8,6 @@ import {
 import {
   keccak256,
   layoutItems,
-  resolveWrappedToken,
   serialize,
   UniversalAddress,
 } from "@wormhole-foundation/sdk-definitions";
@@ -19,7 +17,6 @@ import {
   gasDropoffItem,
   EvmChainsForNetwork,
   tbrV3Contracts,
-  NetworkMain,
   VaaMessage,
   VaaMessageWithTbrV3Payload,
 } from "@xlabs-xyz/common-arbitrary-token-transfer";
@@ -53,7 +50,6 @@ import {
   adminsQueryReturnLayout,
 } from "./solidity-sdk/access-control.js";
 import { evmAddressItem } from "./solidity-sdk/common.js";
-import { getCanonicalToken } from "@wormhole-foundation/sdk-base/tokens";
 
 export interface PartialTx {
   /**
