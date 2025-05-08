@@ -5,7 +5,7 @@ import {
 } from "../helpers/index.js";
 import { toUniversal } from "@wormhole-foundation/sdk-definitions";
 import { chainIdToChain, chainToChainId, encoding } from "@wormhole-foundation/sdk-base";
-import { ConfigCommand, ConfigQuery, SupportedChain, Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
+import { ConfigCommand, ConfigQuery, Tbrv3 } from "@xlabs-xyz/evm-arbitrary-token-transfers";
 import { EvmAddress } from "@wormhole-foundation/sdk-evm";
 import { wrapEthersProvider } from "../helpers/evm.js";
 
@@ -18,15 +18,13 @@ evm.runOnEvms("register-peers", async (operatingChain, signer, log) => {
   const tbrv3ProxyAddress = new EvmAddress(getContractAddress("TbrV3Proxies", chainToChainId(operatingChain.name)));
   const tbrv3 = Tbrv3.connectUnknown(
     wrapEthersProvider(signer.provider!),
-    operatingChain.network,
-    operatingChain.name,
     tbrv3ProxyAddress
   );
   const peers = loadTbrPeers(operatingChain);
 
   const queries = [];
   for (const otherTbrv3 of peers) {
-    const otherTbrv3Chain = chainIdToChain(otherTbrv3.chainId) as SupportedChain;
+    const otherTbrv3Chain = chainIdToChain(otherTbrv3.chainId);
     const peerAddress = toUniversal(otherTbrv3Chain, otherTbrv3.address);
     queries.push({query: "IsPeer", chain: otherTbrv3Chain, address: peerAddress} as const satisfies ConfigQuery);
   }

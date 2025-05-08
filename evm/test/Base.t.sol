@@ -2,16 +2,54 @@
 
 pragma solidity ^0.8.25;
 
-import { 
-  ChainIsNotRegistered, 
+import {
+  ChainIsNotRegistered,
   InvalidChainId,
   PeerIsZeroAddress,
   ChainNotSupportedByTokenBridge
 } from "tbr/assets/TbrBase.sol";
-import { TbrTestBase } from "./utils/TbrTestBase.sol";
+import { TbrTestBase, InvokeTbr } from "./utils/TbrTestBase.sol";
+import { TbrExposer } from "./utils/TbrExposer.sol";
+import { Tbr } from "tbr/Tbr.sol";
+import "tbr/assets/TbrIds.sol";
+import { BytesParsing } from "wormhole-sdk/libraries/BytesParsing.sol";
+import { IWETH } from "wormhole-sdk/interfaces/token/IWETH.sol";
+
 import { makeBytes32 } from "./utils/utils.sol";
 
 contract BaseTest is TbrTestBase {
+  using BytesParsing for bytes;
+  using InvokeTbr for TbrExposer;
+
+  function testGasToken() public {
+    IWETH someGasToken = IWETH(makeAddr("gasToken"));
+    TbrExposer tbr = deployInstrumentedTbr(someGasToken);
+
+    bytes memory result = tbr.invokeStaticTbr(
+      abi.encodePacked(
+        GAS_TOKEN_ID
+      )
+    );
+
+    (address readGasToken, ) = result.asAddressMemUnchecked(0);
+    assertEq(readGasToken, address(someGasToken));
+    assertEq(result.length, 20);
+  }
+
+  function testGasToken_zeroAddress() public {
+    IWETH someGasToken = IWETH(address(0));
+    TbrExposer tbr = deployInstrumentedTbr(someGasToken);
+
+    bytes memory result = tbr.invokeStaticTbr(
+      abi.encodePacked(
+        GAS_TOKEN_ID
+      )
+    );
+
+    (address readGasToken, ) = result.asAddressMemUnchecked(0);
+    assertEq(readGasToken, address(someGasToken));
+    assertEq(result.length, 20);
+  }
 
   function testAddPeer(bytes32 peer, bytes32 anotherPeer) public {
     vm.assume(peer != bytes32(0));

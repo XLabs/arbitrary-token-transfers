@@ -57,7 +57,7 @@ contract TbrExposer is Tbr {
   function exposedSetPause(uint16 chainId, bool paused) public {
     _setPause(chainId, paused);
   }
-  
+
   function exposedIsPaused(uint16 targetChain) public view returns (bool) {
     return _isPaused(targetChain);
   }
@@ -94,7 +94,7 @@ contract TbrExposer is Tbr {
   }
 
   function exposed_parseSharedParams(
-    bytes calldata data, 
+    bytes calldata data,
     uint offset
   ) public pure returns (
     uint16 targetChain,

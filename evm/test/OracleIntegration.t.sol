@@ -9,13 +9,13 @@ import { TbrExposer } from "./utils/TbrExposer.sol";
 
 contract OracleIntegrationTest is TbrTestBase {
   using BytesParsing for bytes;
-  
+
   uint32  RELAY_FEE_AMOUNT = 1000;
 
   function _setUp1() internal override {
     vm.mockCall(
-      address(wormholeCore), 
-      abi.encodeWithSelector(wormholeCore.chainId.selector), 
+      address(wormholeCore),
+      abi.encodeWithSelector(wormholeCore.chainId.selector),
       abi.encode(EVM_CHAIN_ID)
     );
 
@@ -27,7 +27,7 @@ contract OracleIntegrationTest is TbrTestBase {
       gasErc20TokenizationIsExplicit
     );
   }
-  
+
   function testQuoteRelay_evmTransactionQuote() public {
     uint32 gasDropoff = 1000;
     uint16 chainId = EVM_CHAIN_ID;
@@ -35,7 +35,7 @@ contract OracleIntegrationTest is TbrTestBase {
 
     uint fakeWormholeFee = 100;
     vm.mockCall(
-      address(wormholeCore), 
+      address(wormholeCore),
       abi.encodeWithSelector(
         wormholeCore.messageFee.selector
       ),
@@ -45,7 +45,7 @@ contract OracleIntegrationTest is TbrTestBase {
     (uint256 quote, uint256 wormholeFee) = tbrExposer.exposedQuoteRelay(chainId, gasDropoff, RELAY_FEE_AMOUNT);
     assertEq(quote, expectedQuote);
     assertEq(fakeWormholeFee, wormholeFee);
-  } 
+  }
 
   function testQuoteRelay_evmTransactionWithTxSizeQuote() public {
     uint32 gasDropoff = 1000;
@@ -54,7 +54,7 @@ contract OracleIntegrationTest is TbrTestBase {
 
     uint fakeWormholeFee = 100;
     vm.mockCall(
-      address(wormholeCore), 
+      address(wormholeCore),
       abi.encodeWithSelector(
         wormholeCore.messageFee.selector
       ),
@@ -64,7 +64,7 @@ contract OracleIntegrationTest is TbrTestBase {
     (uint256 quote, uint256 wormholeFee) = tbrExposer.exposedQuoteRelay(chainId, gasDropoff, RELAY_FEE_AMOUNT);
     assertEq(quote, expectedQuote);
     assertEq(fakeWormholeFee, wormholeFee);
-  } 
+  }
 
   function testQuoteRelay_solanaTransactionQuote() public {
     uint32 gasDropoff = 1000;
@@ -73,7 +73,7 @@ contract OracleIntegrationTest is TbrTestBase {
 
     uint fakeWormholeFee = 100;
     vm.mockCall(
-      address(wormholeCore), 
+      address(wormholeCore),
       abi.encodeWithSelector(
         wormholeCore.messageFee.selector
       ),
@@ -83,5 +83,5 @@ contract OracleIntegrationTest is TbrTestBase {
     (uint256 quote, uint256 wormholeFee) = tbrExposer.exposedQuoteRelay(chainId, gasDropoff, RELAY_FEE_AMOUNT);
     assertEq(quote, expectedQuote);
     assertEq(fakeWormholeFee, wormholeFee);
-  } 
+  }
 }

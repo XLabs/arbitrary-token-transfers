@@ -15,7 +15,8 @@ import { IPriceOracle } from "price-oracle/IPriceOracle.sol";
 import { toUniversalAddress } from "wormhole-sdk/Utils.sol";
 import { CHAIN_ID_ETHEREUM } from "wormhole-sdk/constants/Chains.sol";
 
-import { TbrTestBase } from "./utils/TbrTestBase.sol";
+import { TbrTestBase, InvokeTbr } from "./utils/TbrTestBase.sol";
+import { Tbr } from "tbr/Tbr.sol";
 import { craftTbrV3Vaa, deNormalizeAmount, discardInsignificantBits, ERC20Mock, makeBytes32 } from "./utils/utils.sol";
 
 // USDC in Ethereum mainnet
@@ -23,6 +24,7 @@ address constant usdcAddress = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
 
 contract UserTest is TbrTestBase {
   using BytesParsing for bytes;
+  using InvokeTbr for Tbr;
 
   bytes32 SOLANA_CANONICAL_PEER  = makeBytes32("SOLANA_CANONICAL_PEER");
   bytes32 EVM_CANONICAL_PEER     = makeBytes32("EVM_CANONICAL_PEER");
@@ -38,10 +40,8 @@ contract UserTest is TbrTestBase {
     uint8 commandCount = 1;
 
     vm.prank(owner);
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         CONFIG_ID,
         commandCount,
         command
@@ -82,6 +82,18 @@ contract UserTest is TbrTestBase {
     executeConfigCommand(
       abi.encodePacked(UPDATE_BASE_FEE_ID, EVM_L2_CHAIN_ID, RELAY_FEE_AMOUNT)
     );
+  }
+
+  function testGasTokenAllowance() public view {
+    bytes memory result = tbr.invokeStaticTbr(
+      abi.encodePacked(
+        GAS_TOKEN_ALLOWANCE_TOKEN_BRIDGE_ID
+      )
+    );
+
+    (uint256 allowance, ) = result.asUint256MemUnchecked(0);
+    assertEq(allowance, 0);
+    assertEq(result.length, 32);
   }
 
   function testTransferTokenWithRelaySimple(
@@ -163,10 +175,8 @@ contract UserTest is TbrTestBase {
     vm.expectEmit(address(tbr));
     emit TransferRequested(address(this), sequence, gasDropoff, feeQuote);
 
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         APPROVE_TOKEN_ID,
         usdt,
         TRANSFER_TOKEN_WITH_RELAY_ID,
@@ -251,10 +261,8 @@ contract UserTest is TbrTestBase {
     );
 
     vm.expectRevert("SafeERC20: low-level call failed");
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         TRANSFER_TOKEN_WITH_RELAY_ID,
         targetChain,
         recipient,
@@ -330,10 +338,8 @@ contract UserTest is TbrTestBase {
     vm.expectEmit(address(tbr));
     emit TransferRequested(address(this), sequence, gasDropoff, feeQuote);
 
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         APPROVE_TOKEN_ID,
         token,
         TRANSFER_TOKEN_WITH_RELAY_ID,
@@ -374,10 +380,8 @@ contract UserTest is TbrTestBase {
     vm.expectEmit(address(tbr));
     emit TransferRequested(address(this), sequence, gasDropoff, feeQuote);
 
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         TRANSFER_TOKEN_WITH_RELAY_ID,
         targetChain,
         recipient,
@@ -436,10 +440,8 @@ contract UserTest is TbrTestBase {
       abi.encodeWithSelector(FeesInsufficient.selector, unallocatedBalance, commandIndex)
     );
 
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         TRANSFER_TOKEN_WITH_RELAY_ID,
         targetChain,
         recipient,
@@ -516,10 +518,8 @@ contract UserTest is TbrTestBase {
     vm.expectEmit(address(tbr));
     emit TransferRequested(address(this), sequence, gasDropoff, feeQuote);
 
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         APPROVE_TOKEN_ID,
         gasToken,
         TRANSFER_GAS_TOKEN_WITH_RELAY_ID,
@@ -593,10 +593,8 @@ contract UserTest is TbrTestBase {
     );
 
     vm.expectRevert("SafeERC20: low-level call failed");
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         TRANSFER_GAS_TOKEN_WITH_RELAY_ID,
         targetChain,
         recipient,
@@ -637,10 +635,8 @@ contract UserTest is TbrTestBase {
       abi.encodeWithSelector(FeesInsufficient.selector, unallocatedBalance, commandIndex)
     );
 
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         TRANSFER_GAS_TOKEN_WITH_RELAY_ID,
         targetChain,
         recipient,
@@ -1121,10 +1117,8 @@ contract UserTest is TbrTestBase {
       abi.encode(abi.encodePacked(uint256(feeQuote)))
     );
 
-    bytes memory response = invokeStaticTbr(
+    bytes memory response = tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         RELAY_FEE_ID,
         SOLANA_CHAIN_ID,
         gasDropoff
@@ -1151,10 +1145,8 @@ contract UserTest is TbrTestBase {
       abi.encode(abi.encodePacked(uint256(feeQuote)))
     );
 
-    bytes memory response = invokeStaticTbr(
+    bytes memory response = tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         RELAY_FEE_ID,
         SOLANA_CHAIN_ID,
         gasDropoff,
@@ -1196,10 +1188,8 @@ contract UserTest is TbrTestBase {
       abi.encode(uint256(fakeWormholeFee))
     );
 
-    bytes memory response = invokeStaticTbr(
+    bytes memory response = tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         RELAY_FEE_ID,
         SOLANA_CHAIN_ID,
         gasDropoff
@@ -1226,10 +1216,8 @@ contract UserTest is TbrTestBase {
         commandIndex
       )
     );
-    invokeStaticTbr(
+    tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         RELAY_FEE_ID,
         SOLANA_CHAIN_ID,
         gasDropoff
@@ -1238,10 +1226,8 @@ contract UserTest is TbrTestBase {
   }
 
   function testBaseRelayingConfig() public view {
-    bytes memory response = invokeStaticTbr(
+    bytes memory response = tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         BASE_RELAYING_CONFIG_ID,
         SOLANA_CHAIN_ID
       )
@@ -1263,10 +1249,8 @@ contract UserTest is TbrTestBase {
     assertEq(chainIsPaused, false);
     assertEq(response.length, offset);
 
-    response = invokeStaticTbr(
+    response = tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         BASE_RELAYING_CONFIG_ID,
         EVM_CHAIN_ID
       )
@@ -1306,7 +1290,7 @@ contract UserTest is TbrTestBase {
     bool unwrapIntent = true;
 
     uint16 tokenChain = CHAIN_ID_ETHEREUM;
-    bytes32 tokenAddress = WETH_CANONICAL_ADDRESS;
+    bytes32 tokenAddress = toUniversalAddress(WETH_CANONICAL_ADDRESS);
 
     deal(address(this), unallocatedBalance);
 
@@ -1341,10 +1325,8 @@ contract UserTest is TbrTestBase {
     vm.expectEmit(address(tokenToTransfer));
     emit IWETH.Withdrawal(address(tbr), denormalizedAmount);
 
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         COMPLETE_TRANSFER_ID,
         encodedVaa
       ),
@@ -1414,10 +1396,8 @@ contract UserTest is TbrTestBase {
     vm.expectEmit(tokenToTransfer);
     emit IERC20.Transfer(address(tbr), recipient, denormalizedAmount);
 
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         COMPLETE_TRANSFER_ID,
         encodedVaa
       ),
@@ -1472,10 +1452,8 @@ contract UserTest is TbrTestBase {
       )
     );
 
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         COMPLETE_TRANSFER_ID,
         encodedVaa
       )
@@ -1523,10 +1501,8 @@ contract UserTest is TbrTestBase {
       )
     );
 
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         COMPLETE_TRANSFER_ID,
         encodedVaa
       )
@@ -1577,10 +1553,8 @@ contract UserTest is TbrTestBase {
       )
     );
 
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         COMPLETE_TRANSFER_ID,
         encodedVaa
       ),
@@ -1637,10 +1611,8 @@ function testCompleteTransfer_GasDropoffNotNecessaryInRecipientCall(
     vm.expectEmit(tokenToTransfer);
     emit IERC20.Transfer(address(tbr), recipient, denormalizedAmount);
 
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         COMPLETE_TRANSFER_ID,
         encodedVaa
       ),
@@ -1675,7 +1647,7 @@ function testCompleteTransfer_GasDropoffNotNecessaryInRecipientCall(
     bool unwrapIntent = true;
 
     uint16 tokenChain = CHAIN_ID_ETHEREUM;
-    bytes32 tokenAddress = WETH_CANONICAL_ADDRESS;
+    bytes32 tokenAddress = toUniversalAddress(WETH_CANONICAL_ADDRESS);
 
     deal(address(this), unallocatedBalance);
 
@@ -1713,10 +1685,8 @@ function testCompleteTransfer_GasDropoffNotNecessaryInRecipientCall(
       errorId
     ));
 
-    bytes memory result = expectRevertInvokeTbr(
+    bytes memory result = tbr.expectRevertInvokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector,
-        DISPATCHER_PROTOCOL_VERSION0,
         COMPLETE_TRANSFER_ID,
         encodedVaa
       ),

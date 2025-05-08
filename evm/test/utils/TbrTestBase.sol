@@ -17,6 +17,7 @@ import { IPriceOracle } from "price-oracle/IPriceOracle.sol";
 import { PriceOracle } from "price-oracle/PriceOracle.sol";
 import { IPermit2 } from "permit2/IPermit2.sol";
 import { Tbr } from "tbr/Tbr.sol";
+import { DISPATCHER_PROTOCOL_VERSION0 } from "tbr/assets/TbrIds.sol";
 import { ITokenBridge } from "wormhole-sdk/interfaces/ITokenBridge.sol";
 import { IWormhole } from "wormhole-sdk/interfaces/IWormhole.sol";
 import { IERC20Metadata } from "wormhole-sdk/interfaces/token/IERC20Metadata.sol";
@@ -36,10 +37,10 @@ contract TbrTestBase is Test {
   uint16  EVM_CHAIN_ID    = 3;
 
   // Arbitrum data
-  uint16  EVM_L2_CHAIN_ID = 23;
-  address EVM_L2_TOKEN_WETH_TOKEN = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
+  uint16  EVM_L2_CHAIN_ID             = 23;
+  address EVM_L2_TOKEN_WETH_TOKEN     = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
   address EVM_L2_TOKEN_BRIDGE_ADDRESS = 0x0b2402144Bb366A632D14B83F244D2e0e21bD39c;
-  bytes32 WETH_CANONICAL_ADDRESS = 0x000000000000000000000000C02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+  address WETH_CANONICAL_ADDRESS      = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
 
   address      immutable owner;
   address      immutable admin;
@@ -50,7 +51,7 @@ contract TbrTestBase is Test {
   ITokenBridge immutable tokenBridge;
   IWETH        immutable gasToken;
   bool         immutable gasErc20TokenizationIsExplicit;
-  
+
   IERC20Metadata immutable usdt;
   IWormhole      immutable wormholeCore;
 
@@ -59,7 +60,6 @@ contract TbrTestBase is Test {
   TbrExposer  tbrExposer;
   Tbr         tbr;
 
-  error TbrInvokeDidNotFail(bytes data, uint256 value);
 
   constructor() {
     owner         = makeAddr("owner");
@@ -118,34 +118,17 @@ contract TbrTestBase is Test {
     _setUp1();
   }
 
-  function invokeStaticTbr(bytes memory encoded) view internal returns (bytes memory data) {
-    (bool success, bytes memory result) = address(tbr).staticcall(encoded);
-    if (!success) {
-      reRevert(result);
-    }
-    (uint length,) = result.asUint256MemUnchecked(32);
-    (data,) = result.sliceMemUnchecked(64, length);
-  }
-
-  function invokeTbr(bytes memory encoded) internal returns (bytes memory data) {
-    return invokeTbr(encoded, 0);
-  }
-
-  function invokeTbr(bytes memory encoded, uint value) internal returns (bytes memory data) {
-    (bool success, bytes memory result) = address(tbr).call{value: value}(encoded);
-    if (!success) {
-      reRevert(result);
-    }
-    (uint length,) = result.asUint256MemUnchecked(32);
-    (data,) = result.sliceMemUnchecked(64, length);
-  }
-
-  function expectRevertInvokeTbr(bytes memory encoded, uint value) internal returns (bytes memory) {
-    (bool success, bytes memory result) = address(tbr).call{value: value}(encoded);
-    if (success) {
-      revert TbrInvokeDidNotFail(encoded, value);
-    }
-    return result;
+  /**
+   * Used for very basic tests that don't require cross registrations.
+   */
+  function deployInstrumentedTbr(IWETH aGasToken) internal returns (TbrExposer) {
+    return new TbrExposer(
+      permit2,
+      tokenBridge,
+      oracle,
+      aGasToken,
+      gasErc20TokenizationIsExplicit
+    );
   }
 
   function setUpOracle() internal {
@@ -189,5 +172,49 @@ contract TbrTestBase is Test {
         solanaFeeParams
       )
     )));
+  }
+}
+
+
+library InvokeTbr {
+  using BytesParsing for bytes;
+  error TbrInvokeDidNotFail(bytes data, uint256 value);
+
+  function invokeStaticTbr(Tbr tbr, bytes memory messages) view internal returns (bytes memory data) {
+    bytes memory getCall = abi.encodePacked(tbr.get1959.selector, DISPATCHER_PROTOCOL_VERSION0, messages);
+
+    (bool success, bytes memory result) = address(tbr).staticcall(getCall);
+    if (!success) {
+      reRevert(result);
+    }
+    (uint length,) = result.asUint256MemUnchecked(32);
+    (data,) = result.sliceMemUnchecked(64, length);
+  }
+
+  function invokeTbr(Tbr tbr, bytes memory messages) internal returns (bytes memory data) {
+    return invokeTbr(tbr, messages, 0);
+  }
+
+  function invokeTbrImplementation(Tbr tbr, bytes memory messages, uint value) internal returns (bool, bytes memory, bytes memory) {
+    bytes memory execCall = abi.encodePacked(tbr.exec768.selector, DISPATCHER_PROTOCOL_VERSION0, messages);
+    (bool success, bytes memory result) = address(tbr).call{value: value}(execCall);
+    return (success, result, execCall);
+  }
+
+  function invokeTbr(Tbr tbr, bytes memory messages, uint value) internal returns (bytes memory data) {
+    (bool success, bytes memory result, ) = invokeTbrImplementation(tbr, messages, value);
+    if (!success) {
+      reRevert(result);
+    }
+    (uint length,) = result.asUint256MemUnchecked(32);
+    (data,) = result.sliceMemUnchecked(64, length);
+  }
+
+  function expectRevertInvokeTbr(Tbr tbr, bytes memory messages, uint value) internal returns (bytes memory) {
+    (bool success, bytes memory result, bytes memory execCall) = invokeTbrImplementation(tbr, messages, value);
+    if (success) {
+      revert TbrInvokeDidNotFail(execCall, value);
+    }
+    return result;
   }
 }

@@ -1,6 +1,5 @@
-import type { Chain, CustomConversion, Layout, LayoutToType } from "@wormhole-foundation/sdk-base";
-import { layoutItems, type UniversalAddress } from "@wormhole-foundation/sdk-definitions";
-import { EvmAddress } from "@wormhole-foundation/sdk-evm";
+import type { CustomConversion, Layout, LayoutToType } from "@wormhole-foundation/sdk-base";
+import { layoutItems } from "@wormhole-foundation/sdk-definitions";
 import { gasDropoffItem } from "@xlabs-xyz/common-arbitrary-token-transfer";
 
 import { accessControlCommandMap, accessControlQueryMap } from "./solidity-sdk/access-control.js";
@@ -8,13 +7,10 @@ import { implementationQueryLayout, upgradeCommandLayout } from "./solidity-sdk/
 import { sweepTokensCommandLayout } from "./solidity-sdk/sweepTokens.js";
 import { evmAddressItem } from "./solidity-sdk/common.js";
 
-// TODO: update supported chains to the actual chains supported
-export const supportedChains = ["Ethereum", "Solana", "Arbitrum", "Base", "Sepolia", "BaseSepolia", "OptimismSepolia"] as const satisfies readonly Chain[];
-const supportedChainItem = layoutItems.chainItem({allowedChains: supportedChains});
-export type SupportedChain = typeof supportedChains[number];
+const supportedChainItem = layoutItems.chainItem();
 
 const peerChainItem = {
-  name: "chain", ...layoutItems.chainItem({ allowedChains: supportedChains }) 
+  name: "chain", ...layoutItems.chainItem()
 } as const;
 
 export const peerAddressItem = {
@@ -116,6 +112,12 @@ export const approveTokenLayout = [
 export const allowanceTokenBridgeReturnLayout = layoutItems.amountItem;
 export type AllowanceTokenBridgeReturn = LayoutToType<typeof allowanceTokenBridgeReturnLayout>;
 
+export const gasTokenReturnLayout = evmAddressItem;
+export type GasTokenReturn = LayoutToType<typeof gasTokenReturnLayout>;
+
+export const gasTokenAllowanceTokenBridgeReturnLayout = layoutItems.amountItem;
+export type GasTokenAllowanceTokenBridgeReturn = LayoutToType<typeof gasTokenAllowanceTokenBridgeReturnLayout>;
+
 export const relayingFeeParamsLayout = [
   { name: "targetChain", ...supportedChainItem },
   { name: "gasDropoff",  ...gasDropoffItem     },
@@ -151,10 +153,10 @@ const configCommandLayout =
         peerChainItem,
         peerAddressItem
       ]],
-      [[ 0x01, "UpdateBaseFee"       ], [peerChainItem, { name: "value", ...baseFeeItem}]],
-      [[ 0x02, "UpdateMaxGasDropoff" ], [peerChainItem, { name: "value", ...gasDropoffItem }]],
+      [[ 0x01, "UpdateBaseFee"       ], [peerChainItem, { name: "value", ...baseFeeItem }]         ],
+      [[ 0x02, "UpdateMaxGasDropoff" ], [peerChainItem, { name: "value", ...gasDropoffItem }]      ],
       [[ 0x03, "UpdateTransferPause" ], [peerChainItem, { name: "value", ...layoutItems.boolItem }]],
-      [[ 0x0a, "UpdateFeeRecipient"  ], [{ name: "address",...evmAddressItem }]],
+      [[ 0x0a, "UpdateFeeRecipient"  ], [{ name: "address",...evmAddressItem }]                    ],
       // Only owner
       [[ 0x0b, "UpdateCanonicalPeer" ], [peerChainItem, peerAddressItem]],
     ]
@@ -166,13 +168,13 @@ export const configQueryLayout = {
   idSize: 1,
   idTag: "query",
   layouts: [
-    [[0x80, "IsChainSupported"], [peerChainItem]],
-    [[0x81, "IsChainPaused"   ], [peerChainItem]],
-    [[0x82, "BaseFee"         ], [peerChainItem]],
-    [[0x83, "MaxGasDropoff"   ], [peerChainItem]],
-    [[0x84, "CanonicalPeer"   ], [peerChainItem]],
+    [[0x80, "IsChainSupported"], [peerChainItem]                 ],
+    [[0x81, "IsChainPaused"   ], [peerChainItem]                 ],
+    [[0x82, "BaseFee"         ], [peerChainItem]                 ],
+    [[0x83, "MaxGasDropoff"   ], [peerChainItem]                 ],
+    [[0x84, "CanonicalPeer"   ], [peerChainItem]                 ],
     [[0x85, "IsPeer"          ], [peerChainItem, peerAddressItem]],
-    [[0x86, "FeeRecipient"    ], []],
+    [[0x86, "FeeRecipient"    ], []                              ],
   ],
 } as const satisfies Layout;
 export type ConfigQuery = LayoutToType<typeof configQueryLayout>;
@@ -213,10 +215,12 @@ export const rootQueryLayout = {
   idSize: 1,
   idTag: "query",
   layouts: [
-    [[0x80, "RelayFee"            ], relayingFeeParamsLayout                     ],
-    [[0x81, "BaseRelayingConfig"  ], baseRelayingConfigParamsLayout              ],
-    [[0x82, "ConfigQueries"       ], subArrayLayout("queries", configQueryLayout)],
-    [[0x83, "AllowanceTokenBridge"], approveTokenLayout                          ],
+    [[0x80, "RelayFee"                    ], relayingFeeParamsLayout                     ],
+    [[0x81, "BaseRelayingConfig"          ], baseRelayingConfigParamsLayout              ],
+    [[0x82, "ConfigQueries"               ], subArrayLayout("queries", configQueryLayout)],
+    [[0x83, "AllowanceTokenBridge"        ], approveTokenLayout                          ],
+    [[0x84, "GasToken"                    ], []                                          ],
+    [[0x85, "GasTokenAllowanceTokenBridge"], []                                          ],
     ...accessControlQueryMap,
     ...implementationQueryLayout,
   ],

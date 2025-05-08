@@ -6,29 +6,27 @@ import { NotAuthorized } from "wormhole-sdk/components/dispatcher/AccessControl.
 import { BytesParsing } from "wormhole-sdk/libraries/BytesParsing.sol";
 import { IdempotentUpgrade } from "wormhole-sdk/proxy/ProxyBase.sol";
 import { UpgradeTester } from "./utils/UpgradeTester.sol";
-import { TbrTestBase } from "./utils/TbrTestBase.sol";
+import { TbrTestBase, InvokeTbr } from "./utils/TbrTestBase.sol";
+import { Tbr } from "tbr/Tbr.sol";
 import "wormhole-sdk/components/dispatcher/Ids.sol";
 import "tbr/assets/TbrIds.sol";
 
 contract ConfigTest is TbrTestBase {
   using BytesParsing for bytes;
+  using InvokeTbr for Tbr;
 
   function testContractUpgrade() public {
     UpgradeTester upgradeTester = new UpgradeTester();
 
-    (address implementation, ) = invokeStaticTbr(
+    (address implementation, ) = tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector, 
-        DISPATCHER_PROTOCOL_VERSION0, 
         IMPLEMENTATION_ID
       )
     ).asAddressMemUnchecked(0);
 
     vm.expectRevert(NotAuthorized.selector);
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector, 
-        DISPATCHER_PROTOCOL_VERSION0, 
         UPGRADE_CONTRACT_ID,
         address(upgradeTester)
       )
@@ -36,20 +34,16 @@ contract ConfigTest is TbrTestBase {
 
     vm.startPrank(admin);
     vm.expectRevert(NotAuthorized.selector);
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector, 
-        DISPATCHER_PROTOCOL_VERSION0, 
         UPGRADE_CONTRACT_ID,
         address(upgradeTester)
       )
     );
 
     vm.startPrank(owner);
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector, 
-        DISPATCHER_PROTOCOL_VERSION0, 
         UPGRADE_CONTRACT_ID,
         address(upgradeTester)
       )
@@ -60,10 +54,8 @@ contract ConfigTest is TbrTestBase {
 
     UpgradeTester(address(tbr)).upgradeTo(implementation, new bytes(0));
 
-    (address restoredImplementation, ) = invokeStaticTbr(
+    (address restoredImplementation, ) = tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector, 
-        DISPATCHER_PROTOCOL_VERSION0, 
         IMPLEMENTATION_ID
       )
     ).asAddressMemUnchecked(0);
@@ -74,36 +66,30 @@ contract ConfigTest is TbrTestBase {
     uint8 commandCount = 1;
 
     vm.expectRevert(NotAuthorized.selector);
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector, 
-        DISPATCHER_PROTOCOL_VERSION0,
         ACCESS_CONTROL_ID,
-        commandCount, 
+        commandCount,
         PROPOSE_OWNERSHIP_TRANSFER_ID,
         newOwner
       )
     );
 
     vm.prank(owner);
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector, 
-        DISPATCHER_PROTOCOL_VERSION0, 
         ACCESS_CONTROL_ID,
-        commandCount, 
+        commandCount,
         PROPOSE_OWNERSHIP_TRANSFER_ID,
         newOwner
       )
     );
-    
+
     commandCount = 2;
-    bytes memory getRes = invokeStaticTbr(
+    bytes memory getRes = tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector, 
-        DISPATCHER_PROTOCOL_VERSION0, 
         ACCESS_CONTROL_QUERIES_ID,
-        commandCount, 
+        commandCount,
         OWNER_ID,
         PENDING_OWNER_ID
       )
@@ -115,30 +101,24 @@ contract ConfigTest is TbrTestBase {
     assertEq(pendingOwner_, newOwner);
 
     vm.expectRevert(NotAuthorized.selector);
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector, 
-        DISPATCHER_PROTOCOL_VERSION0, 
         ACQUIRE_OWNERSHIP_ID
       )
     );
 
     vm.prank(newOwner);
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
-        tbr.exec768.selector, 
-        DISPATCHER_PROTOCOL_VERSION0, 
         ACQUIRE_OWNERSHIP_ID
       )
     );
 
     commandCount = 2;
-    getRes = invokeStaticTbr(
+    getRes = tbr.invokeStaticTbr(
       abi.encodePacked(
-        tbr.get1959.selector, 
-        DISPATCHER_PROTOCOL_VERSION0, 
         ACCESS_CONTROL_QUERIES_ID,
-        commandCount, 
+        commandCount,
         OWNER_ID,
         PENDING_OWNER_ID
       )
@@ -160,10 +140,8 @@ contract ConfigTest is TbrTestBase {
     assertEq(usdt.balanceOf(address(tbr)), usdtAmount);
     assertEq(address(tbr).balance, ethAmount);
     vm.prank(owner);
-    invokeTbr(
+    tbr.invokeTbr(
       abi.encodePacked(
-      tbr.exec768.selector, 
-      DISPATCHER_PROTOCOL_VERSION0, 
       SWEEP_TOKENS_ID, address(usdt), usdtAmount,
       SWEEP_TOKENS_ID, address(0), ethAmount
       )

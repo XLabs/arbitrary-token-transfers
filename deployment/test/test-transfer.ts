@@ -14,11 +14,21 @@ import {
 } from '../helpers/index.js';
 import { ethers } from 'ethers';
 import { getProvider, runOnEvms, sendTxCatch, wrapEthersProvider } from '../helpers/evm.js';
-import { SupportedChain, Tbrv3, Transfer } from '@xlabs-xyz/evm-arbitrary-token-transfers';
-import { resolveWrappedToken, toUniversal, UniversalAddress } from '@wormhole-foundation/sdk-definitions';
+import { Tbrv3, Transfer } from '@xlabs-xyz/evm-arbitrary-token-transfers';
+import {
+  resolveWrappedToken,
+  toUniversal,
+  UniversalAddress
+} from '@wormhole-foundation/sdk-definitions';
 import { Chain, chainToChainId, chainToPlatform, contracts } from '@wormhole-foundation/sdk-base';
 import { inspect } from 'util';
-import { solanaOperatingChains, getConnection, ledgerSignAndSend, runOnSolana, SolanaSigner } from '../helpers/solana.js';
+import {
+  solanaOperatingChains,
+  getConnection,
+  ledgerSignAndSend,
+  runOnSolana,
+  SolanaSigner
+} from '../helpers/solana.js';
 import { EvmAddress } from '@wormhole-foundation/sdk-evm';
 import { PublicKey, SystemProgram, TransactionInstruction } from '@solana/web3.js';
 import {
@@ -57,7 +67,12 @@ const DEFAULT_MAX_FEE_SOL = 5000;
 const DEFAULT_MAX_FEE_KLAMPORTS = 5000000;
 
 
-async function approve(tokenAddress: string, spenderAddress: string, amount: number, signer: ethers.Signer) {
+async function approve(
+  tokenAddress: string,
+  spenderAddress: string,
+  amount: number,
+  signer: ethers.Signer
+) {
   const erc20Abi = [
     "function approve(address spender, uint256 amount) public returns (bool)"
   ];
@@ -76,7 +91,8 @@ async function approve(tokenAddress: string, spenderAddress: string, amount: num
  * - SOLANA_RECIPIENT_ADDRESS: Solana address to send tokens to
  *
  * Optionally, you can define the following:
- * - FLIP_ROUTES: set to true if you want to transfer the tokens in the opposite direction. Use after all the relays were redeemed to ensure you have the tokens.
+ * - FLIP_ROUTES: set to true if you want to transfer the tokens in the opposite direction.
+ *   Use after all the relays were redeemed to ensure you have the tokens.
  * - EVM_WALLET_KEY: EVM override for private key
  * - SOLANA_WALLET_KEY: Solana override for private key
  */
@@ -94,7 +110,9 @@ async function run() {
   })) : uniqueTestTransfers;
 
   const sendTransaction: EvmScriptCb & SolanaScriptCb =  async (chain, signer, logFn) => {
-    const transfers = tests.filter((testTransfer) => !testTransfer.skip && testTransfer.fromChain === chain.name);
+    const transfers = tests.filter((testTransfer) =>
+      !testTransfer.skip && testTransfer.fromChain === chain.name
+    );
     logFn(`Transfers from ${chain.name}: ${transfers.length}`);
 
     const promises = transfers.map(async (testTransfer) => {
@@ -128,17 +146,28 @@ async function run() {
   console.log(`Process ${processName} finished after ${timeMs} miliseconds`);
 }
 
-async function getLocalToken(tokenAddress: UniversalAddress, tokenChain: Chain, localChain: EvmChainInfo | SolanaChainInfo): Promise<UniversalAddress> {
+async function getLocalToken(
+  tokenAddress: UniversalAddress,
+  tokenChain: Chain,
+  localChain: EvmChainInfo | SolanaChainInfo
+): Promise<UniversalAddress> {
   if (localChain.name === tokenChain) {
     return tokenAddress;
   }
 
-  const tokenBridgeAddress = contracts.tokenBridge(localChain.network, localChain.name as Exclude<SupportedChain, "Sepolia" | "BaseSepolia" | "OptimismSepolia">);
+  const tokenBridgeAddress: string = contracts.tokenBridge(
+    localChain.network,
+    localChain.name as any
+  );
   if (localChain.name === "Solana") {
-    if (tokenChain === "Solana") {
-      return tokenAddress;
-    }
-    return toUniversal("Solana", deriveWrappedMintKey(tokenBridgeAddress, chainToChainId(tokenChain), tokenAddress.toUint8Array()).toBytes());
+    return toUniversal(
+      "Solana",
+      deriveWrappedMintKey(
+        tokenBridgeAddress,
+        chainToChainId(tokenChain),
+        tokenAddress.toUint8Array()
+      ).toBytes()
+    );
   }
 
   const provider = getProvider(localChain);
@@ -155,7 +184,7 @@ async function getLocalToken(tokenAddress: UniversalAddress, tokenChain: Chain, 
 function getNativeWrappedToken(chain: EvmChainInfo) {
   let token;
   try {
-    ([, { address: token }] = resolveWrappedToken(chain.network, chain.name as Exclude<SupportedChain, "Solana">, "native"));
+    ([, { address: token }] = resolveWrappedToken(chain.network, chain.name, "native"));
   } catch {}
   if (token === undefined) {
     throw new Error(`Could not find gas token for chain ${chain.name}`);
@@ -193,8 +222,6 @@ async function sendEvmTestTransaction(
     const provider = getProvider(chain);
     const tbrv3 = Tbrv3.connectUnknown(
       wrapEthersProvider(provider!),
-      chain.network,
-      chain.name,
       tbrv3ProxyAddress
     );
 
@@ -214,7 +241,7 @@ async function sendEvmTestTransaction(
 
       const [{ result: isChainSupported }] = await tbrv3.query([
         {
-          query: "ConfigQueries", queries: [{ query: "IsChainSupported", chain: targetChain.name as SupportedChain }]
+          query: "ConfigQueries", queries: [{ query: "IsChainSupported", chain: targetChain.name }]
         }
       ]);
 
@@ -232,7 +259,7 @@ async function sendEvmTestTransaction(
         await tbrv3.relayingFee({
           tokens: [inputToken],
           transferRequests: [{
-            targetChain: targetChain.name as SupportedChain,
+            targetChain: targetChain.name,
             gasDropoff,
           }],
         })
@@ -249,7 +276,7 @@ async function sendEvmTestTransaction(
           inputAmountInAtomic,
           gasDropoff,
           recipient: {
-            chain: targetChain.name as SupportedChain,
+            chain: targetChain.name,
             address: toUniversal(targetChain.name as Chain, address),
           },
           inputToken,
