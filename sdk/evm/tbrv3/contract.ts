@@ -44,6 +44,8 @@ import {
   peerAddressItem,
   GasTokenReturn,
   gasTokenReturnLayout,
+  gasTokenAllowanceTokenBridgeReturnLayout,
+  GasTokenAllowanceTokenBridgeReturn,
 } from "./layouts.js";
 import {
   AccessControlQuery,
@@ -74,7 +76,7 @@ export interface RelayingFeeInput {
    * Token addresses involved in the transfers.
    * Must be hex encoded and '0x' prefixed.
    */
-  readonly tokens: RoArray<EvmAddress>;
+  readonly tokens: RoArray<EvmAddress | "GasToken">;
   /**
    * Transfer parameters.
    * There should be one of these per transfer request.
@@ -144,46 +146,23 @@ export class Tbrv3 {
     provider: ConnectionPrimitives,
     network: T,
     chain: EvmChainsForNetwork<T>,
-    gasToken?: EvmAddress,
   ) {
     // TODO: remove the need for these casts with an adequate helper from the SDK when there is one.
     const address = tbrV3Contracts(network, chain as any) as string;
     const evmAddress = new EvmAddress(address);
-    return this.connectUnknown(provider, network, chain, evmAddress, gasToken);
+    return this.connectUnknown(provider, evmAddress);
   }
 
   static connectUnknown(
     provider: ConnectionPrimitives,
-    network: NetworkMain,
-    chain: Chain,
     address: EvmAddress,
-    gasToken?: EvmAddress,
   ) {
-    let defaultGasToken;
-    try {
-      ([,{address: defaultGasToken}] = resolveWrappedToken(network, chain, "native"));
-    } catch {}
-
-    if (gasToken === undefined) {
-      if (chain === "Celo") {
-        defaultGasToken = getCanonicalToken(network, chain, "CELO")?.address;
-      }
-
-      if (defaultGasToken === undefined) {
-        throw new Error(`Gas token address needs to be provided for network ${network} and chain ${chain}`);
-      }
-      gasToken = new EvmAddress(defaultGasToken);
-    } else if (defaultGasToken !== undefined && !gasToken.equals(new EvmAddress(defaultGasToken))) {
-      throw new Error(`Unexpected gas token address ${gasToken} for network ${network} and chain ${chain}`);
-    }
-
-    return new Tbrv3(provider, address, gasToken);
+    return new Tbrv3(provider, address);
   }
 
   constructor(
     public readonly provider: ConnectionPrimitives,
     public readonly address: EvmAddress,
-    private readonly gasToken: EvmAddress,
   ) {}
 
   execTx<const C extends RoArray<RootCommand>>(value: bigint, commands: C): PartialTx {
@@ -258,6 +237,8 @@ export class Tbrv3 {
         deserializeResult(query, allowanceTokenBridgeReturnLayout);
       else if (query.query === "GasToken")
         deserializeResult(query, gasTokenReturnLayout);
+      else if (query.query === "GasTokenAllowanceTokenBridge")
+        deserializeResult(query, gasTokenAllowanceTokenBridgeReturnLayout);
       else if (query.query === "AccessControlQueries")
         for (const acquery of query.queries)
           if (acquery.query === "IsAdmin")
@@ -302,7 +283,7 @@ export class Tbrv3 {
 
       requiredAllowances[
         (transfer.args.method === "TransferGasTokenWithRelay")
-        ? this.gasToken.toString()
+        ? "GasToken"
         : transfer.args.inputToken.toString()
       ] += transfer.args.inputAmountInAtomic;
 
@@ -382,10 +363,16 @@ export class Tbrv3 {
       gasDropoff: arg.gasDropoff,
     }) as const satisfies RootQuery);
 
-    const allowanceQueries = [...new Set(tokens).values()].map(token => ({
-      query: "AllowanceTokenBridge",
-      inputToken: token,
-    }) as const satisfies RootQuery);
+    const allowanceQueries = [...new Set(tokens).values()].map(token => (
+      token !== "GasToken"
+      ? {
+        query: "AllowanceTokenBridge",
+        inputToken: token,
+      } as const satisfies RootQuery
+      : {
+        query: "GasTokenAllowanceTokenBridge"
+      } as const satisfies RootQuery
+    ));
 
     const queryResults = await this.query([...relayFeeQueries, ...allowanceQueries]);
 
@@ -395,6 +382,8 @@ export class Tbrv3 {
         const {result, ...args} = qRes;
         ret.feeEstimations.push({...result, ...args});
       }
+      else if (qRes.query === "GasTokenAllowanceTokenBridge")
+        ret.allowances["GasToken"] = qRes.result;
       else
         ret.allowances[qRes.inputToken.toString()] = qRes.result;
 
@@ -490,6 +479,8 @@ type RootQueryToResults<C extends RootQuery> =
   ? ArgsResult<C, AllowanceTokenBridgeReturn>
   : C extends { query: "GasToken" }
   ? ArgsResult<C, GasTokenReturn>
+  : C extends { query: "GasTokenAllowanceTokenBridge" }
+  ? ArgsResult<C, GasTokenAllowanceTokenBridgeReturn>
   : C extends { query: "AccessControlQueries" }
   ? AccessControlQueryResults<C["queries"]>
   : C extends { query: "Implementation" }

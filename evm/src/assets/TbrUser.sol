@@ -500,13 +500,19 @@ abstract contract TbrUser is TbrBase {
   function _allowanceTokenBridge(
     bytes calldata data,
     uint offset
-  ) internal view returns (bytes memory, uint) { unchecked {
+  ) internal view returns (bytes memory, uint) {
     address token; uint retOffset;
     (token, retOffset) = data.asAddressCdUnchecked(offset);
-    uint256 allowance = IERC20Metadata(token).allowance(address(this), address(tokenBridge));
+    uint256 allowance = _allowanceTokenBridgeImpl(token);
 
     return (abi.encodePacked(allowance), retOffset);
-  }}
+  }
+
+  function _allowanceTokenBridgeImpl(
+    address token
+  ) internal view returns (uint256) {
+    return IERC20Metadata(token).allowance(address(this), address(tokenBridge));
+  }
 
   function _completeTransfer(
     bytes calldata data,

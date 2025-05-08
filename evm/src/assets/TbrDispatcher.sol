@@ -104,6 +104,8 @@ abstract contract TbrDispatcher is RawDispatcher, TbrConfig, TbrUser, SweepToken
         (result, offset) = _allowanceTokenBridge(data, offset);
       else if (query == GAS_TOKEN_ID)
         result = abi.encodePacked(gasToken);
+      else if (query == GAS_TOKEN_ALLOWANCE_TOKEN_BRIDGE_ID)
+        result = abi.encodePacked(_allowanceTokenBridgeImpl(address(gasToken)));
       else {
         bool dispatched;
         (dispatched, result, offset) = dispatchQueryAccessControl(data, offset, query);

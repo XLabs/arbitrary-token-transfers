@@ -115,6 +115,9 @@ export type AllowanceTokenBridgeReturn = LayoutToType<typeof allowanceTokenBridg
 export const gasTokenReturnLayout = evmAddressItem;
 export type GasTokenReturn = LayoutToType<typeof gasTokenReturnLayout>;
 
+export const gasTokenAllowanceTokenBridgeReturnLayout = layoutItems.amountItem;
+export type GasTokenAllowanceTokenBridgeReturn = LayoutToType<typeof gasTokenAllowanceTokenBridgeReturnLayout>;
+
 export const relayingFeeParamsLayout = [
   { name: "targetChain", ...supportedChainItem },
   { name: "gasDropoff",  ...gasDropoffItem     },
@@ -212,11 +215,12 @@ export const rootQueryLayout = {
   idSize: 1,
   idTag: "query",
   layouts: [
-    [[0x80, "RelayFee"            ], relayingFeeParamsLayout                     ],
-    [[0x81, "BaseRelayingConfig"  ], baseRelayingConfigParamsLayout              ],
-    [[0x82, "ConfigQueries"       ], subArrayLayout("queries", configQueryLayout)],
-    [[0x83, "AllowanceTokenBridge"], approveTokenLayout                          ],
-    [[0x84, "GasToken"            ], []                                          ],
+    [[0x80, "RelayFee"                    ], relayingFeeParamsLayout                     ],
+    [[0x81, "BaseRelayingConfig"          ], baseRelayingConfigParamsLayout              ],
+    [[0x82, "ConfigQueries"               ], subArrayLayout("queries", configQueryLayout)],
+    [[0x83, "AllowanceTokenBridge"        ], approveTokenLayout                          ],
+    [[0x84, "GasToken"                    ], []                                          ],
+    [[0x85, "GasTokenAllowanceTokenBridge"], []                                          ],
     ...accessControlQueryMap,
     ...implementationQueryLayout,
   ],

@@ -84,6 +84,18 @@ contract UserTest is TbrTestBase {
     );
   }
 
+  function testGasTokenAllowance() public view {
+    bytes memory result = tbr.invokeStaticTbr(
+      abi.encodePacked(
+        GAS_TOKEN_ALLOWANCE_TOKEN_BRIDGE_ID
+      )
+    );
+
+    (uint256 allowance, ) = result.asUint256MemUnchecked(0);
+    assertEq(allowance, 0);
+    assertEq(result.length, 32);
+  }
+
   function testTransferTokenWithRelaySimple(
     uint256 tokenAmount,
     uint32 gasDropoff,
