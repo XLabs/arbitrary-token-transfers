@@ -222,8 +222,6 @@ async function sendEvmTestTransaction(
     const provider = getProvider(chain);
     const tbrv3 = Tbrv3.connectUnknown(
       wrapEthersProvider(provider!),
-      chain.network,
-      chain.name,
       tbrv3ProxyAddress
     );
 

@@ -17,8 +17,6 @@ evm.runOnEvms("configure-fee-and-dropoff", async (chain, signer, log) => {
   const tbrv3ProxyAddress = new EvmAddress(getContractAddress("TbrV3Proxies", chainToChainId(chain.name)));
   const tbrv3 = Tbrv3.connectUnknown(
     wrapEthersProvider(signer.provider!),
-    chain.network,
-    chain.name,
     tbrv3ProxyAddress
   );
   const peers = loadTbrPeers(chain);

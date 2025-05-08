@@ -46,10 +46,7 @@ const readChainConfig: SolanaScriptCb & EvmScriptCb = async function (
     const tbrv3ProxyAddress = new EvmAddress(getContractAddress("TbrV3Proxies", operatingChainId));
     const tbr = Tbrv3.connectUnknown(
       wrapEthersProvider(provider),
-      operatingChain.network,
-      operatingChain.name,
       tbrv3ProxyAddress,
-      undefined
     );
 
     const otherChains = loadTbrPeers(operatingChain).map(({chainId}) => chainId);

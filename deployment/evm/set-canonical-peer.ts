@@ -16,16 +16,10 @@ import { wrapEthersProvider } from "../helpers/evm.js";
  * If no peer is registered for a chain, it will be set as the canonical peer.
  */
 evm.runOnEvms("set-canonical-peer", async (operatingChain, signer, log) => {
-  // HACK! resolveWrappedToken does not seem to work for CELO native currency.
-  const gasTokenAddress = operatingChain.name === "Celo" ? new EvmAddress(getDependencyAddress("initGasToken", operatingChain)) : undefined;
-
   const tbrv3ProxyAddress = new EvmAddress(getContractAddress("TbrV3Proxies", chainToChainId(operatingChain.name)));
   const tbrv3 = Tbrv3.connectUnknown(
     wrapEthersProvider(signer.provider!),
-    operatingChain.network,
-    operatingChain.name,
     tbrv3ProxyAddress,
-    gasTokenAddress
   );
 
   // WARNING: We're going to assume we have only one peer per chain in this list

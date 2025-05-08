@@ -19,8 +19,6 @@ evm.runOnEvms("unpause-transfer", async (operatingChain, signer, log) => {
   const peers = loadTbrPeers(operatingChain);
   const tbrv3 = Tbrv3.connectUnknown(
     wrapEthersProvider(signer.provider!),
-    operatingChain.network,
-    operatingChain.name,
     tbrv3ProxyAddress
   );
 

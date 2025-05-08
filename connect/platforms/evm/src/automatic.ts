@@ -65,8 +65,6 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
 
     this.tbr = Tbrv3.connectUnknown(
       wrapEthersProvider(provider),
-      network,
-      chain,
       new EvmAddress(address)
     );
 
