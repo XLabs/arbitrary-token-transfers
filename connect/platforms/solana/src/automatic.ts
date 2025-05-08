@@ -53,8 +53,9 @@ const NATIVE_MINT_UNIVERSAL = new SolanaAddress(
 ).toUniversalAddress();
 
 const KLAM_PER_SOL = 1_000_000n;
-const MWEI_PER_MICRO_ETH = 1_000_000n;
+const LAM_PER_KLAM = 1_000n;
 const MWEI_PER_ETH = 1_000_000_000_000n;
+const MWEI_PER_MICRO_ETH = MWEI_PER_ETH / 10n ** 6n;
 
 export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaChains>
   implements AutomaticTokenBridgeV3<N, C>
@@ -256,9 +257,10 @@ export class AutomaticTokenBridgeV3Solana<N extends Network, C extends SolanaCha
       (totalFeesMWei * oraclePrices.gasTokenPrice) / MWEI_PER_ETH +
       BigInt(chainConfig.relayerFeeMicroUsd);
 
+    //  (Klamport/SOL) * μusd / (μusd/SOL) = Klamport
     const fee = Number(KLAM_PER_SOL * totalFeesMicroUsd) / Number(oracleConfig.solPrice.toString());
 
-    const feeInBaseUnits = BigInt(Math.ceil((fee * LAMPORTS_PER_SOL) / 1_000_000));
+    const feeInBaseUnits = BigInt(Math.ceil(fee * Number(LAM_PER_KLAM)));
 
     return {
       allowances: {},

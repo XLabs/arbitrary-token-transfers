@@ -2,15 +2,12 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "baseUrl": ".",
+    "rootDir": ".",
     "experimentalDecorators": true,
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "lib": ["ES2023"],
     "outDir": "ts-build",
-    "rootDirs": [".", "../../sdk/common"],
-    "paths": {
-      "@xlabs-xyz/common-arbitrary-token-transfer": ["../../sdk/common/index.ts"]
-    }
   },
   "include": ["src"],
   "references": [{ "path": "../../sdk/common" }]

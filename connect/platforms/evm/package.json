@@ -14,7 +14,7 @@
   },
   "scripts": {
     "build": "yarn run build:ts",
-    "build:ts": "tsc -p ./tsconfig.json && tsup",
+    "build:ts": "tsc --noEmit --project ./tsconfig.json && tsup",
     "lint:fix": "prettier \"src/**/*{.js,.ts}\" -w",
     "lint": "prettier \"src/**/*{.js,.ts}\" --check",
     "clean": "rm -rf ts-build build"

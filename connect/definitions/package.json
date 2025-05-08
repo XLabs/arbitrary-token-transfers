@@ -14,7 +14,7 @@
   },
   "scripts": {
     "build": "yarn run build:ts",
-    "build:ts": "tsc -p ./tsconfig.json && tsup",
+    "build:ts": "tsc --noEmit --project ./tsconfig.json && tsup",
     "lint:fix": "prettier \"src/**/*{.js,.ts}\" -w",
     "lint": "prettier \"src/**/*{.js,.ts}\" --check",
     "clean": "rm -rf ts-build build"
@@ -31,13 +31,13 @@
   "author": "",
   "license": "Apache 2",
   "dependencies": {
+    "@xlabs-xyz/common-arbitrary-token-transfer": "workspace:*",
     "ethers": "^6.13.5"
   },
   "devDependencies": {
     "@types/node": "20.17.5",
     "@wormhole-foundation/sdk-base": "^1.4.5",
     "@wormhole-foundation/sdk-definitions": "^1.4.5",
-    "@xlabs-xyz/common-arbitrary-token-transfer": "workspace:*",
     "prettier": "^3.5.3",
     "tsup": "^8.4.0",
     "tsx": "^4.19.3",
@@ -70,9 +70,6 @@
       "@wormhole-foundation/sdk-base",
       "@wormhole-foundation/sdk-evm",
       "ethers"
-    ],
-    "noExternal": [
-      "@xlabs-xyz/common-arbitrary-token-transfer"
     ]
   }
 }
