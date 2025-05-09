@@ -235,6 +235,8 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
 
       const gasDropoff = BigInt(params.options.gasDropOff?.amount) || 0n;
 
+      // Note that here we're assuming that the EVM instances have the same wrapped gas token
+      // configured as the wormhole SDK.
       const srcWrapped = await request.fromChain.getNativeWrappedTokenId();
       const { allowances, fee, isPaused } = await tbr.relayingFee({
         token:
