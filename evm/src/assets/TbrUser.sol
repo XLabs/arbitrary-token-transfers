@@ -32,8 +32,7 @@ uint8 constant ACQUIRE_PERMIT2TRANSFER = 2;
 uint8 constant ACQUIRE_PERMIT2PERMIT = 3;
 
 // Solana computation units per relay.
-// TODO: measure this.
-uint32 constant SOLANA_RELAY_COMPUTATION_UNITS = 1_500_000;
+uint32 constant SOLANA_RELAY_COMPUTATION_UNITS = 385_000;
 // Solana signature count per relay.
 // Post VAA -> 3 txs
 //   7 Signature  verifications -> 2 signatures
@@ -93,10 +92,9 @@ uint32 constant SOLANA_RELAY_TOTAL_SIZE_OF_ACCOUNTS =
    32;  // close authority COption<Pubkey>
 
 // Gas cost of a single `complete transfer` method execution.
-// TODO: measure this.
-uint32 constant EVM_RELAY_GAS_COST = 400_000;
+uint32 constant EVM_RELAY_GAS_COST = 333_164;
 // Size of the transaction in bytes.
-uint32 constant EVM_RELAY_TX_SIZE = 1211;
+uint32 constant EVM_RELAY_TX_SIZE = 1212;
 // Amount of WEI in a microeth
 uint256 constant WEI_PER_MICROETH = 1E12;
 
