@@ -4,7 +4,6 @@ import {
 } from '@solana/spl-token';
 import {
   Connection,
-  LAMPORTS_PER_SOL,
   PublicKey,
   SystemProgram,
   Transaction,
