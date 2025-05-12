@@ -6,6 +6,7 @@
     "build:evm:typechain": "mkdir -p evm-build/bindings && yarn tsx ../evm/solc2bindings.ts evm-build/bindings evm-build/Tbr.output.json:Tbr evm-build/Proxy.output.json:Proxy && rm -rf ethers-contracts && cp -r evm-build/bindings ethers-contracts",
     "build:evm:contract": "mkdir -p evm-build && docker build  --file ../evm/Dockerfile .. --tag tbrv3-evm-rebuild --output type=local,dest=evm-build",
     "build:evm": "yarn build:evm:contract && yarn build:evm:typechain",
+    "archive": "BUILD_ARCHIVE_DIRNAME=build-archive/tbr-v3/evm-build-$(date '+%y%m%d-%H%M') && mkdir -p $BUILD_ARCHIVE_DIRNAME && cp -R evm-build/* $BUILD_ARCHIVE_DIRNAME && echo \"Archive created at $BUILD_ARCHIVE_DIRNAME\"",
     "clean": "rm -rf evm-build",
     "deploy:evm:localnet": "ENV=localnet tsx evm/deploy.ts",
     "deploy:evm:testnet": "ENV=testnet tsx evm/deploy.ts",

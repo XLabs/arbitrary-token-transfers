@@ -1,0 +1,63 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "lib/wormhole-solidity-sdk/src/proxy/Proxy.sol": {
+      "content": "// SPDX-License-Identifier: Apache 2\n\npragma solidity ^0.8.24;\n\nimport {implementationState} from \"./Eip1967Implementation.sol\";\n\nerror ProxyConstructionFailed(bytes revertData);\n\n//slimmed down, more opinionated implementation of the EIP1967 reference implementation\n//  see: https://eips.ethereum.org/EIPS/eip-1967\ncontract Proxy {\n  constructor(address logic, bytes memory data) payable {\n    implementationState().implementation = logic;\n\n    //We can't externally call ourselves and use msg.sender to prevent unauhorized execution of\n    //  the construction code, because the proxy's code only gets written to state when the\n    //  deployment transaction completes (and returns the deployed bytecode via CODECOPY).\n    //So we only have delegatecall at our disposal and instead use an initialized flag (stored in\n    //  the same storage slot as the implementation address) to prevent invalid re-initialization.\n    (bool success, bytes memory revertData) =\n      logic.delegatecall(abi.encodeWithSignature(\"checkedUpgrade(bytes)\", (data)));\n\n    if (!success)\n      revert ProxyConstructionFailed(revertData);\n  }\n\n  fallback() external payable {\n    //can't just do a naked sload of the implementation slot here because it also contains\n    //  the initialized flag!\n    address implementation = implementationState().implementation;\n    assembly {\n      calldatacopy(0, 0, calldatasize())\n      let result := delegatecall(gas(), implementation, 0, calldatasize(), 0, 0)\n      returndatacopy(0, 0, returndatasize())\n      switch result\n      case 0 {\n        revert(0, returndatasize())\n      }\n      default {\n        return(0, returndatasize())\n      }\n    }\n  }\n}"
+    },
+    "lib/wormhole-solidity-sdk/src/proxy/Eip1967Implementation.sol": {
+      "content": "// SPDX-License-Identifier: Apache 2\n\npragma solidity ^0.8.24;\n\nstruct ImplementationState {\n  address implementation;\n  bool    initialized;\n}\n\n// we use the designated eip1967 storage slot: keccak256(\"eip1967.proxy.implementation\") - 1\nbytes32 constant IMPLEMENTATION_SLOT =\n  0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;\n\nfunction implementationState() pure returns (ImplementationState storage state) {\n  assembly (\"memory-safe\") { state.slot := IMPLEMENTATION_SLOT }\n}\n"
+    }
+  },
+  "settings": {
+    "remappings": [
+      "forge-std/=lib/forge-std/src/",
+      "wormhole-sdk/=lib/wormhole-solidity-sdk/src/",
+      "tbr/=src/",
+      "price-oracle/=../lib/relayer-infra-contracts/apps/price-oracle/evm/src/",
+      "permit2/=lib/permit2/src/interfaces/",
+      "@openzeppelin/=/app/lib/relayer-infra-contracts/lib/openzeppelin-contracts/",
+      "@openzeppelin@4.9.5/=/app/lib/relayer-infra-contracts/node_modules/@openzeppelin/",
+      "@solidity-parser/=/app/lib/relayer-infra-contracts/node_modules/@solidity-parser/",
+      "IERC20/=lib/wormhole-solidity-sdk/src/interfaces/token/",
+      "SafeERC20/=lib/wormhole-solidity-sdk/src/libraries/",
+      "ds-test/=/app/lib/relayer-infra-contracts/lib/forge-std/lib/ds-test/src/",
+      "erc4626-tests/=/app/lib/relayer-infra-contracts/lib/openzeppelin-contracts/lib/erc4626-tests/",
+      "forge-gas-snapshot/=lib/permit2/lib/forge-gas-snapshot/src/",
+      "openzeppelin-contracts/=/app/lib/relayer-infra-contracts/lib/openzeppelin-contracts/",
+      "oracle/=/app/lib/relayer-infra-contracts/apps/oracle/src/",
+      "relayer-infra-contracts/=/app/lib/relayer-infra-contracts/src/evm/",
+      "solmate/=lib/permit2/lib/solmate/",
+      "truffle/=/app/lib/relayer-infra-contracts/node_modules/truffle/",
+      "wormhole-solidity-sdk/=lib/wormhole-solidity-sdk/src/"
+    ],
+    "optimizer": {
+      "enabled": true,
+      "runs": 200
+    },
+    "metadata": {
+      "useLiteralContent": false,
+      "bytecodeHash": "ipfs",
+      "appendCBOR": true
+    },
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode.object",
+          "evm.bytecode.sourceMap",
+          "evm.bytecode.linkReferences",
+          "evm.deployedBytecode.object",
+          "evm.deployedBytecode.sourceMap",
+          "evm.deployedBytecode.linkReferences",
+          "evm.deployedBytecode.immutableReferences",
+          "evm.methodIdentifiers",
+          "metadata",
+          "storageLayout"
+        ]
+      }
+    },
+    "evmVersion": "paris",
+    "viaIR": true,
+    "libraries": {}
+  }
+}
