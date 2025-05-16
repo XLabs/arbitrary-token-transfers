@@ -12,8 +12,14 @@ const addAdmin: SolanaScriptCb = async function (
     signer,
     log,
 ) {
-    // get the admin to add from first argument
+    // get the admin to add, with arguments:
+    // add-admin <admin-to-add>
+    // e.g. add-admin 11111111111111111111111111111111
     const adminToAdd = new PublicKey(process.argv[2]);
+
+    if (process.argv.length !== 3) {
+        throw new Error('Invalid number of arguments. Usage: add-admin <admin-to-add>');
+    }
 
     const connection = getConnection(chain);
     const tbr = await SolanaTokenBridgeRelayer.create(connection);
