@@ -1,4 +1,5 @@
 {
+  "operatingChains": [2, 4, 5, 6, 23, 24, 30],
   "evm": {
     "networks": [
       {
@@ -6,28 +7,28 @@
         "externalId": 1,
         "chainId": 2,
         "network": "Mainnet",
-        "rpc": "https://rpc.ankr.com/eth"
+        "rpc": "https://eth-mainnet.g.alchemy.com/v2/n7D3C5-Th1KJHZgdyI0hjJR2XWBMzD9L"
       },
       {
-        "name": "BSC",
+        "name": "Bsc",
         "externalId": 56,
         "chainId": 4,
         "network": "Mainnet",
-        "rpc": "https://bsc-dataseed1.binance.org/"
+        "rpc": "https://bnb-mainnet.g.alchemy.com/v2/n7D3C5-Th1KJHZgdyI0hjJR2XWBMzD9L"
       },
       {
         "name": "Polygon",
         "externalId": 137,
         "chainId": 5,
         "network": "Mainnet",
-        "rpc": "https://rpc.ankr.com/polygon"
+        "rpc": "https://polygon-mainnet.g.alchemy.com/v2/n7D3C5-Th1KJHZgdyI0hjJR2XWBMzD9L"
       },
       {
         "name": "Avalanche",
         "externalId": 43114,
         "chainId": 6,
         "network": "Mainnet",
-        "rpc": "https://api.avax.network/ext/bc/C/rpc"
+        "rpc": "https://avax-mainnet.g.alchemy.com/v2/n7D3C5-Th1KJHZgdyI0hjJR2XWBMzD9L"
       },
       {
         "name": "Fantom",
@@ -62,21 +63,21 @@
         "externalId": 42161,
         "chainId": 23,
         "network": "Mainnet",
-        "rpc": "https://arbitrum.llamarpc.com"
+        "rpc": "https://1rpc.io/arb"
       },
       {
         "name": "Optimism",
         "externalId": 10,
         "chainId": 24,
         "network": "Mainnet",
-        "rpc": "https://optimism.publicnode.com"
+        "rpc": "https://opt-mainnet.g.alchemy.com/v2/n7D3C5-Th1KJHZgdyI0hjJR2XWBMzD9L"
       },
       {
         "name": "Base",
         "externalId": 8453,
         "chainId": 30,
         "network": "Mainnet",
-        "rpc": "https://base.llamarpc.com"
+        "rpc": "https://base-mainnet.g.alchemy.com/v2/n7D3C5-Th1KJHZgdyI0hjJR2XWBMzD9L"
       }
     ]
   },
