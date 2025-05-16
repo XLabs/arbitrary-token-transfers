@@ -84,6 +84,14 @@ export type TBRv3Message = LayoutToType<typeof TBRv3MessageLayout>;
 export const addresses = [[
   // TODO: update `Tbrv3.connect` parameter type when adding mainnet addresses.
   "Mainnet", [
+    ["Solana",          "AtTFrwBjBj5cgm9BCbAFM4jZZUxfJvTL2yz1HqNC3ad7"],
+    ["Ethereum",        "0xD746bd8157d8DefA1a4b403Dc6a73AE4456F4DC9"],
+    ["Bsc",             "0xD746bd8157d8DefA1a4b403Dc6a73AE4456F4DC9"],
+    ["Polygon",         "0xD746bd8157d8DefA1a4b403Dc6a73AE4456F4DC9"],
+    ["Avalanche",       "0xD746bd8157d8DefA1a4b403Dc6a73AE4456F4DC9"],
+    ["Optimism",        "0xD746bd8157d8DefA1a4b403Dc6a73AE4456F4DC9"],
+    ["Arbitrum",        "0xD746bd8157d8DefA1a4b403Dc6a73AE4456F4DC9"],
+    ["Base",            "0xD746bd8157d8DefA1a4b403Dc6a73AE4456F4DC9"],
   ]], [
   "Testnet", [
     ["Solana",          "ATTY1Vt5KY5vtXUTpgwjUJjgNwEBxZ2AUY9M437sDupw"], 
