@@ -8,7 +8,7 @@
     "build:contract:verifiable:testnet": "anchor build --verifiable -- --features testnet && mkdir -p ../target/sbf-solana-solana/release && cp ../target/verifiable/token_bridge_relayer.so ../target/sbf-solana-solana/release",
     "build:ts": "tsc --build ./tsconfig.json",
     "build:contract:mainnet": "anchor build -- --features mainnet",
-    "build:contract:verifiable:mainnet": "anchor build --verifiable && mkdir -p ../target/sbf-solana-solana/release && cp ../target/verifiable/token_bridge_relayer.so ../target/sbf-solana-solana/release",
+    "build:contract:verifiable:mainnet": "anchor build --verifiable -- --features mainnet && mkdir -p ../target/sbf-solana-solana/release && cp ../target/verifiable/token_bridge_relayer.so ../target/sbf-solana-solana/release",
     "build:contract:local": "anchor build",
     "build": "yarn build:contract:mainnet && yarn build:ts",
     "clean:ts": "rm -rf ts-build/",
