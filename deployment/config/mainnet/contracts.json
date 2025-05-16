@@ -1,3 +1,9 @@
 {
-  
-}
+    "TbrV3": [],
+    "TbrV3Proxies": [
+      {
+        "chainId": 1,
+        "address": "AtTFrwBjBj5cgm9BCbAFM4jZZUxfJvTL2yz1HqNC3ad7"
+      }
+    ]
+  }
