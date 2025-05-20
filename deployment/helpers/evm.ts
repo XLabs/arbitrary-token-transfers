@@ -1,10 +1,29 @@
 import { ethers } from "ethers";
-import { ecosystemChains, EvmScriptCb, getEnv, EvmChainInfo, UncheckedConstructorArgs, resolveEnv } from "./index.js";
+import { ecosystemChains, EvmScriptCb, getEnv, EvmChainInfo, UncheckedConstructorArgs, resolveEnv, EvmQueryCb } from "./index.js";
 import { chainToChainId } from "@wormhole-foundation/sdk-base";
 import { PartialTx } from "@xlabs-xyz/evm-arbitrary-token-transfers";
 
 // Ensures EvmAddress is registered
 import "@wormhole-foundation/sdk-evm";
+
+export async function queryOnEvmsSequentially(scriptName: string, cb: EvmQueryCb) {
+  const chains = evmOperatingChains();
+
+  console.log(`Running script on EVMs (${chains.map(c => chainToChainId(c.name)).join(", ")}):`, scriptName);
+
+  for (const chain of chains) {
+    const log = (...args: any[]) => console.log(`[${chainToChainId(chain.name)}]`, ...args);
+    log(`Starting script.`);
+
+    try {
+      await cb(chain, log);
+      log("Success");
+    } catch (error) {
+      log("Error: ", (error as any)?.stack || error);
+    }
+    console.log();
+  }
+}
 
 export async function runOnEvms(scriptName: string, cb: EvmScriptCb) {
   const chains = evmOperatingChains() as EvmChainInfo[];

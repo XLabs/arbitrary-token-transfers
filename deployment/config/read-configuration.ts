@@ -1,28 +1,22 @@
 import { SolanaTokenBridgeRelayer } from '@xlabs-xyz/solana-arbitrary-token-transfers';
 import { ChainId, chainIdToChain, chainToChainId, chainToPlatform } from '@wormhole-foundation/sdk-base';
-import { toNative } from '@wormhole-foundation/sdk-definitions';
-import { runOnSolana, getConnection, ChainConfigEntry } from '../helpers/solana.js';
-import { SolanaScriptCb } from '../helpers/interfaces.js';
-import { dependencies, getContractAddress, loadTbrPeers } from '../helpers/env.js';
+import { toNative, toUniversal } from '@wormhole-foundation/sdk-definitions';
+import { getConnection, ChainConfigEntry, queryOnSolana } from '../helpers/solana.js';
+import type { EvmQueryCb, SolanaQueryCb } from '../helpers/interfaces.js';
+import { getContractAddress, loadTbrPeer, loadTbrPeers } from '../helpers/env.js';
 import { inspect } from 'util';
-import { getProvider, runOnEvmsSequentially, wrapEthersProvider } from '../helpers/evm.js';
-import type { EvmScriptCb } from '../helpers/interfaces.js';
+import { getProvider, queryOnEvmsSequentially, wrapEthersProvider } from '../helpers/evm.js';
 import { Tbrv3, ConfigQuery } from '@xlabs-xyz/evm-arbitrary-token-transfers';
 import { EvmAddress } from '@wormhole-foundation/sdk-evm';
 
-const readChainConfig: SolanaScriptCb & EvmScriptCb = async function (
+const readChainConfig: SolanaQueryCb & EvmQueryCb = async function (
   operatingChain,
-  signer,
   log,
 ) {
-  log('reading solana chain configs');
+  log('reading chain configs');
   const operatingChainId = chainToChainId(operatingChain.name);
   if (operatingChain.name === "Solana") {
     const connection = getConnection(operatingChain);
-    const solanaDependencies = dependencies.find((d) => d.chainId === operatingChainId);
-    if (solanaDependencies === undefined) {
-      throw new Error(`No dependencies found for chain ${operatingChainId}`);
-    }
     const tbr = await SolanaTokenBridgeRelayer.create(connection);
     let allChainConfigs: ChainConfigEntry[];
     try {
@@ -31,12 +25,22 @@ const readChainConfig: SolanaScriptCb & EvmScriptCb = async function (
       log(`error reading chain config for ${operatingChain.name}`, (e as any)?.stack ?? e);
       return;
     }
-    allChainConfigs.forEach((config) => {
-      log(`config for ${config.chainId} ${inspect(config)}`);
-      config.maxGasDropoffMicroToken
-      config.pausedOutboundTransfers
-      config.relayerFeeMicroUsd
-      log(`peer for ${config.chainId} is ${toNative(chainIdToChain(config.chainId as ChainId), config.canonicalPeer)}`);
+    allChainConfigs.forEach(({canonicalPeer, chainId, pausedOutboundTransfers, ...config}) => {
+      log(`config for chain ${chainId} ${inspect(config)}`);
+
+      if (pausedOutboundTransfers) {
+        log(`transfers are paused towards chain ${chainId}`);
+      }
+
+      const peerChain = chainIdToChain(chainId as ChainId);
+      const peerAddress = loadTbrPeer(peerChain)?.address;
+      if (peerAddress === undefined) throw new Error(`Could not find peer address for chain ${chainId}`);
+
+      const expectedPeer = toUniversal(peerChain, peerAddress);
+
+      if (!expectedPeer.equals(canonicalPeer)) {
+        log(`unexpected peer for chain ${chainId}: ${toNative(peerChain, canonicalPeer)}`);
+      }
     });
     return;
   }
@@ -76,13 +80,16 @@ const readChainConfig: SolanaScriptCb & EvmScriptCb = async function (
     }
     const results = await tbr.query([{query: "ConfigQueries", queries}]);
     for (const {query, result, chain} of results) {
-      if (query === "CanonicalPeer")
-        log(`peer for ${chain} is ${toNative(chain, result)}`);
-      if (query === "MaxGasDropoff")
+      if (query === "CanonicalPeer") {
+        const expectedPeer = toUniversal(chain, loadTbrPeer(chain).address);
+        if (!expectedPeer.equals(result))
+          log(`unexpected peer for ${chain}: ${toNative(chain, result)}`);
+      }
+      else if (query === "MaxGasDropoff")
         log(`max gas dropoff for ${chain} is ${result}`);
-      if (query === "IsChainPaused")
+      else if (query === "IsChainPaused" && result)
         log(`transfers towards ${chain} are ${result ? "" : "not"} paused`);
-      if (query === "BaseFee")
+      else if (query === "BaseFee")
         log(`base fee for transfers towards ${chain} is ${result}`);
     }
     return;
@@ -91,7 +98,7 @@ const readChainConfig: SolanaScriptCb & EvmScriptCb = async function (
   throw new Error(`Unknown chain ${operatingChain.name}`);
 };
 
-runOnSolana('read-chain-configs', readChainConfig).then(() =>
-  runOnEvmsSequentially('read-chain-configs', readChainConfig)).catch((e) => {
+queryOnSolana('read-chain-configs', readChainConfig).then(() =>
+  queryOnEvmsSequentially('read-chain-configs', readChainConfig)).catch((e) => {
     console.error('Error executing script: ', e);
 });

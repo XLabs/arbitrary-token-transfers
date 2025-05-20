@@ -14,7 +14,7 @@ import {
 } from "./interfaces.js";
 // TODO: support different env files
 import 'dotenv/config';
-import { ChainId, chainToChainId, contracts as connectDependencies } from "@wormhole-foundation/sdk-base";
+import { Chain, ChainId, chainToChainId, contracts as connectDependencies } from "@wormhole-foundation/sdk-base";
 import { inspect } from "util";
 
 export const env = getEnv("ENV");
@@ -160,13 +160,11 @@ export function getDeploymentArgs(contractName: string, whChainId: ChainId): Unc
  * @returns peers: evm proxies and solana program
  */
 export function loadTbrPeers(currentOperatingChain: ChainInfo) {
-  const deployedTbrv3s = contracts["TbrV3Proxies"].filter((tbr) => tbr.chainId !== chainToChainId(currentOperatingChain.name));
-  const solana = contracts["TbrV3"].find((tbr) => tbr.chainId === 1);
-  if (solana) {
-    deployedTbrv3s.push(solana);
-  }
+  return contracts["TbrV3Proxies"].filter((tbr) => tbr.chainId !== chainToChainId(currentOperatingChain.name));
+}
 
-  return deployedTbrv3s;
+export function loadTbrPeer(chain: Chain) {
+  return contracts["TbrV3Proxies"].find((tbr) => tbr.chainId === chainToChainId(chain));
 }
 
 export function writeDeployedContract(whChainId: ChainId, contractName: string, address: string, constructorArgs: UncheckedConstructorArgs) {

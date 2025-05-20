@@ -7,6 +7,9 @@ import type { EvmChain } from "@wormhole-foundation/sdk-evm";
 export type EvmScriptCb = (chain: EvmChainInfo, signer: ethers.Signer, logFn: LoggerFn) => Promise<void>;
 export type SolanaScriptCb = (chain: SolanaChainInfo, signer: SolanaSigner, logFn: LoggerFn) => Promise<void>;
 
+export type EvmQueryCb = (chain: EvmChainInfo, logFn: LoggerFn) => Promise<void>;
+export type SolanaQueryCb = (chain: SolanaChainInfo, logFn: LoggerFn) => Promise<void>;
+
 export type LoggerFn = (...args: any[]) => void;
 
 export interface EvmChainInfo extends CommonChainInfo {
