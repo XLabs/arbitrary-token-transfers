@@ -6,7 +6,7 @@
         "externalId": 1,
         "chainId": 2,
         "network": "Mainnet",
-        "rpc": "https://rpc.ankr.com/eth"
+        "rpc": "https://ethereum-rpc.publicnode.com"
       },
       {
         "name": "Bsc",
@@ -20,7 +20,7 @@
         "externalId": 137,
         "chainId": 5,
         "network": "Mainnet",
-        "rpc": "https://rpc.ankr.com/polygon"
+        "rpc": "https://polygon.api.onfinality.io/public"
       },
       {
         "name": "Avalanche",
