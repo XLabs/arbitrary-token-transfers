@@ -137,8 +137,7 @@ export class Tbrv3 {
     return serializeLayout(proxyConstructorLayout, initConfig);
   }
 
-  // TODO: update T constraint when adding mainnet addresses.
-  static connect<const T extends "Testnet">(
+  static connect<const T extends "Testnet" | "Mainnet">(
     provider: ConnectionPrimitives,
     network: T,
     chain: EvmChainsForNetwork<T>,

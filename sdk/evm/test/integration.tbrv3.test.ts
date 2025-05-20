@@ -31,7 +31,7 @@ describe('TbrV3 SDK Integration test', () => {
     const address = new EvmAddress(config.TbrV3Proxies[0].address);
     const provider = new ethers.JsonRpcProvider(rpc, undefined, {staticNetwork: true});
 
-    tbrv3 = Tbrv3.connect(wrapEthersProvider(provider), "Testnet", "Sepolia", address);
+    tbrv3 = Tbrv3.connect(wrapEthersProvider(provider), "Testnet", "Sepolia");
     signer = new ethers.Wallet(ownerPk!, provider);
   });
 
