@@ -1,9 +1,7 @@
 {
     "owner": "8a5BXhBXGBzGRiKCCCeWH5GGGgNjDe7JyNhW65wBWoor",
     "feeRecipient": "AdAVF5KmmGmpNQhjY7FL96wZLEynD6Mx3VXJTZf2yFps",
-    "admins": [
-        "tmPR6y8iFyzDuPArWGMGx21BZvEtejZ8GMSbu5Y5dGR"
-    ],
+    "admins": [""],
     "evmRelayGas": "333164",
     "evmRelayTxSize": "1212"
-}
+}   
