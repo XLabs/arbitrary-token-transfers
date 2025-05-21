@@ -1,9 +1,19 @@
 [
   {
+    "chainId": 1,
+    "owner": "8a5BXhBXGBzGRiKCCCeWH5GGGgNjDe7JyNhW65wBWoor",
+    "admin": "",
+    "feeRecipient": "AdAVF5KmmGmpNQhjY7FL96wZLEynD6Mx3VXJTZf2yFps",
+    "maxGasDropoff": 0.05,
+    "evmTransactionSize": "1212",
+    "evmTransactionGas": "333164"
+  },
+  {
     "chainId": 2,
     "owner": "0x6d1f3715b51D08B06E9b973728F77024019e7a87",
     "admin": "",
     "feeRecipient": "0x53207E216540125e322CdA8A693b0b89576DEb46",
+    "maxGasDropoff": 0.025,
     "initGasErc20TokenizationIsExplicit": true
   },
   {
@@ -11,6 +21,7 @@
     "owner": "0x6d1f3715b51D08B06E9b973728F77024019e7a87",
     "admin": "",
     "feeRecipient": "0x53207E216540125e322CdA8A693b0b89576DEb46",
+    "maxGasDropoff": 0.05,
     "initGasErc20TokenizationIsExplicit": true
   },
   {
@@ -18,6 +29,7 @@
     "owner": "0x6d1f3715b51D08B06E9b973728F77024019e7a87",
     "admin": "",
     "feeRecipient": "0x53207E216540125e322CdA8A693b0b89576DEb46",
+    "maxGasDropoff": 0.05,
     "initGasErc20TokenizationIsExplicit": true
   },
   {
@@ -25,6 +37,7 @@
     "owner": "0x6d1f3715b51D08B06E9b973728F77024019e7a87",
     "admin": "",
     "feeRecipient": "0x53207E216540125e322CdA8A693b0b89576DEb46",
+    "maxGasDropoff": 0.05,
     "initGasErc20TokenizationIsExplicit": true
   },
   {
@@ -32,6 +45,7 @@
     "owner": "0x6d1f3715b51D08B06E9b973728F77024019e7a87",
     "admin": "",
     "feeRecipient": "0x53207E216540125e322CdA8A693b0b89576DEb46",
+    "maxGasDropoff": 0.0025,
     "initGasErc20TokenizationIsExplicit": true
   },
   {
@@ -39,6 +53,7 @@
     "owner": "0x6d1f3715b51D08B06E9b973728F77024019e7a87",
     "admin": "",
     "feeRecipient": "0x53207E216540125e322CdA8A693b0b89576DEb46",
+    "maxGasDropoff": 0.0025,
     "initGasErc20TokenizationIsExplicit": true
   },
   {
@@ -46,6 +61,7 @@
     "owner": "0x6d1f3715b51D08B06E9b973728F77024019e7a87",
     "admin": "",
     "feeRecipient": "0x53207E216540125e322CdA8A693b0b89576DEb46",
+    "maxGasDropoff": 0.0025,
     "initGasErc20TokenizationIsExplicit": true
   }
 ]
