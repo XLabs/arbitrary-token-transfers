@@ -26,7 +26,7 @@
     "@solana/spl-token": "^0.4.13",
     "@solana/web3.js": "^1.98.1",
     "@xlabs-xyz/common-arbitrary-token-transfer": "workspace:*",
-    "@xlabs-xyz/solana-price-oracle-sdk": "^0.0.24"
+    "@xlabs-xyz/solana-price-oracle-sdk": "^0.0.25"
   },
   "devDependencies": {
     "@types/node": "20.17.5",
