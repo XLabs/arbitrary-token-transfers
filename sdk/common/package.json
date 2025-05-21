@@ -23,8 +23,8 @@
   },
   "devDependencies": {
     "@types/node": "20.17.5",
-    "@wormhole-foundation/sdk-base": "^1.4.5",
-    "@wormhole-foundation/sdk-definitions": "^1.4.5",
+    "@wormhole-foundation/sdk-base": "^1.20.0",
+    "@wormhole-foundation/sdk-definitions": "^1.20.0",
     "typescript": "5.8.3"
   },
   "peerDependencies": {
