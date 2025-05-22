@@ -1,6 +1,6 @@
 {
   "name": "@xlabs-xyz/solana-arbitrary-token-transfers",
-  "version": "0.0.2-alpha12",
+  "version": "0.0.2-alpha13",
   "license": "Apache 2",
   "type": "module",
   "module": "ts-build/solana/tbrv3/token-bridge-relayer.js",

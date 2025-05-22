@@ -1,6 +1,6 @@
 {
   "name": "@xlabs-xyz/common-arbitrary-token-transfer",
-  "version": "0.0.1-alpha2",
+  "version": "0.0.1-alpha3",
   "license": "Apache 2",
   "type": "module",
   "module": "ts-build/index.js",

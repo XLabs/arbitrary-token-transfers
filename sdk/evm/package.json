@@ -1,6 +1,6 @@
 {
   "name": "@xlabs-xyz/evm-arbitrary-token-transfers",
-  "version": "0.0.2-alpha6",
+  "version": "0.0.2-alpha7",
   "description": "",
   "type": "module",
   "module": "ts-build/tbrv3/index.js",
