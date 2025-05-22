@@ -6,12 +6,7 @@ import {
   nativeChainIds,
   Network,
 } from '@wormhole-foundation/sdk-base';
-import {
-  ChainsConfig,
-  Contracts,
-  isNative,
-  VAA,
-} from '@wormhole-foundation/sdk-definitions';
+import { ChainsConfig, Contracts, isNative, VAA } from '@wormhole-foundation/sdk-definitions';
 import '@wormhole-foundation/sdk-evm';
 import {
   EvmAddress,
@@ -68,10 +63,7 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
     const address = tokenBridgeRelayerV3Contracts.get(network, chain);
     if (!address) throw new Error(`TokenBridgeRelayerV3 contract not defined for chain ${chain}`);
 
-    this.tbr = Tbrv3.connectUnknown(
-      wrapEthersProvider(provider),
-      new EvmAddress(address)
-    );
+    this.tbr = Tbrv3.connectUnknown(wrapEthersProvider(provider), new EvmAddress(address));
 
     this.networkId = nativeChainIds.networkChainToNativeChainId.get(
       this.network,
@@ -113,13 +105,6 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
     const gasDropoff =
       Number(params.gasDropOff?.amount || 0) / this.getChainWholeUnit(recipientChain);
 
-    const fromChain = new EvmChain(this.chain, new EvmPlatform(this.network));
-
-    const sourceToken = isNative(params.token.address)
-      ? await fromChain.getNativeWrappedTokenId()
-      : params.token;
-    const token = new EvmAddress(sourceToken.address);
-
     const transferParams = this.tbr.transferWithRelay(
       {
         allowances: params.allowances,
@@ -127,24 +112,26 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
       },
       {
         args: {
-          method: isNative(params.token.address)
-            ? 'TransferGasTokenWithRelay'
-            : 'TransferTokenWithRelay',
-          acquireMode: params.acquireMode,
+          ...(isNative(params.token.address)
+            ? { method: 'TransferGasTokenWithRelay' }
+            : {
+                method: 'TransferTokenWithRelay',
+                inputToken: new EvmAddress(params.token.address),
+                acquireMode: params.acquireMode,
+                unwrapIntent: params.unwrapIntent,
+              }),
           gasDropoff,
           inputAmountInAtomic: params.amount,
-          inputToken: token,
           recipient: {
             address: params.recipient.address.toUniversalAddress(),
             chain: recipientChain,
           },
-          unwrapIntent: params.unwrapIntent,
         },
         feeEstimation: {
           fee,
           isPaused: false,
         },
-      }
+      },
     );
 
     // yield the transfer tx
@@ -243,7 +230,7 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
 
   async relayingFee(args: RelayingFeesParams): Promise<EvmRelayingFee> {
     const { allowances, feeEstimations, gasTokenAddress } = await this.tbr.relayingFee({
-      tokens: [new EvmAddress(args.token)],
+      tokens: [args.token === "GasToken" ? "GasToken" : new EvmAddress(args.token)],
       transferRequests: [
         {
           targetChain: args.targetChain,

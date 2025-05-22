@@ -5,6 +5,7 @@
   "description": "",
   "scripts": {
     "build": "yarn ./deployment build:evm:typechain; yarn ./sdk/common build && yarn ./sdk/evm build && yarn ./sdk/solana build && yarn ./deployment test:build && yarn ./solana build:ts && yarn ./connect/definitions build && yarn ./connect/platforms/evm build && yarn ./connect/platforms/solana build && yarn ./connect/route build",
+    "build:sdk": "yarn ./sdk/common build && yarn ./sdk/evm build && yarn ./sdk/solana build && yarn ./connect/definitions build && yarn ./connect/platforms/evm build && yarn ./connect/platforms/solana build && yarn ./connect/route build",
     "build:all:common": "yarn ./deployment build:evm:contract && yarn build",
     "build:all-testnet": "yarn ./solana build:contract:testnet && yarn build:all:common",
     "build:verifiable:all-testnet": "yarn ./solana build:contract:verifiable:testnet && yarn build:all:common",

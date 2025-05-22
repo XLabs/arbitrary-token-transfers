@@ -396,10 +396,10 @@ export class Tbrv3 {
       ...allowanceQueries,
     ]);
 
-    let gasTokenAddress;
     const ret = {
       allowances: {} as Record<string, bigint>,
-      feeEstimations: [] as FeeEstimation[]
+      feeEstimations: [] as FeeEstimation[],
+      gasTokenAddress: undefined as EvmAddress | undefined,
     } satisfies RelayingFeeResult;
     for (const qRes of queryResults)
       if (qRes.query === "RelayFee") {
@@ -407,7 +407,7 @@ export class Tbrv3 {
         ret.feeEstimations.push({...result, ...args});
       }
       else if (qRes.query === "GasTokenAllowanceTokenBridge")
-        ret.allowances[gasTokenAddress!.toString()] = qRes.result;
+        ret.allowances[ret.gasTokenAddress!.toString()] = qRes.result;
       else if (qRes.query === "GasToken")
         (ret as RelayingFeeResult).gasTokenAddress = qRes.result;
       else
