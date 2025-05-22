@@ -73,5 +73,12 @@
     "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
     "oracle": "0xD1a97035fddAacF9Bac5927DafA4128f1528Ad05",
     "initGasToken": "0x4200000000000000000000000000000000000006"
+  },
+  {
+    "name": "Seievm",
+    "chainId": 40,
+    "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+    "oracle": "0x99dCe12A3Fc9bCdAc7b18076a571203e5b3A8Ba2",
+    "initGasToken": "0xE30feDd158A2e3b13e9badaeABaFc5516e95e8C7"
   }
 ]

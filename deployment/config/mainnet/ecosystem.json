@@ -77,6 +77,13 @@
         "chainId": 30,
         "network": "Mainnet",
         "rpc": "https://base.llamarpc.com"
+      },
+      {
+        "name": "Seievm",
+        "externalId": 1329,
+        "chainId": 40,
+        "network": "Mainnet",
+        "rpc": "https://evm-rpc.sei-apis.com"
       }
     ]
   },

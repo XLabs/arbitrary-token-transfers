@@ -76,6 +76,17 @@
         "0x4200000000000000000000000000000000000006",
         true
       ]
+    },
+    {
+      "chainId": 40,
+      "address": "0xeE956C7C72AAd6eD9383e07d96679186fd3054B0",
+      "constructorArgs": [
+        "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+        "0x3Ff72741fd67D6AD0668d93B41a09248F4700560",
+        "0x99dCe12A3Fc9bCdAc7b18076a571203e5b3A8Ba2",
+        "0xE30feDd158A2e3b13e9badaeABaFc5516e95e8C7",
+        true
+      ]
     }
   ],
   "TbrV3Proxies": [
@@ -136,6 +147,14 @@
       "address": "0xD746bd8157d8DefA1a4b403Dc6a73AE4456F4DC9",
       "constructorArgs": [
         "0x4736a3f3181aB3BEc701bdf9b3E27ee6C378032D",
+        "0x53207e216540125e322cda8a693b0b89576deb466d1f3715b51d08b06e9b973728f77024019e7a87016d1f3715b51d08b06e9b973728f77024019e7a87"
+      ]
+    },
+    {
+      "chainId": 40,
+      "address": "0x4736a3f3181aB3BEc701bdf9b3E27ee6C378032D",
+      "constructorArgs": [
+        "0xeE956C7C72AAd6eD9383e07d96679186fd3054B0",
         "0x53207e216540125e322cda8a693b0b89576deb466d1f3715b51d08b06e9b973728f77024019e7a87016d1f3715b51d08b06e9b973728f77024019e7a87"
       ]
     }

@@ -63,5 +63,13 @@
     "feeRecipient": "0x53207E216540125e322CdA8A693b0b89576DEb46",
     "maxGasDropoff": 0.0025,
     "initGasErc20TokenizationIsExplicit": true
+  },
+  {
+    "chainId": 40,
+    "owner": "0x6d1f3715b51D08B06E9b973728F77024019e7a87",
+    "admin": "",
+    "feeRecipient": "0x53207E216540125e322CdA8A693b0b89576DEb46",
+    "maxGasDropoff": 0.0025,
+    "initGasErc20TokenizationIsExplicit": true
   }
 ]
