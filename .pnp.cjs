@@ -2365,7 +2365,7 @@ const RAW_RUNTIME_STATE =
           ["@wormhole-foundation/sdk-solana", "npm:1.20.0"],\
           ["@wormhole-foundation/sdk-solana-tokenbridge", "npm:1.20.0"],\
           ["@xlabs-xyz/common-arbitrary-token-transfer", "virtual:9bef669af1c3b4b384f01597b4618f767933970b69e6fd62d81f9bbc7b8c4900225bffb44e48b8c05eea593d7778ed11aa109309394c7caa9adf8cbab67e8377#workspace:sdk/common"],\
-          ["@xlabs-xyz/solana-price-oracle-sdk", "virtual:4baef52035962ca133136492d40dec95183e8207fc44d69d3dda9910201c7f8cdfbe32f418548f345203723358c5a8abbd7d4d91f540905fb6331fb448af68a4#npm:0.0.25"],\
+          ["@xlabs-xyz/solana-price-oracle-sdk", "virtual:4baef52035962ca133136492d40dec95183e8207fc44d69d3dda9910201c7f8cdfbe32f418548f345203723358c5a8abbd7d4d91f540905fb6331fb448af68a4#npm:0.0.26"],\
           ["tsx", "npm:4.19.3"],\
           ["typescript", "patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"]\
         ],\
@@ -2393,7 +2393,7 @@ const RAW_RUNTIME_STATE =
           ["@wormhole-foundation/sdk-solana", "npm:1.20.0"],\
           ["@wormhole-foundation/sdk-solana-tokenbridge", "npm:1.20.0"],\
           ["@xlabs-xyz/common-arbitrary-token-transfer", "virtual:9bef669af1c3b4b384f01597b4618f767933970b69e6fd62d81f9bbc7b8c4900225bffb44e48b8c05eea593d7778ed11aa109309394c7caa9adf8cbab67e8377#workspace:sdk/common"],\
-          ["@xlabs-xyz/solana-price-oracle-sdk", "virtual:4baef52035962ca133136492d40dec95183e8207fc44d69d3dda9910201c7f8cdfbe32f418548f345203723358c5a8abbd7d4d91f540905fb6331fb448af68a4#npm:0.0.25"],\
+          ["@xlabs-xyz/solana-price-oracle-sdk", "virtual:4baef52035962ca133136492d40dec95183e8207fc44d69d3dda9910201c7f8cdfbe32f418548f345203723358c5a8abbd7d4d91f540905fb6331fb448af68a4#npm:0.0.26"],\
           ["tsx", "npm:4.19.3"],\
           ["typescript", "patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"]\
         ],\
@@ -2401,17 +2401,17 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@xlabs-xyz/solana-price-oracle-sdk", [\
-      ["npm:0.0.25", {\
-        "packageLocation": "./.yarn/cache/@xlabs-xyz-solana-price-oracle-sdk-npm-0.0.25-e355823e18-31b1034a16.zip/node_modules/@xlabs-xyz/solana-price-oracle-sdk/",\
+      ["npm:0.0.26", {\
+        "packageLocation": "./.yarn/cache/@xlabs-xyz-solana-price-oracle-sdk-npm-0.0.26-e66957df3e-8457d0670a.zip/node_modules/@xlabs-xyz/solana-price-oracle-sdk/",\
         "packageDependencies": [\
-          ["@xlabs-xyz/solana-price-oracle-sdk", "npm:0.0.25"]\
+          ["@xlabs-xyz/solana-price-oracle-sdk", "npm:0.0.26"]\
         ],\
         "linkType": "SOFT"\
       }],\
-      ["virtual:4baef52035962ca133136492d40dec95183e8207fc44d69d3dda9910201c7f8cdfbe32f418548f345203723358c5a8abbd7d4d91f540905fb6331fb448af68a4#npm:0.0.25", {\
-        "packageLocation": "./.yarn/__virtual__/@xlabs-xyz-solana-price-oracle-sdk-virtual-4762c4494d/0/cache/@xlabs-xyz-solana-price-oracle-sdk-npm-0.0.25-e355823e18-31b1034a16.zip/node_modules/@xlabs-xyz/solana-price-oracle-sdk/",\
+      ["virtual:4baef52035962ca133136492d40dec95183e8207fc44d69d3dda9910201c7f8cdfbe32f418548f345203723358c5a8abbd7d4d91f540905fb6331fb448af68a4#npm:0.0.26", {\
+        "packageLocation": "./.yarn/__virtual__/@xlabs-xyz-solana-price-oracle-sdk-virtual-f3a90da002/0/cache/@xlabs-xyz-solana-price-oracle-sdk-npm-0.0.26-e66957df3e-8457d0670a.zip/node_modules/@xlabs-xyz/solana-price-oracle-sdk/",\
         "packageDependencies": [\
-          ["@xlabs-xyz/solana-price-oracle-sdk", "virtual:4baef52035962ca133136492d40dec95183e8207fc44d69d3dda9910201c7f8cdfbe32f418548f345203723358c5a8abbd7d4d91f540905fb6331fb448af68a4#npm:0.0.25"],\
+          ["@xlabs-xyz/solana-price-oracle-sdk", "virtual:4baef52035962ca133136492d40dec95183e8207fc44d69d3dda9910201c7f8cdfbe32f418548f345203723358c5a8abbd7d4d91f540905fb6331fb448af68a4#npm:0.0.26"],\
           ["@coral-xyz/anchor", "npm:0.31.1"],\
           ["@solana/web3.js", "npm:1.98.1"],\
           ["@types/solana__web3.js", null],\
