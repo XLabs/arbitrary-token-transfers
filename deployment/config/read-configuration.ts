@@ -81,7 +81,7 @@ const readChainConfig: SolanaQueryCb & EvmQueryCb = async function (
     const results = await tbr.query([{query: "ConfigQueries", queries}]);
     for (const {query, result, chain} of results) {
       if (query === "CanonicalPeer") {
-        const expectedPeer = toUniversal(chain, loadTbrPeer(chain).address);
+        const expectedPeer = toUniversal(chain, loadTbrPeer(chain)!.address);
         if (!expectedPeer.equals(result))
           log(`unexpected peer for ${chain}: ${toNative(chain, result)}`);
       }
