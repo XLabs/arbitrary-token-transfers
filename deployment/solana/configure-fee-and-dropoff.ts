@@ -37,9 +37,7 @@ const configureFeeDropOffSolanaTbr: SolanaScriptCb = async function (
 
     console.log(`chain ${tbrDeployment.chainId} current maxGasDropoff: ${currentChainConfig.maxGasDropoffMicroToken.toString()}, desired maxGasDropoff: ${desiredMaxGasDropoffInMicroTokens}`);
 
-    if (
-        currentChainConfig.maxGasDropoffMicroToken.toString() !== desiredMaxGasDropoffInMicroTokens.toString()
-    ) {
+    if (currentChainConfig.maxGasDropoffMicroToken !== desiredMaxGasDropoffInMicroTokens) {
       log(
         `Updating maxGasDropoff on chain ${tbrDeployment.chainId} to ${desiredChainConfig.maxGasDropoff}`,
       );
