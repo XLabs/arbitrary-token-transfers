@@ -17,10 +17,6 @@ const configureFeeDropOffSolanaTbr: SolanaScriptCb = async function (
   const connection = getConnection(operatingChain);
   const priorityFeePolicy = getEnvOrDefault('PRIORITY_FEE_POLICY', 'normal') as PriorityFeePolicy;
 
-  const solanaDependencies = dependencies.find((d) => d.chainId === chainToChainId(operatingChain.name));
-  if (solanaDependencies === undefined) {
-    throw new Error(`No dependencies found for chain ${chainToChainId(operatingChain.name)}`);
-  }
   const tbr = await SolanaTokenBridgeRelayer.create(connection);
 
   for (const tbrDeployment of contracts['TbrV3Proxies']) {
@@ -37,8 +33,12 @@ const configureFeeDropOffSolanaTbr: SolanaScriptCb = async function (
       continue;
     }
 
+    const desiredMaxGasDropoffInMicroTokens = Number(desiredChainConfig.maxGasDropoff) * 10**6;
+
+    console.log(`chain ${tbrDeployment.chainId} current maxGasDropoff: ${currentChainConfig.maxGasDropoffMicroToken.toString()}, desired maxGasDropoff: ${desiredMaxGasDropoffInMicroTokens}`);
+
     if (
-      currentChainConfig.maxGasDropoffMicroToken.toString() !== desiredChainConfig.maxGasDropoff
+        currentChainConfig.maxGasDropoffMicroToken.toString() !== desiredMaxGasDropoffInMicroTokens.toString()
     ) {
       log(
         `Updating maxGasDropoff on chain ${tbrDeployment.chainId} to ${desiredChainConfig.maxGasDropoff}`,
@@ -49,11 +49,13 @@ const configureFeeDropOffSolanaTbr: SolanaScriptCb = async function (
       const ix = await tbr.updateMaxGasDropoff(
         signerKey,
         peerChain,
-        Number(desiredChainConfig.maxGasDropoff) * 10**6,
+        desiredMaxGasDropoffInMicroTokens,
       );
       const tx = await ledgerSignAndSend(connection, [ix], [], { lockedWritableAccounts: [], priorityFeePolicy });
       log(`Update succeeded on tx: ${tx}`);
     }
+
+    console.log(`chain ${tbrDeployment.chainId} current relayerFee: ${currentChainConfig.relayerFeeMicroUsd}, desired relayerFee: ${desiredChainConfig.relayFee}`);
 
     if (
       currentChainConfig.relayerFeeMicroUsd !== desiredChainConfig.relayFee
