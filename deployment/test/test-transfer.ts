@@ -230,7 +230,10 @@ async function sendEvmTestTransaction(
       throw new Error(`Target chain ${testTransfer.toChain} not found in configured operatingChains`);
     }
 
-    let allAllowances = {}, transfer: Transfer
+    let transferCtx = {
+      allowance: {},
+    };
+    let transfer: Transfer;
     try {
       log(`Creating transfer for ${chain.name} -> ${targetChain.name}`);
 
@@ -255,7 +258,7 @@ async function sendEvmTestTransaction(
         gasDropoff,
       });
 
-      const { feeEstimations, allowances } = (
+      const { feeEstimations, allowances, ...restRelayFee } = (
         await tbrv3.relayingFee({
           tokens: [inputToken],
           transferRequests: [{
@@ -268,7 +271,7 @@ async function sendEvmTestTransaction(
       const feeEstimation = feeEstimations[0];
       log(`Fee estimation ${chain.name}->${targetChain.name}: ${inspect(feeEstimation)}`);
 
-      allAllowances = { ...allAllowances, ...allowances };
+      transferCtx.allowance = { ...transferCtx.allowance, ...allowances };
       transfer = {
         args: {
           method: testTransfer.tokenAddress ? 'TransferTokenWithRelay' : 'TransferGasTokenWithRelay',
@@ -284,13 +287,15 @@ async function sendEvmTestTransaction(
         },
         feeEstimation,
       } satisfies Transfer;
+
+      transferCtx = {...transferCtx, ...restRelayFee};
     } catch (err) {
       console.error(`Error creating transfer for test ${testTransfer.name}, route ${chain.name}->${targetChain.name}: ${err}`);
       throw err;
     }
 
     log(`Executing transfer`);
-    const { to, value, data } = tbrv3.transferWithRelay(allAllowances, transfer);
+    const { to, value, data } = tbrv3.transferWithRelay(transferCtx as any, transfer);
 
     const { receipt, error } = await sendTxCatch(signer, {
       to,

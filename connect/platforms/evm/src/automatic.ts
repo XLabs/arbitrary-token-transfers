@@ -45,6 +45,11 @@ export interface EvmOptions {
 
 export interface EvmTransferParams<C extends EvmChains> extends TransferParams<C> {
   acquireMode: AcquireMode;
+  gasTokenAddress?: EvmAddress;
+}
+
+export interface EvmRelayingFee extends RelayingFee {
+  gasTokenAddress?: EvmAddress;
 }
 
 export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
@@ -115,26 +120,32 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
       : params.token;
     const token = new EvmAddress(sourceToken.address);
 
-    const transferParams = this.tbr.transferWithRelay(params.allowances, {
-      args: {
-        method: isNative(params.token.address)
-          ? 'TransferGasTokenWithRelay'
-          : 'TransferTokenWithRelay',
-        acquireMode: params.acquireMode,
-        gasDropoff,
-        inputAmountInAtomic: params.amount,
-        inputToken: token,
-        recipient: {
-          address: params.recipient.address.toUniversalAddress(),
-          chain: recipientChain,
+    const transferParams = this.tbr.transferWithRelay(
+      {
+        allowances: params.allowances,
+        gasTokenAddress: params.gasTokenAddress,
+      },
+      {
+        args: {
+          method: isNative(params.token.address)
+            ? 'TransferGasTokenWithRelay'
+            : 'TransferTokenWithRelay',
+          acquireMode: params.acquireMode,
+          gasDropoff,
+          inputAmountInAtomic: params.amount,
+          inputToken: token,
+          recipient: {
+            address: params.recipient.address.toUniversalAddress(),
+            chain: recipientChain,
+          },
+          unwrapIntent: params.unwrapIntent,
         },
-        unwrapIntent: params.unwrapIntent,
-      },
-      feeEstimation: {
-        fee,
-        isPaused: false,
-      },
-    });
+        feeEstimation: {
+          fee,
+          isPaused: false,
+        },
+      }
+    );
 
     // yield the transfer tx
     yield new EvmUnsignedTransaction(
@@ -230,8 +241,8 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
     return 10 ** destinationDecimals;
   }
 
-  async relayingFee(args: RelayingFeesParams): Promise<RelayingFee> {
-    const { allowances, feeEstimations } = await this.tbr.relayingFee({
+  async relayingFee(args: RelayingFeesParams): Promise<EvmRelayingFee> {
+    const { allowances, feeEstimations, gasTokenAddress } = await this.tbr.relayingFee({
       tokens: [new EvmAddress(args.token)],
       transferRequests: [
         {
@@ -249,6 +260,7 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
       allowances,
       isPaused,
       fee,
+      gasTokenAddress,
     };
   }
 

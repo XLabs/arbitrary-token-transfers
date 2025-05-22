@@ -28,6 +28,10 @@ export interface RelayingFee {
   isPaused: boolean;
 }
 
+export interface EvmRelayingFee extends RelayingFee {
+  gasTokenAddress?: string;
+}
+
 export interface TransferParams<C extends Chain> {
   sender: AccountAddress<C>;
   recipient: ChainAddress;
