@@ -277,12 +277,16 @@ export class Tbrv3 {
       // Here we need to calculate the amount in wei.
       value += gasTokenToIndivisibleGasToken(transfer.feeEstimation.fee);
 
-      if (transfer.args.method === "TransferGasTokenWithRelay")
+      if (transfer.args.method === "TransferGasTokenWithRelay") {
         value += transfer.args.inputAmountInAtomic;
+
+        if (rest.gasTokenAddress === undefined)
+          throw new Error("Gas token address is missing in request");
+      }
 
       requiredAllowances[
         (transfer.args.method === "TransferGasTokenWithRelay")
-        ? "GasToken"
+        ? rest.gasTokenAddress!.toString()
         : transfer.args.inputToken.toString()
       ] += transfer.args.inputAmountInAtomic;
 
@@ -301,13 +305,10 @@ export class Tbrv3 {
       if (token === "GasToken")
         tokenAddress = rest.gasTokenAddress?.toString();
 
-      if (tokenAddress === undefined)
-        throw new Error("Gas token address is missing in request");
-
       if (requiredAllowance > allowances[token]) {
         approveCalls.push({
           command: "ApproveToken",
-          inputToken: new EvmAddress(token),
+          inputToken: new EvmAddress(tokenAddress!),
         });
       }
     }
