@@ -53,7 +53,7 @@ evm.runOnEvms("configure-fee-and-dropoff", async (chain, signer, log) => {
     const chainState = currentState.get(otherTbrv3Chain)!;
     // schedule update
     if (chainState.baseFee !== desiredBaseFee) {
-      log(`Will update base fee for ${otherTbrv3Chain}: ${peerChainCfg.maxGasDropoff}`);
+      log(`Will update base fee for ${otherTbrv3Chain}: ${peerChainCfg.relayFee}`);
       commands.push({command: "UpdateBaseFee", chain: otherTbrv3Chain, value: desiredBaseFee} as const);
     }
     if (chainState.maxGasDropoff !== desiredMaxGasDropoff) {

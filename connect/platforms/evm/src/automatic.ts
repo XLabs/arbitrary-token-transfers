@@ -6,12 +6,7 @@ import {
   nativeChainIds,
   Network,
 } from '@wormhole-foundation/sdk-base';
-import {
-  ChainsConfig,
-  Contracts,
-  isNative,
-  VAA,
-} from '@wormhole-foundation/sdk-definitions';
+import { ChainsConfig, Contracts, isNative, VAA } from '@wormhole-foundation/sdk-definitions';
 import '@wormhole-foundation/sdk-evm';
 import {
   EvmAddress,
@@ -45,6 +40,11 @@ export interface EvmOptions {
 
 export interface EvmTransferParams<C extends EvmChains> extends TransferParams<C> {
   acquireMode: AcquireMode;
+  gasTokenAddress?: EvmAddress;
+}
+
+export interface EvmRelayingFee extends RelayingFee {
+  gasTokenAddress?: EvmAddress;
 }
 
 export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
@@ -63,10 +63,7 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
     const address = tokenBridgeRelayerV3Contracts.get(network, chain);
     if (!address) throw new Error(`TokenBridgeRelayerV3 contract not defined for chain ${chain}`);
 
-    this.tbr = Tbrv3.connectUnknown(
-      wrapEthersProvider(provider),
-      new EvmAddress(address)
-    );
+    this.tbr = Tbrv3.connectUnknown(wrapEthersProvider(provider), new EvmAddress(address));
 
     this.networkId = nativeChainIds.networkChainToNativeChainId.get(
       this.network,
@@ -108,33 +105,34 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
     const gasDropoff =
       Number(params.gasDropOff?.amount || 0) / this.getChainWholeUnit(recipientChain);
 
-    const fromChain = new EvmChain(this.chain, new EvmPlatform(this.network));
-
-    const sourceToken = isNative(params.token.address)
-      ? await fromChain.getNativeWrappedTokenId()
-      : params.token;
-    const token = new EvmAddress(sourceToken.address);
-
-    const transferParams = this.tbr.transferWithRelay(params.allowances, {
-      args: {
-        method: isNative(params.token.address)
-          ? 'TransferGasTokenWithRelay'
-          : 'TransferTokenWithRelay',
-        acquireMode: params.acquireMode,
-        gasDropoff,
-        inputAmountInAtomic: params.amount,
-        inputToken: token,
-        recipient: {
-          address: params.recipient.address.toUniversalAddress(),
-          chain: recipientChain,
+    const transferParams = this.tbr.transferWithRelay(
+      {
+        allowances: params.allowances,
+        gasTokenAddress: params.gasTokenAddress,
+      },
+      {
+        args: {
+          ...(isNative(params.token.address)
+            ? { method: 'TransferGasTokenWithRelay' }
+            : {
+                method: 'TransferTokenWithRelay',
+                inputToken: new EvmAddress(params.token.address),
+                acquireMode: params.acquireMode,
+                unwrapIntent: params.unwrapIntent,
+              }),
+          gasDropoff,
+          inputAmountInAtomic: params.amount,
+          recipient: {
+            address: params.recipient.address.toUniversalAddress(),
+            chain: recipientChain,
+          },
         },
-        unwrapIntent: params.unwrapIntent,
+        feeEstimation: {
+          fee,
+          isPaused: false,
+        },
       },
-      feeEstimation: {
-        fee,
-        isPaused: false,
-      },
-    });
+    );
 
     // yield the transfer tx
     yield new EvmUnsignedTransaction(
@@ -230,9 +228,9 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
     return 10 ** destinationDecimals;
   }
 
-  async relayingFee(args: RelayingFeesParams): Promise<RelayingFee> {
-    const { allowances, feeEstimations } = await this.tbr.relayingFee({
-      tokens: [new EvmAddress(args.token)],
+  async relayingFee(args: RelayingFeesParams): Promise<EvmRelayingFee> {
+    const { allowances, feeEstimations, gasTokenAddress } = await this.tbr.relayingFee({
+      tokens: [args.token === "GasToken" ? "GasToken" : new EvmAddress(args.token)],
       transferRequests: [
         {
           targetChain: args.targetChain,
@@ -249,6 +247,7 @@ export class AutomaticTokenBridgeV3EVM<N extends Network, C extends EvmChains>
       allowances,
       isPaused,
       fee,
+      gasTokenAddress,
     };
   }
 

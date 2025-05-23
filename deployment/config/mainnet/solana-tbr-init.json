@@ -1,11 +1,7 @@
 {
-    "owner": "11111111111111111111111111111111",
+    "owner": "8a5BXhBXGBzGRiKCCCeWH5GGGgNjDe7JyNhW65wBWoor",
     "feeRecipient": "AdAVF5KmmGmpNQhjY7FL96wZLEynD6Mx3VXJTZf2yFps",
-    "admins": [
-        "11111111111111111111111111111111",
-        "11111111111111111111111111111111",
-        "11111111111111111111111111111111"
-    ],
+    "admins": [""],
     "evmRelayGas": "333164",
     "evmRelayTxSize": "1212"
-}
+}   

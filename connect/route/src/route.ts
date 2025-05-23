@@ -20,11 +20,7 @@ import {
   TransferState,
   Wormhole,
 } from '@wormhole-foundation/sdk-connect';
-import {
-  isNative,
-  toNative,
-  UniversalOrNative,
-} from '@wormhole-foundation/sdk-definitions';
+import { isNative, toNative, UniversalOrNative } from '@wormhole-foundation/sdk-definitions';
 import {
   SupportedChains,
   tokenBridgeRelayerV3Chains,
@@ -235,14 +231,11 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
 
       const gasDropoff = BigInt(params.options.gasDropOff?.amount) || 0n;
 
-      // Note that here we're assuming that the EVM instances have the same wrapped gas token
-      // configured as the wormhole SDK.
-      const srcWrapped = await request.fromChain.getNativeWrappedTokenId();
-      const { allowances, fee, isPaused } = await tbr.relayingFee({
+      const { allowances, fee, isPaused, ...otherOptions } = await tbr.relayingFee({
         token:
           request.source.id.address === 'native'
-            ? (srcWrapped.address as UniversalOrNative<SupportedChains>)
-            : request.source.id.address,
+            ? "GasToken"
+            : request.source.id.address.toUniversalAddress(),
         gasDropoff,
         targetChain,
       });
@@ -294,6 +287,7 @@ export class AutomaticTokenBridgeRouteV3<N extends Network>
           ...params,
           options: {
             ...params.options,
+            ...otherOptions,
             allowances,
           },
         },

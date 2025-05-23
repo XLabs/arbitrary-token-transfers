@@ -1,6 +1,6 @@
 {
   "name": "@xlabs-xyz/arbitrary-token-transfer-route",
-  "version": "0.0.1-alpha10",
+  "version": "0.0.1-alpha11",
   "description": "",
   "type": "module",
   "module": "ts-build/src/index.js",
@@ -38,9 +38,9 @@
   },
   "devDependencies": {
     "@types/node": "20.17.5",
-    "@wormhole-foundation/sdk-base": "^1.4.5",
-    "@wormhole-foundation/sdk-connect": "^1.4.5",
-    "@wormhole-foundation/sdk-definitions": "^1.4.5",
+    "@wormhole-foundation/sdk-base": "^1.20.0",
+    "@wormhole-foundation/sdk-connect": "^1.20.0",
+    "@wormhole-foundation/sdk-definitions": "^1.20.0",
     "prettier": "^3.5.3",
     "tsup": "^8.4.0",
     "tsx": "^4.19.3",

@@ -11,7 +11,7 @@ import {
 import { SolanaLedgerSigner } from "@xlabs-xyz/ledger-signer-solana";
 import { chainToChainId } from '@wormhole-foundation/sdk-base';
 import { ecosystemChains, getEnv, resolveEnv } from "./env.js";
-import type { SolanaScriptCb, SolanaChainInfo } from "./interfaces.js";
+import type { SolanaScriptCb, SolanaChainInfo, SolanaQueryCb } from "./interfaces.js";
 import { inspect } from "util";
 import { UniversalAddress } from "@wormhole-foundation/sdk-definitions";
 
@@ -52,6 +52,31 @@ export function solanaOperatingChains() {
   return ecosystemChains.solana.networks;
 };
 
+export async function queryOnSolana(scriptName: string, cb: SolanaQueryCb) {
+  const chains = solanaOperatingChains() as SolanaChainInfo[];
+
+  if (chains.length === 0) {
+    console.log("No operating chains entries found");
+    return;
+  }
+
+  console.log(`Running script on Solana: ${scriptName}`);
+
+  const result = chains.map(async chain => {
+    const log = (...args: any[]) => console.log(`[${chainToChainId(chain.name)}]`, ...args);
+    log(`Starting query.`);
+
+    try {
+      await cb(chain, log);
+      log("Success");
+    } catch (error) {
+      log("Error: ", (error as any)?.stack || inspect(error, {depth: 5}));
+    }
+  });
+
+  await Promise.all(result);
+}
+
 export async function runOnSolana(scriptName: string, cb: SolanaScriptCb) {
   const chains = solanaOperatingChains() as SolanaChainInfo[];
 
@@ -60,12 +85,11 @@ export async function runOnSolana(scriptName: string, cb: SolanaScriptCb) {
     return;
   }
 
-  console.log(`Running script on Solana:`, scriptName);
+  console.log(`Running script on Solana: ${scriptName}`);
 
   const result = chains.map(async chain => {
     const log = (...args: any[]) => console.log(`[${chainToChainId(chain.name)}]`, ...args);
     const signer = await getSigner();
-    // TODO: encode in base58
     const signerPubkey = new PublicKey(await signer.getAddress()).toBase58();
     log(`Starting script. Signer: ${signerPubkey}`);
 

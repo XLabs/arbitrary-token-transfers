@@ -6,10 +6,10 @@
         "externalId": 1,
         "chainId": 2,
         "network": "Mainnet",
-        "rpc": "https://rpc.ankr.com/eth"
+        "rpc": "https://ethereum-rpc.publicnode.com"
       },
       {
-        "name": "BSC",
+        "name": "Bsc",
         "externalId": 56,
         "chainId": 4,
         "network": "Mainnet",
@@ -20,7 +20,7 @@
         "externalId": 137,
         "chainId": 5,
         "network": "Mainnet",
-        "rpc": "https://rpc.ankr.com/polygon"
+        "rpc": "https://polygon.api.onfinality.io/public"
       },
       {
         "name": "Avalanche",
@@ -62,7 +62,7 @@
         "externalId": 42161,
         "chainId": 23,
         "network": "Mainnet",
-        "rpc": "https://arbitrum.llamarpc.com"
+        "rpc": "https://1rpc.io/arb"
       },
       {
         "name": "Optimism",
@@ -77,6 +77,13 @@
         "chainId": 30,
         "network": "Mainnet",
         "rpc": "https://base.llamarpc.com"
+      },
+      {
+        "name": "Seievm",
+        "externalId": 1329,
+        "chainId": 40,
+        "network": "Mainnet",
+        "rpc": "https://evm-rpc.sei-apis.com"
       }
     ]
   },

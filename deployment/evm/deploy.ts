@@ -85,9 +85,9 @@ async function deployProxy(
   const signer = await getSigner(chain);
   const signerAddress = new EvmAddress(await signer.getAddress());
   const { Tbrv3 } = await import("@xlabs-xyz/evm-arbitrary-token-transfers");
-  const owner = config.owner !== undefined ? new EvmAddress(config.owner) : signerAddress;
-  const admin = config.admin !== undefined ? new EvmAddress(config.admin) : signerAddress;
-  const feeRecipient = config.feeRecipient !== undefined ? new EvmAddress(config.feeRecipient) : signerAddress;
+  const owner = config.owner !== undefined && config.owner !== "" ? new EvmAddress(config.owner) : signerAddress;
+  const admin = config.admin !== undefined && config.admin !== "" ? new EvmAddress(config.admin) : signerAddress;
+  const feeRecipient = config.feeRecipient !== undefined && config.feeRecipient !== "" ? new EvmAddress(config.feeRecipient) : signerAddress;
 
   const proxyConstructorArgs = Tbrv3.proxyConstructor(
     owner,

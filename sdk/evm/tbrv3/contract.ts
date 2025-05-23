@@ -87,6 +87,7 @@ export type FeeEstimation = RootQuery & { query: "RelayFee" } & RelayingFeeRetur
 export interface RelayingFeeResult {
   allowances: TokenBridgeAllowances;
   feeEstimations: RoArray<FeeEstimation>;
+  gasTokenAddress?: EvmAddress;
 }
 
 export type TransferTokenWithRelayInput =
@@ -137,8 +138,7 @@ export class Tbrv3 {
     return serializeLayout(proxyConstructorLayout, initConfig);
   }
 
-  // TODO: update T constraint when adding mainnet addresses.
-  static connect<const T extends "Testnet">(
+  static connect<const T extends "Testnet" | "Mainnet">(
     provider: ConnectionPrimitives,
     network: T,
     chain: EvmChainsForNetwork<T>,
@@ -254,7 +254,10 @@ export class Tbrv3 {
 
   //---- convenience functions:
 
-  transferWithRelay(allowances: TokenBridgeAllowances, ...transfers: Transfer[]): PartialTx {
+  transferWithRelay(
+    {allowances, ...rest}: { allowances: TokenBridgeAllowances; gasTokenAddress?: EvmAddress },
+    ...transfers: Transfer[]
+  ): PartialTx {
     if (transfers.length === 0)
       throw new Error("At least one transfer should be specified.");
 
@@ -274,12 +277,16 @@ export class Tbrv3 {
       // Here we need to calculate the amount in wei.
       value += gasTokenToIndivisibleGasToken(transfer.feeEstimation.fee);
 
-      if (transfer.args.method === "TransferGasTokenWithRelay")
+      if (transfer.args.method === "TransferGasTokenWithRelay") {
         value += transfer.args.inputAmountInAtomic;
+
+        if (rest.gasTokenAddress === undefined)
+          throw new Error("Gas token address is missing in request");
+      }
 
       requiredAllowances[
         (transfer.args.method === "TransferGasTokenWithRelay")
-        ? "GasToken"
+        ? rest.gasTokenAddress!.toString()
         : transfer.args.inputToken.toString()
       ] += transfer.args.inputAmountInAtomic;
 
@@ -293,10 +300,15 @@ export class Tbrv3 {
       if (!(token in allowances)) {
         throw new Error(`Token ${token} missing from the allowance queries.`);
       }
+
+      let tokenAddress: string | undefined = token;
+      if (token === "GasToken")
+        tokenAddress = rest.gasTokenAddress?.toString();
+
       if (requiredAllowance > allowances[token]) {
         approveCalls.push({
           command: "ApproveToken",
-          inputToken: new EvmAddress(token),
+          inputToken: new EvmAddress(tokenAddress!),
         });
       }
     }
@@ -359,7 +371,8 @@ export class Tbrv3 {
       gasDropoff: arg.gasDropoff,
     }) as const satisfies RootQuery);
 
-    const allowanceQueries = [...new Set(tokens).values()].map(token => (
+    const requestedTokens = new Set(tokens);
+    const allowanceQueries = [...requestedTokens.values()].map(token => (
       token !== "GasToken"
       ? {
         query: "AllowanceTokenBridge",
@@ -370,16 +383,33 @@ export class Tbrv3 {
       } as const satisfies RootQuery
     ));
 
-    const queryResults = await this.query([...relayFeeQueries, ...allowanceQueries]);
+    requestedTokens.has("GasToken");
+    const requestGasTokenAddress = requestedTokens.has("GasToken")
+      ? [{
+        query: "GasToken"
+      } as const satisfies RootQuery]
+      : [];
 
-    const ret = {allowances: {} as Record<string, bigint>, feeEstimations: [] as FeeEstimation[]} satisfies RelayingFeeResult;
+    const queryResults = await this.query([
+      ...requestGasTokenAddress,
+      ...relayFeeQueries,
+      ...allowanceQueries,
+    ]);
+
+    const ret = {
+      allowances: {} as Record<string, bigint>,
+      feeEstimations: [] as FeeEstimation[],
+      gasTokenAddress: undefined as EvmAddress | undefined,
+    } satisfies RelayingFeeResult;
     for (const qRes of queryResults)
       if (qRes.query === "RelayFee") {
         const {result, ...args} = qRes;
         ret.feeEstimations.push({...result, ...args});
       }
       else if (qRes.query === "GasTokenAllowanceTokenBridge")
-        ret.allowances["GasToken"] = qRes.result;
+        ret.allowances[ret.gasTokenAddress!.toString()] = qRes.result;
+      else if (qRes.query === "GasToken")
+        (ret as RelayingFeeResult).gasTokenAddress = qRes.result;
       else
         ret.allowances[qRes.inputToken.toString()] = qRes.result;
 

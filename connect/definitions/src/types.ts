@@ -40,7 +40,7 @@ export interface TransferParams<C extends Chain> {
 }
 
 export type RelayingFeesParams = {
-  token: UniversalAddress;
+  token: UniversalAddress | "GasToken";
   gasDropoff: bigint;
   targetChain: SupportedChains;
 };

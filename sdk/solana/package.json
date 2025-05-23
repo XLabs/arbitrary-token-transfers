@@ -1,6 +1,6 @@
 {
   "name": "@xlabs-xyz/solana-arbitrary-token-transfers",
-  "version": "0.0.2-alpha12",
+  "version": "0.0.2-alpha13",
   "license": "Apache 2",
   "type": "module",
   "module": "ts-build/solana/tbrv3/token-bridge-relayer.js",
@@ -26,14 +26,14 @@
     "@solana/spl-token": "^0.4.13",
     "@solana/web3.js": "^1.98.1",
     "@xlabs-xyz/common-arbitrary-token-transfer": "workspace:*",
-    "@xlabs-xyz/solana-price-oracle-sdk": "^0.0.24"
+    "@xlabs-xyz/solana-price-oracle-sdk": "^0.0.26"
   },
   "devDependencies": {
     "@types/node": "20.17.5",
-    "@wormhole-foundation/sdk-base": "^1.4.5",
-    "@wormhole-foundation/sdk-definitions": "^1.4.5",
-    "@wormhole-foundation/sdk-solana": "^1.4.5",
-    "@wormhole-foundation/sdk-solana-tokenbridge": "^1.4.5",
+    "@wormhole-foundation/sdk-base": "^1.20.0",
+    "@wormhole-foundation/sdk-definitions": "^1.20.0",
+    "@wormhole-foundation/sdk-solana": "^1.20.0",
+    "@wormhole-foundation/sdk-solana-tokenbridge": "^1.20.0",
     "tsx": "^4.19.3",
     "typescript": "^5.8.3"
   },
